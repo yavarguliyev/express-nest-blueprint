@@ -1,0 +1,57 @@
+import * as jwt from 'jsonwebtoken';
+
+import { Injectable } from '@common/decorators';
+import { BadRequestException, UnauthorizedException } from '@common/exceptions';
+import { JwtPayload } from '@common/interfaces';
+import { JwtRegisteredClaim, TimeUnit } from '@common/types';
+
+@Injectable()
+export class JwtService {
+  private readonly secret: string;
+  private readonly expiresIn: string;
+
+  constructor () {
+    if (!process.env.JWT_SECRET) throw new BadRequestException('JWT_SECRET must be defined in environment variables');
+
+    this.secret = process.env.JWT_SECRET;
+    this.expiresIn = process.env.JWT_EXPIRES_IN ?? '24h';
+  }
+
+  sign (payload: Omit<JwtPayload, JwtRegisteredClaim>): string {
+    return jwt.sign(payload, this.secret, {
+      expiresIn: this.expiresIn,
+      algorithm: 'HS256'
+    } as jwt.SignOptions);
+  }
+
+  verify (token: string): JwtPayload {
+    try {
+      const decoded = jwt.verify(token, this.secret, { algorithms: ['HS256'] });
+      if (typeof decoded === 'string') throw new UnauthorizedException('Invalid token payload');
+
+      return decoded as unknown as JwtPayload;
+    } catch (error) {
+      if (error instanceof jwt.TokenExpiredError) throw new UnauthorizedException('Token has expired');
+      if (error instanceof jwt.JsonWebTokenError) throw new UnauthorizedException('Invalid token');
+      throw new UnauthorizedException('Token verification failed');
+    }
+  }
+
+  getExpiresInSeconds (): number {
+    const match = this.expiresIn.match(/^(\d+)([smhd])$/);
+    if (!match) return 24 * 60 * 60;
+
+    const value = match[1];
+    const unit = match[2] as TimeUnit;
+    const num = Number(value);
+
+    const UNIT_TO_SECONDS: Record<TimeUnit, number> = {
+      s: 1,
+      m: 60,
+      h: 3600,
+      d: 86400
+    };
+
+    return num * UNIT_TO_SECONDS[unit];
+  }
+}

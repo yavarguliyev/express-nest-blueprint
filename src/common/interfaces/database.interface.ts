@@ -1,0 +1,33 @@
+import { DatabaseType } from '@common/enums';
+
+export interface DatabaseAdapter<T = unknown> extends DatabaseConnection {
+  query<R = T>(sql: string, params?: unknown[]): Promise<QueryResult<R>>;
+  transaction<R>(callback: (adapter: DatabaseAdapter<T>) => Promise<R>): Promise<R>;
+}
+
+export interface DatabaseConfig {
+  connectionLimit?: number;
+  database: string;
+  host: string;
+  password: string;
+  port: number;
+  ssl?: boolean;
+  type: DatabaseType;
+  username: string;
+}
+
+export interface DatabaseConnection {
+  connect(): Promise<void>;
+  disconnect(): Promise<void>;
+  isConnected(): boolean;
+}
+
+export interface DatabaseModuleOptions {
+  connectionName?: string;
+  config?: DatabaseConfig;
+}
+
+export interface QueryResult<T = unknown> {
+  rowCount: number;
+  rows: T[];
+}
