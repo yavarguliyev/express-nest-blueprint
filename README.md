@@ -203,13 +203,13 @@ npm run dev
 
 ### Development Mode
 ```bash
-npm run start:dev
+npm run dev
 ```
 
 ### Production Mode
 ```bash
 npm run build
-npm start
+npm run start
 ```
 
 ---
