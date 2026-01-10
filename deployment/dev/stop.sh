@@ -3,7 +3,7 @@
 set -e  # Exit on any error
 
 # Include bootstrap configuration (assuming it's already set up)
-. ../common/bootstrap.sh
+. ../docker-config/bootstrap.sh
 
 echo "Project Name: $PROJECT_NAME"
 echo "================================================"

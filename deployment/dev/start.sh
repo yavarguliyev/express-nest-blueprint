@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-. ../common/bootstrap.sh
+. ../docker-config/bootstrap.sh
 
 docker-compose --project-name $PROJECT_NAME up -d
 

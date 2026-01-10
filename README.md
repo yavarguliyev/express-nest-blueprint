@@ -137,19 +137,36 @@
 
 ## 1. Prerequisites
 * ✅ Node.js (v20.x or higher)
-* ✅ Redis (Running locally or via Docker)
-* ✅ PostgreSQL
+* ✅ Docker & Docker Compose
+* ✅ PostgreSQL & Redis (if running locally)
 
-## 2. Installation
+## 2. Infrastructure Setup (Docker)
+This project uses Docker to manage infrastructure services (Redis and PostgreSQL) with **automated database initialization**.
+
 ```bash
-# Clone the repository
-git clone <repository-url>
+# Navigate to the deployment folder
+cd deployment/dev
 
+# Start the infrastructure (PostgreSQL & Redis)
+# This will automatically run database/schema.sql on first launch
+bash start.sh
+```
+
+### Infrastructure Management Scripts:
+- `bash start.sh`: Boots up the containers and runs migrations automatically.
+- `bash stop.sh`: Safely stops the infrastructure.
+- `bash remove.sh`: Wipes containers and volumes (useful for a fresh database state).
+
+## 3. Application Setup
+```bash
 # Install dependencies
 npm install
 
 # Setup environment
 cp .env.example .env
+
+# Run the app (API mode)
+npm run dev
 ```
 
 ---
