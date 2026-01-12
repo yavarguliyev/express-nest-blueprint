@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 
 import { providerResolvers } from '@common/container/provider-resolvers.const';
 import { INJECTABLE_METADATA } from '@common/decorators';

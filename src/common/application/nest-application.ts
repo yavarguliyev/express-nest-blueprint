@@ -5,7 +5,7 @@ import { Server } from 'http';
 import { METHODS, paramHandlers } from '@common/constants';
 import { Container } from '@common/container';
 import { CONTROLLER_METADATA, PARAM_METADATA, ROUTE_METADATA } from '@common/decorators';
-import { BadRequestException, UnauthorizedException } from '@common/exceptions';
+import { BadRequestException, InternalServerErrorException, UnauthorizedException } from '@common/exceptions';
 import { GlobalExceptionFilter } from '@common/filters';
 import { AuthGuard, RolesGuard } from '@common/guards';
 import { CONTROLLER_REGISTRY } from '@common/helpers';
@@ -173,7 +173,7 @@ export class NestApplication {
                 void attemptListen().then(resolve).catch(reject);
               }, 500);
             } else {
-              const errorReason = error instanceof Error ? error : new Error(String(error));
+              const errorReason = error instanceof Error ? error : new InternalServerErrorException(String(error));
               reject(errorReason);
             }
           })();

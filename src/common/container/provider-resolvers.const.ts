@@ -1,20 +1,20 @@
-import 'reflect-metadata';
 
 import { INJECT_METADATA } from '@common/decorators';
+import { BadRequestException } from '@common/exceptions/http-exceptions';
 import type { Constructor, ProviderResolver, ProviderType } from '@common/types/common.type';
 
 export const providerResolvers: Record<ProviderType, ProviderResolver> = {
   value: (entry) => {
-    if (entry.type !== 'value') throw new Error('Invalid provider type');
+    if (entry.type !== 'value') throw new BadRequestException('Invalid provider type');
     return entry.value;
   },
   factory: (entry, container) => {
-    if (entry.type !== 'factory') throw new Error('Invalid provider type');
+    if (entry.type !== 'factory') throw new BadRequestException('Invalid provider type');
     const deps = entry.inject.map((dep) => container.resolve({ provide: dep }));
     return entry.factory(...deps);
   },
   class: (entry, container) => {
-    if (entry.type !== 'class') throw new Error('Invalid provider type');
+    if (entry.type !== 'class') throw new BadRequestException('Invalid provider type');
     const paramTypes = (Reflect.getMetadata('design:paramtypes', entry.target) || []) as Constructor[];
     const injectTokens = (Reflect.getMetadata(INJECT_METADATA, entry.target) || []) as Constructor[];
 

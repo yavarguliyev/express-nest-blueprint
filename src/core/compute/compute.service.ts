@@ -2,7 +2,7 @@ import { Worker, Job, QueueEvents } from 'bullmq';
 
 import { Container } from '@common/container';
 import { Injectable, Inject, BULLMQ_OPTIONS, COMPUTE_MODULE_OPTIONS } from '@common/decorators';
-import { BadRequestException } from '@common/exceptions';
+import { BadRequestException, ServiceUnavailableException } from '@common/exceptions';
 import { BullMQModuleOptions, ComputeHandler, ComputeModuleOptions, PatchedMethod, ComputeJobData } from '@common/interfaces';
 import { Logger } from '@common/logger';
 import { Constructor } from '@common/types';
@@ -52,7 +52,7 @@ export class ComputeService {
     this.queueEvents.on('failed', ({ jobId, failedReason }) => {
       const pending = this.pendingJobs.get(jobId);
       if (pending) {
-        pending.reject(new Error(failedReason));
+        pending.reject(new ServiceUnavailableException(failedReason));
         this.pendingJobs.delete(jobId);
       }
     });

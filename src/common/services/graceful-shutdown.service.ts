@@ -3,18 +3,20 @@ import http from 'http';
 import { GracefulShutDownServiceConfig } from '@common/interfaces';
 import { RetryHelper, getErrorMessage } from '@common/helpers';
 import { Logger } from '@common/logger';
-import { gracefulShutdownConfig } from '@core/config';
 
 export class GracefulShutdownService {
   private readonly logger = new Logger('System');
   private readonly services: GracefulShutDownServiceConfig[];
 
-  private readonly shutdownTimeout = gracefulShutdownConfig.SHUT_DOWN_TIMER;
-  private readonly maxRetries = gracefulShutdownConfig.SHUTDOWN_RETRIES;
-  private readonly retryDelay = gracefulShutdownConfig.SHUTDOWN_RETRY_DELAY;
+  private readonly shutdownTimeout: number;
+  private readonly maxRetries: number;
+  private readonly retryDelay: number;
 
-  constructor (services: GracefulShutDownServiceConfig[]) {
+  constructor (services: GracefulShutDownServiceConfig[], config?: { shutdownTimeout: number, maxRetries: number, retryDelay: number }) {
     this.services = services;
+    this.shutdownTimeout = config?.shutdownTimeout || 3000;
+    this.maxRetries = config?.maxRetries || 3;
+    this.retryDelay = config?.retryDelay || 1000;
   }
 
   public async shutDown (httpServer?: http.Server): Promise<void> {

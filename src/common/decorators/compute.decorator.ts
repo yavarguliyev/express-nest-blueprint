@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 
 import { ComputeOptions } from '@common/interfaces';
 

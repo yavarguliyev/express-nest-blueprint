@@ -4,17 +4,29 @@ import { BadRequestException } from '@common/exceptions';
 import { StorageModuleOptions } from '@core/storage/storage.interface';
 import { S3StorageStrategy } from '@core/storage/strategies/s3-storage.strategy';
 import { StorageService } from '@core/storage/storage.service';
+import { ConfigService } from '@core/config';
 
 @Module({})
 export class StorageModule {
-  static forRoot (options: StorageModuleOptions): DynamicModule {
+  static forRoot (): DynamicModule {
     return {
       module: StorageModule,
       global: true,
       providers: [
         {
           provide: STORAGE_OPTIONS,
-          useValue: options
+          useFactory: ((configService: ConfigService) => ({
+            strategy: configService.get<string>('STORAGE_STRATEGY', 's3') as 's3' | 'local',
+            s3: {
+              endpoint: configService.get<string>('STORAGE_ENDPOINT'),
+              accessKeyId: configService.get<string>('STORAGE_ACCESS_KEY', ''),
+              secretAccessKey: configService.get<string>('STORAGE_SECRET_KEY', ''),
+              region: configService.get<string>('STORAGE_REGION', 'us-east-1'),
+              bucketName: configService.get<string>('STORAGE_BUCKET_NAME', 'express-nest-blueprint'),
+              forcePathStyle: configService.get<string>('STORAGE_FORCE_PATH_STYLE') === 'true'
+            }
+          })) as (...args: unknown[]) => unknown,
+          inject: [ConfigService]
         },
         {
           provide: StorageService,

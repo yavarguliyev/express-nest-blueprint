@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 
 import { CONTROLLER_METADATA } from '@common/decorators';
 import { registerControllerClass } from '@common/helpers';

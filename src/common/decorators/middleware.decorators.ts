@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 
 import { Constructor } from '@common/types';
 

@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 
 import { Injectable } from '@common/decorators';
 import { Container } from '@common/container';

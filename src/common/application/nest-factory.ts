@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 
 import { NestApplication } from '@common/application';
 import { Container } from '@common/container';

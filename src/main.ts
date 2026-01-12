@@ -1,6 +1,4 @@
 import 'reflect-metadata';
-import { config } from 'dotenv';
-config();
 
 import { ConfigService } from '@core/config';
 import { NestFactory } from '@common/application';

@@ -1,21 +1,39 @@
 import { Module, BULLMQ_OPTIONS } from '@common/decorators';
-import { BullMQModuleOptions, DynamicModule } from '@common/interfaces';
+import { DynamicModule } from '@common/interfaces';
 import { RedisService } from '@core/redis/redis.service';
 import { LifecycleService } from '@core/lifecycle/lifecycle.service';
+import { ConfigService } from '@core/config';
 
 @Module({
   providers: [RedisService],
   exports: [RedisService]
 })
 export class RedisModule {
-  static forRoot (options: BullMQModuleOptions): DynamicModule {
+  static forRoot (): DynamicModule {
     return {
       module: RedisModule,
       global: true,
       providers: [
         {
           provide: BULLMQ_OPTIONS,
-          useValue: options
+          useFactory: ((configService: ConfigService) => ({
+            redis: {
+              host: configService.get<string>('REDIS_HOST', 'localhost'),
+              port: configService.get<number>('REDIS_PORT', 6379),
+              password: configService.get<string>('REDIS_PASSWORD', ''),
+              db: configService.get<number>('REDIS_DB', 0)
+            },
+            defaultJobOptions: {
+              removeOnComplete: 100,
+              removeOnFail: 50,
+              attempts: 3,
+              backoff: {
+                type: 'exponential',
+                delay: 2000
+              }
+            }
+          })) as (...args: unknown[]) => unknown,
+          inject: [ConfigService]
         },
         RedisService,
         {

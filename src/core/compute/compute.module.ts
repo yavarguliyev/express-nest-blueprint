@@ -4,11 +4,11 @@ import { Module, COMPUTE_MODULE_OPTIONS } from '@common/decorators';
 import { AppRoles } from '@common/enums';
 import { spawnWorker } from '@common/helpers';
 import { DynamicModule, ComputeModuleOptions } from '@common/interfaces';
-import { computeConfig } from '@core/config';
 import { BullMQModule } from '@core/bullmq/bullmq.module';
 import { ComputeExplorer } from '@core/compute/compute.explorer';
 import { ComputeService } from '@core/compute/compute.service';
 import { LifecycleService } from '@core/lifecycle';
+import { ConfigService } from '@core/config';
 
 @Module({
   imports: [],
@@ -16,7 +16,7 @@ import { LifecycleService } from '@core/lifecycle';
   exports: []
 })
 export class ComputeModule {
-  static forRoot (options: ComputeModuleOptions = { enableWorker: true, enableApi: true }): DynamicModule {
+  static forRoot (): DynamicModule {
     return {
       module: ComputeModule,
       global: true,
@@ -24,15 +24,27 @@ export class ComputeModule {
       providers: [
         {
           provide: COMPUTE_MODULE_OPTIONS,
-          useValue: options
+          useFactory: ((configService: ConfigService) => {
+            const role = configService.get<string>('APP_ROLE', AppRoles.API) as AppRoles;
+            const autoSpawn = configService.get<boolean>('COMPUTE_AUTO_SPAWN', true);
+            
+            return {
+              enableWorker: role === AppRoles.WORKER || !role,
+              enableApi: role !== AppRoles.WORKER,
+              autoSpawn: autoSpawn,
+              workerMinCount: configService.get<number>('COMPUTE_MIN_WORKERS', 3),
+              workerMaxCount: configService.get<number>('COMPUTE_MAX_WORKERS', 8)
+            };
+          }) as (...args: unknown[]) => unknown,
+          inject: [ConfigService]
         },
         ComputeService,
         ComputeExplorer,
         {
           provide: 'COMPUTE_INITIALIZER',
           useFactory: (...args: unknown[]): (() => void) => {
-            const [explorer, computeService, lifecycleService] = args as [ComputeExplorer, ComputeService, LifecycleService];
-            const role = computeConfig.COMPUTE_APP_ROLE;
+            const [explorer, computeService, lifecycleService, options, configService] = args as [ComputeExplorer, ComputeService, LifecycleService, ComputeModuleOptions, ConfigService];
+            const role = configService.get<string>('APP_ROLE', AppRoles.API) as AppRoles;
 
             return () => {
               computeService.start();
@@ -46,7 +58,14 @@ export class ComputeModule {
                     const entryPoint = require.main?.filename ?? process.argv[1] ?? '';
                     if (!entryPoint) return;
 
-                    const count = Math.min(Math.max(options.workerMinCount ?? 3, 1), Math.max(options.workerMaxCount ?? 10, 1));
+                    if (!entryPoint) return;
+
+                    const computedOptions = {
+                        workerMinCount: configService.get<number>('COMPUTE_MIN_WORKERS', 3),
+                        workerMaxCount: configService.get<number>('COMPUTE_MAX_WORKERS', 8)
+                    };
+
+                    const count = Math.min(Math.max(computedOptions.workerMinCount ?? 3, 1), Math.max(computedOptions.workerMaxCount ?? 10, 1));
 
                     for (let i = 0; i < count; i++) {
                       const workerProcess = spawnWorker(entryPoint);
@@ -79,7 +98,7 @@ export class ComputeModule {
               }
             };
           },
-          inject: [ComputeExplorer, ComputeService, LifecycleService]
+          inject: [ComputeExplorer, ComputeService, LifecycleService, COMPUTE_MODULE_OPTIONS, ConfigService]
         }
       ],
       exports: [ComputeService, 'COMPUTE_INITIALIZER']

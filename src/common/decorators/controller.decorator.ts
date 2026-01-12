@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 
 import { INJECTABLE_METADATA } from '@common/decorators/injectable.decorator';
 import { registerControllerClass } from '@common/helpers';

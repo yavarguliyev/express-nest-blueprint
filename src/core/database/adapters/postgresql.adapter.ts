@@ -1,7 +1,7 @@
 import { Pool, PoolClient } from 'pg';
 
 import { Injectable } from '@common/decorators/injectable.decorator';
-import { InternalServerErrorException } from '@common/exceptions';
+import { InternalServerErrorException, ServiceUnavailableException } from '@common/exceptions';
 import { DatabaseAdapter, DatabaseConfig, QueryResult } from '@common/interfaces';
 import { TransactionAdapter } from '@core/database/adapters/transaction.adapter';
 
@@ -45,7 +45,7 @@ export class PostgreSQLAdapter implements DatabaseAdapter {
     try {
       const disconnectPromise = this.pool.end();
       const timeoutPromise = new Promise<void>((_, reject) => {
-        setTimeout(() => reject(new Error('Database disconnect timeout')), 2000);
+        setTimeout(() => reject(new ServiceUnavailableException('Database disconnect timeout')), 2000);
       });
 
       await Promise.race([disconnectPromise, timeoutPromise]);

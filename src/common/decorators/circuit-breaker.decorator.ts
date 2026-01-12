@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 
 export const CIRCUIT_BREAKER_METADATA = 'circuit:breaker';
 

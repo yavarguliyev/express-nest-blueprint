@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 
 import { JobHandlerOptions, QueueMetadata } from '@common/interfaces';
 
