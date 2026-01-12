@@ -109,6 +109,15 @@ export class ComputeService {
     return method.apply(instance, args);
   }
 
+  public getStatus () {
+    return {
+      workerEnabled: !!this.worker,
+      workerStatus: this.worker ? (this.worker.isRunning() ? 'running' : 'stopped') : 'not_initialized',
+      pendingJobsCount: this.pendingJobs.size,
+      handlersCount: this.handlers.size
+    };
+  }
+
   public async close (): Promise<void> {
     if (this.worker) await this.worker.close();
     if (this.queueEvents) await this.queueEvents.close();
