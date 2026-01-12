@@ -67,7 +67,7 @@ import { StorageModule } from '@core/storage/storage.module';
           }
         }
       }) as (...args: unknown[]) => Promise<void>,
-      inject: ['LOGGER_INITIALIZER', 'LIFECYCLE_INITIALIZER', 'DATABASE_INITIALIZER', 'REDIS_INITIALIZER', 'CACHE_INITIALIZER', 'COMPUTE_INITIALIZER']
+      inject: ['LOGGER_INITIALIZER', 'LIFECYCLE_INITIALIZER', 'DATABASE_INITIALIZER', 'REDIS_INITIALIZER', 'COMPUTE_INITIALIZER', 'CACHE_INITIALIZER']
     }
   ],
   exports: [JwtService]

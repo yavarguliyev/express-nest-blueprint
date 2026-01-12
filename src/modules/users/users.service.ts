@@ -1,4 +1,4 @@
-import { Injectable, Compute } from '@common/decorators';
+import { Injectable, Compute, Cache } from '@common/decorators';
 import { PaginatedResponseDto } from '@common/dtos';
 import { BadRequestException, NotFoundException } from '@common/exceptions';
 import { ValidationService } from '@common/services';
@@ -9,6 +9,7 @@ import { UsersRepository } from '@modules/users/users.repository';
 export class UsersService {
   constructor (private readonly usersRepository: UsersRepository) {}
 
+  @Cache({ ttl: 60 })
   @Compute({ priority: 1, attempts: 2, removeOnComplete: 50, removeOnFail: 100 })
   async findAll (queryParams: FindUsersQueryDto): Promise<PaginatedResponseDto<UserResponseDto>> {
     const { page = 1, limit = 10, search, email, firstName, lastName, isActive, sortBy = 'id', sortOrder = 'DESC' } = await ValidationService.validateQuery(FindUsersQueryDto, queryParams);
@@ -33,7 +34,7 @@ export class UsersService {
     return { data: responseData, pagination: { page, limit, total, totalPages } };
   }
 
-  @Compute({ priority: 2, attempts: 2, removeOnComplete: 50, removeOnFail: 100 })
+  @Cache({ ttl: 60 })
   async findOne (id: string): Promise<UserResponseDto> {
     const userId = this.parseAndValidateId(id);
     const user = await this.usersRepository.findById(userId);

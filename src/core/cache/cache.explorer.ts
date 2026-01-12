@@ -19,14 +19,14 @@ export class CacheExplorer {
 
       const methods = Object.getOwnPropertyNames(proto);
       for (const methodName of methods) {
-        const method = instance[methodName];
+        if (methodName === 'constructor') continue;
+
+        const method = (proto as Record<string, unknown>)[methodName];
         if (typeof method !== 'function') continue;
 
         const metadata = Reflect.getMetadata(CACHE_METADATA, method) as (CacheOptions & { methodName: string }) | undefined;
 
-        if (metadata) {
-          this.patchMethod(instance, methodName, metadata);
-        }
+        if (metadata) this.patchMethod(instance, methodName, metadata);
       }
     }
   }
@@ -39,9 +39,7 @@ export class CacheExplorer {
       const cacheKey = options.key ?? `${instance.constructor.name}:${methodName}:${JSON.stringify(args)}`;
       const cachedResult = await cacheService.get(cacheKey);
 
-      if (cachedResult !== null) {
-        return cachedResult;
-      }
+      if (cachedResult !== null) return cachedResult;
 
       const result = await originalMethod.apply(this, args);
       await cacheService.set(cacheKey, result, options.ttl);
