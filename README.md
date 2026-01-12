@@ -18,8 +18,10 @@
 10. [API Documentation](#-api-documentation)
 11. [Running the Application](#-running-the-application)
 12. [Usage](#-usage)
-13. [Contributing](#-contributing)
-14. [License](#-license)
+13. [Health Monitoring](#-health-monitoring)
+14. [Local-to-Cloud Migration](#-local-to-cloud-migration)
+15. [Contributing](#-contributing)
+16. [License](#-license)
 
 ---
 
@@ -260,6 +262,57 @@ async uploadAvatar(file: Buffer) {
   await this.storageService.upload('avatars/user-1.png', file);
 }
 ```
+
+---
+
+# 🏥 Health Monitoring
+
+The application includes a built-in health check system to monitor the pulse of all infrastructure components.
+
+### Usage
+Simply call the `/health` endpoint:
+```bash
+curl http://localhost:3000/health
+```
+
+### Monitored Components:
+* **PostgreSQL**: Real-time connection status.
+* **Redis**: Live connectivity check via `PING`.
+* **BullMQ Queues**: Dynamic job counts (active, waiting, failed, etc.).
+* **Compute Workers**: State reporting (running/stopped), pending job counts, and registered handlers.
+
+---
+
+# ☁️ Local-to-Cloud Migration
+
+This project is bridge-ready for cloud deployment. Follow this guide to migrate from the local Docker environment to enterprise cloud services.
+
+### 1. Database (RDS / Managed Postgres)
+* **Local**: Uses `deployment/db/init.sql`.
+* **Migration**:
+  * Point `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, and `DB_NAME` to your managed database instance.
+  * For AWS RDS, ensure the Security Group allows traffic on port 5432 from the API process.
+
+### 2. Caching & Queues (ElastiCache / Managed Redis)
+* **Local**: Single Redis container.
+* **Migration**:
+  * Update `REDIS_HOST` and `REDIS_PORT`.
+  * For production, ensure `REDIS_PASSWORD` is set.
+  * The BullMQ and Cache modules will automatically adapt to the new connection.
+
+### 3. Computation Assets (EC2 / ECS / Kubernetes)
+* **Role Separation**:
+  * Deploy the same codebase but control behavior via `COMPUTE_APP_ROLE`.
+  * **API Process**: Set `COMPUTE_APP_ROLE=api` (Default). This process handles HTTP requests.
+  * **Worker Process**: Set `COMPUTE_APP_ROLE=worker`. This process polls BullMQ and executes heavy tasks.
+* **Scaling**: You can scale workers independently of the API based on queue depth (monitored via `/health`).
+
+### 4. Storage (AWS S3)
+* **Local**: Mocked or local filesystem.
+* **Migration**:
+  * Set `STORAGE_STRATEGY=s3`.
+  * Provide `STORAGE_ACCESS_KEY`, `STORAGE_SECRET_KEY`, and `STORAGE_BUCKET_NAME`.
+  * `StorageService` will transparently switch from local disk to S3 without code changes.
 
 ---
 
