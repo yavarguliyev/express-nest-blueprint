@@ -7,13 +7,13 @@ import { UsersRepository } from '@modules/users/users.repository';
 
 @Injectable()
 export class UsersService {
-  constructor (
-    private readonly usersRepository: UsersRepository
-  ) {}
+  constructor (private readonly usersRepository: UsersRepository) {}
 
   @Compute({ priority: 1, attempts: 2, removeOnComplete: 50, removeOnFail: 100 })
   async findAll (queryParams: FindUsersQueryDto): Promise<PaginatedResponseDto<UserResponseDto>> {
     const { page = 1, limit = 10, search, email, firstName, lastName, isActive, sortBy = 'id', sortOrder = 'DESC' } = await ValidationService.validateQuery(FindUsersQueryDto, queryParams);
+
+    await new Promise((resolve) => setTimeout(resolve, 15000));
 
     const { users, total } = await this.usersRepository.findUsersWithPagination({
       page,
@@ -27,8 +27,6 @@ export class UsersService {
       ...(isActive !== undefined ? { isActiveQuery: isActive } : {})
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 15000));
-
     const totalPages = Math.ceil(total / limit);
     const responseData = ValidationService.transformResponseArray(UserResponseDto, users);
 
@@ -40,8 +38,6 @@ export class UsersService {
     const userId = this.parseAndValidateId(id);
     const user = await this.usersRepository.findById(userId);
     if (!user) throw new NotFoundException(`User with ID ${userId} not found`);
-
-    await new Promise((resolve) => setTimeout(resolve, 15000));
 
     return ValidationService.transformResponse(UserResponseDto, user);
   }

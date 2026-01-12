@@ -1,14 +1,14 @@
 import { ChildProcess } from 'child_process';
 
-import { Module } from '@common/decorators';
-import { DynamicModule, ComputeModuleOptions } from '@common/interfaces';
+import { Module, COMPUTE_MODULE_OPTIONS } from '@common/decorators';
+import { AppRoles } from '@common/enums';
 import { spawnWorker } from '@common/helpers';
+import { DynamicModule, ComputeModuleOptions } from '@common/interfaces';
+import { computeConfig } from '@core/config';
 import { BullMQModule } from '@core/bullmq/bullmq.module';
 import { ComputeExplorer } from '@core/compute/compute.explorer';
 import { ComputeService } from '@core/compute/compute.service';
-import { LifecycleService } from '@core/lifecycle/lifecycle.service';
-import { computeConfig } from '@core/config';
-import { AppRoles } from '@common/enums';
+import { LifecycleService } from '@core/lifecycle';
 
 @Module({
   imports: [],
@@ -23,25 +23,25 @@ export class ComputeModule {
       imports: [BullMQModule.forRoot()],
       providers: [
         {
-          provide: 'COMPUTE_MODULE_OPTIONS',
+          provide: COMPUTE_MODULE_OPTIONS,
           useValue: options
         },
         ComputeService,
         ComputeExplorer,
         {
           provide: 'COMPUTE_INITIALIZER',
-          useFactory: ((...args: unknown[]): () => Promise<void> => {
+          useFactory: ((...args: unknown[]): (() => void) => {
             const explorer = args[0] as ComputeExplorer;
             const computeService = args[1] as ComputeService;
             const lifecycleService = args[2] as LifecycleService;
             const role = computeConfig.COMPUTE_APP_ROLE;
 
-            return async () => {
+            return () => {
               computeService.start();
               explorer.explore();
 
               if (lifecycleService) {
-                lifecycleService.registerShutdownHandler({ name: 'ComputeService', disconnect: () => computeService.close() });
+                lifecycleService.registerShutdownHandler({ name: 'Compute Service', disconnect: () => computeService.close() });
 
                 if (options.enableApi && options.autoSpawn && role === AppRoles.API) {
                   const entryPoint = require.main?.filename ?? process.argv[1] ?? '';

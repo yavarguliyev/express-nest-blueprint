@@ -10,6 +10,7 @@ export class LifecycleService {
   private readonly logger = new Logger('LifecycleService');
   private shutdownHandlers: GracefulShutDownServiceConfig[] = [];
   private httpServer: http.Server | null = null;
+  private isShuttingDown = false;
 
   registerShutdownHandler (handler: GracefulShutDownServiceConfig): void {
     this.shutdownHandlers.push(handler);
@@ -20,7 +21,13 @@ export class LifecycleService {
   }
 
   async executeGracefulShutdown (): Promise<void> {
-    this.logger.log('Initiating graceful shutdown...');
+    if (this.isShuttingDown) {
+      return;
+    }
+
+    this.isShuttingDown = true;
+
+    this.shutdownHandlers.forEach((handler, index) => this.logger.log(`Handler ${index + 1}: ${handler.name}`));
 
     const gracefulShutdown = new GracefulShutdownService(this.shutdownHandlers);
     await gracefulShutdown.shutDown(this.httpServer || undefined);

@@ -6,7 +6,7 @@ import { Logger } from '@common/logger';
 import { gracefulShutdownConfig } from '@core/config';
 
 export class GracefulShutdownService {
-  private readonly logger = new Logger('RetryHelper');
+  private readonly logger = new Logger('GracefulShutdownService');
   private readonly services: GracefulShutDownServiceConfig[];
 
   private readonly shutdownTimeout = gracefulShutdownConfig.SHUT_DOWN_TIMER;

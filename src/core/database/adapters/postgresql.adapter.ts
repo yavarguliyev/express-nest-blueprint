@@ -1,14 +1,15 @@
 import { Pool, PoolClient } from 'pg';
 
 import { Injectable } from '@common/decorators/injectable.decorator';
-import { DatabaseAdapter, DatabaseConfig, QueryResult } from '@common/interfaces/database.interface';
-import { TransactionAdapter } from '@core/database/adapters/transaction.adapter';
 import { InternalServerErrorException } from '@common/exceptions';
+import { DatabaseAdapter, DatabaseConfig, QueryResult } from '@common/interfaces';
+import { TransactionAdapter } from '@core/database/adapters/transaction.adapter';
 
 @Injectable()
 export class PostgreSQLAdapter implements DatabaseAdapter {
   private pool: Pool | null = null;
   private config: DatabaseConfig;
+  private isDisconnecting = false;
 
   constructor (config: DatabaseConfig) {
     this.config = config;
@@ -31,9 +32,25 @@ export class PostgreSQLAdapter implements DatabaseAdapter {
   }
 
   async disconnect (): Promise<void> {
-    if (this.pool) {
-      await this.pool.end();
+    if (!this.pool || this.isDisconnecting) {
+      return;
+    }
+
+    this.isDisconnecting = true;
+
+    try {
+      const disconnectPromise = this.pool.end();
+      const timeoutPromise = new Promise<void>((_, reject) => {
+        setTimeout(() => reject(new Error('Database disconnect timeout')), 2000);
+      });
+
+      await Promise.race([disconnectPromise, timeoutPromise]);
       this.pool = null;
+    } catch (error) {
+      this.pool = null;
+      throw error;
+    } finally {
+      this.isDisconnecting = false;
     }
   }
 

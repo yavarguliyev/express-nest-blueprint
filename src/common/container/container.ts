@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 
-import { INJECT_METADATA, INJECTABLE_METADATA } from '@common/decorators';
+import { providerResolvers } from '@common/container/provider-resolvers.const';
+import { INJECTABLE_METADATA } from '@common/decorators';
 import { BadRequestException } from '@common/exceptions';
 import { RegisterOptions } from '@common/interfaces';
 import { Constructor, Provider } from '@common/types';
@@ -46,34 +47,12 @@ export class Container {
     const entry = this.services.get(provide);
     if (!entry) throw new BadRequestException(`Provider ${String(provide)} not found`);
 
-    let instance: unknown;
+    const resolver = providerResolvers[entry.type];
+    if (!resolver) throw new BadRequestException(`Unknown provider type: ${entry.type}`);
 
-    switch (entry.type) {
-      case 'value': {
-        instance = entry.value;
-        break;
-      }
-      case 'factory': {
-        const deps = entry.inject.map((dep) => this.resolve({ provide: dep }));
-        instance = entry.factory(...deps);
-        break;
-      }
-      case 'class': {
-        const paramTypes = (Reflect.getMetadata('design:paramtypes', entry.target) || []) as Constructor[];
-        const injectTokens = (Reflect.getMetadata(INJECT_METADATA, entry.target) || []) as Constructor[];
-
-        const deps2 = paramTypes.map((dep, index) => {
-          const customToken = injectTokens[index];
-          if (customToken) return this.resolve({ provide: customToken });
-          return this.resolve({ provide: dep });
-        });
-
-        instance = new (entry.target as unknown as new (...args: unknown[]) => unknown)(...deps2);
-        break;
-      }
-    }
-
+    const instance = resolver(entry, this);
     this.singletons.set(provide, instance as object);
+
     return instance as T;
   }
 

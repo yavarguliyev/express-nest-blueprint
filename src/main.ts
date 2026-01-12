@@ -20,9 +20,7 @@ async function bootstrap (): Promise<void> {
       const server = await app.listen(port);
       lifecycleService.setHttpServer(server);
       Logger.log(`🚀 API Server running on http://localhost:${port}`, 'Bootstrap');
-    } else {
-      Logger.log('💪 Background Worker started', 'Bootstrap');
-    }
+    } else Logger.log('💪 Background Worker started', 'Bootstrap');
   } catch (error) {
     Logger.error(`Failed to start application: ${getErrorMessage(error)}`, 'Bootstrap');
     process.exit(1);

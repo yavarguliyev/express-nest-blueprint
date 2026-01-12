@@ -1,6 +1,6 @@
 import winston from 'winston';
 
-import { levelMap } from '@common/constants/common.const';
+import { levelMap } from '@common/constants/system.const';
 import { Injectable } from '@common/decorators/injectable.decorator';
 import { LogLevel } from '@common/enums';
 import { LoggerOptions } from '@common/interfaces/common.interface';

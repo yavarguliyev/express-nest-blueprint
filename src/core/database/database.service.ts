@@ -7,6 +7,8 @@ import { DatabaseAdapter, DatabaseConfig } from '@common/interfaces';
 export class DatabaseService {
   private adapters = new Map<string, DatabaseAdapter>();
   private defaultAdapter: DatabaseAdapter | null = null;
+  private isClosing = false;
+  private isClosed = false;
 
   async addConnection (name: string, config: DatabaseConfig): Promise<void> {
     const AdapterClass = DATABASE_ADAPTER_MAP[config.type];
@@ -27,11 +29,20 @@ export class DatabaseService {
   }
 
   async closeAllConnections (): Promise<void> {
-    const disconnectPromises = Array.from(this.adapters.values()).map((adapter) => adapter.disconnect());
+    if (this.isClosing || this.isClosed) return;
 
-    await Promise.all(disconnectPromises);
-    this.adapters.clear();
-    this.defaultAdapter = null;
+    this.isClosing = true;
+
+    try {
+      const disconnectPromises = Array.from(this.adapters.values()).map((adapter) => adapter.disconnect());
+      await Promise.all(disconnectPromises);
+
+      this.adapters.clear();
+      this.defaultAdapter = null;
+      this.isClosed = true;
+    } finally {
+      this.isClosing = false;
+    }
   }
 
   getConnectionNames (): string[] {

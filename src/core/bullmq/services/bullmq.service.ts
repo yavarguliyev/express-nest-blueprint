@@ -8,22 +8,25 @@ import { QueueManager } from '@core/bullmq/services/queue-manager.service';
 export class BullMQService {
   constructor (private readonly queueManager: QueueManager) {}
 
-  async addJob<T = unknown> (queueName: string, jobName: string, data: T, options?: JobsOptions) {
+  async addJob<T = unknown> (queueName: string, data: T, options?: JobsOptions) {
     const queue = this.queueManager.getQueue(queueName);
     if (!queue) throw new BadRequestException(`Queue ${queueName} not found`);
 
-    return await queue.add(jobName, data, options);
+    return await queue.add('job', data, options);
   }
 
   getQueue (queueName: string): Queue | undefined {
     return this.queueManager.getQueue(queueName);
   }
 
-  async getQueueHealth (queueName: string) {
-    return this.queueManager.getQueueHealth(queueName);
+  async getJobCounts (queueName: string) {
+    const queue = this.queueManager.getQueue(queueName);
+    if (!queue) throw new BadRequestException(`Queue ${queueName} not found`);
+
+    return await queue.getJobCounts();
   }
 
-  async shutdown (): Promise<void> {
+  async closeAll (): Promise<void> {
     await this.queueManager.closeAllQueues();
   }
 }

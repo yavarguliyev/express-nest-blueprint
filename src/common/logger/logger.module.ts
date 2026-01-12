@@ -12,7 +12,7 @@ export class LoggerModule {
       providers: [
         {
           provide: 'LOGGER_INITIALIZER',
-          useFactory: (): (() => Promise<void>) => async () => Logger.setGlobalOptions(config || getLoggerConfig()),
+          useFactory: (): (() => void) => () => Logger.setGlobalOptions(config || getLoggerConfig()),
           inject: []
         }
       ],

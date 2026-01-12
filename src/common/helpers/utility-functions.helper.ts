@@ -13,7 +13,7 @@ export const createMethodMap = (app: Express) => {
     [RequestMethod.PUT]: app.put.bind(app),
     [RequestMethod.DELETE]: app.delete.bind(app),
     [RequestMethod.PATCH]: app.patch.bind(app),
-    [RequestMethod.ALL]: app.use.bind(app),
+    [RequestMethod.ALL]: app.use.bind(app)
   } as Record<RequestMethod, (path: string, handler: RequestHandler) => void>;
 };
 
@@ -40,10 +40,7 @@ export const isNestMiddleware = (value: unknown): value is NestMiddleware => {
 };
 
 export const isMiddlewareConstructor = (value: unknown): value is MiddlewareNewConstructor => {
-  if (typeof value !== 'function' || !value.prototype) {
-    return false;
-  }
-
+  if (typeof value !== 'function' || !value.prototype) return false;
   return isNestMiddleware(value.prototype as Partial<NestMiddleware>);
 };
 

@@ -1,6 +1,6 @@
 import { Module } from '@common/decorators';
-import { LoggerMiddleware } from '@common/middleware';
 import { MiddlewareConsumer, NestModule } from '@common/interfaces';
+import { LoggerMiddleware } from '@common/middleware';
 import { ConfigModule } from '@core/config';
 import { AuthModule } from '@modules/auth/auth.module';
 import { UsersModule } from '@modules/users/users.module';

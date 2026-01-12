@@ -21,9 +21,15 @@ export interface BullMQModuleOptions {
     removeOnComplete?: number;
     removeOnFail?: number;
     attempts?: number;
-    backoff?: { type: 'fixed' | 'exponential' | (string & {}), delay: number };
+    backoff?: { type: 'fixed' | 'exponential' | (string & {}); delay: number };
   };
   workerOptions?: Partial<WorkerOptions>;
+}
+
+export interface ComputeJobData {
+  taskName: string;
+  args: unknown[];
+  timestamp: number;
 }
 
 export interface ComputeModuleOptions {
@@ -75,6 +81,7 @@ export interface QueueMetadata {
 }
 
 export interface QueueHealth {
+  queueName: string;
   waiting: number;
   active: number;
   completed: number;

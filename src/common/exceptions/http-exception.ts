@@ -17,7 +17,7 @@ export class HttpException extends Error {
   }
 
   public initMessage (): void {
-    if (typeof this.response === 'string') this.message = this.response;  
+    if (typeof this.response === 'string') this.message = this.response;
     else if (this.response && typeof this.response === 'object' && 'message' in this.response) {
       const responseMessage = this.response['message'];
       this.message = typeof responseMessage === 'string' ? responseMessage : 'Error';

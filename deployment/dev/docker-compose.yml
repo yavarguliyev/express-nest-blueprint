@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   redis:
@@ -27,6 +27,63 @@ services:
     networks:
       - common
 
+  app-api:
+    build:
+      context: ../../
+      dockerfile: Dockerfile
+    container_name: app_api
+    restart: always
+    environment:
+      - COMPUTE_APP_ROLE=api
+      - COMPUTE_AUTO_SPAWN=false
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - REDIS_HOST=redis
+      - STORAGE_ENDPOINT=minio
+      - STORAGE_PORT=9000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+      - redis
+      - minio
+    networks:
+      - common
+
+  app-worker:
+    build:
+      context: ../../
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      - COMPUTE_APP_ROLE=worker
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - REDIS_HOST=redis
+      - STORAGE_ENDPOINT=minio
+      - STORAGE_PORT=9000
+    depends_on:
+      - postgres
+      - redis
+      - minio
+    networks:
+      - common
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio_container
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=minio_admin
+      - MINIO_ROOT_PASSWORD=minio_password
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - common
+
 networks:
   common:
     driver: bridge
@@ -34,3 +91,4 @@ networks:
 volumes:
   postgres_data:
   redis_data:
+  minio_data:

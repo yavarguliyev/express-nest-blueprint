@@ -41,7 +41,7 @@ export class NestApplication {
       post: this.app.post.bind(this.app),
       put: this.app.put.bind(this.app),
       delete: this.app.delete.bind(this.app),
-      patch: this.app.patch.bind(this.app),
+      patch: this.app.patch.bind(this.app)
     };
 
     methodNames.forEach((methodName) => {
@@ -64,17 +64,29 @@ export class NestApplication {
 
             await Promise.all([
               new Promise<void>((resolve, reject) => {
-                authGuard.canActivate(req, res, (err) => {
-                  if (err) reject(err instanceof Error ? err : new UnauthorizedException(err as string));
-                  else resolve();
-                }, originalMethod, controllerClass);
+                authGuard.canActivate(
+                  req,
+                  res,
+                  (err) => {
+                    if (err) reject(err instanceof Error ? err : new UnauthorizedException(err as string));
+                    else resolve();
+                  },
+                  originalMethod,
+                  controllerClass
+                );
               }),
               new Promise<void>((resolve, reject) => {
-                rolesGuard.canActivate(req, res, (err) => {
-                  if (err) reject(err instanceof Error ? err : new UnauthorizedException(err as string));
-                  else resolve();
-                }, originalMethod, controllerClass);
-              }),
+                rolesGuard.canActivate(
+                  req,
+                  res,
+                  (err) => {
+                    if (err) reject(err instanceof Error ? err : new UnauthorizedException(err as string));
+                    else resolve();
+                  },
+                  originalMethod,
+                  controllerClass
+                );
+              })
             ]);
 
             const args: unknown[] = [];

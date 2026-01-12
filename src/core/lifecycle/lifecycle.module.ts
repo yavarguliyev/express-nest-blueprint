@@ -11,8 +11,8 @@ export class LifecycleModule {
         LifecycleService,
         {
           provide: 'LIFECYCLE_INITIALIZER',
-          useFactory: ((lifecycleService: LifecycleService): (() => Promise<void>) => {
-            return async () => handleProcessSignals({ shutdownCallback: lifecycleService.executeGracefulShutdown.bind(lifecycleService), callbackArgs: [] });
+          useFactory: ((lifecycleService: LifecycleService): (() => void) => {
+            return () => handleProcessSignals({ shutdownCallback: lifecycleService.executeGracefulShutdown.bind(lifecycleService), callbackArgs: [] });
           }) as (...args: unknown[]) => unknown,
           inject: [LifecycleService]
         }

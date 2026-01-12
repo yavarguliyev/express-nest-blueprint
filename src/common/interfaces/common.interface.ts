@@ -1,6 +1,6 @@
 import { LogLevel } from '@common/enums';
 import { MiddlewareConsumer } from '@common/interfaces';
-import { Constructor, InitializerToken, Providers } from '@common/types';
+import { Constructor, AbstractConstructor, InitializerToken, Providers } from '@common/types';
 
 export interface ApiControllerOptions {
   path: string;
@@ -35,6 +35,11 @@ export interface BaseControllerOptions {
   version?: string;
 }
 
+export interface CacheOptions {
+  ttl?: number;
+  key?: string;
+}
+
 export interface ComputeOptions {
   priority?: number;
   delay?: number;
@@ -62,7 +67,7 @@ export interface CorsOptions {
 
 export interface DynamicModule {
   controllers?: Constructor[];
-  exports?: Array<Constructor | InitializerToken | symbol | DynamicModule | Promise<DynamicModule>>;
+  exports?: Array<Constructor | AbstractConstructor | InitializerToken | symbol | DynamicModule | Promise<DynamicModule>>;
   global?: boolean;
   imports?: Array<Constructor | DynamicModule | Promise<DynamicModule>>;
   module: Constructor;
@@ -129,7 +134,7 @@ export interface LoggerOptions {
 
 export interface ModuleMetadata {
   controllers?: Constructor[];
-  exports?: Array<Constructor | string | symbol | DynamicModule | Promise<DynamicModule>>;
+  exports?: Array<Constructor | AbstractConstructor | string | symbol | DynamicModule | Promise<DynamicModule>>;
   global?: boolean;
   imports?: Array<Constructor | DynamicModule | Promise<DynamicModule>>;
   providers?: Providers;

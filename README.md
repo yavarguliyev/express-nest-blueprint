@@ -59,7 +59,8 @@
 #### This application bridges the simplicity of Express.js with the structured power of NestJS. Each core business function is isolated into a dedicated Module, promoting high cohesion and low coupling.
 
 * **Nest-Style Modules**: Features are encapsulated in Modules (`UsersModule`, `AuthModule`, `ComputeModule`) that manage their own providers and exports.
-* **Custom DI Container**: A bespoke Dependency Injection system that handles service resolution, singleton management, and factory providers.
+* **Custom DI Container**: A bespoke Dependency Injection system with handler-based resolution, singleton management, and factory providers.
+* **Intelligent Dependency Management**: Automated circular dependency prevention using leaf-level constants and type-only imports.
 * **Process Separation**: Clear distinction between API (Request Handling) and Worker (Computation) roles within the same codebase.
 * **Queue-Driven Offloading**: Uses BullMQ and Redis as the backbone for reliable, asynchronous processing.
 
@@ -110,6 +111,14 @@
 
 ## 6. Factory Pattern
 * Implemented in module providers to handle complex instance creation with dependencies.
+
+## 7. Caching Decorator Pattern
+* Enhances performance by caching method results in Redis.
+* Simple `@Cache()` annotation for transparent result persistence.
+
+## 8. Strategy Pattern (Storage)
+* Universal storage interface for S3, MinIO, and local filesystem.
+* Easily switchable strategies without changing domain logic.
 
 ---
 
@@ -224,6 +233,31 @@ Simply add the decorator to any async method:
 async heavyTask(data: unknown) {
   // This will automatically run in a background worker!
   await performIntensiveCalculation(data);
+}
+```
+
+---
+
+### Example: Global Caching
+Add `@Cache` to any service method to cache results:
+
+```typescript
+@Cache({ ttl: 3600 })
+async getExpensiveData() {
+  return await this.repo.findVeryHeavyData();
+}
+```
+
+---
+
+### Example: Storage Abstraction
+Inject `StorageService` to handle file operations regardless of provider:
+
+```typescript
+constructor(private readonly storageService: StorageService) {}
+
+async uploadAvatar(file: Buffer) {
+  await this.storageService.upload('avatars/user-1.png', file);
 }
 ```
 

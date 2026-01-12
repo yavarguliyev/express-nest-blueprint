@@ -4,9 +4,9 @@ import { resolve } from 'path';
 
 import { parsers } from '@common/constants';
 import { Injectable } from '@common/decorators/injectable.decorator';
-import { ConfigModuleOptions } from '@common/interfaces';
-import { Logger } from '@common/logger/logger.service';
 import { BadRequestException } from '@common/exceptions';
+import { ConfigModuleOptions } from '@common/interfaces';
+import { Logger } from '@common/logger';
 import { ParserType } from '@common/types';
 
 @Injectable()
@@ -69,7 +69,7 @@ export class ConfigService {
       if (existsSync(envPath)) {
         const result = config({ path: envPath });
 
-        if (result.error) this.logger.error('Failed to load environment file', result.error.message);  
+        if (result.error) this.logger.error('Failed to load environment file', result.error.message);
       } else this.logger.warn(`Environment file not found: ${envPath}`);
     }
 

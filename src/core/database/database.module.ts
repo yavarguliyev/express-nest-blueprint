@@ -1,6 +1,6 @@
-import { getErrorMessage } from '@common/helpers';
 import { Module } from '@common/decorators';
 import { DynamicModule, DatabaseModuleOptions } from '@common/interfaces';
+import { getErrorMessage } from '@common/helpers';
 import { Logger } from '@common/logger';
 import { getDatabaseConfig } from '@core/config';
 import { DatabaseService } from '@core/database/database.service';
@@ -23,7 +23,7 @@ export class DatabaseModule {
         DatabaseService,
         {
           provide: 'DATABASE_INITIALIZER',
-          useFactory: ((databaseService: DatabaseService, lifecycleService: LifecycleService): () => Promise<void> => {
+          useFactory: ((databaseService: DatabaseService, lifecycleService: LifecycleService): (() => Promise<void>) => {
             return async () => {
               try {
                 const dbConfig = config || getDatabaseConfig();

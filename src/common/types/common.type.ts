@@ -2,7 +2,8 @@ import { Job } from 'bullmq';
 import { ClassConstructor } from 'class-transformer';
 import { Request, NextFunction } from 'express';
 
-import { METHODS } from '@common/constants/common.const';
+import { INITIALIZER_TOKENS, METHODS } from '@common/constants/system.const';
+import type { Container } from '@common/container/container';
 import { DatabaseAdapter, DatabaseConfig, DataProcessingJobData, NestMiddleware, ParamMetadata, ReportJobData } from '@common/interfaces';
 
 export type AdapterConstructor = new (config: DatabaseConfig) => DatabaseAdapter;
@@ -10,6 +11,8 @@ export type AdapterConstructor = new (config: DatabaseConfig) => DatabaseAdapter
 export type ClassProvider<T = object> = { type: 'class'; target: Constructor<T> };
 
 export type Constructor<T = object, Args extends unknown[] = never[]> = new (...args: Args) => T;
+
+export type AbstractConstructor<T = object, Args extends unknown[] = never[]> = abstract new (...args: Args) => T;
 
 export type DataProcessingOperation = 'analyze' | 'export' | 'transform';
 
@@ -21,11 +24,11 @@ export type FactoryProvider<T = object> = {
   inject: (Constructor | string | symbol)[];
 };
 
-export type HttpMethod = typeof METHODS[number];
+export type HttpMethod = (typeof METHODS)[number];
 
-export type InitializerToken = 'APP_INITIALIZER' | 'COMPUTE_INITIALIZER' | 'COMPUTE_MODULE_OPTIONS' | 'DATABASE_INITIALIZER' | 'LIFECYCLE_INITIALIZER' | 'LOGGER_INITIALIZER';
+export type InitializerToken = (typeof INITIALIZER_TOKENS)[number];
 
-export type InjectionToken<T = unknown> = Constructor<T> | string | symbol;
+export type InjectionToken<T = unknown> = Constructor<T> | AbstractConstructor<T> | string | symbol;
 
 export type JobBackoffType = 'exponential' | 'fixed';
 
@@ -41,7 +44,7 @@ export type MiddlewareNewConstructor = new () => NestMiddleware;
 
 export type ObjectProvider<T = unknown> = {
   inject?: Array<InitializerToken | symbol | Constructor<unknown>>;
-  provide: InitializerToken | symbol | Constructor<T>;
+  provide: InitializerToken | symbol | Constructor<T> | AbstractConstructor<T>;
   useClass?: Constructor<T>;
   useFactory?: (...args: unknown[]) => T;
   useValue?: T;
@@ -61,6 +64,10 @@ export type PatchedMethod = {
 export type Provider<T = object> = ClassProvider<T> | FactoryProvider<T> | ValueProvider<T>;
 
 export type ProviderOptions<T = unknown> = Constructor<T> | ObjectProvider<T>;
+
+export type ProviderResolver = (entry: Provider, container: Container) => unknown;
+
+export type ProviderType = 'value' | 'factory' | 'class';
 
 export type Providers = Array<ProviderOptions>;
 

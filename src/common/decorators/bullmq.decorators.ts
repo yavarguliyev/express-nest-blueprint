@@ -11,6 +11,8 @@ export const BULLMQ_OPTIONS = Symbol('BULLMQ_OPTIONS');
 export const QUEUE_MANAGER_TOKEN = Symbol('QUEUE_MANAGER');
 export const WORKER_MANAGER_TOKEN = Symbol('WORKER_MANAGER');
 export const BULLMQ_SERVICE_TOKEN = Symbol('BULLMQ_SERVICE');
+export const STORAGE_OPTIONS = Symbol('STORAGE_OPTIONS');
+export const COMPUTE_MODULE_OPTIONS = Symbol('COMPUTE_MODULE_OPTIONS');
 
 export const Processor = (queueName: string) => {
   return (target: object) => {

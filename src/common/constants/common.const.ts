@@ -1,30 +1,12 @@
-
-import { DatabaseType, LogLevel } from '@common/enums/common.enum';
-import { AdapterConstructor, ParamHandler, ParserFn, ParserType, SortBy, SortOrder } from '@common/types/common.type';
-import { PostgreSQLAdapter } from '@core/database/adapters/postgresql.adapter';
+import { DatabaseType } from '@common/enums/common.enum';
 import { ValidationService } from '@common/services/validation.service';
+import { AdapterConstructor, ParamHandler, SortBy, SortOrder } from '@common/types/common.type';
+import { PostgreSQLAdapter } from '@core/database/adapters/postgresql.adapter';
+
+export * from './system.const';
 
 export const DATABASE_ADAPTER_MAP: Record<DatabaseType, AdapterConstructor> = {
   [DatabaseType.POSTGRESQL]: PostgreSQLAdapter
-};
-
-export const METHODS = ['get', 'post', 'put', 'delete', 'patch', 'use'] as const;
-
-export const levelMap: Record<LogLevel, string> = {
-  [LogLevel.ERROR]: 'error',
-  [LogLevel.WARN]: 'warn',
-  [LogLevel.LOG]: 'info',
-  [LogLevel.DEBUG]: 'debug',
-  [LogLevel.VERBOSE]: 'verbose'
-};
-
-export const parsers: Record<ParserType, ParserFn> = {
-  boolean: (v) => v.toLowerCase() === 'true',
-  number: (v, def) => {
-    const n = Number(v);
-    return isNaN(n) ? def : n;
-  },
-  string: (v) => v
 };
 
 export const paramHandlers: Record<string, ParamHandler> = {
@@ -45,15 +27,9 @@ export const paramHandlers: Record<string, ParamHandler> = {
   },
   headers: (param, index, args, _paramTypes, req) => {
     args[index] = param.data ? req.headers[param.data] : req.headers;
-  },
+  }
 };
 
-export const SORT_BY_VALUES: readonly SortBy[] = [
-  'id',
-  'firstName',
-  'lastName',
-  'email',
-  'createdAt'
-];
+export const SORT_BY_VALUES: readonly SortBy[] = ['id', 'firstName', 'lastName', 'email', 'createdAt'];
 
 export const SORT_ORDER_VALUES: readonly SortOrder[] = ['ASC', 'DESC'];

@@ -6,11 +6,20 @@ declare namespace NodeJS {
     SHUT_DOWN_TIMER: string;
     SHUTDOWN_RETRIES: string;
     SHUTDOWN_RETRY_DELAY: string;
-    COMPUTE_AUTO_SPAWN: string;
+
+    // compute configs
     APP_ROLE: string;
     COMPUTE_APP_ROLE: string;
+    COMPUTE_AUTO_SPAWN: string;
     COMPUTE_MIN_WORKERS: string;
     COMPUTE_MAX_WORKERS: string;
+
+    // queue configs
+    QUEUE_REMOVE_ON_COMPLETE: string;
+    QUEUE_REMOVE_ON_FAIL: string;
+    QUEUE_ATTEMPTS: string;
+    QUEUE_BACKOFF_TYPE: string;
+    QUEUE_BACKOFF_DELAY: string;
 
     // JWT configs
     JWT_SECRET: string;
@@ -44,5 +53,14 @@ declare namespace NodeJS {
     DB_USERNAME: string;
     DB_PASSWORD: string;
     DB_CONNECTION_LIMIT: string;
+
+    // storage configs
+    STORAGE_STRATEGY: string;
+    STORAGE_ENDPOINT: string;
+    STORAGE_ACCESS_KEY: string;
+    STORAGE_SECRET_KEY: string;
+    STORAGE_BUCKET_NAME: string;
+    STORAGE_REGION: string;
+    STORAGE_FORCE_PATH_STYLE: string;
   }
 }
