@@ -9,7 +9,7 @@ import { Constructor } from '@common/types';
 export class AuthGuard {
   constructor (private readonly jwtService: JwtService) {}
 
-  canActivate (req: Request, _res: Response, next: NextFunction, originalMethod?: Constructor, controllerClass?: Constructor): void {
+  canActivate (req: Request, _res: Response, next: NextFunction, originalMethod?: object, controllerClass?: Constructor): void {
     const methodIsPublic = (originalMethod && Reflect.getMetadata(IS_PUBLIC_KEY, originalMethod)) as boolean;
     if (methodIsPublic) return next();
 

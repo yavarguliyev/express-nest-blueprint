@@ -3,6 +3,7 @@ import * as jwt from 'jsonwebtoken';
 import { Injectable } from '@common/decorators';
 import { BadRequestException, UnauthorizedException } from '@common/exceptions';
 import { JwtPayload } from '@common/interfaces';
+import { ConfigService } from '@core/config';
 import { JwtRegisteredClaim, TimeUnit } from '@common/types';
 
 @Injectable()
@@ -10,11 +11,12 @@ export class JwtService {
   private readonly secret: string;
   private readonly expiresIn: string;
 
-  constructor () {
-    if (!process.env.JWT_SECRET) throw new BadRequestException('JWT_SECRET must be defined in environment variables');
+  constructor (private readonly configService: ConfigService) {
+    const secret = this.configService.get<string>('JWT_SECRET');
+    if (!secret) throw new BadRequestException('JWT_SECRET must be defined in environment variables');
 
-    this.secret = process.env.JWT_SECRET;
-    this.expiresIn = process.env.JWT_EXPIRES_IN ?? '24h';
+    this.secret = secret;
+    this.expiresIn = this.configService.get<string>('JWT_EXPIRES_IN', '24h');
   }
 
   sign (payload: Omit<JwtPayload, JwtRegisteredClaim>): string {

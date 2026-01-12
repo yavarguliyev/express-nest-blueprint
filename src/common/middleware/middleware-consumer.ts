@@ -6,21 +6,19 @@ import { createMethodMap, isMiddlewareConstructor, isNestMiddleware } from '@com
 import { ControllerOptions, MiddlewareConsumer, MiddlewareConfigProxy, NestMiddleware, RouteInfo, MiddlewareConfig } from '@common/interfaces';
 import { Constructor, MiddlewareFunction, MiddlewareNewConstructor } from '@common/types';
 
+import { Container } from '@common/container';
+
 export class MiddlewareConsumerImpl implements MiddlewareConsumer {
   private middlewareConfigs: MiddlewareConfig[] = [];
 
-  constructor (private app: Express) {}
+  constructor (private app: Express, private container: Container) {}
 
   apply (...middleware: (MiddlewareFunction | NestMiddleware)[]): MiddlewareConfigProxy {
     const config: MiddlewareConfig = { middleware, routes: [], excludeRoutes: [] };
 
-    let routesConfigured = false;
-    let excludeConfigured = false;
-
     const proxy: MiddlewareConfigProxy = {
       forRoutes: (...routes: (string | RouteInfo)[]): MiddlewareConfigProxy => {
         config.routes = routes;
-        routesConfigured = true;
 
         this.middlewareConfigs.push(config);
         this.applyMiddleware(config);
@@ -29,18 +27,10 @@ export class MiddlewareConsumerImpl implements MiddlewareConsumer {
       },
       exclude: (...routes: (string | RouteInfo)[]): MiddlewareConfigProxy => {
         config.excludeRoutes = routes;
-        excludeConfigured = true;
 
         return proxy;
       }
     };
-
-    setTimeout(() => {
-      if (!routesConfigured && !excludeConfigured) {
-        this.middlewareConfigs.push(config);
-        this.applyMiddleware(config);
-      }
-    }, 0);
 
     return proxy;
   }
@@ -73,7 +63,7 @@ export class MiddlewareConsumerImpl implements MiddlewareConsumer {
   private wrapMiddleware (middleware: MiddlewareFunction | NestMiddleware | MiddlewareNewConstructor) {
     return (req: Request, res: Response, next: NextFunction) => {
       try {
-        if (isMiddlewareConstructor(middleware)) return new (middleware as Constructor<NestMiddleware>)().use(req, res, next);
+        if (isMiddlewareConstructor(middleware)) return this.container.resolve({ provide: middleware as Constructor<NestMiddleware> }).use(req, res, next);
         else if (isNestMiddleware(middleware)) return middleware.use(req, res, next);
         else next();
       } catch (error) {

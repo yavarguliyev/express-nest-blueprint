@@ -6,7 +6,7 @@ import { Logger } from '@common/logger';
 import { gracefulShutdownConfig } from '@core/config';
 
 export class GracefulShutdownService {
-  private readonly logger = new Logger('GracefulShutdownService');
+  private readonly logger = new Logger('System');
   private readonly services: GracefulShutDownServiceConfig[];
 
   private readonly shutdownTimeout = gracefulShutdownConfig.SHUT_DOWN_TIMER;
@@ -21,13 +21,40 @@ export class GracefulShutdownService {
     let shutdownTimer;
 
     try {
-      if (httpServer?.listening) await new Promise<void>((resolve, reject) => httpServer.close((err) => (err ? reject(err) : resolve())));
+      this.logger.log('Graceful shutdown initiated...');
+      
+      if (httpServer?.listening) {
+        this.logger.log('Closing HTTP server...');
+        
+        const server = httpServer;
+
+        if ('closeAllConnections' in server && typeof server.closeAllConnections === 'function') {
+          (server.closeAllConnections as () => void)();
+        }
+
+        if ('closeIdleConnections' in server && typeof server.closeIdleConnections === 'function') {
+          (server.closeIdleConnections as () => void)();
+        }
+
+        await new Promise<void>((resolve) => {
+          server.close((err) => {
+            if (err) this.logger.error(`Error closing HTTP server: ${getErrorMessage(err)}`);
+            else this.logger.log('HTTP server closed.');
+            resolve();
+          });
+        });
+      }
+
+      this.logger.log('Disconnecting services...');
       await this.disconnectServices();
+      this.logger.log('All services disconnected.');
+      
       shutdownTimer = this.startShutdownTimer();
     } catch (error) {
-      this.logger.log(`Error during shutdown: ${getErrorMessage(error)}`, 'error');
+      this.logger.error(`Error during shutdown: ${getErrorMessage(error)}`);
     } finally {
       if (shutdownTimer) clearTimeout(shutdownTimer);
+      this.logger.log('Finalizing shutdown. Exit 0.');
       process.exit(0);
     }
   }

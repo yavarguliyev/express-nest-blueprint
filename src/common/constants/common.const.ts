@@ -17,16 +17,22 @@ export const paramHandlers: Record<string, ParamHandler> = {
     } else args[index] = req.body;
   },
   param: (param, index, args, _paramTypes, req) => {
-    args[index] = param.data ? req.params[param.data] : req.params;
+    args[index] = typeof param.data === 'string' ? req.params[param.data] : req.params;
   },
   query: async (param, index, args, paramTypes, req) => {
     if (paramTypes[index] && req.query) {
       const dtoClass = paramTypes[index];
       args[index] = await ValidationService.validateQuery(dtoClass, req.query);
-    } else args[index] = param.data ? req.query[param.data] : req.query;
+    } else args[index] = typeof param.data === 'string' ? req.query[param.data] : req.query;
   },
   headers: (param, index, args, _paramTypes, req) => {
-    args[index] = param.data ? req.headers[param.data] : req.headers;
+    args[index] = typeof param.data === 'string' ? req.headers[param.data] : req.headers;
+  },
+  request: (_param, index, args, _paramTypes, req) => {
+    args[index] = req;
+  },
+  response: (_param, index, args, _paramTypes, _req, res) => {
+    args[index] = res;
   }
 };
 

@@ -42,3 +42,10 @@ export class UnauthorizedException extends HttpException {
     super(HttpException.createBody(objectOrError ?? ({} as Record<string, unknown>), description, 401), 401, httpExceptionOptions);
   }
 }
+
+export class ServiceUnavailableException extends HttpException {
+  constructor (objectOrError?: string | Record<string, unknown>, descriptionOrOptions?: string | HttpExceptionOptions) {
+    const { description, httpExceptionOptions } = HttpException.extractDescriptionAndOptionsFrom(descriptionOrOptions);
+    super(HttpException.createBody(objectOrError ?? ({} as Record<string, unknown>), description, 503), 503, httpExceptionOptions);
+  }
+}

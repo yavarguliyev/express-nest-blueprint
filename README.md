@@ -20,8 +20,10 @@
 12. [Usage](#-usage)
 13. [Health Monitoring](#-health-monitoring)
 14. [Local-to-Cloud Migration](#-local-to-cloud-migration)
-15. [Contributing](#-contributing)
-16. [License](#-license)
+15. [Testing & Validation](#-testing--validation)
+16. [Observability (Prometheus)](#-observability-prometheus)
+17. [Contributing](#-contributing)
+18. [License](#-license)
 
 ---
 
@@ -49,6 +51,10 @@
   * A strictly ordered, awaited startup sequence ensuring all dependencies (DB, Redis, Logger) are ready before the app accepts traffic.
 * **Universal Graceful Shutdown**
   * Centralized lifecycle management for clean disconnection of DB, Redis, and child processes on termination signals.
+* **Circuit Breaker Pattern**
+  * Automatic failure detection and temporary service isolation (e.g., Database) to prevent cascading failures.
+* **Port Reliability (Search & Destroy)**
+  * Self-healing development environment ensuring deterministic startup by strictly eliminating zombie processes.
 
 ---
 
@@ -90,6 +96,7 @@
 * **Custom Decorators**: Support for `@Injectable`, `@Module`, `@Inject`, and `@Compute`.
 * **Centralized Logging**: Structured, console-based logging with diagnostic prefixes.
 * **Strict Role detection**: Automatic role assignment for parent and child processes.
+* **Rate Limiting (Throttling)**: Intelligent request limiting based on IP and User ID, secured by Redis.
 * **Error Handling**: Standardized Exception Filters and BadRequest/NotFound exception classes.
 
 ---
@@ -121,6 +128,10 @@
 ## 8. Strategy Pattern (Storage)
 * Universal storage interface for S3, MinIO, and local filesystem.
 * Easily switchable strategies without changing domain logic.
+
+## 9. Circuit Breaker Pattern
+* Prevents the application from repeatedly trying to execute an operation that's likely to fail.
+* Wraps external calls (Database, Redis) to fail fast and recover gracefully.
 
 ---
 
@@ -316,7 +327,48 @@ This project is bridge-ready for cloud deployment. Follow this guide to migrate 
 
 ---
 
-# 🤝 Contributing
+# � Testing & Validation
+
+The project includes specialized scripts to validate system performance and protection mechanisms.
+
+### 🛡️ Rate Limiting Test (Throttling)
+Validates that the Redis-backed throttler correctly blocks excessive traffic.
+```bash
+# Sends 55 requests rapidly (Limit: 50/min)
+node scripts/test-throttling.js
+```
+*   **Expected Outcome**: 50 successful requests (200 OK) followed by 5 blocked requests (**429 Too Many Requests**).
+
+### ⚡ Stress Test (@Compute Offloading)
+Simulates a high-concurrency scenario to verify parallel processing and API responsiveness.
+```bash
+# Authenticates and sends 5 concurrent heavy requests
+node scripts/stress-test.js
+```
+*   **Validation**: 
+    - Check terminal logs to see workers handling jobs in parallel.
+    - Call `GET /health` during the test to see the BullMQ queue depth.
+
+---
+
+# 📊 Observability (Prometheus)
+
+Deep visibility into application performance and system health.
+
+### Usage
+Prometheus metrics are exposed via a standard scraping endpoint:
+```bash
+curl http://localhost:3000/metrics
+```
+
+### Metrics Collected:
+*   **HTTP Metrics**: Total request counts, latency histograms, and status code distribution (via `MetricsMiddleware`).
+*   **Process Metrics**: CPU usage, memory heap stats, and garbage collection timing.
+*   **Node.js Runtime**: Event loop lag and active handle counts.
+
+---
+
+# �🤝 Contributing
 1. Fork the project.
 2. Create your feature branch (`git checkout -b feature/amazing-feature`).
 3. Commit your changes (`git commit -m 'Add amazing feature'`).

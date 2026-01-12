@@ -10,10 +10,21 @@ export class LifecycleService {
   private readonly logger = new Logger('LifecycleService');
   private shutdownHandlers: GracefulShutDownServiceConfig[] = [];
   private httpServer: http.Server | null = null;
+  private workerStarter?: () => void;
   private isShuttingDown = false;
 
   registerShutdownHandler (handler: GracefulShutDownServiceConfig): void {
     this.shutdownHandlers.push(handler);
+  }
+
+  registerWorkerStarter (starter: () => void): void {
+    this.workerStarter = starter;
+  }
+
+  startWorkers (): void {
+    if (this.workerStarter) {
+      this.workerStarter();
+    }
   }
 
   setHttpServer (server: http.Server): void {

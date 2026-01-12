@@ -23,6 +23,8 @@ export class NestFactory {
     await factory.registerModule({ moduleOrConfig: moduleClass }, container);
     const app = new NestApplication(container);
     await factory.configureModuleMiddleware(moduleClass, app, container);
+    
+    app.init();
 
     if (container.has('APP_INITIALIZER')) {
       const initializer = container.resolve<Promise<void>>({ provide: 'APP_INITIALIZER' });
@@ -104,21 +106,11 @@ export class NestFactory {
     const moduleInstance = container.resolve({ provide: moduleClass });
 
     if (this.isNestModule(moduleInstance)) {
-      const middlewareConsumer = new MiddlewareConsumerImpl(app.getExpressApp());
+      const middlewareConsumer = new MiddlewareConsumerImpl(app.getExpressApp(), container);
       const originalApply = middlewareConsumer.apply.bind(middlewareConsumer);
 
       middlewareConsumer.apply = (...middleware) => {
         const proxy = originalApply(...middleware);
-
-        setTimeout(() => {
-          const routes = [] as (string | Constructor | { path: string; method?: string })[];
-          const excludeRoutes = [] as (string | { path: string; method?: string })[];
-          const config = { middleware, routes, excludeRoutes };
-          type Config = typeof config;
-
-          (middlewareConsumer as MiddlewareConsumerImpl & { applyGlobalMiddleware: (config: Config) => void }).applyGlobalMiddleware(config);
-        }, 0);
-
         return proxy;
       };
 

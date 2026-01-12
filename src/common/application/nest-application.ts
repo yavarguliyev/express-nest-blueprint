@@ -11,6 +11,7 @@ import { AuthGuard, RolesGuard } from '@common/guards';
 import { CONTROLLER_REGISTRY } from '@common/helpers';
 import { ControllerOptions, CorsOptions, ExtractMethodOptions, HasMethodOptions, ParamMetadata, RouteMetadata } from '@common/interfaces';
 import { JwtService } from '@common/services';
+import { Logger } from '@common/logger';
 import { Constructor, HttpMethod } from '@common/types';
 
 export class NestApplication {
@@ -24,6 +25,9 @@ export class NestApplication {
     this.container = container;
     this.setupBasicMiddleware();
     this.setupPathValidation();
+  }
+
+  public init (): void {
     this.initialize();
   }
 
@@ -53,7 +57,7 @@ export class NestApplication {
         if (!this.isValidRoutePath(fullPath) || this.hasInvalidPathSyntax(fullPath)) return;
         if (!this.hasMethod({ instance: controllerInstance, methodName })) return;
 
-        const originalMethod = this.extractMethod({ instance: controllerInstance, methodName: methodName as keyof typeof controllerInstance }) as unknown as Constructor;
+        const originalMethod = this.extractMethod({ instance: controllerInstance, methodName: methodName as keyof typeof controllerInstance }) as (...args: unknown[]) => Promise<unknown>;
         const paramMetadata = (Reflect.getMetadata(PARAM_METADATA as symbol, controllerClass.prototype as object, methodName) || []) as ParamMetadata[];
 
         const handler = async (req: Request, res: Response, next: NextFunction) => {
@@ -94,10 +98,21 @@ export class NestApplication {
 
             for (const param of paramMetadata.sort((a, b) => a.index - b.index)) {
               const fn = paramHandlers[param.type];
-              if (fn) await fn(param, param.index, args, paramTypes, req);
+              if (fn) await fn(param, param.index, args, paramTypes, req, res, next);
             }
 
-            const result = await (originalMethod as unknown as (...args: unknown[]) => unknown).apply(controllerInstance, args);
+            const result = await originalMethod.apply(controllerInstance, args);
+
+            if (res.headersSent) return;
+
+            const hasPassthrough = paramMetadata.some(
+              (param) => param.type === 'response' && typeof param.data === 'object' && param.data !== null && (param.data as { passthrough?: boolean }).passthrough
+            );
+
+            if (hasPassthrough) {
+              if (result !== undefined) res.send(result);
+              return;
+            }
 
             res.json({ success: true, data: result, message: 'Operation completed successfully' });
           } catch (err) {
@@ -131,8 +146,42 @@ export class NestApplication {
     return this.app;
   }
 
-  async listen (port: number): Promise<Server> {
-    return new Promise((resolve) => (this.server = this.app.listen(port, () => resolve(this.server!))));
+  async listen (port: number, host?: string): Promise<Server> {
+    const maxRetries = 30;
+    let retries = 0;
+    const logger = new Logger('Bootstrap');
+
+    const attemptListen = (): Promise<Server> => {
+      return new Promise((resolve, reject) => {
+        const server = this.app.listen(port, host as string, () => {
+          this.server = server;
+          resolve(server);
+        });
+
+        server.once('error', (err: unknown) => {
+          void (async () => {
+            const error = err as Error & { code?: string };
+            if (error.code === 'EADDRINUSE' && retries < maxRetries) {
+              retries++;
+              logger.warn(`Port ${port} is busy, retrying (${retries}/${maxRetries}) in 500ms...`);
+              
+              await new Promise<void>((closeResolve) => {
+                server.close(() => closeResolve());
+              });
+
+              setTimeout(() => {
+                void attemptListen().then(resolve).catch(reject);
+              }, 500);
+            } else {
+              const errorReason = error instanceof Error ? error : new Error(String(error));
+              reject(errorReason);
+            }
+          })();
+        });
+      });
+    };
+
+    return attemptListen();
   }
 
   get<T extends object> (provide: Constructor<T> | string | symbol): T {
@@ -250,22 +299,29 @@ export class NestApplication {
     const methods: HttpMethod[] = [...METHODS];
 
     methods.forEach((method) => {
-      const appAsRecord = this.app as unknown as Record<string, (...args: unknown[]) => unknown>;
-      const methodFunction = appAsRecord[method];
-      if (!methodFunction || typeof methodFunction !== 'function') return;
-      const originalMethod = methodFunction.bind(this.app);
+      const key = method as keyof Express;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const methodFunction = this.app[key];
+      
+      if (typeof methodFunction !== 'function') return;
+      
+      type ExpressMethod = (path: string, ...handlers: RequestHandler[]) => Express;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      const originalMethod = methodFunction.bind(this.app) as ExpressMethod;
 
-      appAsRecord[method] = (...args: unknown[]): unknown => {
-        if (args.length > 0 && typeof args[0] === 'string' && this.hasInvalidPathSyntax(args[0])) return this.app;
+      const overriddenMethod = (path: string, ...handlers: RequestHandler[]): Express => {
+        if (typeof path === 'string' && this.hasInvalidPathSyntax(path)) return this.app;
 
         try {
-          return originalMethod(...args);
+          return originalMethod(path, ...handlers);
         } catch (error: unknown) {
-          const pathError = error as Error & { message: string };
+          const pathError = error as Error;
           if (pathError.message && pathError.message.includes('Missing parameter name')) return this.app;
           throw error;
         }
       };
+
+      Object.assign(this.app, { [method]: overriddenMethod });
     });
   }
 }

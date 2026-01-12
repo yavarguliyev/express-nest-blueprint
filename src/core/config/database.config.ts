@@ -10,6 +10,9 @@ export const getDatabaseConfig = (): DatabaseConfig => {
     password: process.env.DB_PASSWORD || 'password',
     database: process.env.DB_NAME || 'express_nestjs_app',
     ssl: process.env.NODE_ENV === 'production',
-    connectionLimit: parseInt(process.env.DB_CONNECTION_LIMIT || '10', 10)
+    connectionLimit: parseInt(process.env['DB_CONNECTION_LIMIT'] || '10', 10),
+    minLimit: parseInt(process.env['DB_MIN_LIMIT'] || '2', 10),
+    idleTimeoutMillis: parseInt(process.env['DB_IDLE_TIMEOUT'] || '30000', 10),
+    connectionTimeoutMillis: parseInt(process.env['DB_CONNECTION_TIMEOUT'] || '2000', 10)
   };
 };

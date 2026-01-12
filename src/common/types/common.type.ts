@@ -1,6 +1,6 @@
 import { Job } from 'bullmq';
 import { ClassConstructor } from 'class-transformer';
-import { Request, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 
 import { INITIALIZER_TOKENS, METHODS } from '@common/constants/system.const';
 import type { Container } from '@common/container/container';
@@ -50,7 +50,7 @@ export type ObjectProvider<T = unknown> = {
   useValue?: T;
 };
 
-export type ParamHandler = (param: ParamMetadata, index: number, args: unknown[], paramTypes: ClassConstructor<object>[], req: Request) => void | Promise<void>;
+export type ParamHandler = (param: ParamMetadata, index: number, args: unknown[], paramTypes: ClassConstructor<object>[], req: Request, res: Response, next: NextFunction) => void | Promise<void>;
 
 export type ParserType = 'boolean' | 'number' | 'string';
 

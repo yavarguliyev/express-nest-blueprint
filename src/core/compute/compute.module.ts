@@ -30,10 +30,8 @@ export class ComputeModule {
         ComputeExplorer,
         {
           provide: 'COMPUTE_INITIALIZER',
-          useFactory: ((...args: unknown[]): (() => void) => {
-            const explorer = args[0] as ComputeExplorer;
-            const computeService = args[1] as ComputeService;
-            const lifecycleService = args[2] as LifecycleService;
+          useFactory: (...args: unknown[]): (() => void) => {
+            const [explorer, computeService, lifecycleService] = args as [ComputeExplorer, ComputeService, LifecycleService];
             const role = computeConfig.COMPUTE_APP_ROLE;
 
             return () => {
@@ -44,28 +42,43 @@ export class ComputeModule {
                 lifecycleService.registerShutdownHandler({ name: 'Compute Service', disconnect: () => computeService.close() });
 
                 if (options.enableApi && options.autoSpawn && role === AppRoles.API) {
-                  const entryPoint = require.main?.filename ?? process.argv[1] ?? '';
-                  if (!entryPoint) return;
+                  lifecycleService.registerWorkerStarter(() => {
+                    const entryPoint = require.main?.filename ?? process.argv[1] ?? '';
+                    if (!entryPoint) return;
 
-                  const count = Math.min(Math.max(options.workerMinCount ?? 3, 1), Math.max(options.workerMaxCount ?? 10, 1));
+                    const count = Math.min(Math.max(options.workerMinCount ?? 3, 1), Math.max(options.workerMaxCount ?? 10, 1));
 
-                  for (let i = 0; i < count; i++) {
-                    const workerProcess = spawnWorker(entryPoint);
+                    for (let i = 0; i < count; i++) {
+                      const workerProcess = spawnWorker(entryPoint);
 
-                    if (workerProcess instanceof ChildProcess) {
-                      lifecycleService.registerShutdownHandler({
-                        name: `WorkerProcess-${i + 1}`,
-                        disconnect: () => {
-                          workerProcess.kill('SIGTERM');
-                          return Promise.resolve();
-                        }
-                      });
+                      if (workerProcess instanceof ChildProcess) {
+                        lifecycleService.registerShutdownHandler({
+                          name: `WorkerProcess-${i + 1}`,
+                          disconnect: async () => {
+                            if (workerProcess.killed || workerProcess.exitCode !== null) return;
+                            
+                            return new Promise<void>((resolve) => {
+                              const timer = setTimeout(() => {
+                                workerProcess.kill('SIGKILL');
+                                resolve();
+                              }, 1000);
+
+                              workerProcess.once('exit', () => {
+                                clearTimeout(timer);
+                                resolve();
+                              });
+                              
+                              workerProcess.kill('SIGTERM');
+                            });
+                          }
+                        });
+                      }
                     }
-                  }
+                  });
                 }
               }
             };
-          }) as (...args: unknown[]) => unknown,
+          },
           inject: [ComputeExplorer, ComputeService, LifecycleService]
         }
       ],

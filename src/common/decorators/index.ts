@@ -2,6 +2,7 @@ export * from './auth.decorator';
 export * from './bullmq.decorators';
 export * from './catch.decorator';
 export * from './cache.decorator';
+export * from './circuit-breaker.decorator';
 export * from './compute.decorator';
 export * from './controller.decorator';
 export * from './injectable.decorator';

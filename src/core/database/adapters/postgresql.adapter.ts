@@ -25,10 +25,14 @@ export class PostgreSQLAdapter implements DatabaseAdapter {
       password: this.config.password,
       database: this.config.database,
       ssl: this.config.ssl,
-      max: this.config.connectionLimit || 10
+      max: this.config.connectionLimit || 10,
+      min: this.config.minLimit || 2,
+      idleTimeoutMillis: this.config.idleTimeoutMillis || 30000,
+      connectionTimeoutMillis: this.config.connectionTimeoutMillis || 2000
     });
 
-    await this.pool.connect();
+    const client = await this.pool.connect();
+    client.release();
   }
 
   async disconnect (): Promise<void> {

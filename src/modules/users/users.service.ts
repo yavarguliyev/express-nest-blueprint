@@ -14,7 +14,7 @@ export class UsersService {
   async findAll (queryParams: FindUsersQueryDto): Promise<PaginatedResponseDto<UserResponseDto>> {
     const { page = 1, limit = 10, search, email, firstName, lastName, isActive, sortBy = 'id', sortOrder = 'DESC' } = await ValidationService.validateQuery(FindUsersQueryDto, queryParams);
 
-    await new Promise((resolve) => setTimeout(resolve, 15000));
+    // await new Promise((resolve) => setTimeout(resolve, 15000));
 
     const { users, total } = await this.usersRepository.findUsersWithPagination({
       page,

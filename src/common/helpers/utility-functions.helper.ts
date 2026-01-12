@@ -26,9 +26,14 @@ export const getErrorMessage = (error: unknown): string => {
 };
 
 export const handleProcessSignals = <Args extends unknown[]>({ shutdownCallback, callbackArgs }: HandleProcessSignalsOptions<Args>): void => {
-  ['SIGINT', 'SIGTERM', 'SIGUSR2'].forEach((signal) =>
-    process.on(signal, () => {
-      shutdownCallback(...callbackArgs).catch(() => {
+  const role = process.env['APP_ROLE'] as AppRoles;
+  const isWorker = role === AppRoles.WORKER;
+  const signals = isWorker ? ['SIGINT', 'SIGTERM'] : ['SIGINT', 'SIGTERM', 'SIGUSR2'];
+
+  signals.forEach((signal) =>
+    process.once(signal, () => {
+      Logger.log(`Received signal ${signal} (Role: ${role || 'api'})`, 'System');
+      void shutdownCallback(...callbackArgs).catch(() => {
         process.exit(1);
       });
     })
@@ -48,7 +53,10 @@ export const spawnWorker = (modulePath: string): ChildProcess | undefined => {
   const role = process.env['APP_ROLE'] as AppRoles;
 
   if (!role || role === AppRoles.API) {
-    const workerProcess = fork(modulePath, [], { env: { ...process.env, APP_ROLE: AppRoles.WORKER }, execArgv: process.execArgv });
+    const execArgv = process.execArgv.filter((arg) => !arg.includes('--inspect') && !arg.includes('--debug'));
+    const env: NodeJS.ProcessEnv = { ...process.env, APP_ROLE: AppRoles.WORKER };
+    delete env['NODE_OPTIONS'];
+    const workerProcess = fork(modulePath, [], { env, execArgv });
 
     workerProcess.on('error', (err) => Logger.error(`Worker process error: ${getErrorMessage(err)}`, 'Bootstrap'));
     workerProcess.on('exit', (code) => Logger.warn(`Worker process exited with code ${code}`, 'Bootstrap'));

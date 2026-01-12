@@ -145,9 +145,9 @@ export interface NestModule {
 }
 
 export interface ParamMetadata {
-  data?: string | undefined;
+  data?: unknown;
   index: number;
-  type: 'body' | 'headers' | 'param' | 'query';
+  type: 'body' | 'headers' | 'param' | 'query' | 'request' | 'response';
 }
 
 export interface RegisterModuleOptions {

@@ -7,6 +7,9 @@ export interface DatabaseAdapter<T = unknown> extends DatabaseConnection {
 
 export interface DatabaseConfig {
   connectionLimit?: number;
+  minLimit?: number;
+  idleTimeoutMillis?: number;
+  connectionTimeoutMillis?: number;
   database: string;
   host: string;
   password: string;

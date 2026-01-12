@@ -1,8 +1,8 @@
-import { Injectable } from '@common/decorators';
+import { CircuitBreaker, Injectable } from '@common/decorators';
 import { DatabaseService } from '@core/database/database.service';
 import { FindUsersQueryDto, UserResponseDto } from '@modules/users/dtos';
-import { QueryAllWithPaginationOptions } from '@shared/database/interfaces';
 import { BaseRepository } from '@shared/database/base.repository';
+import { QueryAllWithPaginationOptions } from '@shared/database/interfaces';
 
 @Injectable()
 export class UsersRepository extends BaseRepository<UserResponseDto> {
@@ -24,6 +24,7 @@ export class UsersRepository extends BaseRepository<UserResponseDto> {
     return this.findOne({ email });
   }
 
+  @CircuitBreaker({ key: 'db_postgresql' })
   async findUsersWithPagination (opts: FindUsersQueryDto): Promise<{ users: UserResponseDto[]; total: number }> {
     const { page, limit, search, email, firstName, lastName, isActive, sortBy, sortOrder } = opts;
 

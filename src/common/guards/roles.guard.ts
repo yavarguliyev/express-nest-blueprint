@@ -6,13 +6,13 @@ import { Constructor } from '@common/types';
 
 @Injectable()
 export class RolesGuard {
-  canActivate (req: Request, _res: Response, next: NextFunction, originalMethod?: Constructor, controllerClass?: Constructor): void {
+  canActivate (req: Request, _res: Response, next: NextFunction, originalMethod?: object, controllerClass?: Constructor): void {
     const methodIsPublic = (originalMethod && Reflect.getMetadata(IS_PUBLIC_KEY, originalMethod)) as boolean;
     if (methodIsPublic) return next();
 
-    const methodRoles = (originalMethod && Reflect.getMetadata(ROLES_KEY, originalMethod)) as boolean;
-    const classRoles = (controllerClass && Reflect.getMetadata(ROLES_KEY, controllerClass)) as boolean;
-    const requiredRoles = (methodRoles || classRoles) as unknown as string[];
+    const methodRoles = (originalMethod && Reflect.getMetadata(ROLES_KEY, originalMethod)) as string[] | undefined;
+    const classRoles = (controllerClass && Reflect.getMetadata(ROLES_KEY, controllerClass)) as string[] | undefined;
+    const requiredRoles = methodRoles || classRoles;
 
     if (!requiredRoles || requiredRoles.length === 0) return next();
 
