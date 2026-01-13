@@ -37,7 +37,8 @@ export class Logger {
         const timestampStr = isValidTimestamp ? String(timestampRaw) : '';
         const levelStr = String(info['level']);
         const messageStr = String(info['message']);
-        const contextStr = info['context'] ? ` [${String(info['context'])}]` : '';
+        const context = info['context'];
+        const contextStr = typeof context === 'string' ? ` [${context}]` : '';
 
         return `${timestampStr}${contextStr} [${levelStr}]: ${messageStr}`;
       })

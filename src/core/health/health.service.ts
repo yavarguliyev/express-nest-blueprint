@@ -3,6 +3,7 @@ import { DatabaseService } from '@core/database/database.service';
 import { RedisService } from '@core/redis/redis.service';
 import { QueueManager } from '@core/bullmq/services/queue-manager.service';
 import { ComputeService } from '@core/compute/compute.service';
+import { ServiceUnavailableException } from '@common/exceptions';
 
 @Injectable()
 export class HealthService {
@@ -13,7 +14,7 @@ export class HealthService {
     private readonly computeService: ComputeService
   ) {}
 
-  async checkLive () {
+  checkLive () {
     return {
       status: 'up',
       timestamp: new Date().toISOString()
@@ -27,7 +28,7 @@ export class HealthService {
     const isHealthy = dbStatus.status === 'up' && redisStatus.status === 'up';
 
     if (!isHealthy) {
-      throw new Error('Service not ready: Database or Redis is down');
+      throw new ServiceUnavailableException('Service not ready: Database or Redis is down');
     }
 
     return {
