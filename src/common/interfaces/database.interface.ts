@@ -15,6 +15,7 @@ export interface DatabaseConfig {
   host: string;
   password: string;
   port: number;
+  replicaHosts?: string[];
   ssl?: boolean;
   type: DatabaseType;
   username: string;

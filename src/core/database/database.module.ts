@@ -29,9 +29,8 @@ export class DatabaseModule {
                 const dbConfig = config || getDatabaseConfig();
                 await databaseService.addConnection(connectionName, dbConfig);
 
-                const replicaHosts = process.env['DB_REPLICA_HOSTS'];
-                if (replicaHosts) {
-                  const hosts = replicaHosts.split(',');
+                const hosts = dbConfig.replicaHosts || [];
+                if (hosts.length > 0) {
                   for (let i = 0; i < hosts.length; i++) {
                     await databaseService.addConnection(connectionName, { ...dbConfig, host: hosts[i] || 'localhost' }, true);
                   }

@@ -9,6 +9,7 @@ export const getDatabaseConfig = (): DatabaseConfig => {
     username: process.env['DB_USERNAME'] || 'postgres',
     password: process.env['DB_PASSWORD'] || 'password',
     database: process.env['DB_NAME'] || 'express_nestjs_app',
+    replicaHosts: process.env['DB_REPLICA_HOSTS'] ? process.env['DB_REPLICA_HOSTS'].split(',') : [],
     ssl: process.env['DB_SSL'] === 'true',
     connectionLimit: parseInt(process.env['DB_CONNECTION_LIMIT'] || '10', 10),
     minLimit: parseInt(process.env['DB_MIN_LIMIT'] || '2', 10),
