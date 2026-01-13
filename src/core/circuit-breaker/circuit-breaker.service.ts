@@ -1,11 +1,6 @@
 import { Injectable } from '@common/decorators';
+import { CircuitBreakerState } from '@common/enums';
 import { Logger } from '@common/logger';
-
-export enum CircuitBreakerState {
-  CLOSED = 'CLOSED',
-  OPEN = 'OPEN',
-  HALF_OPEN = 'HALF_OPEN'
-}
 
 @Injectable()
 export class CircuitBreakerService {

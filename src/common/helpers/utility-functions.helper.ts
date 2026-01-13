@@ -2,7 +2,7 @@ import { Express, RequestHandler } from 'express';
 import { ChildProcess, fork } from 'child_process';
 
 import { AppRoles, RequestMethod } from '@common/enums';
-import { HandleProcessSignalsOptions, NestMiddleware } from '@common/interfaces';
+import { HandleProcessSignalsOptions, HasGetResponse, HasGetStatus, NestMiddleware } from '@common/interfaces';
 import { Logger } from '@common/logger';
 import { MiddlewareNewConstructor } from '@common/types';
 
@@ -65,4 +65,12 @@ export const spawnWorker = (modulePath: string): ChildProcess | undefined => {
   }
 
   return undefined;
+};
+
+export const hasGetStatus = (exception: unknown): exception is HasGetStatus => {
+  return typeof exception === 'object' && exception !== null && 'getStatus' in exception && typeof (exception as HasGetStatus).getStatus === 'function';
+};
+
+export const hasGetResponse = (exception: unknown): exception is HasGetResponse => {
+  return typeof exception === 'object' && exception !== null && 'getResponse' in exception && typeof (exception as HasGetResponse).getResponse === 'function';
 };

@@ -80,29 +80,34 @@ export class PostgreSQLAdapter implements DatabaseAdapter {
   async transactionWithRetry<R> (callback: (adapter: DatabaseAdapter) => Promise<R>, retries = 3): Promise<R> {
     if (!this.pool) throw new InternalServerErrorException('Database not connected');
 
-    let lastError: any;
+    let lastError: unknown;
     for (let attempt = 0; attempt < retries; attempt++) {
       const client: PoolClient = await this.pool.connect();
+
       try {
         await client.query('BEGIN');
         const transactionAdapter = new TransactionAdapter(client);
         const result = await callback(transactionAdapter);
         await client.query('COMMIT');
         return result;
-      } catch (error: any) {
+      } catch (error) {
         await client.query('ROLLBACK');
         lastError = error;
 
-        if (error.code === '40P01' || error.code === '40001') {
-          const delay = Math.pow(2, attempt) * 100;
-          await new Promise((resolve) => setTimeout(resolve, delay));
-          continue;
+        if (error && typeof error === 'object' && 'code' in error) {
+          if (error.code === '40P01' || error.code === '40001') {
+            const delay = Math.pow(2, attempt) * 100;
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            continue;
+          }
         }
+
         throw error;
       } finally {
         client.release();
       }
     }
+
     throw lastError;
   }
 }

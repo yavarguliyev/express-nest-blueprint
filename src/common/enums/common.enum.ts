@@ -8,6 +8,12 @@ export enum AppRoles {
   WORKER = 'worker'
 }
 
+export enum CircuitBreakerState {
+  CLOSED = 'CLOSED',
+  OPEN = 'OPEN',
+  HALF_OPEN = 'HALF_OPEN'
+}
+
 export enum DatabaseType {
   POSTGRESQL = 'postgresql'
 }

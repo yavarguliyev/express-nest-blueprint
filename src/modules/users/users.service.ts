@@ -14,7 +14,7 @@ export class UsersService {
   async findAll (queryParams: FindUsersQueryDto): Promise<PaginatedResponseDto<UserResponseDto>> {
     const { page = 1, limit = 10, search, email, firstName, lastName, isActive, sortBy = 'id', sortOrder = 'DESC' } = await ValidationService.validateQuery(FindUsersQueryDto, queryParams);
 
-    await this.simulateHeavyLoad();
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     const { users, total } = await this.usersRepository.findUsersWithPagination({
       page,
@@ -80,15 +80,6 @@ export class UsersService {
     if (!deleted) throw new BadRequestException(`Failed to delete user with ID ${userId}`);
 
     return { message: 'User deleted successfully' };
-  }
-
-  private async simulateHeavyLoad (): Promise<void> {
-    let sum = 0;
-    for (let i = 0; i < 1e8; i++) {
-        sum += i;
-    }
-
-    return Promise.resolve();
   }
 
   private parseAndValidateId (id: string): number {

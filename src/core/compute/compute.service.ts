@@ -3,16 +3,12 @@ import { Worker, Job, QueueEvents } from 'bullmq';
 import { Container } from '@common/container';
 import { Injectable, Inject, BULLMQ_OPTIONS, COMPUTE_MODULE_OPTIONS } from '@common/decorators';
 import { BadRequestException, ServiceUnavailableException } from '@common/exceptions';
-import { BullMQModuleOptions, ComputeHandler, ComputeModuleOptions, PatchedMethod, ComputeJobData, ComputeOptions } from '@common/interfaces';
+import { BullMQModuleOptions, ComputeHandler, ComputeModuleOptions, PatchedMethod, ComputeJobData, ComputeOptions, PendingJob } from '@common/interfaces';
+import { getErrorMessage } from '@common/helpers';
 import { Logger } from '@common/logger';
 import { Constructor } from '@common/types';
 import { BullMQService } from '@core/bullmq/services/bullmq.service';
 import { QueueManager } from '@core/bullmq/services/queue-manager.service';
-
-interface PendingJob {
-  resolve: (value: unknown) => void;
-  reject: (reason: Error) => void;
-}
 
 @Injectable()
 export class ComputeService {
@@ -100,17 +96,17 @@ export class ComputeService {
           new Promise((_, reject) => {
             setTimeout(() => {
               this.pendingJobs.delete(job.id!);
-              reject(new Error(`Task ${taskName} timed out after ${timeout}ms`));
+              reject(new ServiceUnavailableException(`Task ${taskName} timed out after ${timeout}ms`));
             }, timeout);
           })
         ]);
-      } catch (error: any) {
-        this.logger.warn(`⚠️ Compute offloading failed for ${taskName}: ${error.message}. Falling back to local execution.`);
+      } catch (error) {
+        this.logger.warn(`⚠️ Compute offloading failed for ${taskName}: ${getErrorMessage(error)}. Falling back to local execution.`);
         return originalMethod.apply(instance, args);
       }
     };
 
-    (patchedMethod as PatchedMethod).__original__ = originalMethod;
+    (patchedMethod as PatchedMethod).__original__ = originalMethod as (...args: unknown[]) => Promise<unknown>;
     (instance as Record<string, unknown>)[methodName] = patchedMethod;
   }
 

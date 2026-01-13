@@ -132,7 +132,7 @@ export class NestFactory {
     return typeof moduleOrConfig === 'object' && moduleOrConfig !== null && 'module' in moduleOrConfig;
   }
 
-  private isObjectProvider (provider: unknown): provider is import('@common/types').ObjectProvider {
+  private isObjectProvider (provider: unknown): provider is ObjectProvider {
     return typeof provider === 'object' && provider !== null && 'provide' in provider;
   }
 }

@@ -94,3 +94,8 @@ export interface ReportJobData extends BaseJobData {
   filters: Record<string, unknown>;
   reportType: ReportType;
 }
+
+export interface PendingJob {
+  resolve: (value: unknown) => void;
+  reject: (reason: Error) => void;
+}

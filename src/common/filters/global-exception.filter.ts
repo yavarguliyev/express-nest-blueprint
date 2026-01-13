@@ -3,22 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 import { HttpException } from '@common/exceptions';
 import { ArgumentsHostFilter } from '@common/filters';
 import { ArgumentsHost, ExceptionFilter } from '@common/interfaces';
-
-interface HasGetStatus {
-  getStatus (): number;
-}
-
-interface HasGetResponse {
-  getResponse (): string | object;
-}
-
-function hasGetStatus (exception: unknown): exception is HasGetStatus {
-  return typeof exception === 'object' && exception !== null && 'getStatus' in exception && typeof (exception as HasGetStatus).getStatus === 'function';
-}
-
-function hasGetResponse (exception: unknown): exception is HasGetResponse {
-  return typeof exception === 'object' && exception !== null && 'getResponse' in exception && typeof (exception as HasGetResponse).getResponse === 'function';
-}
+import { hasGetResponse, hasGetStatus } from '@common/helpers';
 
 export class GlobalExceptionFilter implements ExceptionFilter {
   catch (exception: unknown, host: ArgumentsHost): void {

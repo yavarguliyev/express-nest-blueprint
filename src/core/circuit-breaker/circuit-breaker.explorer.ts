@@ -3,8 +3,9 @@ import { Injectable } from '@common/decorators';
 import { Container } from '@common/container';
 import { CIRCUIT_BREAKER_METADATA, CircuitBreakerOptions } from '@common/decorators/circuit-breaker.decorator';
 import { ServiceUnavailableException } from '@common/exceptions';
+import { CircuitBreakerState } from '@common/enums';
 import { Logger } from '@common/logger';
-import { CircuitBreakerService, CircuitBreakerState } from '@core/circuit-breaker/circuit-breaker.service';
+import { CircuitBreakerService } from '@core/circuit-breaker/circuit-breaker.service';
 
 @Injectable()
 export class CircuitBreakerExplorer {

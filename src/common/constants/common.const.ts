@@ -3,8 +3,6 @@ import { ValidationService } from '@common/services/validation.service';
 import { AdapterConstructor, ParamHandler, SortBy, SortOrder } from '@common/types/common.type';
 import { PostgreSQLAdapter } from '@core/database/adapters/postgresql.adapter';
 
-export * from './system.const';
-
 export const DATABASE_ADAPTER_MAP: Record<DatabaseType, AdapterConstructor> = {
   [DatabaseType.POSTGRESQL]: PostgreSQLAdapter
 };

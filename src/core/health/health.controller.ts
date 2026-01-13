@@ -1,5 +1,4 @@
 import { Controller, Get } from '@common/decorators';
-import { ServiceUnavailableException } from '@common/exceptions';
 import { HealthService } from '@core/health/health.service';
 
 @Controller('health')
@@ -12,16 +11,12 @@ export class HealthController {
   }
 
   @Get('/live')
-  async getLive () {
+  getLive () {
     return this.healthService.checkLive();
   }
 
   @Get('/ready')
   async getReady () {
-    try {
-      return await this.healthService.checkReady();
-    } catch (error) {
-      throw new ServiceUnavailableException((error as Error).message);
-    }
+    return await this.healthService.checkReady();
   }
 }

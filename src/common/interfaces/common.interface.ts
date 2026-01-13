@@ -185,3 +185,11 @@ export interface WsArgumentsHost {
   getClient<T = unknown>(): T;
   getData<T = unknown>(): T;
 }
+
+export interface HasGetStatus {
+  getStatus (): number;
+}
+
+export interface HasGetResponse {
+  getResponse (): string | object;
+}
