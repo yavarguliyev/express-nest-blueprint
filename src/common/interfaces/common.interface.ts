@@ -66,6 +66,12 @@ export interface CorsOptions {
   origin?: string;
 }
 
+export interface CircuitBreakerOptions {
+  key?: string;
+  threshold?: number;
+  timeout?: number;
+}
+
 export interface DynamicModule {
   controllers?: Constructor[];
   exports?: Array<Constructor | AbstractConstructor | InitializerToken | symbol | DynamicModule | Promise<DynamicModule>>;

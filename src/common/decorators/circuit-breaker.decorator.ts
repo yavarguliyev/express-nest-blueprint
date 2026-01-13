@@ -1,11 +1,6 @@
+import { CircuitBreakerOptions } from '@common/interfaces/common.interface';
 
 export const CIRCUIT_BREAKER_METADATA = 'circuit:breaker';
-
-export interface CircuitBreakerOptions {
-  key?: string;
-  threshold?: number;
-  timeout?: number;
-}
 
 export function CircuitBreaker (options: CircuitBreakerOptions = {}): MethodDecorator {
   return (target: object, propertyKey: string | symbol, descriptor: PropertyDescriptor) => {

@@ -1,4 +1,5 @@
 import { Injectable, Cache, Compute } from '@common/decorators';
+import { DatabaseService } from '@core/database/database.service';
 import { PaginatedResponseDto } from '@common/dtos';
 import { BadRequestException, NotFoundException } from '@common/exceptions';
 import { ValidationService } from '@common/services';
@@ -7,7 +8,10 @@ import { UsersRepository } from '@modules/users/users.repository';
 
 @Injectable()
 export class UsersService {
-  constructor (private readonly usersRepository: UsersRepository) {}
+  constructor (
+    private readonly usersRepository: UsersRepository,
+    private readonly databaseService: DatabaseService
+  ) {}
 
   @Cache({ ttl: 60 })
   @Compute({ timeout: 10000 })
@@ -44,30 +48,32 @@ export class UsersService {
   }
 
   async create (createUserDto: CreateUserDto): Promise<UserResponseDto> {
-    const existingUser = await this.usersRepository.findByEmail(createUserDto.email);
-    if (existingUser) throw new BadRequestException(`User with email ${createUserDto.email} already exists`);
+    return this.databaseService.getWriteConnection().transactionWithRetry(async (transaction) => {
+      const existingUser = await this.usersRepository.findByEmail(createUserDto.email, transaction);
+      if (existingUser) throw new BadRequestException(`User with email ${createUserDto.email} already exists`);
 
-    const createdUser = await this.usersRepository.create(createUserDto, ['id', 'email', 'firstName', 'lastName', 'isActive', 'createdAt', 'updatedAt']);
-    const userResponse = ValidationService.transformResponse(UserResponseDto, createdUser);
-
-    return userResponse;
+      const createdUser = await this.usersRepository.create(createUserDto, ['id', 'email', 'firstName', 'lastName', 'isActive', 'createdAt', 'updatedAt'], transaction);
+      return ValidationService.transformResponse(UserResponseDto, createdUser!);
+    });
   }
 
   async update (id: string, updateUserDto: UpdateUserDto): Promise<UserResponseDto> {
     const userId = this.parseAndValidateId(id);
 
-    const existingUser = await this.usersRepository.findById(userId);
-    if (!existingUser) throw new NotFoundException(`User with ID ${userId} not found`);
+    return this.databaseService.getWriteConnection().transactionWithRetry(async (transaction) => {
+      const existingUser = await this.usersRepository.findById(userId, transaction);
+      if (!existingUser) throw new NotFoundException(`User with ID ${userId} not found`);
 
-    if (updateUserDto.email && updateUserDto.email !== existingUser.email) {
-      const userWithEmail = await this.usersRepository.findByEmail(updateUserDto.email);
-      if (userWithEmail) throw new BadRequestException(`User with email ${updateUserDto.email} already exists`);
-    }
+      if (updateUserDto.email && updateUserDto.email !== existingUser.email) {
+        const userWithEmail = await this.usersRepository.findByEmail(updateUserDto.email, transaction);
+        if (userWithEmail) throw new BadRequestException(`User with email ${updateUserDto.email} already exists`);
+      }
 
-    const updatedUser = await this.usersRepository.update(userId, updateUserDto, ['id', 'email', 'firstName', 'lastName', 'isActive', 'createdAt', 'updatedAt']);
-    if (!updatedUser) throw new BadRequestException(`Failed to update user with ID ${userId}`);
+      const updatedUser = await this.usersRepository.update(userId, updateUserDto, ['id', 'email', 'firstName', 'lastName', 'isActive', 'createdAt', 'updatedAt'], transaction);
+      if (!updatedUser) throw new BadRequestException(`Failed to update user with ID ${userId}`);
 
-    return ValidationService.transformResponse(UserResponseDto, updatedUser);
+      return ValidationService.transformResponse(UserResponseDto, updatedUser);
+    });
   }
 
   async remove (id: string): Promise<{ message: string }> {

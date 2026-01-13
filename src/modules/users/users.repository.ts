@@ -1,4 +1,5 @@
 import { CircuitBreaker, Injectable } from '@common/decorators';
+import { DatabaseAdapter } from '@common/interfaces';
 import { DatabaseService } from '@core/database/database.service';
 import { FindUsersQueryDto, UserResponseDto } from '@modules/users/dtos';
 import { BaseRepository } from '@shared/database/base.repository';
@@ -11,6 +12,7 @@ export class UsersRepository extends BaseRepository<UserResponseDto> {
       firstName: 'first_name',
       lastName: 'last_name',
       isActive: 'is_active',
+      password: 'password_hash',
       createdAt: 'created_at',
       updatedAt: 'updated_at'
     });
@@ -20,8 +22,8 @@ export class UsersRepository extends BaseRepository<UserResponseDto> {
     return ['id', 'email', 'firstName', 'lastName', 'isActive', 'createdAt', 'updatedAt'];
   }
 
-  async findByEmail (email: string): Promise<UserResponseDto | null> {
-    return this.findOne({ email });
+  async findByEmail (email: string, connection?: DatabaseAdapter): Promise<UserResponseDto | null> {
+    return this.findOne({ email }, connection);
   }
 
   @CircuitBreaker({ key: 'db_postgresql' })
