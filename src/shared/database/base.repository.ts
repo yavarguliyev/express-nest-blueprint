@@ -19,7 +19,7 @@ export abstract class BaseRepository<T> {
     const columns = this.getSelectColumns();
     const { query, params } = this.queryBuilder.buildSelectQuery(columns, options);
 
-    const db = this.databaseService.getConnection();
+    const db = this.databaseService.getReadConnection();
     const result = await db.query<T>(query, params);
 
     return result.rows;
@@ -29,7 +29,7 @@ export abstract class BaseRepository<T> {
     const columns = this.getSelectColumns();
     const { query, params } = this.queryBuilder.buildSelectQuery(columns, { where: { id } });
 
-    const db = this.databaseService.getConnection();
+    const db = this.databaseService.getReadConnection();
     const result = await db.query<T>(query, params);
 
     return (result.rows[0] as T) || null;
@@ -39,7 +39,7 @@ export abstract class BaseRepository<T> {
     const columns = this.getSelectColumns();
     const { query, params } = this.queryBuilder.buildSelectQuery(columns, { where });
 
-    const db = this.databaseService.getConnection();
+    const db = this.databaseService.getReadConnection();
     const result = await db.query<T>(query, params);
 
     return (result.rows[0] as T) || null;
@@ -49,7 +49,7 @@ export abstract class BaseRepository<T> {
     const columnsToReturn = returningColumns ?? (this.getSelectColumns() as K[]);
     const { query, params } = this.queryBuilder.buildInsertQuery(data as Record<string, unknown>, columnsToReturn);
 
-    const db = this.databaseService.getConnection();
+    const db = this.databaseService.getWriteConnection();
     const result = await db.query<Pick<T, K>>(query, params);
 
     return (result.rows[0] as T) ?? null;
@@ -59,7 +59,7 @@ export abstract class BaseRepository<T> {
     const columnsToReturn = returningColumns ?? (this.getSelectColumns() as K[]);
     const { query, params } = this.queryBuilder.buildUpdateQuery(id, data as Record<string, unknown>, columnsToReturn.map(String));
 
-    const db = this.databaseService.getConnection();
+    const db = this.databaseService.getWriteConnection();
     const result = await db.query<T>(query, params);
 
     return (result.rows[0] as T) || null;
@@ -68,7 +68,7 @@ export abstract class BaseRepository<T> {
   async delete (id: number): Promise<boolean> {
     const { query, params } = this.queryBuilder.buildDeleteQuery(id);
 
-    const db = this.databaseService.getConnection();
+    const db = this.databaseService.getWriteConnection();
     const result = await db.query(query, params);
 
     return result.rowCount > 0;
@@ -77,7 +77,7 @@ export abstract class BaseRepository<T> {
   async count (options: QueryWithPaginationOptions = {}): Promise<number> {
     const { query, params } = this.queryBuilder.buildCountQuery(options);
 
-    const db = this.databaseService.getConnection();
+    const db = this.databaseService.getReadConnection();
     const result = await db.query<{ count: string }>(query, params);
 
     return parseInt(result.rows[0]?.count as string, 10);

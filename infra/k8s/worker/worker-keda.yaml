@@ -1,0 +1,18 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: worker-scaler
+  namespace: default
+spec:
+  scaleTargetRef:
+    name: worker-deployment
+  minReplicaCount: 2
+  maxReplicaCount: 20
+  triggers:
+  - type: redis
+    metadata:
+      address: redis:6379
+      listName: "bull:compute-queue:wait" # For BullMQ v4/v5, "wait" is the key
+      listLength: "10"
+      enableTLS: "false"
+      databaseIndex: "0"

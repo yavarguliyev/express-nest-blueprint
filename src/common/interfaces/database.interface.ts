@@ -3,6 +3,7 @@ import { DatabaseType } from '@common/enums';
 export interface DatabaseAdapter<T = unknown> extends DatabaseConnection {
   query<R = T>(sql: string, params?: unknown[]): Promise<QueryResult<R>>;
   transaction<R>(callback: (adapter: DatabaseAdapter<T>) => Promise<R>): Promise<R>;
+  transactionWithRetry<R>(callback: (adapter: DatabaseAdapter<T>) => Promise<R>, retries?: number): Promise<R>;
 }
 
 export interface DatabaseConfig {

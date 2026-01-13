@@ -29,6 +29,16 @@ export class DatabaseModule {
                 const dbConfig = config || getDatabaseConfig();
                 await databaseService.addConnection(connectionName, dbConfig);
 
+                const replicaHosts = process.env['DB_REPLICA_HOSTS'];
+                if (replicaHosts) {
+                  const hosts = replicaHosts.split(',');
+                  for (let i = 0; i < hosts.length; i++) {
+                    await databaseService.addConnection(connectionName, { ...dbConfig, host: hosts[i] || 'localhost' }, true);
+                  }
+
+                  DatabaseModule.logger.log(`Initialized ${hosts.length} read replicas for '${connectionName}'`);
+                }
+
                 if (lifecycleService) {
                   const disconnect = async () => await databaseService.closeAllConnections();
                   lifecycleService.registerShutdownHandler({ name: 'Database service', disconnect });

@@ -26,4 +26,8 @@ export class TransactionAdapter implements DatabaseAdapter {
   async transaction<R> (callback: (adapter: DatabaseAdapter) => Promise<R>): Promise<R> {
     return callback(this);
   }
+
+  async transactionWithRetry<R> (callback: (adapter: DatabaseAdapter) => Promise<R>): Promise<R> {
+    return callback(this);
+  }
 }
