@@ -106,6 +106,14 @@ kubectl apply -f "$API_MANIFEST"
 kubectl apply -f ../k8s/api/api-hpa.yaml
 kubectl apply -f "$WORKER_MANIFEST"
 
+# 6.1 Optional KEDA Scaling
+if kubectl api-resources | grep -q "scaledobjects"; then
+    print_info "Applying KEDA scaling for workers..."
+    kubectl apply -f ../k8s/worker/worker-keda.yaml
+else
+    print_warn "KEDA not found in cluster. Skipping auto-scaling (ScaledObject)."
+fi
+
 rm "$API_MANIFEST" "$WORKER_MANIFEST"
 
 print_info "Waiting for Deployments to be available..."
