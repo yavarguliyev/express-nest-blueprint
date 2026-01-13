@@ -12,7 +12,11 @@ import { SharedModule } from '@shared/shared.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+      ignoreEnvFile: process.env.NODE_ENV === 'production'
+    }),
     SharedModule,
     HealthModule,
     ThrottlerModule,
@@ -27,6 +31,7 @@ import { SharedModule } from '@shared/shared.module';
 })
 export class AppModule implements NestModule {
   configure (consumer: MiddlewareConsumer): void {
-    consumer.apply(MetricsMiddleware, LoggerMiddleware, RateLimitMiddleware).forRoutes('*');
+    consumer.apply(MetricsMiddleware, LoggerMiddleware).forRoutes('*');
+    consumer.apply(RateLimitMiddleware).exclude('/health', '/health/live', '/health/ready').forRoutes('*');
   }
 }

@@ -6,7 +6,9 @@ services:
     image: redis:latest
     ports:
       - "6379:6379"
-    command: ["redis-server", "--requirepass", "your_redis_password"]
+    env_file:
+      - .env
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
     restart: always
     volumes:
       - redis_data:/data
@@ -33,14 +35,11 @@ services:
       dockerfile: Dockerfile
     container_name: app_api
     restart: always
+    env_file:
+      - .env
     environment:
-      - COMPUTE_APP_ROLE=api
-      - COMPUTE_AUTO_SPAWN=false
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - REDIS_HOST=redis
-      - STORAGE_ENDPOINT=minio
-      - STORAGE_PORT=9000
+      APP_ROLE: api
+      COMPUTE_APP_ROLE: api
     ports:
       - "3000:3000"
     depends_on:
@@ -55,13 +54,11 @@ services:
       context: ../../
       dockerfile: Dockerfile
     restart: always
+    env_file:
+      - .env
     environment:
-      - COMPUTE_APP_ROLE=worker
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - REDIS_HOST=redis
-      - STORAGE_ENDPOINT=minio
-      - STORAGE_PORT=9000
+      APP_ROLE: worker
+      COMPUTE_APP_ROLE: worker
     depends_on:
       - postgres
       - redis
@@ -75,9 +72,8 @@ services:
     ports:
       - "9000:9000"
       - "9001:9001"
-    environment:
-      - MINIO_ROOT_USER=minio_admin
-      - MINIO_ROOT_PASSWORD=minio_password
+    env_file:
+      - .env
     volumes:
       - minio_data:/data
     command: server /data --console-address ":9001"

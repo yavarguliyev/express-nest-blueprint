@@ -21,9 +21,10 @@
 13. [Health Monitoring](#-health-monitoring)
 14. [Local-to-Cloud Migration](#-local-to-cloud-migration)
 15. [Testing & Validation](#-testing--validation)
-16. [Observability (Prometheus)](#-observability-prometheus)
-17. [Contributing](#-contributing)
-18. [License](#-license)
+17. [Enterprise Orchestration (Kubernetes)](#-enterprise-orchestration-kubernetes)
+18. [Observability (Prometheus)](#-observability-prometheus)
+19. [Contributing](#-contributing)
+20. [License](#-license)
 
 ---
 
@@ -280,11 +281,10 @@ async uploadAvatar(file: Buffer) {
 
 The application includes a built-in health check system to monitor the pulse of all infrastructure components.
 
-### Usage
-Simply call the `/health` endpoint:
-```bash
-curl http://localhost:3000/health
-```
+### Endpoints
+*   **Liveness (`/health/live`)**: Shallow check to ensure the process is responsive.
+*   **Readiness (`/health/ready`)**: Deep check verifying connectivity to PostgreSQL and Redis.
+*   **Legacy Health (`/health`)**: General status overview.
 
 ### Monitored Components:
 * **PostgreSQL**: Real-time connection status.
@@ -348,6 +348,38 @@ node scripts/stress-test.js
 *   **Validation**: 
     - Check terminal logs to see workers handling jobs in parallel.
     - Call `GET /health` during the test to see the BullMQ queue depth.
+
+---
+
+# ☸️ Enterprise Orchestration (Kubernetes)
+
+> [!TIP]
+> For deep-dive technical details on manifests, networking, and deployment logic, see the specialized [Infrastructure & K8s README](infra/README.md).
+
+This project includes a professional-grade Kubernetes suite designed for enterprise scale.
+
+### 1. Key Manifests (`infra/k8s`)
+*   **API**: Scalable deployment with Horizontal Pod Autoscaler (HPA).
+*   **Worker**: Headless background processors.
+*   **PostgreSQL & Redis**: Isolated infrastructure pods.
+*   **NetworkPolicies**: Restricts internal traffic (e.g., only API/Worker can talk to DB).
+
+### 2. Automated Deployment
+Use the professional automation suite to manage your cluster:
+
+```bash
+# Deploy everything (Base, DB, Redis, API, Worker)
+# Automates: Docker builds, manifest application, IP injection, and port-forwarding
+./infra/scripts/deploy.sh
+
+# Clean everything
+./infra/scripts/clean.sh
+```
+
+### 3. Production Hardening
+*   **Structured Logging**: Winston JSON output enabled for cloud aggregation.
+*   **Security**: Non-privileged containers and explicit network policies.
+*   **Resilience**: Intelligent liveness/readiness probes with RateLimit bypass.
 
 ---
 

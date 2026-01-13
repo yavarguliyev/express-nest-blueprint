@@ -1,0 +1,149 @@
+version: '3.8'
+
+services:
+  # ----------------------------------------
+  # Load Balancer (Nginx)
+  # ----------------------------------------
+  nginx:
+    image: nginx:alpine
+    container_name: express_nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    networks:
+      - common
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+  # ----------------------------------------
+  # API Service (Handles HTTP Traffic)
+  # ----------------------------------------
+  api:
+    build:
+      context: ../../
+      dockerfile: Dockerfile
+    image: express-nest-blueprint:latest
+    # container_name: express_api # Removed for scaling
+    restart: unless-stopped
+    # ports: # Removed, Nginx handles port 80
+    #   - "3000:3000"
+    expose:
+      - "3000"
+    env_file:
+      - .env
+    environment:
+      APP_ROLE: API
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - common
+    deploy:
+      replicas: 3 # Scale to 3 instances for high availability
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.2'
+          memory: 128M
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ----------------------------------------
+  # Worker Service (Handles Background Jobs)
+  # ----------------------------------------
+  worker:
+    build:
+      context: ../../
+      dockerfile: Dockerfile
+    image: express-nest-blueprint:latest
+    restart: unless-stopped
+    command: ["node", "dist/main.js"]
+    env_file:
+      - .env
+    environment:
+      APP_ROLE: WORKER
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - common
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "node", "-e", "process.exit(0)"] # Basic liveness for worker
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ----------------------------------------
+  # Database
+  # ----------------------------------------
+  postgres:
+    image: postgres:15-alpine
+    container_name: express_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: express_nest_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - common
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ----------------------------------------
+  # Redis
+  # ----------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: express_redis
+    restart: always
+    networks:
+      - common
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  common:
+    driver: bridge
+
+volumes:
+  postgres_data:

@@ -1,4 +1,4 @@
-import { Injectable, Compute, Cache } from '@common/decorators';
+import { Injectable, Cache, Compute } from '@common/decorators';
 import { PaginatedResponseDto } from '@common/dtos';
 import { BadRequestException, NotFoundException } from '@common/exceptions';
 import { ValidationService } from '@common/services';
@@ -10,11 +10,11 @@ export class UsersService {
   constructor (private readonly usersRepository: UsersRepository) {}
 
   @Cache({ ttl: 60 })
-  @Compute({ priority: 1, attempts: 2, removeOnComplete: 50, removeOnFail: 100 })
+  @Compute()
   async findAll (queryParams: FindUsersQueryDto): Promise<PaginatedResponseDto<UserResponseDto>> {
     const { page = 1, limit = 10, search, email, firstName, lastName, isActive, sortBy = 'id', sortOrder = 'DESC' } = await ValidationService.validateQuery(FindUsersQueryDto, queryParams);
 
-    // await new Promise((resolve) => setTimeout(resolve, 15000));
+    await this.simulateHeavyLoad();
 
     const { users, total } = await this.usersRepository.findUsersWithPagination({
       page,
@@ -80,6 +80,15 @@ export class UsersService {
     if (!deleted) throw new BadRequestException(`Failed to delete user with ID ${userId}`);
 
     return { message: 'User deleted successfully' };
+  }
+
+  private async simulateHeavyLoad (): Promise<void> {
+    let sum = 0;
+    for (let i = 0; i < 1e8; i++) {
+        sum += i;
+    }
+
+    return Promise.resolve();
   }
 
   private parseAndValidateId (id: string): number {

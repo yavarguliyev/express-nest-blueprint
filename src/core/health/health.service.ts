@@ -13,6 +13,33 @@ export class HealthService {
     private readonly computeService: ComputeService
   ) {}
 
+  async checkLive () {
+    return {
+      status: 'up',
+      timestamp: new Date().toISOString()
+    };
+  }
+
+  async checkReady () {
+    const dbStatus = this.checkDatabase();
+    const redisStatus = await this.checkRedis();
+
+    const isHealthy = dbStatus.status === 'up' && redisStatus.status === 'up';
+
+    if (!isHealthy) {
+      throw new Error('Service not ready: Database or Redis is down');
+    }
+
+    return {
+      status: 'up',
+      timestamp: new Date().toISOString(),
+      components: {
+        database: dbStatus,
+        redis: redisStatus
+      }
+    };
+  }
+
   async checkHealth () {
     const dbStatus = this.checkDatabase();
     const redisStatus = await this.checkRedis();

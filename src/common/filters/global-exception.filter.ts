@@ -51,7 +51,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   private getErrorMessage (exception: unknown): string | object {
     if (exception instanceof HttpException) return exception.getResponse();
     if (hasGetResponse(exception)) return exception.getResponse();
-    if (exception instanceof Error) return process.env.NODE_ENV === 'production' ? 'Internal Server Error' : exception.message;
+    if (exception instanceof Error) return process.env['NODE_ENV'] === 'production' ? 'Internal Server Error' : exception.message;
     return 'Internal Server Error';
   }
 

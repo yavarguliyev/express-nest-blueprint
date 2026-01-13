@@ -12,20 +12,6 @@ export class Logger {
   private static winstonLogger: winston.Logger;
   private context?: string | undefined;
 
-  private static format: winston.Logform.Format = winston.format.combine(
-    winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
-    winston.format.colorize({ all: true }),
-    winston.format.printf((info: winston.Logform.TransformableInfo) => {
-      const timestampRaw = info['timestamp'];
-      const isValidTimestamp = typeof timestampRaw === 'string' || typeof timestampRaw === 'number';
-      const timestampStr = isValidTimestamp ? String(timestampRaw) : '';
-      const levelStr = String(info['level']);
-      const messageStr = String(info['message']);
-
-      return `${timestampStr} [${levelStr}]: ${messageStr}`;
-    })
-  );
-
   constructor (context?: string) {
     this.context = context;
 
@@ -34,13 +20,38 @@ export class Logger {
     }
   }
 
+  private static getFormat (): winston.Logform.Format {
+    if (process.env.NODE_ENV === 'production') {
+      return winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.json()
+      );
+    }
+
+    return winston.format.combine(
+      winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
+      winston.format.colorize({ all: true }),
+      winston.format.printf((info: winston.Logform.TransformableInfo) => {
+        const timestampRaw = info['timestamp'];
+        const isValidTimestamp = typeof timestampRaw === 'string' || typeof timestampRaw === 'number';
+        const timestampStr = isValidTimestamp ? String(timestampRaw) : '';
+        const levelStr = String(info['level']);
+        const messageStr = String(info['message']);
+        const contextStr = info['context'] ? ` [${String(info['context'])}]` : '';
+
+        return `${timestampStr}${contextStr} [${levelStr}]: ${messageStr}`;
+      })
+    );
+  }
+
   private static initializeWinston (): void {
     const logLevel = Logger.getWinstonLevel(Logger.globalOptions.logLevel || LogLevel.LOG);
+    const format = this.getFormat();
 
     Logger.winstonLogger = winston.createLogger({
       level: logLevel,
-      format: this.format,
-      transports: [new winston.transports.Console({ level: logLevel, format: this.format })]
+      format,
+      transports: [new winston.transports.Console({ level: logLevel, format })]
     });
   }
 
