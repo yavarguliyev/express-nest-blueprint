@@ -33,7 +33,7 @@ export class ComputeExplorer {
           const taskName = `${String(token)}.${methodName}`;
 
           this.computeService.registerHandler(taskName, { serviceToken, methodName, options });
-          this.computeService.patchMethod(instance, methodName, taskName);
+          this.computeService.patchMethod(instance, methodName, taskName, options);
         }
       }
     }

@@ -10,7 +10,7 @@ export class UsersService {
   constructor (private readonly usersRepository: UsersRepository) {}
 
   @Cache({ ttl: 60 })
-  @Compute()
+  @Compute({ timeout: 10000 })
   async findAll (queryParams: FindUsersQueryDto): Promise<PaginatedResponseDto<UserResponseDto>> {
     const { page = 1, limit = 10, search, email, firstName, lastName, isActive, sortBy = 'id', sortOrder = 'DESC' } = await ValidationService.validateQuery(FindUsersQueryDto, queryParams);
 
@@ -25,7 +25,7 @@ export class UsersService {
       ...(email ? { email } : {}),
       ...(firstName ? { firstName } : {}),
       ...(lastName ? { lastName } : {}),
-      ...(isActive !== undefined ? { isActiveQuery: isActive } : {})
+      ...(isActive !== undefined ? { isActive } : {})
     });
 
     const totalPages = Math.ceil(total / limit);

@@ -47,6 +47,7 @@ export interface ComputeOptions {
   removeOnComplete?: boolean | number;
   removeOnFail?: boolean | number;
   background?: boolean;
+  timeout?: number;
 }
 
 export interface ConfigModuleOptions {

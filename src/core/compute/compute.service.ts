@@ -3,7 +3,7 @@ import { Worker, Job, QueueEvents } from 'bullmq';
 import { Container } from '@common/container';
 import { Injectable, Inject, BULLMQ_OPTIONS, COMPUTE_MODULE_OPTIONS } from '@common/decorators';
 import { BadRequestException, ServiceUnavailableException } from '@common/exceptions';
-import { BullMQModuleOptions, ComputeHandler, ComputeModuleOptions, PatchedMethod, ComputeJobData } from '@common/interfaces';
+import { BullMQModuleOptions, ComputeHandler, ComputeModuleOptions, PatchedMethod, ComputeJobData, ComputeOptions } from '@common/interfaces';
 import { Logger } from '@common/logger';
 import { Constructor } from '@common/types';
 import { BullMQService } from '@core/bullmq/services/bullmq.service';
@@ -72,7 +72,7 @@ export class ComputeService {
     this.handlers.set(taskName, handler);
   }
 
-  public patchMethod<T extends object> (instance: T, methodName: string, taskName: string): void {
+  public patchMethod<T extends object> (instance: T, methodName: string, taskName: string, options: ComputeOptions = {}): void {
     const originalMethod = (instance as Record<string, unknown>)[methodName] as (...args: unknown[]) => Promise<unknown>;
 
     if (!originalMethod || typeof originalMethod !== 'function') throw new BadRequestException(`Method ${methodName} not found on instance`);
@@ -82,15 +82,32 @@ export class ComputeService {
         return originalMethod.apply(instance, args);
       }
 
-      const job = await this.bullMqService.addJob<ComputeJobData>(this.QUEUE_NAME, {
-        taskName,
-        args,
-        timestamp: Date.now()
-      });
+      try {
+        const job = await this.bullMqService.addJob<ComputeJobData>(this.QUEUE_NAME, {
+          taskName,
+          args,
+          timestamp: Date.now()
+        });
 
-      return new Promise((resolve, reject) => {
-        this.pendingJobs.set(job.id!, { resolve, reject });
-      });
+        this.logger.log(`🚀 Offloading task ${taskName} to background (Job ID: ${job.id})`);
+
+        const timeout = options.timeout ?? 5000;
+
+        return await Promise.race([
+          new Promise((resolve, reject) => {
+            this.pendingJobs.set(job.id!, { resolve, reject });
+          }),
+          new Promise((_, reject) => {
+            setTimeout(() => {
+              this.pendingJobs.delete(job.id!);
+              reject(new Error(`Task ${taskName} timed out after ${timeout}ms`));
+            }, timeout);
+          })
+        ]);
+      } catch (error: any) {
+        this.logger.warn(`⚠️ Compute offloading failed for ${taskName}: ${error.message}. Falling back to local execution.`);
+        return originalMethod.apply(instance, args);
+      }
     };
 
     (patchedMethod as PatchedMethod).__original__ = originalMethod;
