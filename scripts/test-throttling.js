@@ -2,7 +2,15 @@ const http = require('http');
 
 const makeRequest = (i) => {
   return new Promise((resolve) => {
-    http.get('http://localhost:3000/health', (res) => {
+    const options = {
+      hostname: 'localhost',
+      port: 3000,
+      path: '/health',
+      headers: {
+        'X-Health-Key': process.env.HEALTH_CHECK_SECRET || 'your_super_secret_jwt_key'
+      }
+    };
+    http.get(options, (res) => {
       console.log(`[Request ${i}] Status: ${res.statusCode} | Remaining: ${res.headers['x-ratelimit-remaining'] || 'N/A'}`);
       resolve(res.statusCode);
     }).on('error', (err) => {

@@ -4,13 +4,12 @@ import { Server } from 'http';
 
 import { METHODS, paramHandlers } from '@common/constants';
 import { Container } from '@common/container';
-import { CONTROLLER_METADATA, PARAM_METADATA, ROUTE_METADATA } from '@common/decorators';
+import { CONTROLLER_METADATA, GUARDS_METADATA, PARAM_METADATA, ROUTE_METADATA } from '@common/decorators';
 import { BadRequestException, InternalServerErrorException, UnauthorizedException } from '@common/exceptions';
 import { GlobalExceptionFilter } from '@common/filters';
 import { AuthGuard, RolesGuard } from '@common/guards';
 import { CONTROLLER_REGISTRY } from '@common/helpers';
-import { ControllerOptions, CorsOptions, ExtractMethodOptions, HasMethodOptions, ParamMetadata, RouteMetadata } from '@common/interfaces';
-import { JwtService } from '@common/services';
+import { CanActivate, ControllerOptions, CorsOptions, ExtractMethodOptions, HasMethodOptions, ParamMetadata, RouteMetadata } from '@common/interfaces';
 import { Logger } from '@common/logger';
 import { Constructor, HttpMethod } from '@common/types';
 
@@ -62,36 +61,27 @@ export class NestApplication {
 
         const handler = async (req: Request, res: Response, next: NextFunction) => {
           try {
-            const jwtService = this.container.resolve({ provide: JwtService });
-            const authGuard = new AuthGuard(jwtService);
-            const rolesGuard = new RolesGuard();
+            const classGuards = (Reflect.getMetadata(GUARDS_METADATA, controllerClass) || []) as Constructor<CanActivate>[];
+            const methodGuards = (Reflect.getMetadata(GUARDS_METADATA, controllerClass.prototype as object, methodName) || []) as Constructor<CanActivate>[];
+            
+            const guardsToRun: Constructor<CanActivate>[] = [AuthGuard, RolesGuard, ...classGuards, ...methodGuards];
 
-            await Promise.all([
-              new Promise<void>((resolve, reject) => {
-                authGuard.canActivate(
+            for (const GuardClass of guardsToRun) {
+              const guardInstance = this.container.resolve<CanActivate>({ provide: GuardClass });
+              
+              await new Promise<void>((resolve, reject) => {
+                void guardInstance.canActivate(
                   req,
                   res,
-                  (err) => {
-                    if (err) reject(err instanceof Error ? err : new UnauthorizedException(err as string));
+                  (err?: Error | string) => {
+                    if (err) reject(err instanceof Error ? err : new UnauthorizedException(String(err)));
                     else resolve();
                   },
                   originalMethod,
                   controllerClass
                 );
-              }),
-              new Promise<void>((resolve, reject) => {
-                rolesGuard.canActivate(
-                  req,
-                  res,
-                  (err) => {
-                    if (err) reject(err instanceof Error ? err : new UnauthorizedException(err as string));
-                    else resolve();
-                  },
-                  originalMethod,
-                  controllerClass
-                );
-              })
-            ]);
+              });
+            }
 
             const args: unknown[] = [];
             const paramTypes = (Reflect.getMetadata('design:paramtypes', controllerClass.prototype as object, methodName) || []) as ClassConstructor<object>[];

@@ -46,12 +46,18 @@ spec:
           httpGet:
             path: /health/live
             port: 3000
+            httpHeaders:
+            - name: X-Health-Key
+              value: "your_super_secret_jwt_key"
           initialDelaySeconds: 15
           periodSeconds: 20
         readinessProbe:
           httpGet:
             path: /health/ready
             port: 3000
+            httpHeaders:
+            - name: X-Health-Key
+              value: "your_super_secret_jwt_key"
           initialDelaySeconds: 5
           periodSeconds: 10
 ---

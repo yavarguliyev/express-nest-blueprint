@@ -2,11 +2,12 @@ import { Request, Response, NextFunction } from 'express';
 
 import { Injectable, IS_PUBLIC_KEY, REQUIRE_AUTH_KEY } from '@common/decorators';
 import { UnauthorizedException } from '@common/exceptions';
+import { CanActivate } from '@common/interfaces';
 import { JwtService } from '@common/services';
 import { Constructor } from '@common/types';
 
 @Injectable()
-export class AuthGuard {
+export class AuthGuard implements CanActivate {
   constructor (private readonly jwtService: JwtService) {}
 
   canActivate (req: Request, _res: Response, next: NextFunction, originalMethod?: object, controllerClass?: Constructor): void {

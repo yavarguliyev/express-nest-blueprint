@@ -8,6 +8,7 @@ import { DatabaseModule } from '@core/database';
 import { LifecycleModule } from '@core/lifecycle';
 import { RedisModule } from '@core/redis/redis.module';
 import { StorageModule } from '@core/storage/storage.module';
+import { AuthGuard, RolesGuard, HeaderAuthGuard } from '@common/guards';
 
 @Module({
   imports: [
@@ -23,6 +24,9 @@ import { StorageModule } from '@core/storage/storage.module';
   providers: [
     LoggerMiddleware,
     JwtService,
+    AuthGuard,
+    RolesGuard,
+    HeaderAuthGuard,
     {
       provide: 'APP_INITIALIZER',
       useFactory: (async (...initializers: Array<() => Promise<void> | void>): Promise<void> => {

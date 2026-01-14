@@ -9,7 +9,11 @@ async function runTest() {
 
   const start = Date.now();
   const requests = Array.from({ length: CONCURRENT_REQUESTS }).map((_, i) => {
-    return axios.get(`${API_URL}/health`) // Health check is fast, let's use /users which has the 15s delay
+    return axios.get(`${API_URL}/health`, {
+      headers: {
+        'X-Health-Key': process.env.HEALTH_CHECK_SECRET || 'your_super_secret_jwt_key'
+      }
+    })
       .then(res => ({ id: i + 1, status: res.status, time: Date.now() - start }))
       .catch(err => ({ id: i + 1, status: err.response?.status || err.code, time: Date.now() - start, error: err.message }));
   });

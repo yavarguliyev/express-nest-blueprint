@@ -57,7 +57,7 @@ services:
           cpus: '0.2'
           memory: 128M
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/health"]
+      test: ["CMD", "wget", "--header", "X-Health-Key: your_super_secret_jwt_key", "--spider", "-q", "http://localhost:3000/health/live"]
       interval: 30s
       timeout: 10s
       retries: 3

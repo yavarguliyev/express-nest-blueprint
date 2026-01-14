@@ -1,7 +1,9 @@
-import { Controller, Get } from '@common/decorators';
+import { Controller, Get, UseGuards } from '@common/decorators';
 import { HealthService } from '@core/health/health.service';
+import { HeaderAuthGuard } from '@common/guards';
 
 @Controller('health')
+@UseGuards(HeaderAuthGuard)
 export class HealthController {
   constructor (private readonly healthService: HealthService) {}
 

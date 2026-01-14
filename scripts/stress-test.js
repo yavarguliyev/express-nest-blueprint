@@ -10,6 +10,7 @@ const request = (method, path, body, token) => {
       method: method,
       headers: {
         'Content-Type': 'application/json',
+        'X-Health-Key': process.env.HEALTH_CHECK_SECRET || 'your_super_secret_jwt_key'
       }
     };
 

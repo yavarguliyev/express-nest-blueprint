@@ -1,6 +1,6 @@
 import { Module } from '@common/decorators';
 import { MiddlewareConsumer, NestModule } from '@common/interfaces';
-import { LoggerMiddleware } from '@common/middleware';
+import { LoggerMiddleware, HeaderAuthMiddleware } from '@common/middleware';
 import { ConfigModule } from '@core/config';
 import { HealthModule } from '@core/health';
 import { MetricsModule, MetricsMiddleware } from '@core/metrics';
@@ -32,6 +32,7 @@ import { SharedModule } from '@shared/shared.module';
 export class AppModule implements NestModule {
   configure (consumer: MiddlewareConsumer): void {
     consumer.apply(MetricsMiddleware, LoggerMiddleware).forRoutes('*');
-    consumer.apply(RateLimitMiddleware).exclude('/health', '/health/live', '/health/ready').forRoutes('*');
+    consumer.apply(RateLimitMiddleware).exclude('/health*', '/metrics*').forRoutes('*');
+    consumer.apply(HeaderAuthMiddleware).forRoutes('*');
   }
 }

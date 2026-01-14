@@ -1,9 +1,11 @@
 import { Response } from 'express';
 
-import { Controller, Get, Res } from '@common/decorators';
+import { Controller, Get, Res, UseGuards } from '@common/decorators';
 import { MetricsService } from '@core/metrics/metrics.service';
+import { HeaderAuthGuard } from '@common/guards';
 
 @Controller('metrics')
+@UseGuards(HeaderAuthGuard)
 export class MetricsController {
   constructor (private readonly metricsService: MetricsService) {}
 
