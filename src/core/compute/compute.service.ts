@@ -85,8 +85,6 @@ export class ComputeService {
           timestamp: Date.now()
         });
 
-        this.logger.log(`🚀 Offloading task ${taskName} to background (Job ID: ${job.id})`);
-
         const timeout = options.timeout ?? 5000;
 
         return await Promise.race([

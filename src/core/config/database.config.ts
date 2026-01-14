@@ -8,7 +8,7 @@ export const getDatabaseConfig = (): DatabaseConfig => {
     port: parseInt(process.env['DB_PORT'] || '5432', 10),
     username: process.env['DB_USERNAME'] || 'postgres',
     password: process.env['DB_PASSWORD'] || 'password',
-    database: process.env['DB_NAME'] || 'express_nestjs_app',
+    database: process.env['DB_NAME'] || 'express_nest_blueprint',
     replicaHosts: process.env['DB_REPLICA_HOSTS'] ? process.env['DB_REPLICA_HOSTS'].split(',') : [],
     ssl: process.env['DB_SSL'] === 'true',
     connectionLimit: parseInt(process.env['DB_CONNECTION_LIMIT'] || '10', 10),

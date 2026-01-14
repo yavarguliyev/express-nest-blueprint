@@ -9,6 +9,7 @@ import { LifecycleModule } from '@core/lifecycle';
 import { RedisModule } from '@core/redis/redis.module';
 import { StorageModule } from '@core/storage/storage.module';
 import { AuthGuard, RolesGuard, HeaderAuthGuard } from '@common/guards';
+import { HeaderAuthMiddleware } from '@common/middleware';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { AuthGuard, RolesGuard, HeaderAuthGuard } from '@common/guards';
     AuthGuard,
     RolesGuard,
     HeaderAuthGuard,
+    HeaderAuthMiddleware,
     {
       provide: 'APP_INITIALIZER',
       useFactory: (async (...initializers: Array<() => Promise<void> | void>): Promise<void> => {
