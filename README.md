@@ -56,6 +56,9 @@
   * Automatic failure detection and temporary service isolation (e.g., Database) to prevent cascading failures.
 * **Port Reliability (Search & Destroy)**
   * Self-healing development environment ensuring deterministic startup by strictly eliminating zombie processes.
+* **Enterprise Resilience**
+  * **Database Read/Write Splitting**: Automatic redirection of traffic (Reads to Replicas, Writes to Primary).
+  * **Transactional Integrity**: Robust `transactionWithRetry` implementation to handle deadlocks and serialization conflicts at 1M+ request scale.
 
 ---
 
@@ -133,6 +136,10 @@
 ## 9. Circuit Breaker Pattern
 * Prevents the application from repeatedly trying to execute an operation that's likely to fail.
 * Wraps external calls (Database, Redis) to fail fast and recover gracefully.
+
+## 10. Migration Strategy Pattern
+* Decouples schema evolution from code deployments using versioned migration files.
+* **Essential Configuration**: Uses `database.json` to map system environment variables for seamless local-to-cloud schema synchronization.
 
 ---
 
