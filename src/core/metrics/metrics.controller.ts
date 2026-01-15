@@ -1,9 +1,10 @@
 import { Response } from 'express';
 
-import { Controller, Get, Res, UseGuards } from '@common/decorators';
+import { Controller, Get, Res, UseGuards, ApiSecurity } from '@common/decorators';
 import { MetricsService } from '@core/metrics/metrics.service';
 import { HeaderAuthGuard } from '@common/guards';
 
+@ApiSecurity('health-key')
 @Controller('metrics')
 @UseGuards(HeaderAuthGuard)
 export class MetricsController {

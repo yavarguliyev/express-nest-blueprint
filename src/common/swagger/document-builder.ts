@@ -1,4 +1,4 @@
-import { SwaggerConfig } from './interfaces/swagger-config.interface';
+import { SwaggerConfig } from '@common/interfaces/swagger-config.interface';
 
 export class DocumentBuilder {
   private config: SwaggerConfig = {
@@ -19,6 +19,22 @@ export class DocumentBuilder {
 
   setVersion (version: string): this {
     this.config.version = version;
+    return this;
+  }
+
+  addApiKey (options: { type: 'apiKey'; name: string; in: 'header' | 'query' | 'cookie'; description?: string }, name: string = 'api_key'): this {
+    this.config.securitySchemes = {
+      ...this.config.securitySchemes,
+      [name]: options
+    };
+    return this;
+  }
+
+  addBearerAuth (options: { type: 'http'; scheme: 'bearer'; bearerFormat?: string; description?: string } = { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, name: string = 'bearer'): this {
+    this.config.securitySchemes = {
+      ...this.config.securitySchemes,
+      [name]: options
+    };
     return this;
   }
 

@@ -1,8 +1,7 @@
 import { Module } from '@common/decorators';
 import { DynamicModule, DatabaseModuleOptions } from '@common/interfaces';
-import { getErrorMessage } from '@common/helpers';
 import { Logger } from '@common/logger';
-import { getDatabaseConfig } from '@core/config';
+import { getDatabaseConfig, ConfigService } from '@core/config';
 import { DatabaseService } from '@core/database/database.service';
 import { LifecycleService } from '@core/lifecycle/lifecycle.service';
 
@@ -23,32 +22,34 @@ export class DatabaseModule {
         DatabaseService,
         {
           provide: 'DATABASE_INITIALIZER',
-          useFactory: ((databaseService: DatabaseService, lifecycleService: LifecycleService): (() => Promise<void>) => {
+          useFactory: ((databaseService: DatabaseService, lifecycleService: LifecycleService, configService: ConfigService): (() => Promise<void>) => {
             return async () => {
-              try {
-                const dbConfig = config || getDatabaseConfig();
-                await databaseService.addConnection(connectionName, dbConfig);
+              const dbConfig = config || getDatabaseConfig();
 
-                const hosts = dbConfig.replicaHosts || [];
-                if (hosts.length > 0) {
-                  for (let i = 0; i < hosts.length; i++) {
-                    await databaseService.addConnection(connectionName, { ...dbConfig, host: hosts[i] || 'localhost' }, true);
-                  }
+              dbConfig.host = configService.get<string>('DB_HOST', dbConfig.host);
+              dbConfig.port = configService.get<number>('DB_PORT', dbConfig.port);
+              dbConfig.username = configService.get<string>('DB_USERNAME', dbConfig.username);
+              dbConfig.password = configService.get<string>('DB_PASSWORD', dbConfig.password);
+              dbConfig.database = configService.get<string>('DB_NAME', dbConfig.database);
 
-                  DatabaseModule.logger.log(`Initialized ${hosts.length} read replicas for '${connectionName}'`);
+              await databaseService.addConnection(connectionName, dbConfig);
+
+              const hosts = dbConfig.replicaHosts || [];
+              if (hosts.length > 0) {
+                for (let i = 0; i < hosts.length; i++) {
+                  await databaseService.addConnection(connectionName, { ...dbConfig, host: hosts[i] || 'localhost' }, true);
                 }
 
-                if (lifecycleService) {
-                  const disconnect = async () => await databaseService.closeAllConnections();
-                  lifecycleService.registerShutdownHandler({ name: 'Database service', disconnect });
-                }
-              } catch (error) {
-                DatabaseModule.logger.error(`Failed to establish database connection '${connectionName}'`, getErrorMessage(error));
-                throw error;
+                DatabaseModule.logger.log(`Initialized ${hosts.length} read replicas for '${connectionName}'`);
+              }
+
+              if (lifecycleService) {
+                const disconnect = async () => await databaseService.closeAllConnections();
+                lifecycleService.registerShutdownHandler({ name: 'Database service', disconnect });
               }
             };
           }) as (...args: unknown[]) => unknown,
-          inject: [DatabaseService, LifecycleService]
+          inject: [DatabaseService, LifecycleService, ConfigService]
         }
       ],
       exports: [DatabaseService, 'DATABASE_INITIALIZER']

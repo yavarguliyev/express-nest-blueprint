@@ -7,7 +7,7 @@ export const getDatabaseConfig = (): DatabaseConfig => {
     host: process.env['DB_HOST'] || 'localhost',
     port: parseInt(process.env['DB_PORT'] || '5432', 10),
     username: process.env['DB_USERNAME'] || 'postgres',
-    password: process.env['DB_PASSWORD'] || 'password',
+    password: process.env['DB_PASSWORD'] || 'postgres',
     database: process.env['DB_NAME'] || 'express_nest_blueprint',
     replicaHosts: process.env['DB_REPLICA_HOSTS'] ? process.env['DB_REPLICA_HOSTS'].split(',') : [],
     ssl: process.env['DB_SSL'] === 'true',

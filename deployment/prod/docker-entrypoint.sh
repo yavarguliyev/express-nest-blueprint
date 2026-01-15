@@ -22,14 +22,24 @@ wait_for_db() {
   return 1
 }
 
-# Only run migrations in production
-if [ "$NODE_ENV" = "production" ]; then
+# Log current environment for debugging
+echo "🌍 Detected NODE_ENV: $NODE_ENV"
+
+# Always wait for database if host and port are provided
+if [ -n "$DB_HOST" ] && [ -n "$DB_PORT" ]; then
   wait_for_db
+fi
+
+# Only run migrations in production
+# Converting to lowercase for robust check
+NODE_ENV_LOWER=$(echo "$NODE_ENV" | tr '[:upper:]' '[:lower:]')
+
+if [ "$NODE_ENV_LOWER" = "production" ] || [ "$NODE_ENV_LOWER" = "prod" ]; then
   echo "🔄 Running database migrations..."
   npm run migrate:up
   echo "✅ Migrations completed successfully"
 else
-  echo "⚠️  Development mode detected - skipping migrations (using schema.sql instead)"
+  echo "⚠️  Development mode detected ($NODE_ENV) - skipping migrations (using schema.sql instead)"
 fi
 
 # Start the application

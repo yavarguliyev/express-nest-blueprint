@@ -1,6 +1,6 @@
 import { Job } from 'bullmq';
 import { ClassConstructor } from 'class-transformer';
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction, RequestHandler, Application } from 'express';
 
 import { INITIALIZER_TOKENS, METHODS } from '@common/constants/system.const';
 import type { Container } from '@common/container/container';
@@ -25,6 +25,12 @@ export type FactoryProvider<T = object> = {
 };
 
 export type HttpMethod = (typeof METHODS)[number];
+
+export type ExpressHttpMethod = (path: string, ...handlers: RequestHandler[]) => Application;
+
+export type ExpressHttpMethods = {
+  [K in HttpMethod]: ExpressHttpMethod;
+};
 
 export type InitializerToken = (typeof INITIALIZER_TOKENS)[number];
 

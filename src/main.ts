@@ -15,28 +15,38 @@ async function bootstrap (): Promise<void> {
   try {
     const app = await NestFactory.create(AppModule, { appName: AppName.MAIN });
     lifecycleService = app.get(LifecycleService);
+
     const configService = app.get(ConfigService);
+    const port = configService.get<number>('PORT', 3000);
+    const host = configService.get<string>('HOST', '0.0.0.0');
+    const role = (configService.get<string>('APP_ROLE', AppRoles.API) || '') as AppRoles;
 
-    const role = configService.get<string>('APP_ROLE', AppRoles.API) as AppRoles;
+    if (role === AppRoles.API) {
+      if (configService.get<string>('NODE_ENV') !== 'production') {
+        const swaggerConfig = new DocumentBuilder()
+          .setTitle('Express Nest Blueprint API')
+          .setDescription('The API description for the Express Nest Blueprint project')
+          .setVersion('1.0')
+          .addApiKey({ type: 'apiKey', name: 'X-Health-Key', in: 'header' }, 'health-key')
+          .build();
 
-    if (role !== AppRoles.WORKER) {
-      const swaggerConfig = new DocumentBuilder()
-        .setTitle('Express Nest Blueprint API')
-        .setDescription('The API description for the Express Nest Blueprint project')
-        .setVersion('1.0')
-        .build();
-      const document = SwaggerModule.createDocument(app, swaggerConfig);
-      SwaggerModule.setup('api', app, document);
-
-      const port = configService.get<number>('PORT', 3000);
-      const host = configService.get<string>('HOST', '0.0.0.0');
+        const document = SwaggerModule.createDocument(app, swaggerConfig);
+        SwaggerModule.setup('api', app, document);
+        Logger.log('📖 Swagger documentation enabled at /api', 'Bootstrap');
+      }
 
       const server = await app.listen(port, host);
+
       lifecycleService.setHttpServer(server);
       lifecycleService.startWorkers();
 
       Logger.log(`🚀 API Server running on http://${host}:${port}`, 'Bootstrap');
-    } else Logger.log('💪 Background Worker started', 'Bootstrap');
+    } else if (role === AppRoles.WORKER) {
+      lifecycleService.startWorkers();
+      Logger.log('💪 Background Worker started', 'Bootstrap');
+    } else {
+      await app.listen(port, host);
+    }
   } catch (error) {
     Logger.error(`Failed to start application: ${getErrorMessage(error)}`, 'Bootstrap');
 

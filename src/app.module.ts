@@ -15,7 +15,7 @@ import { SharedModule } from '@shared/shared.module';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
-      ignoreEnvFile: process.env.NODE_ENV === 'production'
+      ignoreEnvFile: process.env.NODE_ENV?.toLowerCase().startsWith('prod') || false
     }),
     SharedModule,
     HealthModule,

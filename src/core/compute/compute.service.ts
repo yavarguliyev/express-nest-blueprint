@@ -4,7 +4,6 @@ import { Container } from '@common/container';
 import { Injectable, Inject, BULLMQ_OPTIONS, COMPUTE_MODULE_OPTIONS } from '@common/decorators';
 import { BadRequestException, ServiceUnavailableException } from '@common/exceptions';
 import { BullMQModuleOptions, ComputeHandler, ComputeModuleOptions, PatchedMethod, ComputeJobData, ComputeOptions, PendingJob } from '@common/interfaces';
-import { getErrorMessage } from '@common/helpers';
 import { Logger } from '@common/logger';
 import { Constructor } from '@common/types';
 import { BullMQService } from '@core/bullmq/services/bullmq.service';
@@ -98,8 +97,7 @@ export class ComputeService {
             }, timeout);
           })
         ]);
-      } catch (error) {
-        this.logger.warn(`⚠️ Compute offloading failed for ${taskName}: ${getErrorMessage(error)}. Falling back to local execution.`);
+      } catch {
         return originalMethod.apply(instance, args);
       }
     };

@@ -38,8 +38,9 @@ services:
     env_file:
       - .env
     environment:
-      APP_ROLE: api
-      COMPUTE_APP_ROLE: api
+      APP_ROLE: API
+      COMPUTE_APP_ROLE: API
+      NODE_ENV: development
     ports:
       - '3000:3000'
     depends_on:
@@ -57,8 +58,9 @@ services:
     env_file:
       - .env
     environment:
-      APP_ROLE: worker
-      COMPUTE_APP_ROLE: worker
+      APP_ROLE: WORKER
+      COMPUTE_APP_ROLE: WORKER
+      NODE_ENV: development
     depends_on:
       - postgres
       - redis

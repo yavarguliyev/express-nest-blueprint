@@ -65,12 +65,12 @@ export class ConfigService {
 
     if (!ignoreEnvFile) {
       const envPath = resolve(process.cwd(), envFilePath);
-
+      
       if (existsSync(envPath)) {
         const result = config({ path: envPath });
 
         if (result.error) this.logger.error('Failed to load environment file', result.error.message);
-      } else this.logger.warn(`Environment file not found: ${envPath}`);
+      }
     }
 
     this.envVariables = { ...process.env } as Record<string, string>;

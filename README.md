@@ -217,15 +217,36 @@ npm run dev
 
 # 📚 API Documentation
 
-* **Users Endpoints**:
-  * `GET /users`: List users (Paginated & Filterable)
-  * `GET /users/:id`: Get user details
-  * `POST /users`: Create user
-  * `PATCH /users/:id`: Update user
-  * `DELETE /users/:id`: Delete user
+This project uses **Swagger (OpenAPI)** for interactive API exploration and documentation.
 
-* **Auth Endpoints**:
-  * `POST /auth/login`: Authenticate and receive JWT
+## Swagger UI
+You can access the Swagger UI by navigating to:
+`http://localhost:3000/api`
+
+> [!NOTE]
+> Swagger is enabled only in **Development** mode. It is automatically disabled in Production for security reasons.
+
+## Authentication in Swagger
+
+### 1. JWT Bearer Auth
+For protected domain endpoints (e.g., Users, Auth):
+1. Click the **Authorize** button at the top.
+2. Enter your JWT token in the `bearerAuth` field.
+3. Protected endpoints will now include the `Authorization: Bearer <token>` header.
+
+### 2. Physical Health/Metrics Auth (API Key)
+For infrastructure endpoints (`/health`, `/metrics`):
+1. Click the **Authorize** button.
+2. Enter your `HEALTH_CHECK_SECRET` value in the `health-key` field.
+3. This will automatically add the `X-Health-Key` header to requests.
+
+---
+
+## Core Endpoints
+* **Users**: `GET /users`, `GET /users/:id`, `POST /users`, `PATCH /users/:id`, `DELETE /users/:id`
+* **Auth**: `POST /auth/login`
+* **Health**: `GET /health/live`, `GET /health/ready`
+* **Metrics**: `GET /metrics`
 
 ---
 

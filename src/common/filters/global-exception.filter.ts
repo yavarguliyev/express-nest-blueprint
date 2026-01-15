@@ -4,8 +4,11 @@ import { HttpException } from '@common/exceptions';
 import { ArgumentsHostFilter } from '@common/filters';
 import { ArgumentsHost, ExceptionFilter } from '@common/interfaces';
 import { hasGetResponse, hasGetStatus } from '@common/helpers';
+import { Logger } from '@common/logger';
 
 export class GlobalExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger('GlobalExceptionFilter');
+
   catch (exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
@@ -14,6 +17,12 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const status = this.getHttpStatus(exception);
     const message = this.getErrorMessage(exception);
     const errorResponse = this.getErrorResponse(exception, status, message, request);
+
+    if (status >= 500) {
+      this.logger.error(`${request.method} ${request.url} - Internal Server Error`, exception instanceof Error ? exception.stack : undefined);
+    } else {
+      this.logger.warn(`${request.method} ${request.url} - ${status} ${JSON.stringify(errorResponse)}`);
+    }
 
     if (!response.headersSent) {
       response.status(status).json(errorResponse);

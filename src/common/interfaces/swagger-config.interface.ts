@@ -4,6 +4,7 @@ export interface SwaggerConfig {
   version: string;
   basePath?: string;
   tags?: string[];
+  securitySchemes?: Record<string, SecurityScheme>;
   externalDocs?: {
     description: string;
     url: string;
@@ -46,6 +47,14 @@ export interface OpenAPIOperation {
   security?: Record<string, string[]>[];
 }
 
+export interface SecurityScheme {
+  type: string;
+  scheme?: string;
+  bearerFormat?: string;
+  name?: string;
+  in?: string;
+}
+
 export interface OpenAPIObject {
   openapi: string;
   info: {
@@ -56,7 +65,7 @@ export interface OpenAPIObject {
   paths: Record<string, Record<string, OpenAPIOperation>>;
   components?: {
     schemas?: Record<string, OpenAPISchema>;
-    securitySchemes?: Record<string, any>;
+    securitySchemes?: Record<string, SecurityScheme>;
   };
   tags?: { name: string; description?: string }[];
 }

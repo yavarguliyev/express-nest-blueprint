@@ -1,9 +1,11 @@
 import { getMetadataStorage } from 'class-validator';
+
 import { CONTROLLER_METADATA, ROUTE_METADATA, PARAM_METADATA, REQUIRE_AUTH_KEY, ROLES_KEY, IS_PUBLIC_KEY } from '@common/decorators';
-import { RouteMetadata, ParamMetadata } from '@common/interfaces';
+import { RouteMetadata, ParamMetadata } from '@common/interfaces/common.interface';
+import { OpenAPIObject, OpenAPIOperation, OpenAPISchema, SwaggerConfig } from '@common/interfaces/swagger-config.interface';
 import { CONTROLLER_REGISTRY } from '@common/helpers';
 import { Constructor } from '@common/types';
-import { OpenAPIObject, OpenAPIOperation, OpenAPISchema, SwaggerConfig } from './interfaces/swagger-config.interface';
+import { API_SECURITY_KEY } from '@common/decorators/swagger.decorators';
 
 export class SwaggerExplorer {
   private readonly schemas: Record<string, OpenAPISchema> = {};
@@ -50,13 +52,23 @@ export class SwaggerExplorer {
           const roles = Reflect.getMetadata(ROLES_KEY, prototype, methodName) as string[];
 
           let requiresAuth = false;
+
           if (methodIsPublic) requiresAuth = false;
           else if (methodRequiresAuth) requiresAuth = true;
           else if (controllerIsPublic) requiresAuth = false;
           else if (controllerRequiresAuth) requiresAuth = true;
 
-          if (requiresAuth || roles) {
-            operation.security = [{ bearerAuth: [] }];
+          if (requiresAuth || roles) operation.security = [{ bearerAuth: [] }];
+
+          const methodSecurity = Reflect.getMetadata(API_SECURITY_KEY, prototype, methodName) as Record<string, string[]>[];
+          const controllerSecurity = Reflect.getMetadata(API_SECURITY_KEY, controller) as Record<string, string[]>[];
+          
+          if (methodSecurity || controllerSecurity) {
+            operation.security = [
+              ...(operation.security || []),
+              ...(methodSecurity || []),
+              ...(controllerSecurity || [])
+            ];
           }
 
           params.forEach(param => {
@@ -65,9 +77,7 @@ export class SwaggerExplorer {
               operation.requestBody = {
                 required: true,
                 content: {
-                  'application/json': {
-                    schema: this.getSchemaForType(type)
-                  }
+                  'application/json': { schema: this.getSchemaForType(type) }
                 }
               };
             } else if (param.type === 'query') {
@@ -83,13 +93,14 @@ export class SwaggerExplorer {
                 if (schema.$ref) {
                   const schemaName = schema.$ref.split('/').pop()!;
                   const properties = this.schemas[schemaName]?.properties || {};
+
                   Object.keys(properties).forEach(prop => {
                     const propSchema = properties[prop]!;
                     operation.parameters?.push({
                       name: prop,
                       in: 'query',
                       required: (this.schemas[schemaName]?.required || []).includes(prop),
-                      schema: '$ref' in propSchema ? { type: 'object' } : propSchema // Simplified for query
+                      schema: '$ref' in propSchema ? { type: 'object' } : propSchema
                     });
                   });
                 }
@@ -104,7 +115,7 @@ export class SwaggerExplorer {
             }
           });
 
-          paths[fullPath]![httpMethod] = operation;
+          paths[fullPath][httpMethod] = operation;
         });
       });
     });
@@ -124,7 +135,8 @@ export class SwaggerExplorer {
             type: 'http',
             scheme: 'bearer',
             bearerFormat: 'JWT'
-          }
+          },
+          ...config.securitySchemes
         }
       }
     };
@@ -153,15 +165,14 @@ export class SwaggerExplorer {
         if (meta.type === 'isNumber') propSchema.type = 'number';
         if (meta.type === 'isEmail') propSchema.format = 'email';
         if (meta.type === 'isEnum') {
-          propSchema.enum = meta.constraints?.[0] as unknown[];
+          const enumValues = meta.constraints?.[0];
+          propSchema.enum = typeof enumValues === 'object' && enumValues !== null ? Object.values(enumValues) : (enumValues as unknown[]);
         }
 
         schema.properties[prop] = propSchema;
       }
 
-      if (meta.type === 'isNotEmpty' && !schema.required?.includes(prop)) {
-        schema.required?.push(prop);
-      }
+      if (meta.type === 'isNotEmpty' && !schema.required?.includes(prop)) schema.required?.push(prop);
     });
 
     if (schema.required && schema.required.length === 0) delete schema.required;

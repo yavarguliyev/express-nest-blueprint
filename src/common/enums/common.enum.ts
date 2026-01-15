@@ -4,8 +4,8 @@ export enum AppName {
 }
 
 export enum AppRoles {
-  API = 'api',
-  WORKER = 'worker'
+  API = 'API',
+  WORKER = 'WORKER'
 }
 
 export enum CircuitBreakerState {

@@ -1,7 +1,8 @@
-import { Controller, Get, UseGuards } from '@common/decorators';
+import { Controller, Get, UseGuards, ApiSecurity } from '@common/decorators';
 import { HealthService } from '@core/health/health.service';
 import { HeaderAuthGuard } from '@common/guards';
 
+@ApiSecurity('health-key')
 @Controller('health')
 @UseGuards(HeaderAuthGuard)
 export class HealthController {

@@ -1,5 +1,5 @@
 import { ClassConstructor } from 'class-transformer';
-import express, { Express, Request, Response, NextFunction, RequestHandler } from 'express';
+import express, { Express, Request, Response, NextFunction, RequestHandler, Application } from 'express';
 import { Server } from 'http';
 
 import { METHODS, paramHandlers } from '@common/constants';
@@ -11,7 +11,7 @@ import { AuthGuard, RolesGuard } from '@common/guards';
 import { CONTROLLER_REGISTRY } from '@common/helpers';
 import { CanActivate, ControllerOptions, CorsOptions, ExtractMethodOptions, HasMethodOptions, ParamMetadata, RouteMetadata } from '@common/interfaces';
 import { Logger } from '@common/logger';
-import { Constructor, HttpMethod } from '@common/types';
+import { Constructor, ExpressHttpMethods, HttpMethod } from '@common/types';
 
 export class NestApplication {
   private app: Express;
@@ -63,12 +63,12 @@ export class NestApplication {
           try {
             const classGuards = (Reflect.getMetadata(GUARDS_METADATA, controllerClass) || []) as Constructor<CanActivate>[];
             const methodGuards = (Reflect.getMetadata(GUARDS_METADATA, controllerClass.prototype as object, methodName) || []) as Constructor<CanActivate>[];
-            
+
             const guardsToRun: Constructor<CanActivate>[] = [AuthGuard, RolesGuard, ...classGuards, ...methodGuards];
 
             for (const GuardClass of guardsToRun) {
               const guardInstance = this.container.resolve<CanActivate>({ provide: GuardClass });
-              
+
               await new Promise<void>((resolve, reject) => {
                 void guardInstance.canActivate(
                   req,
@@ -95,9 +95,7 @@ export class NestApplication {
 
             if (res.headersSent) return;
 
-            const hasPassthrough = paramMetadata.some(
-              (param) => param.type === 'response' && typeof param.data === 'object' && param.data !== null && (param.data as { passthrough?: boolean }).passthrough
-            );
+            const hasPassthrough = paramMetadata.some((param) => param.type === 'response' && typeof param.data === 'object' && param.data !== null && (param.data as { passthrough?: boolean }).passthrough);
 
             if (hasPassthrough) {
               if (result !== undefined) res.send(result);
@@ -137,6 +135,8 @@ export class NestApplication {
   }
 
   async listen (port: number, host?: string): Promise<Server> {
+    this.setupGlobalErrorHandler();
+
     const maxRetries = 30;
     let retries = 0;
     const logger = new Logger('Bootstrap');
@@ -154,7 +154,7 @@ export class NestApplication {
             if (error.code === 'EADDRINUSE' && retries < maxRetries) {
               retries++;
               logger.warn(`Port ${port} is busy, retrying (${retries}/${maxRetries}) in 500ms...`);
-              
+
               await new Promise<void>((closeResolve) => {
                 server.close(() => closeResolve());
               });
@@ -237,8 +237,8 @@ export class NestApplication {
   }
 
   private setupBasicMiddleware (): void {
-    this.app.use(express.json());
-    this.app.use(express.urlencoded({ extended: true }));
+    this.app.use(express.json({ limit: '10mb' }));
+    this.app.use(express.urlencoded({ limit: '10mb', extended: true }));
   }
 
   private hasInvalidPathSyntax (path: string): boolean {
@@ -282,36 +282,27 @@ export class NestApplication {
 
   private initialize (): void {
     CONTROLLER_REGISTRY.forEach((controller) => this.registerController(controller));
-    this.setupGlobalErrorHandler();
   }
 
   private setupPathValidation (): void {
     const methods: HttpMethod[] = [...METHODS];
+    const app = this.app as Application & ExpressHttpMethods;
 
     methods.forEach((method) => {
-      const key = method as keyof Express;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const methodFunction = this.app[key];
-      
-      if (typeof methodFunction !== 'function') return;
-      
-      type ExpressMethod = (path: string, ...handlers: RequestHandler[]) => Express;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      const originalMethod = methodFunction.bind(this.app) as ExpressMethod;
+      const originalMethod = app[method].bind(app);
 
-      const overriddenMethod = (path: string, ...handlers: RequestHandler[]): Express => {
-        if (typeof path === 'string' && this.hasInvalidPathSyntax(path)) return this.app;
+      const overriddenMethod = (path: string, ...handlers: RequestHandler[]): Application => {
+        if (typeof path === 'string' && this.hasInvalidPathSyntax(path)) return app;
 
         try {
           return originalMethod(path, ...handlers);
-        } catch (error: unknown) {
-          const pathError = error as Error;
-          if (pathError.message && pathError.message.includes('Missing parameter name')) return this.app;
+        } catch (error) {
+          if (error instanceof Error && error.message.includes('Missing parameter name')) return app;
           throw error;
         }
       };
 
-      Object.assign(this.app, { [method]: overriddenMethod });
+      Object.assign(app, { [method]: overriddenMethod });
     });
   }
 }

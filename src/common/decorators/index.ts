@@ -10,3 +10,4 @@ export * from './middleware.decorators';
 export * from './module.decorator';
 export * from './param.decorators';
 export * from './route.decorators';
+export * from './swagger.decorators';

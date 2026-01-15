@@ -107,12 +107,7 @@ export class NestFactory {
     if (this.isNestModule(moduleInstance)) {
       const middlewareConsumer = new MiddlewareConsumerImpl(app.getExpressApp(), container);
       const originalApply = middlewareConsumer.apply.bind(middlewareConsumer);
-
-      middlewareConsumer.apply = (...middleware) => {
-        const proxy = originalApply(...middleware);
-        return proxy;
-      };
-
+      middlewareConsumer.apply = (...middleware) => originalApply(...middleware);
       moduleInstance.configure(middlewareConsumer);
     }
 

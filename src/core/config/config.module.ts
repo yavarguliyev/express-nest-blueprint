@@ -14,6 +14,7 @@ export class ConfigModule {
       ignoreEnvFile: false,
       ...options
     };
+
     ConfigService.setOptions(moduleOptions);
 
     return {
