@@ -1,0 +1,6 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: express-nest-app
+  labels:
+    name: express-nest-app

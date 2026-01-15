@@ -10,12 +10,12 @@
     </div>
     <div class="user-profile" routerLink="/profile">
       <div class="user-info">
-        <span class="user-name">{{ user?.firstName }} {{ user?.lastName }}</span>
-        <span class="user-role">{{ user?.role }}</span>
+        <span class="user-name">{{ user()?.firstName }} {{ user()?.lastName }}</span>
+        <span class="user-role">{{ user()?.role }}</span>
       </div>
       <div class="user-avatar glow">
-        <img *ngIf="user?.profileImageUrl" [src]="user?.profileImageUrl" alt="Avatar">
-        <span *ngIf="!user?.profileImageUrl" class="material-icons">account_circle</span>
+        <img *ngIf="user()?.profileImageUrl" [src]="user()?.profileImageUrl" alt="Avatar">
+        <span *ngIf="!user()?.profileImageUrl" class="material-icons">account_circle</span>
       </div>
     </div>
   </div>

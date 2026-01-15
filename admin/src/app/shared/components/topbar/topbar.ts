@@ -12,5 +12,5 @@ import { AuthService } from '../../../core/services/auth.service';
 })
 export class Topbar {
   private authService = inject(AuthService);
-  user = this.authService.getCurrentUser();
+  user = this.authService.currentUser;
 }

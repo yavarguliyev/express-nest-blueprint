@@ -1,15 +1,11 @@
 version: '3.8'
 
 services:
-  # ----------------------------------------
-  # Load Balancer (Nginx)
-  # ----------------------------------------
   nginx:
     image: nginx:alpine
     container_name: express_nginx
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - admin_assets:/usr/share/nginx/html:ro
     ports:
       - "80:80"
     depends_on:
@@ -23,9 +19,6 @@ services:
           cpus: '0.5'
           memory: 256M
 
-  # ----------------------------------------
-  # API Service (Handles HTTP Traffic)
-  # ----------------------------------------
   api:
     build:
       context: ../../
@@ -36,8 +29,6 @@ services:
       - "3000"
     env_file:
       - .env
-    volumes:
-      - admin_assets:/app/public/admin
     environment:
       APP_ROLE: API
       NODE_ENV: production
@@ -63,16 +54,12 @@ services:
       timeout: 10s
       retries: 3
 
-  # ----------------------------------------
-  # Worker Service (Handles Background Jobs)
-  # ----------------------------------------
   worker:
     build:
       context: ../../
       dockerfile: Dockerfile
     image: express-nest-blueprint:latest
     restart: unless-stopped
-    command: ["node", "dist/main.js"]
     env_file:
       - .env
     environment:
@@ -97,9 +84,6 @@ services:
       timeout: 10s
       retries: 3
 
-  # ----------------------------------------
-  # Database
-  # ----------------------------------------
   postgres:
     image: postgres:15-alpine
     container_name: express_postgres
@@ -123,9 +107,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # ----------------------------------------
-  # Redis
-  # ----------------------------------------
   redis:
     image: redis:7-alpine
     container_name: express_redis
@@ -143,10 +124,30 @@ services:
       timeout: 5s
       retries: 5
 
+  minio:
+    image: minio/minio:latest
+    container_name: minio_container
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - common
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
 networks:
   common:
     driver: bridge
 
 volumes:
   postgres_data:
-  admin_assets:
+  minio_data:

@@ -10,7 +10,8 @@ export class MetricsMiddleware implements NestMiddleware {
 
   use (req: Request, res: Response, next: NextFunction): void {
     const start = Date.now();
-    const { method, path } = req;
+    const { method } = req;
+    const path = (req.originalUrl || req.path).split('?')[0];
 
     this.metricsService.incActiveRequests();
 
@@ -18,8 +19,8 @@ export class MetricsMiddleware implements NestMiddleware {
       const duration = (Date.now() - start) / 1000;
       const statusCode = res.statusCode.toString();
 
-      this.metricsService.incRequests(method, path, statusCode);
-      this.metricsService.observeDuration(method, path, statusCode, duration);
+      this.metricsService.incRequests(String(method), String(path), statusCode);
+      this.metricsService.observeDuration(String(method), String(path), statusCode, duration);
       this.metricsService.decActiveRequests();
     });
 

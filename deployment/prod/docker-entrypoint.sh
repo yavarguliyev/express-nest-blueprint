@@ -24,20 +24,26 @@ wait_for_db() {
 
 # Log current environment for debugging
 echo "🌍 Detected NODE_ENV: $NODE_ENV"
+echo "🎭 Detected APP_ROLE: $APP_ROLE"
 
 # Always wait for database if host and port are provided
 if [ -n "$DB_HOST" ] && [ -n "$DB_PORT" ]; then
   wait_for_db
 fi
 
-# Only run migrations in production
+# Only run migrations in production AND only for API service
 # Converting to lowercase for robust check
 NODE_ENV_LOWER=$(echo "$NODE_ENV" | tr '[:upper:]' '[:lower:]')
+APP_ROLE_LOWER=$(echo "$APP_ROLE" | tr '[:upper:]' '[:lower:]')
 
 if [ "$NODE_ENV_LOWER" = "production" ] || [ "$NODE_ENV_LOWER" = "prod" ]; then
-  echo "🔄 Running database migrations..."
-  npm run migrate:up
-  echo "✅ Migrations completed successfully"
+  if [ "$APP_ROLE_LOWER" = "api" ]; then
+    echo "🔄 Running database migrations (API service)..."
+    npm run migrate:up
+    echo "✅ Migrations completed successfully"
+  else
+    echo "⚠️  Worker service detected ($APP_ROLE) - skipping migrations (only API runs migrations)"
+  fi
 else
   echo "⚠️  Development mode detected ($NODE_ENV) - skipping migrations (using schema.sql instead)"
 fi

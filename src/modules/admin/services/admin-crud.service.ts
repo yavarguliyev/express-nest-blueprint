@@ -1,16 +1,23 @@
 import { Injectable } from '@common/decorators';
+import { StorageService } from '@core/storage/storage.service';
 import { TableMetadata, ColumnMetadata } from '@modules/admin/interfaces';
 import { CRUD_TABLE_METADATA_KEY } from '@common/decorators';
 import { UsersRepository } from '@modules/users/users.repository';
 import { CrudTableOptions, RepositoryEntry } from '@common/interfaces';
 import { InternalServerErrorException } from '@common/exceptions';
 import { CrudRepository } from '@common/types';
+import { Logger } from '@common/logger';
+import { getErrorMessage } from '@common/helpers';
 
 @Injectable()
 export class AdminCrudService {
+  private readonly logger = new Logger('AdminCrudService');
   private repositories = new Map<string, RepositoryEntry>();
 
-  constructor (usersRepository: UsersRepository) {
+  constructor (
+    usersRepository: UsersRepository,
+    private readonly storageService: StorageService
+  ) {
     this.registerRepository(usersRepository, UsersRepository);
   }
 
@@ -31,9 +38,7 @@ export class AdminCrudService {
     const schema: Record<string, TableMetadata[]> = {};
 
     for (const [, { metadata }] of this.repositories) {
-      if (!schema[metadata.category]) {
-        schema[metadata.category] = [];
-      }
+      if (!schema[metadata.category]) schema[metadata.category] = [];
 
       schema[metadata.category]?.push({
         category: metadata.category,
@@ -67,24 +72,33 @@ export class AdminCrudService {
     const key = `${category}:${name}`;
     const entry = this.repositories.get(key);
 
-    if (!entry) {
-      throw new Error(`Table ${category}:${name} not found`);
-    }
+    if (!entry) throw new Error(`Table ${category}:${name} not found`);
 
     const repo = entry.repository;
 
+    let data: unknown[] = [];
+    let total = 0;
+
     if (repo.findWithPagination) {
       const result = await repo.findWithPagination({ page, limit });
-      return { data: result.data, total: result.total };
-    }
 
-    if (repo.findAll) {
+      data = result.data;
+      total = result.total;
+    } else if (repo.findAll) {
       const offset = (page - 1) * limit;
-      const data = await repo.findAll({ limit, offset });
-      return { data, total: data.length };
+
+      data = await repo.findAll({ limit, offset });
+      total = data.length;
+    } else {
+      throw new InternalServerErrorException(`Repository for ${category}:${name} does not support data retrieval`);
     }
 
-    throw new InternalServerErrorException(`Repository for ${category}:${name} does not support data retrieval`);
+    if (name === 'users') {
+      const usersWithProfileImages = data.filter((item) => this.hasProfileImageUrl(item));
+      await this.signProfileImages(usersWithProfileImages);
+    }
+
+    return { data, total };
   }
 
   async getTableDataByName (name: string, page = 1, limit = 10): Promise<{ data: unknown[]; total: number }> {
@@ -97,64 +111,77 @@ export class AdminCrudService {
       }
     }
 
-    if (!entry) {
-      throw new Error(`Table ${name} not found`);
-    }
+    if (!entry) throw new Error(`Table ${name} not found`);
 
     const repo = entry.repository;
 
+    let data: unknown[] = [];
+    let total = 0;
+
     if (repo.findWithPagination) {
       const result = await repo.findWithPagination({ page, limit });
-      return { data: result.data, total: result.total };
-    }
 
-    if (repo.findAll) {
+      data = result.data;
+      total = result.total;
+    } else if (repo.findAll) {
       const offset = (page - 1) * limit;
-      const data = await repo.findAll({ limit, offset });
-      return { data, total: data.length };
+
+      data = await repo.findAll({ limit, offset });
+      total = data.length;
+    } else {
+      throw new Error(`Repository for ${name} does not support data retrieval`);
     }
 
-    throw new Error(`Repository for ${name} does not support data retrieval`);
+    if (name === 'users') {
+      const usersWithProfileImages = data.filter((item) => this.hasProfileImageUrl(item));
+      await this.signProfileImages(usersWithProfileImages);
+    }
+
+    return { data, total };
+  }
+
+  private async signProfileImages (data: Array<{ profileImageUrl?: string }>): Promise<void> {
+    await Promise.all(
+      data.map(async (item) => {
+        if (!item.profileImageUrl) {
+          return;
+        }
+
+        try {
+          item.profileImageUrl = await this.storageService.getDownloadUrl(item.profileImageUrl);
+        } catch (e) {
+          this.logger.warn(`Failed to sign profile images: ${getErrorMessage(e)}`);
+        }
+      })
+    );
+  }
+
+  private hasProfileImageUrl (this: void, item: unknown): item is { profileImageUrl?: string } {
+    return typeof item === 'object' && item !== null && 'profileImageUrl' in item;
   }
 
   async getTableRecord (category: string, name: string, id: number): Promise<unknown> {
     const key = `${category}:${name}`;
     const entry = this.repositories.get(key);
-
-    if (!entry || !entry.repository.findById) {
-      throw new Error(`Table ${category}:${name} not found or unsupported`);
-    }
-
+    if (!entry || !entry.repository.findById) throw new Error(`Table ${category}:${name} not found or unsupported`);
     return entry.repository.findById(id);
   }
 
   async createTableRecord (category: string, name: string, data: unknown): Promise<unknown> {
     const entry = this.repositories.get(`${category}:${name}`);
-
-    if (!entry || !entry.repository.create) {
-      throw new Error(`Table ${category}:${name} not found or unsupported`);
-    }
-
+    if (!entry || !entry.repository.create) throw new Error(`Table ${category}:${name} not found or unsupported`);
     return entry.repository.create(data);
   }
 
   async updateTableRecord (category: string, name: string, id: number, data: unknown): Promise<unknown> {
     const entry = this.repositories.get(`${category}:${name}`);
-
-    if (!entry || !entry.repository.update) {
-      throw new Error(`Table ${category}:${name} not found or unsupported`);
-    }
-
+    if (!entry || !entry.repository.update) throw new Error(`Table ${category}:${name} not found or unsupported`);
     return entry.repository.update(id, data);
   }
 
   async deleteTableRecord (category: string, name: string, id: number): Promise<boolean> {
     const entry = this.repositories.get(`${category}:${name}`);
-
-    if (!entry || !entry.repository.delete) {
-      throw new Error(`Table ${category}:${name} not found or unsupported`);
-    }
-
+    if (!entry || !entry.repository.delete) throw new Error(`Table ${category}:${name} not found or unsupported`);
     return entry.repository.delete(id);
   }
 }

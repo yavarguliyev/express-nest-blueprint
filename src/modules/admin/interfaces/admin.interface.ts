@@ -1,3 +1,10 @@
+export interface DashboardAlert {
+  title: string;
+  message: string;
+  type: 'info' | 'warning' | 'error';
+  timestamp: string;
+}
+
 export interface DashboardMetric {
   name: string;
   value: number;

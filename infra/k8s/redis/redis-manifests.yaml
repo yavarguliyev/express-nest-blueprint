@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: redis-deployment
+  namespace: express-nest-app
 spec:
   replicas: 1
   selector:
@@ -18,6 +19,9 @@ spec:
         ports:
         - containerPort: 6379
         resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
           limits:
             cpu: "500m"
             memory: "512Mi"
@@ -26,6 +30,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: redis
+  namespace: express-nest-app
 spec:
   selector:
     service: redis

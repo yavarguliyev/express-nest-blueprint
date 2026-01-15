@@ -30,7 +30,17 @@ COPY admin/package*.json ./
 RUN npm ci
 
 COPY admin/ ./
-RUN npm run build -- --base-href /admin/
+RUN npm run build
+
+# Create a consistent output directory structure
+RUN mkdir -p /app/admin/dist/browser && \
+    if [ -d "dist/admin/browser" ]; then \
+        cp -r dist/admin/browser/* /app/admin/dist/browser/; \
+    elif [ -d "dist/browser" ]; then \
+        cp -r dist/browser/* /app/admin/dist/browser/; \
+    elif [ -d "dist" ]; then \
+        cp -r dist/* /app/admin/dist/browser/; \
+    fi
 
 # ----------------------------------------
 # Stage 3: Runner (API & Assets)
@@ -46,14 +56,17 @@ COPY --from=backend-builder /app/dist ./dist
 COPY --from=backend-builder /app/node_modules ./node_modules
 COPY --from=backend-builder /app/package.json ./package.json
 COPY --from=backend-builder /app/database ./database
-COPY deployment/prod/docker-entrypoint.sh ./docker-entrypoint.sh
 
-# Copy frontend built artifacts (in case we want to serve from backend)
-COPY --from=frontend-builder /app/admin/dist/admin/browser ./public/admin
+# Copy frontend built artifacts
+COPY --from=frontend-builder /app/admin/dist/browser ./public/admin
+
+# Copy the production entrypoint script
+COPY deployment/prod/docker-entrypoint.sh ./docker-entrypoint.sh
+RUN chmod +x ./docker-entrypoint.sh
 
 # Create a non-root user for security
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nestjs -u 1001
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nestjs -u 1001
 
 # Change ownership of the app directory
 RUN chown -R nestjs:nodejs /app
@@ -64,6 +77,6 @@ USER nestjs
 # Expose the application port
 EXPOSE 3000
 
-# Use entrypoint script to run migrations before starting app
+# Use entrypoint script to run migrations
 ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["node", "dist/main.js"]

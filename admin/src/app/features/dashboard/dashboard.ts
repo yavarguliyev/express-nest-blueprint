@@ -2,7 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   DashboardService,
-  DashboardMetrics,
+  DashboardResponse,
   HealthStatus,
 } from '../../core/services/dashboard.service';
 
@@ -16,7 +16,7 @@ import {
 export class Dashboard implements OnInit {
   private dashboardService = inject(DashboardService);
 
-  metrics = signal<DashboardMetrics | null>(null);
+  data = signal<DashboardResponse | null>(null);
   health = signal<HealthStatus | null>(null);
   loading = signal(true);
   error = signal('');
@@ -25,22 +25,29 @@ export class Dashboard implements OnInit {
     void this.refreshData();
   }
 
+  getMetricValue (name: string): number {
+    const metric = this.data()?.metrics.find((m) => m.name === name);
+    return metric ? metric.value : 0;
+  }
+
   refreshData () {
     this.loading.set(true);
     this.error.set('');
 
-    try {
-      this.dashboardService.getMetrics().subscribe({
-        next: (data) => this.metrics.set(data),
-        error: () => this.error.set('Failed to load metrics'),
-      });
+    this.dashboardService.getMetrics().subscribe({
+      next: (data) => {
+        this.data.set(data);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.error.set('Failed to load metrics');
+        this.loading.set(false);
+      },
+    });
 
-      this.dashboardService.getHealth().subscribe({
-        next: (data) => this.health.set(data),
-        error: () => this.error.set('Failed to load health status'),
-      });
-    } finally {
-      this.loading.set(false);
-    }
+    this.dashboardService.getHealth().subscribe({
+      next: (data) => this.health.set(data),
+      error: () => this.error.set('Failed to load health status'),
+    });
   }
 }

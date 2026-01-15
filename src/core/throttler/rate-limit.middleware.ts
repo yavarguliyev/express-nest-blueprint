@@ -15,12 +15,15 @@ export class RateLimitMiddleware implements NestMiddleware {
   constructor (private readonly throttlerService: ThrottlerService) {}
 
   use (req: Request, res: Response, next: NextFunction): void {
-    const key = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+    const key = String(req.headers['x-forwarded-for'] || req.ip || 'unknown');
+    const path = (req.originalUrl || req.path || '').toLowerCase();
+    const isAdmin = path.includes('admin');
+    const currentLimit = isAdmin ? 5000 : this.limit;
 
     this.throttlerService
-      .checkRateLimit(String(key), this.limit, this.ttl)
+      .checkRateLimit(String(key), currentLimit, this.ttl)
       .then((result) => {
-        res.setHeader('X-RateLimit-Limit', this.limit);
+        res.setHeader('X-RateLimit-Limit', currentLimit);
         res.setHeader('X-RateLimit-Remaining', result.remaining);
         res.setHeader('X-RateLimit-Reset', result.reset);
 

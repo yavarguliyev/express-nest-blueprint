@@ -19,6 +19,7 @@ export class StorageModule {
             strategy: configService.get<string>('STORAGE_STRATEGY', 's3') as 's3' | 'local',
             s3: {
               endpoint: configService.get<string>('STORAGE_ENDPOINT'),
+              publicEndpoint: configService.get<string>('STORAGE_PUBLIC_ENDPOINT'),
               accessKeyId: configService.get<string>('STORAGE_ACCESS_KEY', ''),
               secretAccessKey: configService.get<string>('STORAGE_SECRET_KEY', ''),
               region: configService.get<string>('STORAGE_REGION', 'us-east-1'),

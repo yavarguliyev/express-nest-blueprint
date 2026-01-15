@@ -1,3 +1,4 @@
+import { existsSync } from 'fs';
 import { join } from 'path';
 import 'reflect-metadata';
 import express from 'express';
@@ -37,9 +38,20 @@ async function bootstrap (): Promise<void> {
         Logger.log('📖 Swagger documentation enabled at /api', 'Bootstrap');
       }
 
-      const adminPath = join(__dirname, '..', 'public', 'admin');
-      app.use('/admin', express.static(adminPath));
-      app.use('/admin/*', (_req, res) => res.sendFile(join(adminPath, 'index.html')));
+      const publicAdminPath = join(__dirname, '..', 'public', 'admin');
+      const localAdminPath = join(__dirname, '..', 'admin', 'dist', 'admin', 'browser');
+      const adminPath = existsSync(publicAdminPath) ? publicAdminPath : localAdminPath;
+      const uploadsPath = join(__dirname, '..', 'public', 'uploads');
+
+      app.use('/uploads', express.static(uploadsPath));
+      
+      if (process.env.NODE_ENV === 'production') {
+        app.use('/', express.static(adminPath));
+        app.use('/*', (_req, res) => res.sendFile(join(adminPath, 'index.html')));
+      } else {
+        app.use('/admin', express.static(adminPath));
+        app.use('/admin/*', (_req, res) => res.sendFile(join(adminPath, 'index.html')));
+      }
 
       const server = await app.listen(port, host);
 
