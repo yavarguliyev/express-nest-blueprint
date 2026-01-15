@@ -1,49 +1,55 @@
 # ----------------------------------------
-# Stage 1: Builder
+# Stage 1: Backend Builder
 # ----------------------------------------
-FROM node:20-alpine AS builder
+FROM node:20-alpine AS backend-builder
 
 WORKDIR /app
 
-# Install build dependencies for native modules (if any, e.g., bcrypt)
-# python3, make, g++ are often needed for node-gyp
+# Install build dependencies for native modules
 RUN apk add --no-cache python3 make g++
 
-# Copy package definition
 COPY package*.json ./
-
-# Install ALL dependencies (including devDeps for build)
 RUN npm ci
 
-# Copy source code
 COPY tsconfig.json .
 COPY types ./types
 COPY src ./src
 COPY database ./database
-COPY deployment/prod/docker-entrypoint.sh ./docker-entrypoint.sh
 
-# Build the application
 RUN npm run build
-
-# Prune dev dependencies to prepare for production copy
 RUN npm prune --production
 
 # ----------------------------------------
-# Stage 2: Runner
+# Stage 2: Frontend Builder
+# ----------------------------------------
+FROM node:20-alpine AS frontend-builder
+
+WORKDIR /app/admin
+
+COPY admin/package*.json ./
+RUN npm ci
+
+COPY admin/ ./
+RUN npm run build -- --base-href /admin/
+
+# ----------------------------------------
+# Stage 3: Runner (API & Assets)
 # ----------------------------------------
 FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-# Set production environment
 ENV NODE_ENV=production
 
-# Copy built artifacts from builder
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/database ./database
-COPY --from=builder /app/docker-entrypoint.sh ./docker-entrypoint.sh
+# Copy backend built artifacts
+COPY --from=backend-builder /app/dist ./dist
+COPY --from=backend-builder /app/node_modules ./node_modules
+COPY --from=backend-builder /app/package.json ./package.json
+COPY --from=backend-builder /app/database ./database
+COPY deployment/prod/docker-entrypoint.sh ./docker-entrypoint.sh
+
+# Copy frontend built artifacts (in case we want to serve from backend)
+COPY --from=frontend-builder /app/admin/dist/admin/browser ./public/admin
 
 # Create a non-root user for security
 RUN addgroup -g 1001 -S nodejs

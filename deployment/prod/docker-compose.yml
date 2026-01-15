@@ -9,6 +9,7 @@ services:
     container_name: express_nginx
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - admin_assets:/usr/share/nginx/html:ro
     ports:
       - "80:80"
     depends_on:
@@ -35,6 +36,8 @@ services:
       - "3000"
     env_file:
       - .env
+    volumes:
+      - admin_assets:/app/public/admin
     environment:
       APP_ROLE: API
       NODE_ENV: production
@@ -146,3 +149,4 @@ networks:
 
 volumes:
   postgres_data:
+  admin_assets:

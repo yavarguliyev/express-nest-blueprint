@@ -82,6 +82,19 @@ services:
     networks:
       - common
 
+  admin-ui:
+    image: nginx:alpine
+    container_name: admin_ui
+    ports:
+      - '8080:80'
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../../admin/dist/admin/browser:/usr/share/nginx/html:ro
+    depends_on:
+      - app-api
+    networks:
+      - common
+
 networks:
   common:
     driver: bridge

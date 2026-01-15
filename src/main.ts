@@ -37,7 +37,7 @@ async function bootstrap (): Promise<void> {
         Logger.log('📖 Swagger documentation enabled at /api', 'Bootstrap');
       }
 
-      const adminPath = join(__dirname, '..', 'admin', 'dist', 'admin', 'browser');
+      const adminPath = join(__dirname, '..', 'public', 'admin');
       app.use('/admin', express.static(adminPath));
       app.use('/admin/*', (_req, res) => res.sendFile(join(adminPath, 'index.html')));
 

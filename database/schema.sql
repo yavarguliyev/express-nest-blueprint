@@ -36,10 +36,11 @@ CREATE TRIGGER update_users_updated_at
     EXECUTE FUNCTION update_updated_at_column();
 
 -- Insert seed data with password_hash
-INSERT INTO users (email, first_name, last_name, is_active, role, password_hash) VALUES
-    ('john.doe@example.com', 'John', 'Doe', true, 'admin', '$2b$12$XfD0o9PAD8ji4foBV2YRy.PR4/s0f0QHRIFUUylndRMHq1bUAhcwG'),
-    ('jane.smith@example.com', 'Jane', 'Smith', true, 'moderator', '$2b$12$XfD0o9PAD8ji4foBV2YRy.PR4/s0f0QHRIFUUylndRMHq1bUAhcwG'),
-    ('bob.johnson@example.com', 'Bob', 'Johnson', false, 'user', '$2b$12$XfD0o9PAD8ji4foBV2YRy.PR4/s0f0QHRIFUUylndRMHq1bUAhcwG')
+INSERT INTO users (email, first_name, last_name, is_active, is_email_verified, role, password_hash) VALUES
+    ('guliyev.yavar@example.com', 'Yavar', 'guliyev', true, true, 'admin', '$2b$12$XfD0o9PAD8ji4foBV2YRy.PR4/s0f0QHRIFUUylndRMHq1bUAhcwG'),
+    ('john.doe@example.com', 'John', 'Doe', false, false, 'moderator', '$2b$12$XfD0o9PAD8ji4foBV2YRy.PR4/s0f0QHRIFUUylndRMHq1bUAhcwG'),
+    ('jane.smith@example.com', 'Jane', 'Smith', false, false, 'moderator', '$2b$12$XfD0o9PAD8ji4foBV2YRy.PR4/s0f0QHRIFUUylndRMHq1bUAhcwG'),
+    ('bob.johnson@example.com', 'Bob', 'Johnson', false, false, 'user', '$2b$12$XfD0o9PAD8ji4foBV2YRy.PR4/s0f0QHRIFUUylndRMHq1bUAhcwG')
 ON CONFLICT (email) DO NOTHING;
 
 -- Ensure existing rows have default role
