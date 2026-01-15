@@ -65,7 +65,7 @@ export class ConfigService {
 
     if (!ignoreEnvFile) {
       const envPath = resolve(process.cwd(), envFilePath);
-      
+
       if (existsSync(envPath)) {
         const result = config({ path: envPath });
 

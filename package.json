@@ -5,6 +5,8 @@
   "main": "dist/main.js",
   "scripts": {
     "remove:running:port": "lsof -ti:3000 | xargs kill -9",
+    "format:admin": "prettier --write \"admin/src/**/*.ts\"",
+    "lint:admin": "eslint \"admin/src/**/*.{ts,tsx}\" --fix",
     "format": "prettier --write \"src/**/*.ts\"",
     "lint": "eslint \"src/**/*.{ts,tsx}\" --fix",
     "type-check": "tsc --noEmit",

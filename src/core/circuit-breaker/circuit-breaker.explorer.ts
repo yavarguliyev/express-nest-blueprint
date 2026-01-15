@@ -1,4 +1,3 @@
-
 import { Injectable } from '@common/decorators';
 import { Container } from '@common/container';
 import { CIRCUIT_BREAKER_METADATA } from '@common/decorators/circuit-breaker.decorator';
@@ -16,7 +15,7 @@ export class CircuitBreakerExplorer {
 
   explore (): void {
     const services = Container.getInstance().getServices();
-    
+
     for (const [token, entry] of services) {
       if (entry.type !== 'class') continue;
 
@@ -31,11 +30,7 @@ export class CircuitBreakerExplorer {
       for (const propertyName of propertyNames) {
         if (propertyName === 'constructor') continue;
 
-        const options = Reflect.getMetadata(
-          CIRCUIT_BREAKER_METADATA,
-          prototype,
-          propertyName
-        ) as CircuitBreakerOptions | undefined;
+        const options = Reflect.getMetadata(CIRCUIT_BREAKER_METADATA, prototype, propertyName) as CircuitBreakerOptions | undefined;
 
         if (options) {
           this.patchMethod(instance, propertyName, options);
@@ -64,7 +59,7 @@ export class CircuitBreakerExplorer {
         return result;
       } catch (error) {
         circuitBreakerService.recordFailure(circuitKey);
-        throw (error as Error);
+        throw error as Error;
       }
     };
   }

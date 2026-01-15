@@ -1,7 +1,6 @@
-
 import { RouteMetadata } from '@common/interfaces';
 
-export const ROUTE_METADATA = Symbol('ROUTE_METADATA');
+export const ROUTE_METADATA = Symbol.for('ROUTE_METADATA');
 
 export const createRouteDecorator = (method: string) => {
   return (path = ''): MethodDecorator => {

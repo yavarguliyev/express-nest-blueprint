@@ -16,7 +16,7 @@ export class ThrottlerService {
     multi.ttl(fullKey);
 
     const results = await multi.exec();
-    
+
     if (!results || !results[0] || !results[1]) {
       throw new BadRequestException('Redis multi-exec failed or returned partial results');
     }

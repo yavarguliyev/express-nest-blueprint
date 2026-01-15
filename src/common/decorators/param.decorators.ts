@@ -1,7 +1,6 @@
-
 import { ParamMetadata } from '@common/interfaces';
 
-export const PARAM_METADATA = Symbol('PARAM_METADATA');
+export const PARAM_METADATA = Symbol.for('PARAM_METADATA');
 
 export const createParamDecorator = (type: ParamMetadata['type']) => {
   return (data?: unknown): ParameterDecorator => {

@@ -1,8 +1,7 @@
-
 import { InjectionToken } from '@common/types';
 
-export const INJECTABLE_METADATA = Symbol('INJECTABLE_METADATA');
-export const INJECT_METADATA = Symbol('INJECT_METADATA');
+export const INJECTABLE_METADATA = Symbol.for('INJECTABLE_METADATA');
+export const INJECT_METADATA = Symbol.for('INJECT_METADATA');
 
 export const Injectable = (): ClassDecorator => {
   return (target: object): void => {

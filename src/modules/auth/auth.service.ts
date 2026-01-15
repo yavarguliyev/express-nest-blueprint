@@ -6,6 +6,7 @@ import { ValidationService, JwtService } from '@common/services';
 import { AuthResponseDto, LoginDto, RegisterDto } from '@modules/auth/dtos';
 import { AuthResponseUser } from '@modules/auth/interfaces';
 import { AuthRepository } from '@modules/auth/auth.repository';
+import { Roles } from '@common/enums';
 
 @Injectable()
 export class AuthService {
@@ -44,7 +45,7 @@ export class AuthService {
   }
 
   private generateAuthResponse (user: AuthResponseUser): AuthResponseDto {
-    const payload = { sub: user.id, email: user.email, role: user.role };
+    const payload = { sub: user.id, email: user.email, role: user.role as Roles };
 
     const accessToken = this.jwtService.sign(payload);
     const expiresIn = this.jwtService.getExpiresInSeconds();

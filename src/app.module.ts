@@ -8,6 +8,7 @@ import { ThrottlerModule, RateLimitMiddleware } from '@core/throttler';
 import { CircuitBreakerModule } from '@core/circuit-breaker/circuit-breaker.module';
 import { AuthModule } from '@modules/auth/auth.module';
 import { UsersModule } from '@modules/users/users.module';
+import { AdminModule } from '@modules/admin/admin.module';
 import { SharedModule } from '@shared/shared.module';
 
 @Module({
@@ -23,7 +24,8 @@ import { SharedModule } from '@shared/shared.module';
     MetricsModule,
     CircuitBreakerModule,
     UsersModule,
-    AuthModule
+    AuthModule,
+    AdminModule
   ],
   controllers: [],
   providers: [],

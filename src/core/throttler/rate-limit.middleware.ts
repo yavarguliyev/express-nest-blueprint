@@ -16,8 +16,9 @@ export class RateLimitMiddleware implements NestMiddleware {
 
   use (req: Request, res: Response, next: NextFunction): void {
     const key = req.ip || req.headers['x-forwarded-for'] || 'unknown';
-    
-    this.throttlerService.checkRateLimit(String(key), this.limit, this.ttl)
+
+    this.throttlerService
+      .checkRateLimit(String(key), this.limit, this.ttl)
       .then((result) => {
         res.setHeader('X-RateLimit-Limit', this.limit);
         res.setHeader('X-RateLimit-Remaining', result.remaining);

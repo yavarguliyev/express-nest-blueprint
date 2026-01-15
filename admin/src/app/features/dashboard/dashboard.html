@@ -1,0 +1,82 @@
+
+<div class="dashboard-container">
+  <div class="stats-grid">
+    <div class="stat-card glass animate-slide-up">
+      <div class="stat-icon users-icon"><span class="material-icons">people</span></div>
+      <div class="stat-content">
+        <span class="stat-label">Total Users</span>
+        <h2 class="stat-value">{{ metrics()?.totalUsers || 0 }}</h2>
+      </div>
+      <div class="stat-trend positive">+12% vs last month</div>
+    </div>
+
+    <div class="stat-card glass animate-slide-up" style="animation-delay: 0.1s">
+      <div class="stat-icon active-icon"><span class="material-icons">bolt</span></div>
+      <div class="stat-content">
+        <span class="stat-label">Active Now</span>
+        <h2 class="stat-value">{{ metrics()?.activeUsers || 0 }}</h2>
+      </div>
+      <div class="stat-trend positive">Stable</div>
+    </div>
+
+    <div class="stat-card glass animate-slide-up" style="animation-delay: 0.2s">
+      <div class="stat-icon requests-icon"><span class="material-icons">api</span></div>
+      <div class="stat-content">
+        <span class="stat-label">API Requests (24h)</span>
+        <h2 class="stat-value">{{ metrics()?.apiRequestsToday || 0 }}</h2>
+      </div>
+      <div class="stat-trend negative">-2% vs yesterday</div>
+    </div>
+
+    <div class="stat-card glass animate-slide-up" style="animation-delay: 0.3s">
+      <div class="stat-icon storage-icon"><span class="material-icons">storage</span></div>
+      <div class="stat-content">
+        <span class="stat-label">Storage Usage</span>
+        <h2 class="stat-value">{{ (metrics()?.totalStorageUsage || 0) / 1024 | number:'1.1-1' }} MB</h2>
+      </div>
+      <div class="stat-trend">75% capacity</div>
+    </div>
+  </div>
+
+  <div class="dashboard-main-grid">
+    <div class="health-overview glass animate-fade-in">
+      <div class="card-header">
+        <h3>System Health</h3>
+        <span class="status-pill" [ngClass]="health()?.overallStatus === 'up' ? 'up' : 'down'">
+          {{ health()?.overallStatus === 'up' ? 'Healthy' : 'Issues Detected' }}
+        </span>
+      </div>
+      <div class="health-list">
+        <div *ngFor="let component of health()?.components" class="health-item">
+          <div class="comp-info">
+            <span class="comp-name">{{ component.name }}</span>
+            <span class="comp-details">{{ component.details?.latency ? component.details.latency + 'ms' : 'Active' }}</span>
+          </div>
+          <div class="status-indicator" [ngClass]="component.status"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="recent-alerts glass animate-fade-in">
+      <div class="card-header">
+        <h3>Recent Alerts</h3>
+      </div>
+      <div class="alerts-list">
+        <div class="alert-item warning">
+          <span class="material-icons">warning</span>
+          <div class="alert-content">
+            <span class="alert-title">High CPU Usage</span>
+            <p>Worker node #4 is experiencing heavy load.</p>
+          </div>
+        </div>
+        <div class="alert-item info">
+          <span class="material-icons">info</span>
+          <div class="alert-content">
+            <span class="alert-title">Migration Complete</span>
+            <p>Database migration v2.4 successfully applied.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,4 +1,6 @@
+import { join } from 'path';
 import 'reflect-metadata';
+import express from 'express';
 
 import { ConfigService } from '@core/config';
 import { NestFactory } from '@common/application';
@@ -34,6 +36,10 @@ async function bootstrap (): Promise<void> {
         SwaggerModule.setup('api', app, document);
         Logger.log('📖 Swagger documentation enabled at /api', 'Bootstrap');
       }
+
+      const adminPath = join(__dirname, '..', 'admin', 'dist', 'admin', 'browser');
+      app.use('/admin', express.static(adminPath));
+      app.use('/admin/*', (_req, res) => res.sendFile(join(adminPath, 'index.html')));
 
       const server = await app.listen(port, host);
 

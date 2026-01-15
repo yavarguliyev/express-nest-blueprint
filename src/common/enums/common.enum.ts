@@ -26,6 +26,12 @@ export enum LogLevel {
   VERBOSE = 4
 }
 
+export enum Roles {
+  ADMIN = 'admin',
+  USER = 'user',
+  MODERATOR = 'moderator'
+}
+
 export enum RequestMethod {
   GET = 'GET',
   POST = 'POST',

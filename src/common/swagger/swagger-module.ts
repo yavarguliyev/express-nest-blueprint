@@ -17,10 +17,14 @@ export class SwaggerModule {
     const normalizedPath = path.startsWith('/') ? path : `/${path}`;
 
     expressApp.use(normalizedPath, swaggerUi.serve);
-    expressApp.get(normalizedPath, (req, res, next) => {
-      if (req.originalUrl === normalizedPath) return res.redirect(301, `${normalizedPath}/`);
-      next();
-    }, swaggerUi.setup(document));
+    expressApp.get(
+      normalizedPath,
+      (req, res, next) => {
+        if (req.originalUrl === normalizedPath) return res.redirect(301, `${normalizedPath}/`);
+        next();
+      },
+      swaggerUi.setup(document)
+    );
 
     expressApp.get(`${normalizedPath}/`, swaggerUi.setup(document));
   }

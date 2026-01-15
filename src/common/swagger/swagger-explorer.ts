@@ -18,16 +18,16 @@ export class SwaggerExplorer {
       const basePath = controllerMetadata?.path || '';
       const controllerRequiresAuth = Reflect.getMetadata(REQUIRE_AUTH_KEY, controller) as boolean;
       const controllerIsPublic = Reflect.getMetadata(IS_PUBLIC_KEY, controller) as boolean;
-      
-      const prototype = controller.prototype as object;
-      const methods = Object.getOwnPropertyNames(prototype).filter(m => m !== 'constructor');
 
-      methods.forEach(methodName => {
+      const prototype = controller.prototype as object;
+      const methods = Object.getOwnPropertyNames(prototype).filter((m) => m !== 'constructor');
+
+      methods.forEach((methodName) => {
         const routes = (Reflect.getMetadata(ROUTE_METADATA, prototype, methodName) || []) as RouteMetadata[];
         const params = (Reflect.getMetadata(PARAM_METADATA, prototype, methodName) || []) as ParamMetadata[];
         const paramTypes = (Reflect.getMetadata('design:paramtypes', prototype, methodName) || []) as Constructor[];
 
-        routes.forEach(route => {
+        routes.forEach((route) => {
           const fullPath = this.normalizePath(basePath, route.path);
           const httpMethod = route.method.toLowerCase();
 
@@ -62,16 +62,12 @@ export class SwaggerExplorer {
 
           const methodSecurity = Reflect.getMetadata(API_SECURITY_KEY, prototype, methodName) as Record<string, string[]>[];
           const controllerSecurity = Reflect.getMetadata(API_SECURITY_KEY, controller) as Record<string, string[]>[];
-          
+
           if (methodSecurity || controllerSecurity) {
-            operation.security = [
-              ...(operation.security || []),
-              ...(methodSecurity || []),
-              ...(controllerSecurity || [])
-            ];
+            operation.security = [...(operation.security || []), ...(methodSecurity || []), ...(controllerSecurity || [])];
           }
 
-          params.forEach(param => {
+          params.forEach((param) => {
             const type: Constructor | undefined = paramTypes[param.index];
             if (param.type === 'body') {
               operation.requestBody = {
@@ -94,7 +90,7 @@ export class SwaggerExplorer {
                   const schemaName = schema.$ref.split('/').pop()!;
                   const properties = this.schemas[schemaName]?.properties || {};
 
-                  Object.keys(properties).forEach(prop => {
+                  Object.keys(properties).forEach((prop) => {
                     const propSchema = properties[prop]!;
                     operation.parameters?.push({
                       name: prop,
@@ -107,7 +103,7 @@ export class SwaggerExplorer {
               }
             } else if (param.type === 'param') {
               operation.parameters?.push({
-                name: param.data as string || 'id',
+                name: (param.data as string) || 'id',
                 in: 'path',
                 required: true,
                 schema: { type: 'string' }
@@ -157,10 +153,10 @@ export class SwaggerExplorer {
     targetMetadata.forEach((meta: { type: string; propertyName: string; constraints?: unknown[] }) => {
       const prop = meta.propertyName;
       if (!schema.properties) schema.properties = {};
-      
+
       if (!schema.properties[prop]) {
         const propSchema: OpenAPISchema = { type: 'string' };
-        
+
         if (meta.type === 'isBoolean') propSchema.type = 'boolean';
         if (meta.type === 'isNumber') propSchema.type = 'number';
         if (meta.type === 'isEmail') propSchema.format = 'email';
@@ -190,7 +186,7 @@ export class SwaggerExplorer {
   private humanize (str: string): string {
     return str
       .replace(/([A-Z])/g, ' $1')
-      .replace(/^./, s => s.toUpperCase())
+      .replace(/^./, (s) => s.toUpperCase())
       .trim();
   }
 }

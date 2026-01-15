@@ -24,4 +24,12 @@ export class UpdateUserDto {
   @IsOptional()
   @IsBoolean({ message: 'isActive must be a boolean value' })
   isActive?: boolean;
+
+  @IsOptional()
+  @IsString({ message: 'Profile image URL must be a string' })
+  profileImageUrl?: string | null | undefined;
+
+  @IsOptional()
+  @IsBoolean({ message: 'isEmailVerified must be a boolean value' })
+  isEmailVerified?: boolean;
 }

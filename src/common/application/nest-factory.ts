@@ -1,4 +1,3 @@
-
 import { NestApplication } from '@common/application';
 import { Container } from '@common/container';
 import { MODULE_METADATA } from '@common/decorators';
@@ -22,7 +21,7 @@ export class NestFactory {
     await factory.registerModule({ moduleOrConfig: moduleClass }, container);
     const app = new NestApplication(container);
     await factory.configureModuleMiddleware(moduleClass, app, container);
-    
+
     app.init();
 
     if (container.has('APP_INITIALIZER')) {

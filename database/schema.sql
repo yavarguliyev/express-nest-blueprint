@@ -10,7 +10,8 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash VARCHAR(255),
     role VARCHAR(50) DEFAULT 'user' CHECK (role IN ('admin', 'user', 'moderator')),
     last_login TIMESTAMP WITH TIME ZONE,
-    is_email_verified BOOLEAN DEFAULT false
+    is_email_verified BOOLEAN DEFAULT false,
+    profile_image_url VARCHAR(255)
 );
 
 -- Create indexes
@@ -43,3 +44,14 @@ ON CONFLICT (email) DO NOTHING;
 
 -- Ensure existing rows have default role
 UPDATE users SET role = 'user' WHERE role IS NULL;
+
+-- Create pgmigrations table and mark migrations as done
+CREATE TABLE IF NOT EXISTS pgmigrations (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    run_on TIMESTAMP NOT NULL
+);
+
+INSERT INTO pgmigrations (name, run_on) VALUES 
+    ('1768287339787_initial-schema', NOW()),
+    ('1768477051349_add-profile-fields-to-users', NOW());

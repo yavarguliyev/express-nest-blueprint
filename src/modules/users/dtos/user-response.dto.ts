@@ -17,6 +17,12 @@ export class UserResponseDto {
   isActive!: boolean;
 
   @Expose()
+  profileImageUrl?: string | null | undefined;
+
+  @Expose()
+  isEmailVerified!: boolean;
+
+  @Expose()
   @Type(() => Date)
   createdAt!: Date;
 

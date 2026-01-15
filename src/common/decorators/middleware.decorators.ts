@@ -1,9 +1,8 @@
-
 import { Constructor } from '@common/types';
 
-export const GUARDS_METADATA = Symbol('GUARDS_METADATA');
-export const INTERCEPTORS_METADATA = Symbol('INTERCEPTORS_METADATA');
-export const PIPES_METADATA = Symbol('PIPES_METADATA');
+export const GUARDS_METADATA = Symbol.for('GUARDS_METADATA');
+export const INTERCEPTORS_METADATA = Symbol.for('INTERCEPTORS_METADATA');
+export const PIPES_METADATA = Symbol.for('PIPES_METADATA');
 
 export const UseGuards = (...guards: Constructor[]): MethodDecorator & ClassDecorator => {
   return (target: object, propertyKey?: string | symbol) => {

@@ -10,7 +10,6 @@ import { GlobalExceptionFilter } from '@common/filters';
 import { AuthGuard, RolesGuard } from '@common/guards';
 import { CONTROLLER_REGISTRY } from '@common/helpers';
 import { CanActivate, ControllerOptions, CorsOptions, ExtractMethodOptions, HasMethodOptions, ParamMetadata, RouteMetadata } from '@common/interfaces';
-import { Logger } from '@common/logger';
 import { Constructor, ExpressHttpMethods, HttpMethod } from '@common/types';
 
 export class NestApplication {
@@ -139,7 +138,6 @@ export class NestApplication {
 
     const maxRetries = 30;
     let retries = 0;
-    const logger = new Logger('Bootstrap');
 
     const attemptListen = (): Promise<Server> => {
       return new Promise((resolve, reject) => {
@@ -153,15 +151,9 @@ export class NestApplication {
             const error = err as Error & { code?: string };
             if (error.code === 'EADDRINUSE' && retries < maxRetries) {
               retries++;
-              logger.warn(`Port ${port} is busy, retrying (${retries}/${maxRetries}) in 500ms...`);
 
-              await new Promise<void>((closeResolve) => {
-                server.close(() => closeResolve());
-              });
-
-              setTimeout(() => {
-                void attemptListen().then(resolve).catch(reject);
-              }, 500);
+              await new Promise<void>((closeResolve) => server.close(() => closeResolve()));
+              setTimeout(() => void attemptListen().then(resolve).catch(reject), 500);
             } else {
               const errorReason = error instanceof Error ? error : new InternalServerErrorException(String(error));
               reject(errorReason);

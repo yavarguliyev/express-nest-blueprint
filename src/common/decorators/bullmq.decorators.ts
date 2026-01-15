@@ -1,4 +1,3 @@
-
 import { JobHandlerOptions, QueueMetadata } from '@common/interfaces';
 
 export const QUEUE_METADATA = 'bullmq:queue';

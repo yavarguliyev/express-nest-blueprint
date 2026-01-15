@@ -4,7 +4,7 @@ import { Request, Response, NextFunction, RequestHandler, Application } from 'ex
 
 import { INITIALIZER_TOKENS, METHODS } from '@common/constants/system.const';
 import type { Container } from '@common/container/container';
-import { DatabaseAdapter, DatabaseConfig, DataProcessingJobData, NestMiddleware, ParamMetadata, ReportJobData } from '@common/interfaces';
+import { DatabaseAdapter, DatabaseConfig, DataProcessingJobData, NestMiddleware, ParamMetadata, ReportJobData, SupportsCreate, SupportsDelete, SupportsFindAll, SupportsFindById, SupportsFindWithPagination, SupportsUpdate } from '@common/interfaces';
 
 export type AdapterConstructor = new (config: DatabaseConfig) => DatabaseAdapter;
 
@@ -88,3 +88,5 @@ export type TimeUnit = 's' | 'm' | 'h' | 'd';
 export type ValueProvider<T = object> = { type: 'value'; value: T };
 
 export type WhereConditions = '=' | '!=' | '>' | '<' | '>=' | '<=' | 'LIKE' | 'ILIKE' | 'IN' | 'NOT IN';
+
+export type CrudRepository = Partial<SupportsFindWithPagination & SupportsFindAll & SupportsFindById & SupportsCreate & SupportsUpdate & SupportsDelete>;

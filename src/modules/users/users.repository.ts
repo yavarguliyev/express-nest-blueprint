@@ -1,10 +1,11 @@
-import { CircuitBreaker, Injectable } from '@common/decorators';
+import { CircuitBreaker, CrudTable, Injectable } from '@common/decorators';
 import { DatabaseAdapter } from '@common/interfaces';
 import { DatabaseService } from '@core/database/database.service';
 import { FindUsersQueryDto, UserResponseDto } from '@modules/users/dtos';
 import { BaseRepository } from '@shared/database/base.repository';
 import { QueryAllWithPaginationOptions } from '@shared/database/interfaces';
 
+@CrudTable({ category: 'User Management', name: 'users', displayName: 'Users' })
 @Injectable()
 export class UsersRepository extends BaseRepository<UserResponseDto> {
   constructor (databaseService: DatabaseService) {
@@ -12,6 +13,8 @@ export class UsersRepository extends BaseRepository<UserResponseDto> {
       firstName: 'first_name',
       lastName: 'last_name',
       isActive: 'is_active',
+      profileImageUrl: 'profile_image_url',
+      isEmailVerified: 'is_email_verified',
       password: 'password_hash',
       createdAt: 'created_at',
       updatedAt: 'updated_at'
@@ -19,7 +22,7 @@ export class UsersRepository extends BaseRepository<UserResponseDto> {
   }
 
   protected getSelectColumns (): string[] {
-    return ['id', 'email', 'firstName', 'lastName', 'isActive', 'createdAt', 'updatedAt'];
+    return ['id', 'email', 'firstName', 'lastName', 'isActive', 'profileImageUrl', 'isEmailVerified', 'createdAt', 'updatedAt'];
   }
 
   async findByEmail (email: string, connection?: DatabaseAdapter): Promise<UserResponseDto | null> {

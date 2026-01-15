@@ -4,6 +4,7 @@ import { Injectable, IS_PUBLIC_KEY, ROLES_KEY } from '@common/decorators';
 import { ForbiddenException, UnauthorizedException } from '@common/exceptions';
 import { CanActivate } from '@common/interfaces';
 import { Constructor } from '@common/types';
+import { Roles } from '@common/enums';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -13,14 +14,14 @@ export class RolesGuard implements CanActivate {
 
     const methodRoles = (originalMethod && Reflect.getMetadata(ROLES_KEY, originalMethod)) as string[] | undefined;
     const classRoles = (controllerClass && Reflect.getMetadata(ROLES_KEY, controllerClass)) as string[] | undefined;
-    const requiredRoles = methodRoles || classRoles;
+    const requiredRoles = (methodRoles || classRoles) as Roles[];
 
     if (!requiredRoles || requiredRoles.length === 0) return next();
 
     const user = req.user;
     if (!user) throw new UnauthorizedException('Authentication required for role-based access');
 
-    const hasRole = requiredRoles.some((role: string) => user.role === role);
+    const hasRole = requiredRoles.some((role: Roles) => user.role === role);
     if (!hasRole) throw new ForbiddenException(`Access denied. Required roles: ${requiredRoles.join(', ')}`);
 
     next();

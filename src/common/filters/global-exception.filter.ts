@@ -61,7 +61,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     }
 
     if (responseObj && typeof responseObj === 'object') {
-      return { ...(responseObj), timestamp, path };
+      return { ...responseObj, timestamp, path };
     }
 
     if (responseObj) {

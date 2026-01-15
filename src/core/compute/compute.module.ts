@@ -27,7 +27,7 @@ export class ComputeModule {
           useFactory: ((configService: ConfigService) => {
             const role = configService.get<string>('APP_ROLE', AppRoles.API) as AppRoles;
             const autoSpawn = configService.get<boolean>('COMPUTE_AUTO_SPAWN', true);
-            
+
             return {
               enableWorker: role === AppRoles.WORKER || !role,
               enableApi: role !== AppRoles.WORKER,
@@ -61,8 +61,8 @@ export class ComputeModule {
                     if (!entryPoint) return;
 
                     const computedOptions = {
-                        workerMinCount: configService.get<number>('COMPUTE_MIN_WORKERS', 3),
-                        workerMaxCount: configService.get<number>('COMPUTE_MAX_WORKERS', 8)
+                      workerMinCount: configService.get<number>('COMPUTE_MIN_WORKERS', 3),
+                      workerMaxCount: configService.get<number>('COMPUTE_MAX_WORKERS', 8)
                     };
 
                     const count = Math.min(Math.max(computedOptions.workerMinCount ?? 3, 1), Math.max(computedOptions.workerMaxCount ?? 10, 1));
@@ -75,7 +75,7 @@ export class ComputeModule {
                           name: `WorkerProcess-${i + 1}`,
                           disconnect: async () => {
                             if (workerProcess.killed || workerProcess.exitCode !== null) return;
-                            
+
                             return new Promise<void>((resolve) => {
                               const timer = setTimeout(() => {
                                 workerProcess.kill('SIGKILL');
@@ -86,7 +86,7 @@ export class ComputeModule {
                                 clearTimeout(timer);
                                 resolve();
                               });
-                              
+
                               workerProcess.kill('SIGTERM');
                             });
                           }

@@ -22,10 +22,7 @@ export class Logger {
 
   private static getFormat (): winston.Logform.Format {
     if (process.env.NODE_ENV === 'production') {
-      return winston.format.combine(
-        winston.format.timestamp(),
-        winston.format.json()
-      );
+      return winston.format.combine(winston.format.timestamp(), winston.format.json());
     }
 
     return winston.format.combine(

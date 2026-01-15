@@ -1,5 +1,4 @@
-
-import { CONTROLLER_METADATA } from '@common/decorators';
+import { CONTROLLER_METADATA, INJECTABLE_METADATA } from '@common/decorators';
 import { registerControllerClass } from '@common/helpers';
 import { ApiControllerOptions, BaseControllerOptions, ApiVersionConfig } from '@common/interfaces';
 import { Constructor } from '@common/types';
@@ -14,6 +13,7 @@ export function ApiController ({ path, version, prefix }: ApiControllerOptions):
     Reflect.defineMetadata('api:prefix', apiPrefix, target);
     Reflect.defineMetadata('api:basePath', path, target);
     Reflect.defineMetadata(CONTROLLER_METADATA, { path: fullPath }, target);
+    Reflect.defineMetadata(INJECTABLE_METADATA, true, target);
 
     registerControllerClass(target as unknown as Constructor);
   };

@@ -16,7 +16,7 @@ export class DatabaseService {
 
     const adapter = new AdapterClass(config);
     await adapter.connect();
-    
+
     const connectionKey = isReadOnly ? `${name}_read` : name;
     this.adapters.set(connectionKey, adapter);
 

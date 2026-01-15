@@ -8,23 +8,16 @@ import { DatabaseModule } from '@core/database';
 import { LifecycleModule } from '@core/lifecycle';
 import { RedisModule } from '@core/redis/redis.module';
 import { StorageModule } from '@core/storage/storage.module';
-import { AuthGuard, RolesGuard, HeaderAuthGuard } from '@common/guards';
+import { AuthGuard, RolesGuard, HeaderAuthGuard, AdminGuard } from '@common/guards';
 import { HeaderAuthMiddleware } from '@common/middleware';
 
 @Module({
-  imports: [
-    LoggerModule.forRoot(),
-    LifecycleModule.forRoot(),
-    DatabaseModule.forRoot(),
-    RedisModule.forRoot(),
-    CacheModule.forRoot(),
-    ComputeModule.forRoot(),
-    StorageModule.forRoot()
-  ],
+  imports: [LoggerModule.forRoot(), LifecycleModule.forRoot(), DatabaseModule.forRoot(), RedisModule.forRoot(), CacheModule.forRoot(), ComputeModule.forRoot(), StorageModule.forRoot()],
   controllers: [],
   providers: [
     LoggerMiddleware,
     JwtService,
+    AdminGuard,
     AuthGuard,
     RolesGuard,
     HeaderAuthGuard,

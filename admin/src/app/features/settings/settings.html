@@ -1,0 +1,42 @@
+
+<div class="settings-page animate-fade-in">
+  <div class="page-header">
+    <div class="header-content">
+      <h2>System Settings</h2>
+      <p class="text-muted">Configure global application behavior and security policies</p>
+    </div>
+  </div>
+
+  <div *ngIf="successMessage()" class="success-banner glass">
+    <span class="material-icons">check_circle</span>
+    {{ successMessage() }}
+  </div>
+
+  <div class="settings-container glass">
+    <div class="settings-section">
+      <h3>General Configuration</h3>
+      <div class="settings-list">
+        <div *ngFor="let setting of settings()" class="setting-item">
+          <div class="setting-info">
+            <span class="setting-category">{{ setting.category }}</span>
+            <span class="setting-label">{{ setting.label }}</span>
+            <p class="setting-desc">{{ setting.description }}</p>
+          </div>
+          <div class="setting-action">
+            <label class="switch">
+              <input type="checkbox" [(ngModel)]="setting.value">
+              <span class="slider round"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-footer">
+      <button class="btn btn-primary" (click)="saveSettings()" [disabled]="loading()">
+        <span *ngIf="!loading()">Save Changes</span>
+        <span *ngIf="loading()">Saving...</span>
+      </button>
+    </div>
+  </div>
+</div>

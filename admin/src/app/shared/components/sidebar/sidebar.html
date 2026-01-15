@@ -1,0 +1,24 @@
+<div class="sidebar-container glass">
+  <div class="sidebar-header">
+    <div class="logo-sm glow">AG</div>
+    <span class="brand-name">Antigravity</span>
+  </div>
+
+  <nav class="sidebar-nav">
+    <ul>
+      <li *ngFor="let item of menuItems">
+        <a [routerLink]="item.route" routerLinkActive="active" class="nav-item">
+          <span class="material-icons">{{ item.icon }}</span>
+          <span class="nav-label">{{ item.label }}</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="sidebar-footer">
+    <button (click)="logout()" class="logout-btn">
+      <span class="material-icons">logout</span>
+      <span>Logout</span>
+    </button>
+  </div>
+</div>

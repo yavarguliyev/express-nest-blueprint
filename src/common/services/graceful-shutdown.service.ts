@@ -12,7 +12,7 @@ export class GracefulShutdownService {
   private readonly maxRetries: number;
   private readonly retryDelay: number;
 
-  constructor (services: GracefulShutDownServiceConfig[], config?: { shutdownTimeout: number, maxRetries: number, retryDelay: number }) {
+  constructor (services: GracefulShutDownServiceConfig[], config?: { shutdownTimeout: number; maxRetries: number; retryDelay: number }) {
     this.services = services;
     this.shutdownTimeout = config?.shutdownTimeout || 3000;
     this.maxRetries = config?.maxRetries || 3;
@@ -24,10 +24,10 @@ export class GracefulShutdownService {
 
     try {
       this.logger.log('Graceful shutdown initiated...');
-      
+
       if (httpServer?.listening) {
         this.logger.log('Closing HTTP server...');
-        
+
         const server = httpServer;
 
         if ('closeAllConnections' in server && typeof server.closeAllConnections === 'function') {
@@ -50,7 +50,7 @@ export class GracefulShutdownService {
       this.logger.log('Disconnecting services...');
       await this.disconnectServices();
       this.logger.log('All services disconnected.');
-      
+
       shutdownTimer = this.startShutdownTimer();
     } catch (error) {
       this.logger.error(`Error during shutdown: ${getErrorMessage(error)}`);

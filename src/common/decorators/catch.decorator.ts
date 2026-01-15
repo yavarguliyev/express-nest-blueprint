@@ -1,4 +1,3 @@
-
 import { ExceptionClass } from '@common/types';
 
 export const EXCEPTION_FILTERS_METADATA = 'EXCEPTION_FILTERS_METADATA';

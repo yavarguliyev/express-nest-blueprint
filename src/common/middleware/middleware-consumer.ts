@@ -11,7 +11,10 @@ import { Container } from '@common/container';
 export class MiddlewareConsumerImpl implements MiddlewareConsumer {
   private middlewareConfigs: MiddlewareConfig[] = [];
 
-  constructor (private app: Express, private container: Container) {}
+  constructor (
+    private app: Express,
+    private container: Container
+  ) {}
 
   apply (...middleware: (MiddlewareFunction | NestMiddleware)[]): MiddlewareConfigProxy {
     const config: MiddlewareConfig = { middleware, routes: [], excludeRoutes: [] };

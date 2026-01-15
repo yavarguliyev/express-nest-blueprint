@@ -1,6 +1,6 @@
-import { LogLevel } from '@common/enums';
+import { LogLevel, Roles } from '@common/enums';
 import { MiddlewareConsumer } from '@common/interfaces';
-import { Constructor, AbstractConstructor, InitializerToken, Providers } from '@common/types';
+import { Constructor, AbstractConstructor, InitializerToken, Providers, CrudRepository } from '@common/types';
 
 export interface ApiControllerOptions {
   path: string;
@@ -48,6 +48,12 @@ export interface ComputeOptions {
   removeOnFail?: boolean | number;
   background?: boolean;
   timeout?: number;
+}
+
+export interface CrudTableOptions {
+  category: string;
+  name: string;
+  displayName?: string;
 }
 
 export interface ConfigModuleOptions {
@@ -125,7 +131,7 @@ export interface JwtPayload {
   email: string;
   exp?: number;
   iat?: number;
-  role: string;
+  role: Roles;
   sub: number;
 }
 
@@ -193,9 +199,43 @@ export interface WsArgumentsHost {
 }
 
 export interface HasGetStatus {
-  getStatus (): number;
+  getStatus(): number;
 }
 
 export interface HasGetResponse {
-  getResponse (): string | object;
+  getResponse(): string | object;
+}
+
+export interface PaginationResult<T = unknown> {
+  data: T[];
+  total: number;
+}
+
+export interface SupportsFindWithPagination {
+  findWithPagination(options: { page: number; limit: number }): Promise<PaginationResult>;
+}
+
+export interface SupportsFindAll {
+  findAll(options: { limit: number; offset: number }): Promise<unknown[]>;
+}
+
+export interface SupportsFindById {
+  findById(id: number): Promise<unknown>;
+}
+
+export interface SupportsCreate {
+  create(data: unknown): Promise<unknown>;
+}
+
+export interface SupportsUpdate {
+  update(id: number, data: unknown): Promise<unknown>;
+}
+
+export interface SupportsDelete {
+  delete(id: number): Promise<boolean>;
+}
+
+export interface RepositoryEntry {
+  repository: CrudRepository;
+  metadata: CrudTableOptions;
 }
