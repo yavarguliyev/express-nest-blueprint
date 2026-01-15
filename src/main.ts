@@ -7,6 +7,7 @@ import { getErrorMessage } from '@common/helpers';
 import { Logger } from '@common/logger';
 import { LifecycleService } from '@core/lifecycle';
 import { AppModule } from '@app/common';
+import { SwaggerModule, DocumentBuilder } from '@common/swagger';
 
 async function bootstrap (): Promise<void> {
   let lifecycleService: LifecycleService | undefined;
@@ -19,6 +20,14 @@ async function bootstrap (): Promise<void> {
     const role = configService.get<string>('APP_ROLE', AppRoles.API) as AppRoles;
 
     if (role !== AppRoles.WORKER) {
+      const swaggerConfig = new DocumentBuilder()
+        .setTitle('Express Nest Blueprint API')
+        .setDescription('The API description for the Express Nest Blueprint project')
+        .setVersion('1.0')
+        .build();
+      const document = SwaggerModule.createDocument(app, swaggerConfig);
+      SwaggerModule.setup('api', app, document);
+
       const port = configService.get<number>('PORT', 3000);
       const host = configService.get<string>('HOST', '0.0.0.0');
 
