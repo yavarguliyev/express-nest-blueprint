@@ -1,6 +1,7 @@
-import { ApiController, BaseController } from '@common/controllers';
-import { Get, UseGuards } from '@common/decorators';
-import { AdminGuard } from '@common/guards';
+import { ApiController, BaseController } from '@common/controllers/base.controller';
+import { UseGuards } from '@common/decorators/middleware.decorators';
+import { Get } from '@common/decorators/route.decorators';
+import { AdminGuard } from '@common/guards/admin.guard';
 import { AdminMetricsService } from '@modules/admin/services/admin-metrics.service';
 
 @ApiController({ path: '/admin/dashboard' })

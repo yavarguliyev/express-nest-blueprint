@@ -1,4 +1,4 @@
-import { SortOrder, WhereConditions } from '@common/types';
+import { SortOrder, WhereConditions } from '@common/types/common.type';
 
 export interface ColumnMapping {
   [key: string]: string;

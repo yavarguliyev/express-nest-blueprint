@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 
-import { BadRequestException } from '@common/exceptions';
-import { ArgumentsHost, HttpArgumentsHost, RpcArgumentsHost, WsArgumentsHost } from '@common/interfaces';
+import { BadRequestException } from '@common/exceptions/http-exceptions';
+import { ArgumentsHost, HttpArgumentsHost, RpcArgumentsHost, WsArgumentsHost } from '@common/interfaces/common.interface';
 
 export class ArgumentsHostFilter implements ArgumentsHost {
   constructor (

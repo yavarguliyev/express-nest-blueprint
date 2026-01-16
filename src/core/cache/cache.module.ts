@@ -1,5 +1,5 @@
-import { Module } from '@common/decorators';
-import { DynamicModule } from '@common/interfaces';
+import { Module } from '@common/decorators/module.decorator';
+import { DynamicModule } from '@common/interfaces/common.interface';
 import { CacheExplorer } from '@core/cache/cache.explorer';
 import { CacheService } from '@core/cache/cache.service';
 

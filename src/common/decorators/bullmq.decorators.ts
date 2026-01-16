@@ -1,4 +1,4 @@
-import { JobHandlerOptions, QueueMetadata } from '@common/interfaces';
+import { JobHandlerOptions, QueueMetadata } from '@common/interfaces/bullmq.interface';
 
 export const QUEUE_METADATA = 'bullmq:queue';
 export const PROCESSOR_METADATA = 'bullmq:processor';
@@ -13,9 +13,7 @@ export const STORAGE_OPTIONS = Symbol('STORAGE_OPTIONS');
 export const COMPUTE_MODULE_OPTIONS = Symbol('COMPUTE_MODULE_OPTIONS');
 
 export const Processor = (queueName: string) => {
-  return (target: object) => {
-    Reflect.defineMetadata(PROCESSOR_METADATA, queueName, target);
-  };
+  return (target: object) => Reflect.defineMetadata(PROCESSOR_METADATA, queueName, target);
 };
 
 export const OnJob = (jobName: string, options?: JobHandlerOptions) => {
@@ -35,7 +33,5 @@ export const InjectQueue = (queueName: string) => {
 };
 
 export const QueueProcessor = (metadata: QueueMetadata) => {
-  return (target: object) => {
-    Reflect.defineMetadata(QUEUE_METADATA, metadata, target);
-  };
+  return (target: object) => Reflect.defineMetadata(QUEUE_METADATA, metadata, target);
 };

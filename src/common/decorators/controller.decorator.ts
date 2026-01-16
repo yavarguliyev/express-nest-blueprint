@@ -1,6 +1,6 @@
 import { INJECTABLE_METADATA } from '@common/decorators/injectable.decorator';
-import { registerControllerClass } from '@common/helpers';
-import { Constructor } from '@common/types';
+import { registerControllerClass } from '@common/decorators/register-controller-class.helper';
+import { Constructor } from '@common/types/common.type';
 
 export const CONTROLLER_METADATA = Symbol.for('CONTROLLER_METADATA');
 

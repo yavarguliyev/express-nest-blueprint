@@ -1,5 +1,5 @@
-import { Injectable } from '@common/decorators';
-import { BadRequestException } from '@common/exceptions';
+import { Injectable } from '@common/decorators/injectable.decorator';
+import { BadRequestException } from '@common/exceptions/http-exceptions';
 import { RedisService } from '@core/redis/redis.service';
 
 @Injectable()

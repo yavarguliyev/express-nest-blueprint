@@ -1,7 +1,7 @@
+import { Container } from '@common/container/container';
 import { CACHE_METADATA } from '@common/decorators/cache.decorator';
-import { Container } from '@common/container';
-import { Injectable } from '@common/decorators';
-import { CacheOptions } from '@common/interfaces';
+import { Injectable } from '@common/decorators/injectable.decorator';
+import { CacheOptions } from '@common/interfaces/common.interface';
 import { CacheService } from '@core/cache/cache.service';
 
 @Injectable()

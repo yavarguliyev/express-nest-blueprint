@@ -1,6 +1,6 @@
 import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
-import { Roles } from '@common/enums';
+import { Roles } from '@common/enums/common.enum';
 
 export class RegisterDto {
   @IsString({ message: 'Email must be a string' })

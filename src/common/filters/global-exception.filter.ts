@@ -1,13 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 
-import { HttpException } from '@common/exceptions';
-import { ArgumentsHostFilter } from '@common/filters';
-import { ArgumentsHost, ExceptionFilter } from '@common/interfaces';
-import { hasGetResponse, hasGetStatus } from '@common/helpers';
-import { Logger } from '@common/logger';
+import { HttpException } from '@common/exceptions/http-exception';
+import { ArgumentsHostFilter } from '@common/filters/argument-host.filter';
+import { ArgumentsHost, ExceptionFilter } from '@common/interfaces/common.interface';
+import { hasGetResponse, hasGetStatus } from '@common/helpers/utility-functions.helper';
+import { Logger } from '@common/logger/logger.service';
 
 export class GlobalExceptionFilter implements ExceptionFilter {
-  private readonly logger = new Logger('GlobalExceptionFilter');
+  private readonly logger = new Logger(GlobalExceptionFilter.name);
 
   catch (exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();

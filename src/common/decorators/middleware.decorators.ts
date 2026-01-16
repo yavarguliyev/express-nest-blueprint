@@ -1,4 +1,4 @@
-import { Constructor } from '@common/types';
+import { Constructor } from '@common/types/common.type';
 
 export const GUARDS_METADATA = Symbol.for('GUARDS_METADATA');
 export const INTERCEPTORS_METADATA = Symbol.for('INTERCEPTORS_METADATA');

@@ -1,12 +1,15 @@
 import * as bcrypt from 'bcrypt';
 
-import { Injectable } from '@common/decorators';
-import { UnauthorizedException } from '@common/exceptions';
-import { ValidationService, JwtService } from '@common/services';
-import { AuthResponseDto, LoginDto, RegisterDto } from '@modules/auth/dtos';
-import { AuthResponseUser } from '@modules/auth/interfaces';
+import { Injectable } from '@common/decorators/injectable.decorator';
+import { UnauthorizedException } from '@common/exceptions/http-exceptions';
+import { ValidationService } from '@common/services/validation.service';
+import { JwtService } from '@common/services/jwt.service';
+import { AuthResponseDto } from '@modules/auth/dtos/auth-response.dto';
+import { LoginDto } from '@modules/auth/dtos/login.dto';
+import { RegisterDto } from '@modules/auth/dtos/register.dto';
+import { AuthResponseUser } from '@modules/auth/interfaces/auth-response.interface';
 import { AuthRepository } from '@modules/auth/auth.repository';
-import { Roles } from '@common/enums';
+import { Roles } from '@common/enums/common.enum';
 
 @Injectable()
 export class AuthService {

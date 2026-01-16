@@ -2,15 +2,22 @@ import { ClassConstructor } from 'class-transformer';
 import express, { Express, Request, Response, NextFunction, RequestHandler, Application } from 'express';
 import { Server } from 'http';
 
-import { METHODS, paramHandlers } from '@common/constants';
-import { Container } from '@common/container';
-import { CONTROLLER_METADATA, GUARDS_METADATA, PARAM_METADATA, ROUTE_METADATA } from '@common/decorators';
-import { BadRequestException, InternalServerErrorException, UnauthorizedException } from '@common/exceptions';
-import { GlobalExceptionFilter } from '@common/filters';
-import { AuthGuard, RolesGuard } from '@common/guards';
-import { CONTROLLER_REGISTRY } from '@common/helpers';
-import { CanActivate, ControllerOptions, CorsOptions, ExtractMethodOptions, HasMethodOptions, ParamMetadata, RouteMetadata } from '@common/interfaces';
-import { Constructor, ExpressHttpMethods, HttpMethod } from '@common/types';
+import { paramHandlers } from '@common/constants/common.const';
+import { METHODS } from '@common/constants/system.const';
+import { Container } from '@common/container/container';
+import { CONTROLLER_METADATA } from '@common/decorators/controller.decorator';
+import { GUARDS_METADATA } from '@common/decorators/middleware.decorators';
+import { PARAM_METADATA } from '@common/decorators/param.decorators';
+import { CONTROLLER_REGISTRY } from '@/common/decorators/register-controller-class.helper';
+import { ROUTE_METADATA } from '@common/decorators/route.decorators';
+import { BadRequestException, InternalServerErrorException, UnauthorizedException } from '@common/exceptions/http-exceptions';
+import { GlobalExceptionFilter } from '@common/filters/global-exception.filter';
+import { AuthGuard } from '@common/guards/auth.guard';
+import { RolesGuard } from '@common/guards/roles.guard';
+import { ControllerOptions, CorsOptions, ExtractMethodOptions, HasMethodOptions, ParamMetadata, RouteMetadata } from '@common/interfaces/common.interface';
+import { CanActivate } from '@common/interfaces/guard.interface';
+import { Constructor, ExpressHttpMethods, HttpMethod } from '@common/types/common.type';
+import { getErrorMessage } from '@common/helpers/utility-functions.helper';
 
 export class NestApplication {
   private app: Express;
@@ -25,9 +32,9 @@ export class NestApplication {
     this.setupPathValidation();
   }
 
-  public init (): void {
-    this.initialize();
-  }
+  init = (): void => this.initialize();
+  getExpressApp = (): Express => this.app;
+  get = <T extends object>(provide: Constructor<T> | string | symbol): T => this.container.resolve({ provide });
 
   registerController<T extends object> (controllerClass: Constructor<T>): void {
     const controllerMetadata: ControllerOptions = Reflect.getMetadata(CONTROLLER_METADATA, controllerClass) as ControllerOptions;
@@ -72,10 +79,7 @@ export class NestApplication {
                 void guardInstance.canActivate(
                   req,
                   res,
-                  (err?: Error | string) => {
-                    if (err) reject(err instanceof Error ? err : new UnauthorizedException(String(err)));
-                    else resolve();
-                  },
+                  (err?: Error | string) => err ? reject(new UnauthorizedException(String(getErrorMessage(err)))) : resolve(),
                   originalMethod,
                   controllerClass
                 );
@@ -129,10 +133,6 @@ export class NestApplication {
     });
   }
 
-  getExpressApp (): Express {
-    return this.app;
-  }
-
   async listen (port: number, host?: string): Promise<Server> {
     this.setupGlobalErrorHandler();
 
@@ -151,12 +151,10 @@ export class NestApplication {
             const error = err as Error & { code?: string };
             if (error.code === 'EADDRINUSE' && retries < maxRetries) {
               retries++;
-
               await new Promise<void>((closeResolve) => server.close(() => closeResolve()));
               setTimeout(() => void attemptListen().then(resolve).catch(reject), 500);
             } else {
-              const errorReason = error instanceof Error ? error : new InternalServerErrorException(String(error));
-              reject(errorReason);
+              reject(new InternalServerErrorException(getErrorMessage(error)));
             }
           })();
         });
@@ -164,10 +162,6 @@ export class NestApplication {
     };
 
     return attemptListen();
-  }
-
-  get<T extends object> (provide: Constructor<T> | string | symbol): T {
-    return this.container.resolve({ provide });
   }
 
   use(middleware: RequestHandler): this;
@@ -208,14 +202,7 @@ export class NestApplication {
   }
 
   async close (): Promise<void> {
-    if (this.server && this.server.listening) {
-      return new Promise((resolve, reject) =>
-        this.server!.close((error) => {
-          if (error) reject(error);
-          else resolve();
-        })
-      );
-    }
+    if (this.server && this.server.listening) return new Promise((resolve, reject) => this.server!.close((error) => error ? reject(error) : resolve()));
   }
 
   private hasMethod<T extends object> ({ instance, methodName }: HasMethodOptions<T>): boolean {
@@ -272,9 +259,7 @@ export class NestApplication {
     return true;
   }
 
-  private initialize (): void {
-    CONTROLLER_REGISTRY.forEach((controller) => this.registerController(controller));
-  }
+  private initialize = (): void => CONTROLLER_REGISTRY.forEach((controller) => this.registerController(controller));
 
   private setupPathValidation (): void {
     const methods: HttpMethod[] = [...METHODS];

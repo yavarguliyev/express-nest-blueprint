@@ -1,11 +1,14 @@
 import { getMetadataStorage } from 'class-validator';
 
-import { CONTROLLER_METADATA, ROUTE_METADATA, PARAM_METADATA, REQUIRE_AUTH_KEY, ROLES_KEY, IS_PUBLIC_KEY } from '@common/decorators';
+import { REQUIRE_AUTH_KEY, ROLES_KEY, IS_PUBLIC_KEY } from '@common/decorators/auth.decorator';
+import { CONTROLLER_METADATA } from '@common/decorators/controller.decorator';
 import { RouteMetadata, ParamMetadata } from '@common/interfaces/common.interface';
-import { OpenAPIObject, OpenAPIOperation, OpenAPISchema, SwaggerConfig } from '@common/interfaces/swagger-config.interface';
-import { CONTROLLER_REGISTRY } from '@common/helpers';
-import { Constructor } from '@common/types';
+import { PARAM_METADATA } from '@common/decorators/param.decorators';
+import { ROUTE_METADATA } from '@common/decorators/route.decorators';
+import { CONTROLLER_REGISTRY } from '@common/decorators/register-controller-class.helper';
 import { API_SECURITY_KEY } from '@common/decorators/swagger.decorators';
+import { OpenAPIObject, OpenAPIOperation, OpenAPISchema, SwaggerConfig } from '@common/interfaces/swagger-config.interface';
+import { Constructor } from '@common/types/common.type';
 
 export class SwaggerExplorer {
   private readonly schemas: Record<string, OpenAPISchema> = {};

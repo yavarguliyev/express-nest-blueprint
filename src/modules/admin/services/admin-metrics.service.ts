@@ -1,7 +1,7 @@
 import { register, MetricValue } from 'prom-client';
 
-import { Injectable } from '@common/decorators';
-import { ChartData, DashboardMetric, DashboardAlert } from '@modules/admin/interfaces';
+import { Injectable } from '@common/decorators/injectable.decorator';
+import { ChartData, DashboardMetric, DashboardAlert } from '@modules/admin/interfaces/admin.interface';
 import { UsersRepository } from '@modules/users/users.repository';
 
 @Injectable()

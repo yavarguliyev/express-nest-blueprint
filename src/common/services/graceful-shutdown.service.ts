@@ -1,11 +1,12 @@
 import http from 'http';
 
-import { GracefulShutDownServiceConfig } from '@common/interfaces';
-import { RetryHelper, getErrorMessage } from '@common/helpers';
-import { Logger } from '@common/logger';
+import { GracefulShutDownServiceConfig } from '@common/interfaces/common.interface';
+import { RetryHelper } from '@common/helpers/retry.helper';
+import { getErrorMessage } from '@common/helpers/utility-functions.helper';
+import { Logger } from '@common/logger/logger.service';
 
 export class GracefulShutdownService {
-  private readonly logger = new Logger('System');
+  private readonly logger = new Logger(GracefulShutdownService.name);
   private readonly services: GracefulShutDownServiceConfig[];
 
   private readonly shutdownTimeout: number;

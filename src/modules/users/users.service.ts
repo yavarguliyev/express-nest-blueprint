@@ -1,15 +1,20 @@
 import { extname } from 'path';
 
-import { Injectable, Cache, Compute } from '@common/decorators';
+import { Injectable } from '@common/decorators/injectable.decorator';
+import { Cache } from '@common/decorators/cache.decorator';
+import { Compute } from '@common/decorators/compute.decorator';
 import { DatabaseService } from '@core/database/database.service';
-import { PaginatedResponseDto } from '@common/dtos';
-import { BadRequestException, NotFoundException } from '@common/exceptions';
-import { ValidationService } from '@common/services';
-import { CreateUserDto, FindUsersQueryDto, UpdateUserDto, UserResponseDto } from '@modules/users/dtos';
+import { PaginatedResponseDto } from '@common/dtos/paginated-response.dto';
+import { BadRequestException, NotFoundException } from '@common/exceptions/http-exceptions';
+import { ValidationService } from '@common/services/validation.service';
+import { CreateUserDto } from '@modules/users/dtos/create-user.dto';
+import { FindUsersQueryDto } from '@modules/users/dtos/find-users-query.dto';
+import { UpdateUserDto } from '@modules/users/dtos/update-user.dto';
+import { UserResponseDto } from '@modules/users/dtos/user-response.dto';
 import { UsersRepository } from '@modules/users/users.repository';
 import { StorageService } from '@core/storage/storage.service';
-import { Logger } from '@common/logger';
-import { getErrorMessage } from '@common/helpers';
+import { Logger } from '@common/logger/logger.service';
+import { getErrorMessage } from '@common/helpers/utility-functions.helper';
 
 @Injectable()
 export class UsersService {

@@ -1,6 +1,6 @@
 import { PoolClient } from 'pg';
 
-import { InternalServerErrorException } from '@common/exceptions';
+import { InternalServerErrorException } from '@common/exceptions/http-exceptions';
 import { DatabaseAdapter, QueryResult } from '@common/interfaces/database.interface';
 
 export class TransactionAdapter implements DatabaseAdapter {

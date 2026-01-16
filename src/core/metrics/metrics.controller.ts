@@ -1,8 +1,12 @@
 import { Response } from 'express';
 
-import { Controller, Get, Res, UseGuards, ApiSecurity } from '@common/decorators';
+import { Controller } from '@common/decorators/controller.decorator';
+import { UseGuards } from '@common/decorators/middleware.decorators';
+import { Res } from '@common/decorators/param.decorators';
+import { Get } from '@common/decorators/route.decorators';
+import { ApiSecurity } from '@common/decorators/swagger.decorators';
+import { HeaderAuthGuard } from '@common/guards/header-auth.guard';
 import { MetricsService } from '@core/metrics/metrics.service';
-import { HeaderAuthGuard } from '@common/guards';
 
 @ApiSecurity('health-key')
 @Controller('metrics')

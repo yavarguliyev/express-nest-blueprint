@@ -1,5 +1,5 @@
-import { DynamicModule } from '@common/interfaces';
-import { handleProcessSignals } from '@common/helpers';
+import { DynamicModule } from '@common/interfaces/common.interface';
+import { handleProcessSignals } from '@common/helpers/utility-functions.helper';
 import { LifecycleService } from '@core/lifecycle/lifecycle.service';
 
 export class LifecycleModule {

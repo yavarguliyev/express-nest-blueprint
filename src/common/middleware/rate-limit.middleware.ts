@@ -1,14 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
 
-import { Injectable } from '@common/decorators';
-import { NestMiddleware } from '@common/interfaces';
-import { getErrorMessage } from '@common/helpers';
-import { Logger } from '@common/logger';
+import { Injectable } from '@common/decorators/injectable.decorator';
+import { NestMiddleware } from '@common/interfaces/middleware.interface';
+import { getErrorMessage } from '@common/helpers/utility-functions.helper';
+import { Logger } from '@common/logger/logger.service';
 import { ThrottlerService } from '@core/throttler/throttler.service';
 
 @Injectable()
 export class RateLimitMiddleware implements NestMiddleware {
-  private readonly logger = new Logger('RateLimitMiddleware');
+  private readonly logger = new Logger(RateLimitMiddleware.name);
   private readonly limit = 50;
   private readonly ttl = 60;
 

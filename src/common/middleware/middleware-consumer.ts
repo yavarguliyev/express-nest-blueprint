@@ -1,12 +1,12 @@
 import { Express, Request, Response, NextFunction, RequestHandler } from 'express';
 
-import { CONTROLLER_METADATA } from '@common/decorators';
-import { RequestMethod } from '@common/enums';
-import { createMethodMap, isMiddlewareConstructor, isNestMiddleware } from '@common/helpers';
-import { ControllerOptions, MiddlewareConsumer, MiddlewareConfigProxy, NestMiddleware, RouteInfo, MiddlewareConfig } from '@common/interfaces';
-import { Constructor, MiddlewareFunction, MiddlewareNewConstructor } from '@common/types';
-
-import { Container } from '@common/container';
+import { Container } from '@common/container/container';
+import { CONTROLLER_METADATA } from '@common/decorators/controller.decorator';
+import { RequestMethod } from '@common/enums/common.enum';
+import { ControllerOptions } from '@common/interfaces/common.interface';
+import { MiddlewareConsumer, MiddlewareConfigProxy, NestMiddleware, RouteInfo, MiddlewareConfig } from '@common/interfaces/middleware.interface';
+import { createMethodMap, isMiddlewareConstructor, isNestMiddleware } from '@common/helpers/utility-functions.helper';
+import { Constructor, MiddlewareFunction, MiddlewareNewConstructor } from '@common/types/common.type';
 
 export class MiddlewareConsumerImpl implements MiddlewareConsumer {
   private middlewareConfigs: MiddlewareConfig[] = [];

@@ -1,13 +1,15 @@
-import { ApiController, BaseController } from '@common/controllers';
-import { Get, Post, Patch, Delete, Param, Body, Query, UseGuards } from '@common/decorators';
-import { AdminGuard } from '@common/guards';
+import { ApiController, BaseController } from '@common/controllers/base.controller';
+import { Param, Body, Query } from '@common/decorators/param.decorators';
+import { UseGuards } from '@common/decorators/middleware.decorators';
+import { Get, Post, Patch, Delete } from '@common/decorators/route.decorators';
+import { AdminGuard } from '@common/guards/admin.guard';
 import { AdminCrudService } from '@modules/admin/services/admin-crud.service';
-import { Logger } from '@common/logger';
+import { Logger } from '@common/logger/logger.service';
 
 @ApiController({ path: '/admin/crud' })
 @UseGuards(AdminGuard)
 export class AdminCrudController extends BaseController {
-  private readonly logger = new Logger('AdminCrudController');
+  private readonly logger = new Logger(AdminCrudController.name);
 
   constructor (private readonly adminCrudService: AdminCrudService) {
     super({ path: '/admin/crud' });

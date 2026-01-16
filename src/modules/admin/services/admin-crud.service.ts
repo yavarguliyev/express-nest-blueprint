@@ -1,17 +1,17 @@
-import { Injectable } from '@common/decorators';
+import { Injectable } from '@common/decorators/injectable.decorator';
 import { StorageService } from '@core/storage/storage.service';
-import { TableMetadata, ColumnMetadata } from '@modules/admin/interfaces';
-import { CRUD_TABLE_METADATA_KEY } from '@common/decorators';
+import { TableMetadata, ColumnMetadata } from '@modules/admin/interfaces/admin.interface';
+import { CRUD_TABLE_METADATA_KEY } from '@common/decorators/crud.decorator';
 import { UsersRepository } from '@modules/users/users.repository';
-import { CrudTableOptions, RepositoryEntry } from '@common/interfaces';
-import { InternalServerErrorException } from '@common/exceptions';
-import { CrudRepository } from '@common/types';
-import { Logger } from '@common/logger';
-import { getErrorMessage } from '@common/helpers';
+import { CrudTableOptions, RepositoryEntry } from '@common/interfaces/common.interface';
+import { InternalServerErrorException } from '@common/exceptions/http-exceptions';
+import { CrudRepository } from '@common/types/common.type';
+import { Logger } from '@common/logger/logger.service';
+import { getErrorMessage } from '@common/helpers/utility-functions.helper';
 
 @Injectable()
 export class AdminCrudService {
-  private readonly logger = new Logger('AdminCrudService');
+  private readonly logger = new Logger(AdminCrudService.name);
   private repositories = new Map<string, RepositoryEntry>();
 
   constructor (

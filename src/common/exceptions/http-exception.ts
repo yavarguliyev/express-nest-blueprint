@@ -1,4 +1,4 @@
-import { ExtractedDescriptionAndOptions, HttpExceptionOptions } from '@common/interfaces';
+import { ExtractedDescriptionAndOptions, HttpExceptionOptions } from '@common/interfaces/common.interface';
 
 export class HttpException extends Error {
   constructor (

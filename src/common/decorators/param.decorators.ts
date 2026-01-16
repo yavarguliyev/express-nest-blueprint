@@ -1,4 +1,4 @@
-import { ParamMetadata } from '@common/interfaces';
+import { ParamMetadata } from '@common/interfaces/common.interface';
 
 export const PARAM_METADATA = Symbol.for('PARAM_METADATA');
 

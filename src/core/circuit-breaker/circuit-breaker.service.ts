@@ -1,10 +1,10 @@
-import { Injectable } from '@common/decorators';
-import { CircuitBreakerState } from '@common/enums';
-import { Logger } from '@common/logger';
+import { Injectable } from '@common/decorators/injectable.decorator';
+import { CircuitBreakerState } from '@common/enums/common.enum';
+import { Logger } from '@common/logger/logger.service';
 
 @Injectable()
 export class CircuitBreakerService {
-  private readonly logger = new Logger('CircuitBreaker');
+  private readonly logger = new Logger(CircuitBreakerService.name);
   private states = new Map<string, CircuitBreakerState>();
   private failureCounts = new Map<string, number>();
   private lastFailureTimes = new Map<string, number>();

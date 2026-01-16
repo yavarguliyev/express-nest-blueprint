@@ -1,8 +1,8 @@
 import { Pool, PoolClient } from 'pg';
 
 import { Injectable } from '@common/decorators/injectable.decorator';
-import { InternalServerErrorException, ServiceUnavailableException } from '@common/exceptions';
-import { DatabaseAdapter, DatabaseConfig, QueryResult } from '@common/interfaces';
+import { InternalServerErrorException, ServiceUnavailableException } from '@common/exceptions/http-exceptions';
+import { DatabaseAdapter, DatabaseConfig, QueryResult } from '@common/interfaces/database.interface';
 import { TransactionAdapter } from '@core/database/adapters/transaction.adapter';
 
 @Injectable()

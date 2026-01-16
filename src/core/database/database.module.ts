@@ -1,7 +1,9 @@
-import { Module } from '@common/decorators';
-import { DynamicModule, DatabaseModuleOptions } from '@common/interfaces';
-import { Logger } from '@common/logger';
-import { getDatabaseConfig, ConfigService } from '@core/config';
+import { Module } from '@common/decorators/module.decorator';
+import { DynamicModule } from '@common/interfaces/common.interface';
+import { DatabaseModuleOptions } from '@common/interfaces/database.interface';
+import { Logger } from '@common/logger/logger.service';
+import { ConfigService } from '@core/config/config.service';
+import { getDatabaseConfig } from '@core/config/database.config';
 import { DatabaseService } from '@core/database/database.service';
 import { LifecycleService } from '@core/lifecycle/lifecycle.service';
 
@@ -10,7 +12,7 @@ import { LifecycleService } from '@core/lifecycle/lifecycle.service';
   exports: [DatabaseService]
 })
 export class DatabaseModule {
-  private static readonly logger = new Logger('DatabaseModule');
+  private static readonly logger = new Logger(DatabaseModule.name);
 
   static forRoot (options: DatabaseModuleOptions = {}): DynamicModule {
     const { connectionName = 'default', config } = options;

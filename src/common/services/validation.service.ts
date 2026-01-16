@@ -1,7 +1,7 @@
 import { plainToClass, ClassConstructor } from 'class-transformer';
 import { validate } from 'class-validator';
 
-import { ValidationException } from '@common/exceptions';
+import { ValidationException } from '@common/exceptions/validation.exception';
 
 export class ValidationService {
   static async validateAndTransform<T extends object> (dtoClass: ClassConstructor<T>, plainObject: unknown): Promise<T> {

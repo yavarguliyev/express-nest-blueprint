@@ -1,11 +1,11 @@
-import { NestApplication } from '@common/application';
-import { Container } from '@common/container';
-import { MODULE_METADATA } from '@common/decorators';
-import { AppName } from '@common/enums';
-import { BadRequestException } from '@common/exceptions';
-import { DynamicModule, ModuleMetadata, RegisterModuleOptions, NestModule, RegisterOptions } from '@common/interfaces';
-import { MiddlewareConsumerImpl } from '@common/middleware';
-import { Constructor, InitializerToken, ObjectProvider } from '@common/types';
+import { NestApplication } from '@common/application/nest-application';
+import { Container } from '@common/container/container';
+import { MODULE_METADATA } from '@common/decorators/module.decorator';
+import { AppName } from '@common/enums/common.enum';
+import { BadRequestException } from '@common/exceptions/http-exceptions';
+import { DynamicModule, ModuleMetadata, RegisterModuleOptions, NestModule, RegisterOptions } from '@common/interfaces/common.interface';
+import { MiddlewareConsumerImpl } from '@common/middleware/middleware-consumer';
+import { Constructor, InitializerToken, ObjectProvider } from '@common/types/common.type';
 
 export class NestFactory {
   private static readonly apps = new Map<AppName, NestApplication>();

@@ -1,5 +1,5 @@
 import { INJECTABLE_METADATA } from '@common/decorators/injectable.decorator';
-import { ModuleMetadata } from '@common/interfaces';
+import { ModuleMetadata } from '@common/interfaces/common.interface';
 
 export const MODULE_METADATA = Symbol.for('MODULE_METADATA');
 

@@ -1,6 +1,6 @@
-import { Module } from '@common/decorators';
+import { Module } from '@common/decorators/module.decorator';
+import { RateLimitMiddleware } from '@/common/middleware/rate-limit.middleware';
 import { ThrottlerService } from '@core/throttler/throttler.service';
-import { RateLimitMiddleware } from '@core/throttler/rate-limit.middleware';
 
 @Module({
   providers: [ThrottlerService, RateLimitMiddleware],

@@ -1,12 +1,14 @@
-import { ApiController } from '@common/controllers';
-import { RequireAuth, UseGuards } from '@common/decorators';
+import { ApiController } from '@common/controllers/base.controller';
+import { RequireAuth } from '@common/decorators/auth.decorator';
+import { UseGuards } from '@common/decorators/middleware.decorators';
 import { Get, Patch, Post, Delete } from '@common/decorators/route.decorators';
 import { Req, Body } from '@common/decorators/param.decorators';
-import { AuthGuard, RolesGuard } from '@common/guards';
+import { AuthGuard } from '@common/guards/auth.guard';
+import { RolesGuard } from '@common/guards/roles.guard';
 import { UsersService } from '@modules/users/users.service';
-import { UserResponseDto } from '@modules/users/dtos';
+import { UserResponseDto } from '@modules/users/dtos/user-response.dto';
 import { UpdateUserDto } from '@modules/users/dtos/update-user.dto';
-import { AuthenticatedRequest } from '@common/interfaces';
+import { AuthenticatedRequest } from '@common/interfaces/common.interface';
 
 @ApiController({ path: '/admin/profile' })
 @RequireAuth()

@@ -1,4 +1,4 @@
-import { DatabaseType } from '@common/enums';
+import { DatabaseType } from '@common/enums/common.enum';
 import { DatabaseConfig } from '@common/interfaces/database.interface';
 
 export const getDatabaseConfig = (): DatabaseConfig => {

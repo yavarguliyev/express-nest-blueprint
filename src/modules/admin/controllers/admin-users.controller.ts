@@ -1,11 +1,13 @@
 import { Request } from 'express';
 
-import { ApiController, BaseController } from '@common/controllers';
-import { Patch, Post, Delete, Param, Body, UseGuards, Req } from '@common/decorators';
-import { AdminGuard } from '@common/guards';
+import { ApiController, BaseController } from '@common/controllers/base.controller';
+import { UseGuards } from '@common/decorators/middleware.decorators';
+import { Param, Body, Req } from '@common/decorators/param.decorators';
+import { Patch, Post, Delete } from '@common/decorators/route.decorators';
+import { AdminGuard } from '@common/guards/admin.guard';
 import { UsersService } from '@modules/users/users.service';
 import { StorageService } from '@core/storage/storage.service';
-import { BadRequestException } from '@common/exceptions';
+import { BadRequestException } from '@common/exceptions/http-exceptions';
 
 @ApiController({ path: '/admin/users' })
 @UseGuards(AdminGuard)

@@ -1,15 +1,19 @@
-import { Module, Inject } from '@common/decorators';
-import { LoggerModule } from '@common/logger';
-import { LoggerMiddleware } from '@common/middleware';
-import { JwtService } from '@common/services';
+import { Inject } from '@common/decorators/injectable.decorator';
+import { Module } from '@common/decorators/module.decorator';
+import { LoggerModule } from '@common/logger/logger.module';
+import { LoggerMiddleware } from '@common/middleware/logger.middleware';
+import { JwtService } from '@common/services/jwt.service';
 import { CacheModule } from '@core/cache/cache.module';
-import { ComputeModule } from '@core/compute';
-import { DatabaseModule } from '@core/database';
-import { LifecycleModule } from '@core/lifecycle';
+import { ComputeModule } from '@core/compute/compute.module';
+import { DatabaseModule } from '@core/database/database.module';
+import { LifecycleModule } from '@core/lifecycle/lifecycle.module';
 import { RedisModule } from '@core/redis/redis.module';
 import { StorageModule } from '@core/storage/storage.module';
-import { AuthGuard, RolesGuard, HeaderAuthGuard, AdminGuard } from '@common/guards';
-import { HeaderAuthMiddleware } from '@common/middleware';
+import { AuthGuard } from '@common/guards/auth.guard';
+import { RolesGuard } from '@common/guards/roles.guard';
+import { HeaderAuthGuard } from '@common/guards/header-auth.guard';
+import { AdminGuard } from '@common/guards/admin.guard';
+import { HeaderAuthMiddleware } from '@common/middleware/header-auth.middleware';
 
 @Module({
   imports: [LoggerModule.forRoot(), LifecycleModule.forRoot(), DatabaseModule.forRoot(), RedisModule.forRoot(), CacheModule.forRoot(), ComputeModule.forRoot(), StorageModule.forRoot()],

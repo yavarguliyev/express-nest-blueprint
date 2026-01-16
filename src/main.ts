@@ -3,14 +3,15 @@ import { join } from 'path';
 import 'reflect-metadata';
 import express from 'express';
 
-import { ConfigService } from '@core/config';
-import { NestFactory } from '@common/application';
-import { AppName, AppRoles } from '@common/enums';
-import { getErrorMessage } from '@common/helpers';
-import { Logger } from '@common/logger';
-import { LifecycleService } from '@core/lifecycle';
+import { ConfigService } from '@core/config/config.service';
+import { NestFactory } from '@common/application/nest-factory';
+import { AppName, AppRoles } from '@common/enums/common.enum';
+import { getErrorMessage } from '@common/helpers/utility-functions.helper';
+import { Logger } from '@common/logger/logger.service';
+import { LifecycleService } from '@core/lifecycle/lifecycle.service';
 import { AppModule } from '@app/common';
-import { SwaggerModule, DocumentBuilder } from '@common/swagger';
+import { SwaggerModule } from '@common/swagger/swagger-module';
+import { DocumentBuilder } from '@common/swagger/document-builder';
 
 async function bootstrap (): Promise<void> {
   let lifecycleService: LifecycleService | undefined;

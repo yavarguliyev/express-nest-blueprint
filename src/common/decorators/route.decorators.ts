@@ -1,4 +1,4 @@
-import { RouteMetadata } from '@common/interfaces';
+import { RouteMetadata } from '@common/interfaces/common.interface';
 
 export const ROUTE_METADATA = Symbol.for('ROUTE_METADATA');
 

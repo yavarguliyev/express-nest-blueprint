@@ -1,6 +1,8 @@
-import { LogLevel, Roles } from '@common/enums';
-import { MiddlewareConsumer } from '@common/interfaces';
-import { Constructor, AbstractConstructor, InitializerToken, Providers, CrudRepository } from '@common/types';
+import { Request } from 'express';
+
+import { LogLevel, Roles } from '@common/enums/common.enum';
+import { MiddlewareConsumer } from '@common/interfaces/middleware.interface';
+import { Constructor, AbstractConstructor, InitializerToken, Providers, CrudRepository } from '@common/types/common.type';
 
 export interface ApiControllerOptions {
   path: string;
@@ -133,6 +135,10 @@ export interface JwtPayload {
   iat?: number;
   role: Roles;
   sub: number;
+}
+
+export interface AuthenticatedRequest extends Omit<Request, 'user'> {
+  user: JwtPayload;
 }
 
 export interface LoggerModuleOptions {

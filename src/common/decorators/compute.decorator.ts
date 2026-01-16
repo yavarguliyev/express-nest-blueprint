@@ -1,4 +1,4 @@
-import { ComputeOptions } from '@common/interfaces';
+import { ComputeOptions } from '@common/interfaces/common.interface';
 
 export const COMPUTE_METADATA = Symbol('COMPUTE_METADATA');
 

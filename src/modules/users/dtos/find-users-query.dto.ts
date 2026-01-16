@@ -1,7 +1,7 @@
 import { Expose } from 'class-transformer';
 import { IsOptional, IsString, IsEmail, IsBoolean } from 'class-validator';
 
-import { QueryResultsDto } from '@common/dtos';
+import { QueryResultsDto } from '@common/dtos/query-results.dto';
 
 export class FindUsersQueryDto extends QueryResultsDto {
   @IsOptional()

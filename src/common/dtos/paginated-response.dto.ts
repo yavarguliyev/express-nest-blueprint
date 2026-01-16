@@ -1,6 +1,6 @@
 import { Expose, Type } from 'class-transformer';
 
-import { PaginationDto } from '@common/dtos';
+import { PaginationDto } from '@common/dtos/pagination.dto';
 
 export class PaginatedResponseDto<T> {
   @Expose()

@@ -1,6 +1,6 @@
 import { ValidationError as ClassValidationError } from 'class-validator';
 
-import { BadRequestException } from '@common/exceptions';
+import { BadRequestException } from '@common/exceptions/http-exceptions';
 
 export class ValidationException extends BadRequestException {
   constructor (validationErrors: ClassValidationError[]) {

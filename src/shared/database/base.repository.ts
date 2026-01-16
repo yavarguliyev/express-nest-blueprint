@@ -1,7 +1,7 @@
-import { Injectable } from '@common/decorators';
+import { Injectable } from '@common/decorators/injectable.decorator';
 import { DatabaseService } from '@core/database/database.service';
-import { ColumnMapping, QueryAllWithPaginationOptions, QueryWithPaginationOptions, QueryPaginationOptionsResults } from '@shared/database/interfaces';
-import { DatabaseAdapter } from '@common/interfaces';
+import { ColumnMapping, QueryAllWithPaginationOptions, QueryWithPaginationOptions, QueryPaginationOptionsResults } from '@shared/database/interfaces/query-builder.interface';
+import { DatabaseAdapter } from '@common/interfaces/database.interface';
 import { QueryBuilder } from '@shared/database/query-builder';
 
 @Injectable()

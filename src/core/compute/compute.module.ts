@@ -1,14 +1,16 @@
 import { ChildProcess } from 'child_process';
 
-import { Module, COMPUTE_MODULE_OPTIONS } from '@common/decorators';
-import { AppRoles } from '@common/enums';
-import { spawnWorker } from '@common/helpers';
-import { DynamicModule, ComputeModuleOptions } from '@common/interfaces';
+import { COMPUTE_MODULE_OPTIONS } from '@common/decorators/bullmq.decorators';
+import { Module } from '@common/decorators/module.decorator';
+import { AppRoles } from '@common/enums/common.enum';
+import { spawnWorker } from '@common/helpers/utility-functions.helper';
+import { ComputeModuleOptions } from '@common/interfaces/bullmq.interface';
+import { DynamicModule } from '@common/interfaces/common.interface';
 import { BullMQModule } from '@core/bullmq/bullmq.module';
 import { ComputeExplorer } from '@core/compute/compute.explorer';
 import { ComputeService } from '@core/compute/compute.service';
-import { LifecycleService } from '@core/lifecycle';
-import { ConfigService } from '@core/config';
+import { LifecycleService } from '@core/lifecycle/lifecycle.service';
+import { ConfigService } from '@core/config/config.service';
 
 @Module({
   imports: [],

@@ -2,16 +2,16 @@ import { config } from 'dotenv';
 import { existsSync } from 'fs';
 import { resolve } from 'path';
 
-import { parsers } from '@common/constants';
+import { parsers } from '@common/constants/system.const';
 import { Injectable } from '@common/decorators/injectable.decorator';
-import { BadRequestException } from '@common/exceptions';
-import { ConfigModuleOptions } from '@common/interfaces';
-import { Logger } from '@common/logger';
-import { ParserType } from '@common/types';
+import { BadRequestException } from '@common/exceptions/http-exceptions';
+import { ConfigModuleOptions } from '@common/interfaces/common.interface';
+import { Logger } from '@common/logger/logger.service';
+import { ParserType } from '@common/types/common.type';
 
 @Injectable()
 export class ConfigService {
-  private readonly logger = new Logger('ConfigService');
+  private readonly logger = new Logger(ConfigService.name);
   private static options: ConfigModuleOptions = {};
   private envVariables: Record<string, string> = {};
 

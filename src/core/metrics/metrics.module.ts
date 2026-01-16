@@ -1,7 +1,7 @@
-import { Module } from '@common/decorators';
-import { MetricsService } from '@core/metrics/metrics.service';
+import { Module } from '@common/decorators/module.decorator';
+import { MetricsMiddleware } from '@common/middleware/metrics.middleware';
 import { MetricsController } from '@core/metrics/metrics.controller';
-import { MetricsMiddleware } from '@core/metrics/metrics.middleware';
+import { MetricsService } from '@core/metrics/metrics.service';
 
 @Module({
   controllers: [MetricsController],

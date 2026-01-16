@@ -1,8 +1,8 @@
 import { JobsOptions, QueueOptions, WorkerOptions } from 'bullmq';
 
-import { AppRoles } from '@common/enums';
-import { ComputeOptions } from '@common/interfaces';
-import { Constructor, DataProcessingOperation, JobBackoffType, ReportType } from '@common/types';
+import { AppRoles } from '@common/enums/common.enum';
+import { ComputeOptions } from '@common/interfaces/common.interface';
+import { Constructor, DataProcessingOperation, JobBackoffType, ReportType } from '@common/types/common.type';
 
 export interface BaseJobData {
   jobId?: string;

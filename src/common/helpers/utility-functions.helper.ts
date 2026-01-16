@@ -1,10 +1,11 @@
-import { Express, RequestHandler } from 'express';
 import { ChildProcess, fork } from 'child_process';
+import { Express, RequestHandler } from 'express';
 
-import { AppRoles, RequestMethod } from '@common/enums';
-import { HandleProcessSignalsOptions, HasGetResponse, HasGetStatus, NestMiddleware } from '@common/interfaces';
-import { Logger } from '@common/logger';
-import { MiddlewareNewConstructor } from '@common/types';
+import { AppRoles, RequestMethod } from '@common/enums/common.enum';
+import { HandleProcessSignalsOptions, HasGetResponse, HasGetStatus } from '@common/interfaces/common.interface';
+import { NestMiddleware } from '@common/interfaces/middleware.interface';
+import { Logger } from '@common/logger/logger.service';
+import { MiddlewareNewConstructor } from '@common/types/common.type';
 
 export const createMethodMap = (app: Express) => {
   return {

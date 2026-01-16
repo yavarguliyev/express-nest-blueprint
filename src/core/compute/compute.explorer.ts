@@ -1,7 +1,7 @@
-import { Container } from '@common/container';
-import { COMPUTE_METADATA } from '@common/decorators';
-import { Injectable } from '@common/decorators';
-import { ComputeOptions } from '@common/interfaces';
+import { Container } from '@common/container/container';
+import { COMPUTE_METADATA } from '@common/decorators/compute.decorator';
+import { Injectable } from '@common/decorators/injectable.decorator';
+import { ComputeOptions } from '@common/interfaces/common.interface';
 import { ComputeService } from '@core/compute/compute.service';
 
 @Injectable()

@@ -1,4 +1,4 @@
-import { Injectable } from '@common/decorators';
+import { Injectable } from '@common/decorators/injectable.decorator';
 import { RedisService } from '@core/redis/redis.service';
 
 @Injectable()

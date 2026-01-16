@@ -1,10 +1,10 @@
-import { BadRequestException } from '@common/exceptions';
-import { getErrorMessage } from '@common/helpers';
-import { RetryOptions } from '@common/interfaces';
-import { Logger } from '@common/logger';
+import { BadRequestException } from '@common/exceptions/http-exceptions';
+import { getErrorMessage } from '@common/helpers/utility-functions.helper';
+import { RetryOptions } from '@common/interfaces/common.interface';
+import { Logger } from '@common/logger/logger.service';
 
 export class RetryHelper {
-  private static logger = new Logger('RetryHelper');
+  private static logger = new Logger(RetryHelper.name);
 
   static async executeWithRetry<T> (fn: () => Promise<T>, { serviceName, maxRetries, retryDelay, onRetry }: RetryOptions): Promise<T> {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {

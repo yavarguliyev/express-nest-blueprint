@@ -1,6 +1,6 @@
 import { register, collectDefaultMetrics, Counter, Histogram, Gauge } from 'prom-client';
 
-import { Injectable } from '@common/decorators';
+import { Injectable } from '@common/decorators/injectable.decorator';
 
 @Injectable()
 export class MetricsService {

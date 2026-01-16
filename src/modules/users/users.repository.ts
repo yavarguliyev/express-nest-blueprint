@@ -1,9 +1,12 @@
-import { CircuitBreaker, CrudTable, Injectable } from '@common/decorators';
-import { DatabaseAdapter } from '@common/interfaces';
+import { CircuitBreaker } from '@common/decorators/circuit-breaker.decorator';
+import { CrudTable } from '@common/decorators/crud.decorator';
+import { Injectable } from '@common/decorators/injectable.decorator';
+import { DatabaseAdapter } from '@common/interfaces/database.interface';
 import { DatabaseService } from '@core/database/database.service';
-import { FindUsersQueryDto, UserResponseDto } from '@modules/users/dtos';
+import { FindUsersQueryDto } from '@modules/users/dtos/find-users-query.dto';
+import { UserResponseDto } from '@modules/users/dtos/user-response.dto';
 import { BaseRepository } from '@shared/database/base.repository';
-import { QueryAllWithPaginationOptions } from '@shared/database/interfaces';
+import { QueryAllWithPaginationOptions } from '@shared/database/interfaces/query-builder.interface';
 
 @CrudTable({ category: 'User Management', name: 'users', displayName: 'Users' })
 @Injectable()

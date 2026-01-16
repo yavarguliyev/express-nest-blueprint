@@ -1,7 +1,13 @@
-import { ApiController, BaseController } from '@common/controllers';
-import { Injectable, Body, Param, Query, Get, Post, Put, Delete, Roles } from '@common/decorators';
-import { PaginatedResponseDto } from '@common/dtos';
-import { CreateUserDto, FindUsersQueryDto, UpdateUserDto, UserResponseDto } from '@modules/users/dtos';
+import { ApiController, BaseController } from '@common/controllers/base.controller';
+import { Roles } from '@common/decorators/auth.decorator';
+import { Injectable} from '@common/decorators/injectable.decorator';
+import { Get, Post, Put, Delete } from '@common/decorators/route.decorators';
+import { Body, Param, Query } from '@common/decorators/param.decorators';
+import { PaginatedResponseDto } from '@common/dtos/paginated-response.dto';
+import { CreateUserDto } from '@modules/users/dtos/create-user.dto';
+import { FindUsersQueryDto } from '@modules/users/dtos/find-users-query.dto';
+import { UpdateUserDto } from '@modules/users/dtos/update-user.dto';
+import { UserResponseDto } from '@modules/users/dtos/user-response.dto';
 import { UsersService } from '@modules/users/users.service';
 
 @Injectable()

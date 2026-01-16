@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 
-import { Injectable, IS_PUBLIC_KEY, ROLES_KEY } from '@common/decorators';
-import { ForbiddenException, UnauthorizedException } from '@common/exceptions';
-import { CanActivate } from '@common/interfaces';
-import { Constructor } from '@common/types';
-import { Roles } from '@common/enums';
+import { Injectable } from '@common/decorators/injectable.decorator';
+import { IS_PUBLIC_KEY, ROLES_KEY } from '@common/decorators/auth.decorator';
+import { Roles } from '@common/enums/common.enum';
+import { ForbiddenException, UnauthorizedException } from '@common/exceptions/http-exceptions';
+import { CanActivate } from '@common/interfaces/guard.interface';
+import { Constructor } from '@common/types/common.type';
 
 @Injectable()
 export class RolesGuard implements CanActivate {

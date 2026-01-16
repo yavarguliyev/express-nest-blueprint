@@ -1,15 +1,15 @@
-import { Injectable } from '@common/decorators';
-import { Container } from '@common/container';
+import { Container } from '@common/container/container';
+import { Injectable } from '@common/decorators/injectable.decorator';
 import { CIRCUIT_BREAKER_METADATA } from '@common/decorators/circuit-breaker.decorator';
-import { ServiceUnavailableException } from '@common/exceptions';
-import { CircuitBreakerState } from '@common/enums';
-import { CircuitBreakerOptions } from '@common/interfaces';
-import { Logger } from '@common/logger';
+import { CircuitBreakerState } from '@common/enums/common.enum';
+import { ServiceUnavailableException } from '@common/exceptions/http-exceptions';
+import { CircuitBreakerOptions } from '@common/interfaces/common.interface';
+import { Logger } from '@common/logger/logger.service';
 import { CircuitBreakerService } from '@core/circuit-breaker/circuit-breaker.service';
 
 @Injectable()
 export class CircuitBreakerExplorer {
-  private readonly logger = new Logger('CircuitBreakerExplorer');
+  private readonly logger = new Logger(CircuitBreakerExplorer.name);
 
   constructor (private readonly circuitBreakerService: CircuitBreakerService) {}
 

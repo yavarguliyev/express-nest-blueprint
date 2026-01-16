@@ -1,9 +1,9 @@
-import { Injectable } from '@common/decorators';
-import { DatabaseService } from '@core/database/database.service';
-import { RedisService } from '@core/redis/redis.service';
+import { Injectable } from '@common/decorators/injectable.decorator';
+import { ServiceUnavailableException } from '@common/exceptions/http-exceptions';
 import { QueueManager } from '@core/bullmq/services/queue-manager.service';
 import { ComputeService } from '@core/compute/compute.service';
-import { ServiceUnavailableException } from '@common/exceptions';
+import { DatabaseService } from '@core/database/database.service';
+import { RedisService } from '@core/redis/redis.service';
 
 @Injectable()
 export class HealthService {

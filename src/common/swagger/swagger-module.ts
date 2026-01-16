@@ -1,6 +1,6 @@
 import * as swaggerUi from 'swagger-ui-express';
 
-import { NestApplication } from '@common/application';
+import { NestApplication } from '@common/application/nest-application';
 import { OpenAPIObject, SwaggerConfig } from '@common/interfaces/swagger-config.interface';
 import { SwaggerExplorer } from '@common/swagger/swagger-explorer';
 

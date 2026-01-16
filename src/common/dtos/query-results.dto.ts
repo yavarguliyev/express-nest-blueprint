@@ -1,8 +1,8 @@
 import { Expose } from 'class-transformer';
 import { IsOptional, IsString, IsIn } from 'class-validator';
 
-import { SortBy, SortOrder } from '@common/types';
-import { SORT_BY_VALUES, SORT_ORDER_VALUES } from '@common/constants';
+import { SortBy, SortOrder } from '@common/types/common.type';
+import { SORT_BY_VALUES, SORT_ORDER_VALUES } from '@common/constants/common.const';
 
 export abstract class QueryResultsDto {
   @IsOptional()

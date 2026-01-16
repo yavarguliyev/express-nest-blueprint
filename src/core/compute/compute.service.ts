@@ -1,17 +1,19 @@
 import { Worker, Job, QueueEvents } from 'bullmq';
 
-import { Container } from '@common/container';
-import { Injectable, Inject, BULLMQ_OPTIONS, COMPUTE_MODULE_OPTIONS } from '@common/decorators';
-import { BadRequestException, ServiceUnavailableException } from '@common/exceptions';
-import { BullMQModuleOptions, ComputeHandler, ComputeModuleOptions, PatchedMethod, ComputeJobData, ComputeOptions, PendingJob } from '@common/interfaces';
-import { Logger } from '@common/logger';
-import { Constructor } from '@common/types';
+import { Container } from '@common/container/container';
+import { BULLMQ_OPTIONS, COMPUTE_MODULE_OPTIONS } from '@common/decorators/bullmq.decorators';
+import { Injectable, Inject } from '@common/decorators/injectable.decorator';
+import { BadRequestException, ServiceUnavailableException } from '@common/exceptions/http-exceptions';
+import { BullMQModuleOptions, ComputeHandler, ComputeModuleOptions, PatchedMethod, ComputeJobData, PendingJob } from '@common/interfaces/bullmq.interface';
+import { ComputeOptions } from '@common/interfaces/common.interface';
+import { Logger } from '@common/logger/logger.service';
+import { Constructor } from '@common/types/common.type';
 import { BullMQService } from '@core/bullmq/services/bullmq.service';
 import { QueueManager } from '@core/bullmq/services/queue-manager.service';
 
 @Injectable()
 export class ComputeService {
-  private readonly logger = new Logger('ComputeService');
+  private readonly logger = new Logger(ComputeService.name);
   private handlers = new Map<string, ComputeHandler>();
   private pendingJobs = new Map<string, PendingJob>();
   private readonly QUEUE_NAME = 'compute-queue';

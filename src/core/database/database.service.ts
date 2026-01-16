@@ -1,7 +1,7 @@
 import { DATABASE_ADAPTER_MAP } from '@common/constants/common.const';
-import { Injectable } from '@common/decorators';
-import { InternalServerErrorException } from '@common/exceptions';
-import { DatabaseAdapter, DatabaseConfig } from '@common/interfaces';
+import { Injectable } from '@common/decorators/injectable.decorator';
+import { InternalServerErrorException } from '@common/exceptions/http-exceptions';
+import { DatabaseAdapter, DatabaseConfig } from '@common/interfaces/database.interface';
 
 @Injectable()
 export class DatabaseService {

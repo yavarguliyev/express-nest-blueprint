@@ -1,4 +1,4 @@
-import { INJECT_METADATA } from '@common/decorators';
+import { INJECT_METADATA } from '@common/decorators/injectable.decorator';
 import { BadRequestException } from '@common/exceptions/http-exceptions';
 import type { Constructor, ProviderResolver, ProviderType } from '@common/types/common.type';
 

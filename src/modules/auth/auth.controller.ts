@@ -1,6 +1,10 @@
-import { ApiController, BaseController } from '@common/controllers';
-import { Injectable, Body, Post } from '@common/decorators';
-import { AuthResponseDto, LoginDto, RegisterDto } from '@modules/auth/dtos';
+import { ApiController, BaseController } from '@common/controllers/base.controller';
+import { Injectable } from '@common/decorators/injectable.decorator';
+import { Post } from '@common/decorators/route.decorators';
+import { Body } from '@common/decorators/param.decorators';
+import { AuthResponseDto } from '@modules/auth/dtos/auth-response.dto';
+import { LoginDto } from '@modules/auth/dtos/login.dto';
+import {  RegisterDto } from '@modules/auth/dtos/register.dto';
 import { AuthService } from '@modules/auth/auth.service';
 
 @Injectable()

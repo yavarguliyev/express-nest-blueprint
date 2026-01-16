@@ -1,8 +1,9 @@
-import { Module, BULLMQ_OPTIONS } from '@common/decorators';
-import { DynamicModule } from '@common/interfaces';
+import { BULLMQ_OPTIONS } from '@common/decorators/bullmq.decorators';
+import { Module } from '@common/decorators/module.decorator';
+import { DynamicModule } from '@common/interfaces/common.interface';
+import { ConfigService } from '@core/config/config.service';
 import { RedisService } from '@core/redis/redis.service';
 import { LifecycleService } from '@core/lifecycle/lifecycle.service';
-import { ConfigService } from '@core/config';
 
 @Module({
   providers: [RedisService],

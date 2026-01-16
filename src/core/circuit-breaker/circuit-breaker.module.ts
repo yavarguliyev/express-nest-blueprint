@@ -1,6 +1,6 @@
-import { Module } from '@common/decorators';
-import { CircuitBreakerService } from '@core/circuit-breaker/circuit-breaker.service';
+import { Module } from '@common/decorators/module.decorator';
 import { CircuitBreakerExplorer } from '@core/circuit-breaker/circuit-breaker.explorer';
+import { CircuitBreakerService } from '@core/circuit-breaker/circuit-breaker.service';
 
 @Module({
   providers: [

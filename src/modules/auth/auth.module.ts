@@ -1,4 +1,4 @@
-import { Module } from '@common/decorators';
+import { Module } from '@common/decorators/module.decorator';
 import { AuthController } from '@modules/auth/auth.controller';
 import { AuthRepository } from '@modules/auth/auth.repository';
 import { AuthService } from '@modules/auth/auth.service';

@@ -1,4 +1,4 @@
-import { InjectionToken } from '@common/types';
+import { InjectionToken } from '@common/types/common.type';
 
 export const INJECTABLE_METADATA = Symbol.for('INJECTABLE_METADATA');
 export const INJECT_METADATA = Symbol.for('INJECT_METADATA');

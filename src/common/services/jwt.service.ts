@@ -1,10 +1,10 @@
 import * as jwt from 'jsonwebtoken';
 
-import { Injectable } from '@common/decorators';
-import { BadRequestException, UnauthorizedException } from '@common/exceptions';
-import { JwtPayload } from '@common/interfaces';
-import { ConfigService } from '@core/config';
-import { JwtRegisteredClaim, TimeUnit } from '@common/types';
+import { Injectable } from '@common/decorators/injectable.decorator';
+import { BadRequestException, UnauthorizedException } from '@common/exceptions/http-exceptions';
+import { JwtPayload } from '@common/interfaces/common.interface';
+import { ConfigService } from '@core/config/config.service';
+import { JwtRegisteredClaim, TimeUnit } from '@common/types/common.type';
 
 @Injectable()
 export class JwtService {

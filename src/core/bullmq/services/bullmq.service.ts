@@ -1,7 +1,7 @@
 import { Queue, JobsOptions } from 'bullmq';
 
-import { Injectable } from '@common/decorators';
-import { BadRequestException } from '@common/exceptions';
+import { Injectable } from '@common/decorators/injectable.decorator';
+import { BadRequestException } from '@common/exceptions/http-exceptions';
 import { QueueManager } from '@core/bullmq/services/queue-manager.service';
 
 @Injectable()

@@ -1,14 +1,14 @@
 import http from 'http';
 
-import { Injectable } from '@common/decorators';
-import { Logger } from '@common/logger';
-import { GracefulShutdownService } from '@common/services';
-import { GracefulShutDownServiceConfig } from '@common/interfaces';
-import { ConfigService } from '@core/config';
+import { Injectable } from '@common/decorators/injectable.decorator';
+import { GracefulShutDownServiceConfig } from '@common/interfaces/common.interface';
+import { Logger } from '@common/logger/logger.service';
+import { GracefulShutdownService } from '@common/services/graceful-shutdown.service';
+import { ConfigService } from '@core/config/config.service';
 
 @Injectable()
 export class LifecycleService {
-  private readonly logger = new Logger('LifecycleService');
+  private readonly logger = new Logger(LifecycleService.name);
 
   constructor (private readonly configService: ConfigService) {}
 

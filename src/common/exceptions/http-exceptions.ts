@@ -1,5 +1,5 @@
-import { HttpException } from '@common/exceptions';
-import { HttpExceptionOptions } from '@common/interfaces';
+import { HttpException } from '@common/exceptions/http-exception';
+import { HttpExceptionOptions } from '@common/interfaces/common.interface';
 
 export class BadRequestException extends HttpException {
   constructor (objectOrError?: string | Record<string, unknown>, descriptionOrOptions?: string | HttpExceptionOptions) {

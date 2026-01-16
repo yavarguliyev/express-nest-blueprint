@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 
-import { RequestMethod } from '@common/enums';
-import { Constructor, MiddlewareFunction } from '@common/types';
+import { RequestMethod } from '@common/enums/common.enum';
+import { Constructor, MiddlewareFunction } from '@common/types/common.type';
 
 export interface MiddlewareConfig {
   excludeRoutes: (string | RouteInfo)[];

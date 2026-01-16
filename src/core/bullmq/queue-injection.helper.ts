@@ -1,5 +1,5 @@
 import { Container } from '@common/container/container';
-import { INJECT_QUEUE_METADATA, QUEUE_MANAGER_TOKEN } from '@common/decorators';
+import { INJECT_QUEUE_METADATA, QUEUE_MANAGER_TOKEN } from '@common/decorators/bullmq.decorators';
 import { QueueManager } from '@core/bullmq/services/queue-manager.service';
 
 export class QueueInjectionHelper {

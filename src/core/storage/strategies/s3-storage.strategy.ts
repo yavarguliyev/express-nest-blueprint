@@ -1,8 +1,9 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand, HeadObjectCommand, GetObjectCommand, S3ClientConfig, CreateBucketCommand, HeadBucketCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
-import { Injectable, Inject, STORAGE_OPTIONS } from '@common/decorators';
-import { BadRequestException } from '@common/exceptions';
+import { STORAGE_OPTIONS } from '@common/decorators/bullmq.decorators';
+import { Injectable, Inject } from '@common/decorators/injectable.decorator';
+import { BadRequestException } from '@common/exceptions/http-exceptions';
 import { StorageModuleOptions, StorageUrlOptions } from '@core/storage/storage.interface';
 import { StorageService } from '@core/storage/storage.service';
 
@@ -29,11 +30,11 @@ export class S3StorageStrategy extends StorageService {
     if (options.s3.endpoint) config.endpoint = options.s3.endpoint;
 
     this.client = new S3Client(config);
-    
+
     const urlConfig: S3ClientConfig = { ...config };
     if (options.s3.publicEndpoint) urlConfig.endpoint = options.s3.publicEndpoint;
     this.urlClient = new S3Client(urlConfig);
-    
+
     this.bucketName = options.s3.bucketName;
   }
 
@@ -44,15 +45,15 @@ export class S3StorageStrategy extends StorageService {
       await this.client.send(new HeadBucketCommand({ Bucket: this.bucketName }));
     } catch (error: unknown) {
       const awsError = error as { name?: string; $metadata?: { httpStatusCode?: number } };
-      
+
       if (awsError?.name === 'NotFound' || awsError?.$metadata?.httpStatusCode === 404) {
         try {
           await this.client.send(new CreateBucketCommand({ Bucket: this.bucketName }));
         } catch (createError: unknown) {
-           const cError = createError as { name?: string };
-           if (cError?.name !== 'BucketAlreadyOwnedByYou' && cError?.name !== 'BucketAlreadyExists') {
-             throw createError;
-           }
+          const cError = createError as { name?: string };
+          if (cError?.name !== 'BucketAlreadyOwnedByYou' && cError?.name !== 'BucketAlreadyExists') {
+            throw createError;
+          }
         }
       } else {
         throw error;
@@ -63,20 +64,16 @@ export class S3StorageStrategy extends StorageService {
   }
 
   override async upload (key: string, body: Buffer | Uint8Array | string, contentType?: string): Promise<void> {
-    try {
-      await this.ensureBucket();
+    await this.ensureBucket();
 
-      const command = new PutObjectCommand({
-        Bucket: this.bucketName,
-        Key: key,
-        Body: body,
-        ContentType: contentType
-      });
+    const command = new PutObjectCommand({
+      Bucket: this.bucketName,
+      Key: key,
+      Body: body,
+      ContentType: contentType
+    });
 
-      await this.client.send(command);
-    } catch (error: unknown) {
-      throw error;
-    }
+    await this.client.send(command);
   }
 
   override async getDownloadUrl (key: string, options?: StorageUrlOptions): Promise<string> {

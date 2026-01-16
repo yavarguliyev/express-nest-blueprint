@@ -1,8 +1,9 @@
-import { Injectable } from '@common/decorators';
-import { BadRequestException } from '@common/exceptions';
+import { Injectable } from '@common/decorators/injectable.decorator';
+import { BadRequestException } from '@common/exceptions/http-exceptions';
 import { DatabaseService } from '@core/database/database.service';
-import { AuthResponseDto, RegisterDto } from '@modules/auth/dtos';
-import { AuthResponseUser, UserWithPassword } from '@modules/auth/interfaces';
+import { AuthResponseDto } from '@modules/auth/dtos/auth-response.dto';
+import { RegisterDto } from '@modules/auth/dtos/register.dto';
+import { AuthResponseUser, UserWithPassword } from '@modules/auth/interfaces/auth-response.interface';
 import { BaseRepository } from '@shared/database/base.repository';
 
 @Injectable()

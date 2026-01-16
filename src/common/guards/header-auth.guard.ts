@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 
-import { Injectable } from '@common/decorators';
-import { UnauthorizedException } from '@common/exceptions';
-import { CanActivate } from '@common/interfaces';
+import { Injectable } from '@common/decorators/injectable.decorator';
+import { UnauthorizedException } from '@common/exceptions/http-exceptions';
+import { CanActivate } from '@common/interfaces/guard.interface';
 import { ConfigService } from '@core/config/config.service';
 
 @Injectable()

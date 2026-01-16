@@ -1,10 +1,11 @@
-import { Module, STORAGE_OPTIONS } from '@common/decorators';
-import { DynamicModule } from '@common/interfaces';
-import { BadRequestException } from '@common/exceptions';
-import { StorageModuleOptions } from '@core/storage/storage.interface';
+import { STORAGE_OPTIONS } from '@common/decorators/bullmq.decorators';
+import { Module } from '@common/decorators/module.decorator';
+import { DynamicModule } from '@common/interfaces/common.interface';
+import { BadRequestException } from '@common/exceptions/http-exceptions';
 import { S3StorageStrategy } from '@core/storage/strategies/s3-storage.strategy';
+import { StorageModuleOptions } from '@core/storage/storage.interface';
 import { StorageService } from '@core/storage/storage.service';
-import { ConfigService } from '@core/config';
+import { ConfigService } from '@core/config/config.service';
 
 @Module({})
 export class StorageModule {

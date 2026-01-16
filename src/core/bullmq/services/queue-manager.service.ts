@@ -1,9 +1,9 @@
 import { Queue, QueueOptions } from 'bullmq';
 import Redis from 'ioredis';
 
-import { Injectable } from '@common/decorators';
-import { BadRequestException } from '@common/exceptions';
-import { QueueHealth } from '@common/interfaces';
+import { Injectable } from '@common/decorators/injectable.decorator';
+import { BadRequestException } from '@common/exceptions/http-exceptions';
+import { QueueHealth } from '@common/interfaces/bullmq.interface';
 import { RedisService } from '@core/redis/redis.service';
 
 @Injectable()

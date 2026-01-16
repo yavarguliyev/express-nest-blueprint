@@ -1,14 +1,15 @@
-import { Module } from '@common/decorators';
-import { DynamicModule, NestModule, MiddlewareConsumer } from '@common/interfaces';
-import { RequestMethod } from '@common/enums';
+import { Module } from '@common/decorators/module.decorator';
+import { DynamicModule, NestModule } from '@common/interfaces/common.interface';
+import { MiddlewareConsumer } from '@common/interfaces/middleware.interface';
+import { RequestMethod } from '@common/enums/common.enum';
+import { AvatarUploadMiddleware } from '@common/middleware/avatar-upload.middleware';
+import { AdminCrudController } from '@modules/admin/controllers/admin-crud.controller';
 import { AdminDashboardController } from '@modules/admin/controllers/admin-dashboard.controller';
 import { AdminHealthController } from '@modules/admin/controllers/admin-health.controller';
-import { AdminUsersController } from '@modules/admin/controllers/admin-users.controller';
-import { AdminCrudController } from '@modules/admin/controllers/admin-crud.controller';
-import { AdminMetricsService } from '@modules/admin/services/admin-metrics.service';
-import { AdminCrudService } from '@modules/admin/services/admin-crud.service';
 import { AdminProfileController } from '@modules/admin/controllers/admin-profile.controller';
-import { AvatarUploadMiddleware } from '@common/middleware/avatar-upload.middleware';
+import { AdminUsersController } from '@modules/admin/controllers/admin-users.controller';
+import { AdminCrudService } from '@modules/admin/services/admin-crud.service';
+import { AdminMetricsService } from '@modules/admin/services/admin-metrics.service';
 
 @Module({
   controllers: [AdminDashboardController, AdminHealthController, AdminUsersController, AdminCrudController, AdminProfileController],

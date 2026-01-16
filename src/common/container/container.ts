@@ -1,8 +1,8 @@
-import { providerResolvers } from '@common/container/provider-resolvers.const';
-import { INJECTABLE_METADATA } from '@common/decorators';
-import { BadRequestException } from '@common/exceptions';
-import { RegisterOptions } from '@common/interfaces';
-import { Constructor, Provider } from '@common/types';
+import { providerResolvers } from '@common/constants/provider-resolvers.const';
+import { INJECTABLE_METADATA } from '@common/decorators/injectable.decorator';
+import { BadRequestException } from '@common/exceptions/http-exceptions';
+import { RegisterOptions } from '@common/interfaces/common.interface';
+import { Constructor, Provider } from '@common/types/common.type';
 
 export class Container {
   private static instance: Container;
@@ -14,13 +14,8 @@ export class Container {
     return Container.instance;
   }
 
-  has (provide: Constructor | string | symbol): boolean {
-    return this.services.has(provide);
-  }
-
-  getServices (): Map<Constructor | string | symbol, Provider> {
-    return this.services;
-  }
+  has = (provide: Constructor | string | symbol): boolean =>  this.services.has(provide);
+  getServices = (): Map<Constructor | string | symbol, Provider> => this.services;
 
   register<T extends object> (options: RegisterOptions<T>): void {
     const { provide, useClass, useValue, useFactory, inject = [] } = options;

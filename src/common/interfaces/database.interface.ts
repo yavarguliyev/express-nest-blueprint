@@ -1,4 +1,4 @@
-import { DatabaseType } from '@common/enums';
+import { DatabaseType } from '@common/enums/common.enum';
 
 export interface DatabaseAdapter<T = unknown> extends DatabaseConnection {
   query<R = T>(sql: string, params?: unknown[]): Promise<QueryResult<R>>;
