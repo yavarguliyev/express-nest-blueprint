@@ -5,6 +5,9 @@ metadata:
   namespace: express-nest-app
   annotations:
     nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      # Rewrite /admin/file.js to /file.js for static assets
+      rewrite ^/admin/(.*\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot))$ /$1 break;
 spec:
   ingressClassName: nginx
   rules:
@@ -27,7 +30,15 @@ spec:
             name: api-service
             port:
               number: 80
-      # Admin UI - rewrite /admin/* to /*
+      # Storage/MinIO - proxy directly without rewrite
+      - path: /express-nest-blueprint
+        pathType: Prefix
+        backend:
+          service:
+            name: minio
+            port:
+              number: 9000
+      # Admin UI - with rewrite for static files
       - path: /admin
         pathType: Prefix
         backend:
