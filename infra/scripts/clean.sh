@@ -46,7 +46,7 @@ delete_k8s_resources() {
   
   # Delete by directory to be comprehensive
   kubectl delete -f "${K8S_DIR}/api/" --ignore-not-found
-  
+
   # Delete worker manifests (excluding KEDA if not installed)
   kubectl delete -f "${K8S_DIR}/worker/worker-manifests.yaml" --ignore-not-found
   if kubectl api-resources | grep -q "scaledobjects"; then

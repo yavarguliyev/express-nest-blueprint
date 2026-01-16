@@ -2,7 +2,6 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: database-policy
-  namespace: express-nest-app
 spec:
   podSelector:
     matchLabels:
@@ -22,7 +21,6 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: redis-policy
-  namespace: express-nest-app
 spec:
   podSelector:
     matchLabels:
@@ -42,7 +40,6 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-all-egress
-  namespace: express-nest-app
 spec:
   podSelector: {}
   policyTypes:

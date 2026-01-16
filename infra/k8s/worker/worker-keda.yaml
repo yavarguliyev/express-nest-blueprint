@@ -2,7 +2,7 @@ apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
   name: worker-scaler
-  namespace: express-nest-app
+  namespace: default
 spec:
   scaleTargetRef:
     name: worker-deployment

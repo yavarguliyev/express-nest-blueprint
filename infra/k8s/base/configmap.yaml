@@ -2,7 +2,6 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: app-config
-  namespace: express-nest-app
   labels:
     app: express-nest-blueprint
 data:

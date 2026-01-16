@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: worker-deployment
-  namespace: express-nest-app
   labels:
     app: express-nest-blueprint
     component: worker
