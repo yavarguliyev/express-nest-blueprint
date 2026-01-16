@@ -1,0 +1,43 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migration
+  namespace: express-nest-app
+  labels:
+    app: express-nest-blueprint
+    component: migration
+spec:
+  ttlSecondsAfterFinished: 100
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: express-nest-blueprint
+        component: migration
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: migration
+        image: express-nest-blueprint:latest
+        imagePullPolicy: IfNotPresent
+        command: ["sh", "-c"]
+        args:
+          - |
+            echo "🔄 Running database migrations..."
+            npm run migrate:up
+            echo "✅ Migrations completed successfully"
+        envFrom:
+        - configMapRef:
+            name: app-config
+        - secretRef:
+            name: app-secrets
+        env:
+        - name: NODE_ENV
+          value: "production"
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "256Mi"
+          requests:
+            cpu: "100m"
+            memory: "128Mi"

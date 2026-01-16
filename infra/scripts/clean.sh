@@ -55,6 +55,7 @@ delete_k8s_resources() {
 
   kubectl delete -f "${K8S_DIR}/postgres/" --ignore-not-found
   kubectl delete -f "${K8S_DIR}/redis/" --ignore-not-found
+  kubectl delete -f "${K8S_DIR}/minio/" --ignore-not-found
   kubectl delete -f "${K8S_DIR}/base/" --ignore-not-found
 
   print_info "Kubernetes resources deleted successfully!"
@@ -67,12 +68,22 @@ cleanup_docker() {
   print_info "Removing project image: $IMAGE_NAME..."
   docker rmi -f $IMAGE_NAME 2>/dev/null || true
 
+  print_info "Pruning unused Docker images (dangling and unused)..."
+  # Remove dangling images (untagged)
+  docker image prune -f
+  
+  # Remove unused images (not used by any container)
+  print_info "Removing unused Docker images..."
+  docker image prune -a -f --filter "until=24h"
+  
   print_info "Pruning unused Docker resources..."
   docker container prune -f
   docker network prune -f
-  # We don't prune volumes by default to protect DB data unless requested, 
-  # but here we follow the template style
-  # docker volume prune -f 
+  
+  print_info "Pruning unused Docker volumes..."
+  docker volume prune -f
+  
+  print_info "Docker cleanup completed!"
 }
 
 main() {

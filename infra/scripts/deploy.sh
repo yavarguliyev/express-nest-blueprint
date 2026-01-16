@@ -91,14 +91,23 @@ kubectl wait --for=condition=ready pod -l service=postgres -n $NAMESPACE --timeo
 kubectl wait --for=condition=ready pod -l service=redis -n $NAMESPACE --timeout=60s || print_warn "Redis still starting..."
 kubectl wait --for=condition=ready pod -l app=minio -n $NAMESPACE --timeout=60s || print_warn "MinIO still starting..."
 
-# 5. Apply App Services (API, Worker, HPA) - Use Service DNS names from ConfigMap
+# 5. Run Database Migrations (before deploying API)
+print_info "Running database migrations..."
+# Delete old migration job if exists
+kubectl delete job db-migration -n $NAMESPACE --ignore-not-found
+# Create and run migration job
+kubectl apply -f ../k8s/base/migration-job.yaml
+print_info "Waiting for migrations to complete..."
+kubectl wait --for=condition=complete job/db-migration -n $NAMESPACE --timeout=120s || print_warn "Migration job still running..."
+
+# 6. Apply App Services (API, Worker, HPA) - Use Service DNS names from ConfigMap
 print_info "Deploying Application Services..."
 
 kubectl apply -f ../k8s/api/api-manifests.yaml
 kubectl apply -f ../k8s/api/api-hpa.yaml
 kubectl apply -f ../k8s/worker/worker-manifests.yaml
 
-# 6. Optional KEDA Scaling
+# 7. Optional KEDA Scaling
 if kubectl api-resources | grep -q "scaledobjects"; then
     print_info "Applying KEDA scaling for workers..."
     kubectl apply -f ../k8s/worker/worker-keda.yaml
@@ -110,7 +119,7 @@ print_info "Waiting for Deployments to be available..."
 kubectl rollout status deployment/api-deployment -n $NAMESPACE --timeout=120s
 kubectl rollout status deployment/worker-deployment -n $NAMESPACE --timeout=120s
 
-# 7. Setup Port-Forwarding (Automated & Verified)
+# 8. Setup Port-Forwarding (Automated & Verified)
 print_info "Setting up local tunnel (localhost:8080 -> api-service:80)..."
 # Kill any stray port-forwarding on 8080 just in case PID file was missing
 lsof -i :8080 -t | xargs kill -9 2>/dev/null || true
@@ -132,7 +141,7 @@ for i in $(seq 1 $MAX_RETRIES); do
     sleep 1
 done
 
-# 8. Health Verification
+# 9. Health Verification
 if [ "$SKIP_VERIFY" = false ]; then
     print_info "Verifying deployment health..."
     HEALTH_KEY=$(kubectl get secret app-secrets -n $NAMESPACE -o jsonpath='{.data.HEALTH_CHECK_SECRET}' | base64 -d)
@@ -150,12 +159,46 @@ if [ "$SKIP_VERIFY" = false ]; then
     done
 fi
 
+# 10. Setup /etc/hosts entry for api.local
+print_info "Checking /etc/hosts for api.local entry..."
+if ! grep -q "api.local" /etc/hosts; then
+    print_warn "api.local not found in /etc/hosts. Adding it now..."
+    echo "127.0.0.1 api.local" | sudo tee -a /etc/hosts > /dev/null
+    print_info "✅ Added api.local to /etc/hosts"
+else
+    print_info "✅ api.local already exists in /etc/hosts"
+fi
+
 print_info "=== Deployment Complete ==="
-print_info "📍 API: http://localhost:8080/auth/register"
-print_info "📍 API (Ingress): http://api.local (Requires /etc/hosts entry)"
+print_info ""
+print_info "🎯 Your Application Endpoints:"
+print_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+print_info ""
+print_info "📡 API Endpoints (via Ingress):"
+print_info "   • Login:    http://api.local/api/v1/auth/login"
+print_info "   • Register: http://api.local/api/v1/auth/register"
+print_info "   • Users:    http://api.local/api/v1/users"
+print_info "   • Health:   http://api.local/health/live"
+print_info ""
+print_info "🎨 Admin UI:"
+print_info "   • Dashboard: http://api.local/admin/"
+print_info ""
+print_info "💾 Storage:"
+print_info "   • Files: http://api.local/express-nest-blueprint/..."
+print_info ""
+print_info "🔧 Port-Forward (Alternative Access):"
+print_info "   • API: http://localhost:8080/api/v1/..."
+print_info "   • Admin: http://localhost:8080/admin/"
+print_info ""
+print_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 if [ "$KEEP_PORT_FORWARD" = false ]; then
-    print_warn "Note: Tunnel will close when script finishes. Use --keep-port-forward to keep it alive."
+    print_warn "⚠️  Port-forward will close when script finishes. Use --keep-port-forward to keep it alive."
 else
-    print_info "Tunnel left running in background (PID: $PF_PID)."
+    print_info "✅ Port-forward running in background (PID: $PF_PID)"
 fi
+
+print_info ""
+print_info "💡 Quick Test:"
+print_info "   curl http://api.local/health/live -H 'X-Health-Key: your_super_secret_jwt_key'"
+print_info ""
