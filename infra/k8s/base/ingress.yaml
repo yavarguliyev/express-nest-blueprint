@@ -2,27 +2,44 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: app-ingress
+  namespace: express-nest-app
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
+  ingressClassName: nginx
   rules:
   - host: api.local
     http:
       paths:
-      - path: /
+      # API routes - no rewrite, pass as-is
+      - path: /api
         pathType: Prefix
         backend:
           service:
             name: api-service
             port:
               number: 80
-  - host: admin.local
-    http:
-      paths:
+      # Health checks - no rewrite
+      - path: /health
+        pathType: Prefix
+        backend:
+          service:
+            name: api-service
+            port:
+              number: 80
+      # Admin UI - rewrite /admin/* to /*
+      - path: /admin
+        pathType: Prefix
+        backend:
+          service:
+            name: api-service
+            port:
+              number: 80
+      # Root - serves admin
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: admin-ui-service
+            name: api-service
             port:
               number: 80

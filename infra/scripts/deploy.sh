@@ -13,7 +13,7 @@ NC='\033[0m'
 # Configuration
 IMAGE_NAME="express-nest-blueprint:latest"
 PORT_FORWARD_PID_FILE="/tmp/k8s-port-forward.pid"
-NAMESPACE="default"
+NAMESPACE="express-nest-app"
 
 # Flags
 INSTALL_INGRESS=false
@@ -69,7 +69,10 @@ else
     print_info "Skipping Docker build..."
 fi
 
-# 3. Apply Base Config (ConfigMap, Secrets, Ingress)
+# 3. Create Namespace and Apply Base Config (ConfigMap, Secrets, Ingress)
+print_info "Creating namespace..."
+kubectl apply -f ../k8s/base/namespace.yaml
+
 print_info "Applying base configurations..."
 kubectl apply -f ../k8s/base/configmap.yaml
 kubectl apply -f ../k8s/base/secrets.yaml
@@ -77,36 +80,25 @@ kubectl apply -f ../k8s/base/network-policy.yaml
 # Attempt to apply Ingress (may fail if controller is not ready)
 kubectl apply -f ../k8s/base/ingress.yaml || print_warn "Ingress apply failed (likely webhook issue). Retrying later..."
 
-# 4. Apply Infrastructure (Postgres, Redis)
-print_info "Deploying Infrastructure (Postgres & Redis)..."
+# 4. Apply Infrastructure (Postgres, Redis, MinIO)
+print_info "Deploying Infrastructure (Postgres, Redis & MinIO)..."
 kubectl apply -f ../k8s/postgres/postgres-manifests.yaml
 kubectl apply -f ../k8s/redis/redis-manifests.yaml
+kubectl apply -f ../k8s/minio/minio-manifests.yaml
 
 print_info "Waiting for Infrastructure to be ready..."
-kubectl wait --for=condition=ready pod -l service=postgres --timeout=180s
-kubectl wait --for=condition=ready pod -l service=redis --timeout=180s
+kubectl wait --for=condition=ready pod -l service=postgres -n $NAMESPACE --timeout=60s || print_warn "Postgres still starting..."
+kubectl wait --for=condition=ready pod -l service=redis -n $NAMESPACE --timeout=60s || print_warn "Redis still starting..."
+kubectl wait --for=condition=ready pod -l app=minio -n $NAMESPACE --timeout=60s || print_warn "MinIO still starting..."
 
-# 5. Dynamic IP Injection Workaround
-POSTGRES_POD_IP=$(kubectl get pods -l service=postgres -o jsonpath='{.items[0].status.podIP}')
-REDIS_POD_IP=$(kubectl get pods -l service=redis -o jsonpath='{.items[0].status.podIP}')
-print_info "Injecting direct IPs: PG=$POSTGRES_POD_IP, Redis=$REDIS_POD_IP"
+# 5. Apply App Services (API, Worker, HPA) - Use Service DNS names from ConfigMap
+print_info "Deploying Application Services..."
 
-# 6. Apply App Services (API, Worker, HPA) with Direct IPs
-print_info "Preparing and Deploying Application Services..."
-
-# Create temporary manifests with injected IPs to avoid double rollouts
-API_MANIFEST=$(mktemp)
-WORKER_MANIFEST=$(mktemp)
-
-# Use a different delimiter for sed since IPs contain dots
-sed "s|value: \"API\"|value: \"API\"\n        - name: DB_HOST\n          value: \"$POSTGRES_POD_IP\"\n        - name: REDIS_HOST\n          value: \"$REDIS_POD_IP\"|g" ../k8s/api/api-manifests.yaml > "$API_MANIFEST"
-sed "s|value: \"WORKER\"|value: \"WORKER\"\n        - name: DB_HOST\n          value: \"$POSTGRES_POD_IP\"\n        - name: REDIS_HOST\n          value: \"$REDIS_POD_IP\"|g" ../k8s/worker/worker-manifests.yaml > "$WORKER_MANIFEST"
-
-kubectl apply -f "$API_MANIFEST"
+kubectl apply -f ../k8s/api/api-manifests.yaml
 kubectl apply -f ../k8s/api/api-hpa.yaml
-kubectl apply -f "$WORKER_MANIFEST"
+kubectl apply -f ../k8s/worker/worker-manifests.yaml
 
-# 6.1 Optional KEDA Scaling
+# 6. Optional KEDA Scaling
 if kubectl api-resources | grep -q "scaledobjects"; then
     print_info "Applying KEDA scaling for workers..."
     kubectl apply -f ../k8s/worker/worker-keda.yaml
@@ -114,18 +106,16 @@ else
     print_warn "KEDA not found in cluster. Skipping auto-scaling (ScaledObject)."
 fi
 
-rm "$API_MANIFEST" "$WORKER_MANIFEST"
-
 print_info "Waiting for Deployments to be available..."
-kubectl rollout status deployment/api-deployment --timeout=120s
-kubectl rollout status deployment/worker-deployment --timeout=120s
+kubectl rollout status deployment/api-deployment -n $NAMESPACE --timeout=120s
+kubectl rollout status deployment/worker-deployment -n $NAMESPACE --timeout=120s
 
 # 7. Setup Port-Forwarding (Automated & Verified)
 print_info "Setting up local tunnel (localhost:8080 -> api-service:80)..."
 # Kill any stray port-forwarding on 8080 just in case PID file was missing
 lsof -i :8080 -t | xargs kill -9 2>/dev/null || true
 
-kubectl port-forward svc/api-service 8080:80 > /dev/null 2>&1 &
+kubectl port-forward svc/api-service 8080:80 -n $NAMESPACE > /dev/null 2>&1 &
 PF_PID=$!
 echo $PF_PID > "$PORT_FORWARD_PID_FILE"
 
@@ -145,8 +135,9 @@ done
 # 8. Health Verification
 if [ "$SKIP_VERIFY" = false ]; then
     print_info "Verifying deployment health..."
+    HEALTH_KEY=$(kubectl get secret app-secrets -n $NAMESPACE -o jsonpath='{.data.HEALTH_CHECK_SECRET}' | base64 -d)
+    
     for i in {1..5}; do
-        HEALTH_KEY=$(kubectl get secret app-secrets -n $NAMESPACE -o jsonpath='{.data.HEALTH_CHECK_SECRET}' | base64 -d)
         HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "X-Health-Key: $HEALTH_KEY" http://localhost:8080/health/ready || echo "failed")
         
         if [ "$HEALTH_STATUS" = "200" ]; then
