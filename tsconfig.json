@@ -3,8 +3,6 @@
     "target": "es2023",
     "module": "commonjs",
     "lib": ["ES2023"],
-    "outDir": "./dist",
-    "rootDir": "./src",
     "strict": true,
     "strictNullChecks": true,
     "strictFunctionTypes": true,
@@ -34,17 +32,12 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "resolveJsonModule": true,
-    "baseUrl": "./src",
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"],
-      "@common/*": ["./common/*"],
-      "@core/*": ["./core/*"],
-      "@modules/*": ["./modules/*"],
-      "@shared/*": ["./shared/*"],
-      "@app/common": ["./app.module"]
+      "@config/libs": ["packages/common/src/index.ts"],
+      "@config/libs/*": ["packages/common/src/*"],
+      "@app/core-api/*": ["packages/backend/core-api/src/*"]
     }
   },
-  "include": ["src/**/*", "types/**/*.d.ts"],
-  "exclude": ["node_modules", "dist"],
-  "ts-node": { "files": true }
+  "exclude": ["node_modules", "**/dist"]
 }

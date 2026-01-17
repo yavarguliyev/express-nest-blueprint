@@ -1,0 +1,14 @@
+{
+  "name": "@app/core-api",
+  "version": "1.0.0",
+  "main": "dist/main.js",
+  "scripts": {
+    "start": "node dist/main.js",
+    "dev": "nodemon",
+    "build": "tsc && tsc-alias",
+    "lint": "eslint \"src/**/*.ts\" --fix"
+  },
+  "dependencies": {
+    "@config/libs": "file:../../common"
+  }
+}

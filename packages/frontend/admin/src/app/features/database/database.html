@@ -1,0 +1,128 @@
+
+<div class="database-page animate-fade-in">
+  <div class="page-header">
+    <div class="header-content">
+      <h2>Architectural Explorer</h2>
+      <p class="text-muted">Direct oversight and manipulation of relational entity matrices</p>
+    </div>
+    <button class="btn btn-primary" (click)="loadSchema()" [disabled]="loadingSchema()">
+      <span class="material-icons" [class.spin]="loadingSchema()">hub</span>
+      Re-scan Infrastructure
+    </button>
+  </div>
+
+  <div *ngIf="loadingSchema()" class="schema-skeleton">
+    <div class="skeleton-line glass mb-4" *ngFor="let i of [1,2,3]"></div>
+  </div>
+
+  <div class="schema-tree" *ngIf="!loadingSchema() && schema()">
+    <div *ngFor="let category of schema() | keyvalue" class="category-block glass">
+      <div class="category-header" (click)="toggleCategory(category.key)">
+        <span class="material-icons chevron" [class.expanded]="expandedCategories()[category.key]">expand_more</span>
+        <span class="material-icons category-icon">folder_special</span>
+        <span class="category-name">{{ category.key }}</span>
+        <span class="badge">{{ category.value.length }} entities</span>
+      </div>
+
+      <div class="tables-list" *ngIf="expandedCategories()[category.key]">
+        <div *ngFor="let table of category.value" class="table-node" [class.active]="selectedTable()?.name === table.name">
+          <div class="table-header" (click)="selectTable(table)">
+            <span class="material-icons chevron-sm" [class.expanded]="selectedTable()?.name === table.name">play_arrow</span>
+            <span class="material-icons table-icon">table_chart</span>
+            <span class="table-name">{{ table.displayName }}</span>
+            <span class="table-meta">[{{ table.tableName }}]</span>
+          </div>
+
+          <!-- Dynamic CRUD Interface Expanded Inside the Tree -->
+          <div class="crud-expansion glass" *ngIf="selectedTable()?.name === table.name">
+            <div class="crud-controls">
+              <div class="search-box glass">
+                <span class="material-icons search-icon">search</span>
+                <input type="text" [placeholder]="'Search ' + table.displayName + '...'" (input)="onSearch($event)">
+              </div>
+              <div class="crud-stats text-muted">
+                {{ total() }} records discovered
+              </div>
+            </div>
+
+            <div class="table-scroll-container">
+              <div *ngIf="loadingData()" class="shimmer-overlay"></div>
+              
+              <table class="crud-table">
+                <thead>
+                  <tr>
+                    <th *ngFor="let col of table.columns" [class.text-center]="col.type === 'boolean'">
+                      {{ col.name }}
+                    </th>
+                    <th class="text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let row of tableData()" class="crud-row">
+                    <td *ngFor="let col of table.columns" [class.text-center]="col.type === 'boolean'">
+                      <!-- Image projection -->
+                      <div *ngIf="isImageUrl(col.name) && row[col.name]" class="avatar-cell">
+                        <img [src]="row[col.name]" class="cell-img">
+                      </div>
+                      
+                      <!-- Boolean toggle projection -->
+                      <div *ngIf="col.type === 'boolean'" class="toggle-container">
+                        <button class="toggle-btn" 
+                                [class.disabled]="isFieldRestricted(row['id'], col.name)"
+                                [disabled]="isFieldRestricted(row['id'], col.name)"
+                                [ngClass]="row[col.name] ? 'active' : 'inactive'" 
+                                (click)="toggleBoolean(row, col)">
+                          <span class="dot"></span>
+                          {{ row[col.name] ? 'Active' : 'Offline' }}
+                        </button>
+                      </div>
+
+                      <!-- Generic value projection -->
+                      <span *ngIf="!isImageUrl(col.name) && col.type !== 'boolean'" class="cell-text">
+                        {{ formatValue(row[col.name], col) }}
+                      </span>
+                    </td>
+                    <td class="text-right">
+                      <div class="action-orbit">
+                        <button class="orbit-btn danger" 
+                                [class.disabled]="isRestrictedTable() && isCurrentUser(row['id'])"
+                                [disabled]="isRestrictedTable() && isCurrentUser(row['id'])"
+                                (click)="deleteRecord(row['id'])" 
+                                title="Purge Record">
+                          <span class="material-icons">delete_sweep</span>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  
+                  <tr *ngIf="tableData().length === 0 && !loadingData()">
+                    <td [attr.colspan]="table.columns.length + 1" class="empty-cell">
+                      No entities found in this sector.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="pagination-footer">
+              <div class="pagination-controls">
+                <button class="page-btn" (click)="changePage(page() - 1)" [disabled]="page() <= 1">
+                  <span class="material-icons">chevron_left</span>
+                </button>
+                <button *ngFor="let p of pages" 
+                        class="page-btn" 
+                        [class.active]="p === page()"
+                        (click)="changePage(p)">
+                  {{ p }}
+                </button>
+                <button class="page-btn" (click)="changePage(page() + 1)" [disabled]="page() >= totalPages">
+                  <span class="material-icons">chevron_right</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
