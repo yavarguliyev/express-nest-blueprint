@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 
+import { ConfigService } from '../config/config.service';
 import { Injectable } from '../decorators/injectable.decorator';
 import { UnauthorizedException } from '../exceptions/http-exceptions';
 import { CanActivate } from '../interfaces/guard.interface';
-import { ConfigService } from '../config/config.service';
 
 @Injectable()
 export class HeaderAuthGuard implements CanActivate {

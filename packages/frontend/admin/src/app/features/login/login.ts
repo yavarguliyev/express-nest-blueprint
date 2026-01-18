@@ -4,6 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 
+interface ErrorResponse {
+  error?: {
+    message?: string;
+  };
+  message?: string;
+}
+
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -33,8 +40,8 @@ export class Login {
         }
         this.loading.set(false);
       },
-      error: (err: { error?: { message?: string } }) => {
-        this.error.set(err.error?.message || 'An error occurred during login.');
+      error: (err: ErrorResponse) => {
+        this.error.set(err.error?.message || err.message || 'An error occurred during login.');
         this.loading.set(false);
       },
     });

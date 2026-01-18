@@ -12,6 +12,7 @@ export interface AuthResponseUser {
   lastName: string;
   role: string;
   isActive: boolean;
+  isEmailVerified: boolean;
 }
 
 export interface UserWithPassword extends AuthResponseUser {

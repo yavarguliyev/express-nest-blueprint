@@ -1,30 +1,36 @@
 
 .database-page {
-  padding: 2rem;
-  max-width: 1400px;
-  margin: 0 auto;
+  padding-bottom: 40px;
 }
 
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 30px;
+  padding: 0 4px;
+}
+
+.header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .header-content h2 {
-  font-size: 2rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--primary);
+  line-height: 1.2;
 }
 
-.text-muted {
-  color: #94a3b8;
+.header-content .text-muted {
+  margin: 0;
   font-size: 0.95rem;
-  margin-top: 0.25rem;
+  color: var(--secondary);
+  line-height: 1.4;
+  font-weight: 500;
 }
 
 /* Schema Tree Styling */
@@ -74,16 +80,19 @@
   font-size: 1.1rem;
   letter-spacing: 0.5px;
   flex: 1;
+  color: var(--primary);
+  text-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
 }
 
 .badge {
-  background: rgba(79, 172, 254, 0.1);
+  background: rgba(99, 102, 241, 0.15);
   color: var(--primary);
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
+  border: 1px solid rgba(99, 102, 241, 0.3);
 }
 
 /* Tables List */
@@ -287,9 +296,9 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.05);
-  color: #94a3b8;
+  border: 1px solid var(--primary);
+  background: linear-gradient(135deg, var(--primary), #8b5cf6);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -298,15 +307,18 @@
 }
 
 .orbit-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px var(--primary-glow);
+}
+
+.orbit-btn.danger {
+  border: 1px solid #ef4444;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
 }
 
 .orbit-btn.danger:hover {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
-  border-color: #ef4444;
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
 }
 
 /* Pagination */
@@ -337,14 +349,15 @@
 }
 
 .page-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.08);
+  background: linear-gradient(135deg, var(--primary), #8b5cf6);
   color: white;
+  border: 1px solid var(--primary);
 }
 
 .page-btn.active {
-  background: var(--primary);
-  color: #0f172a;
-  border-color: var(--primary);
+  background: linear-gradient(135deg, var(--primary), #8b5cf6);
+  color: white;
+  border: 1px solid var(--primary);
   font-weight: 600;
 }
 

@@ -15,10 +15,10 @@ import { BadRequestException, InternalServerErrorException, UnauthorizedExceptio
 import { GlobalExceptionFilter } from '../filters/global-exception.filter';
 import { AuthGuard } from '../guards/auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
+import { getErrorMessage } from '../helpers/utility-functions.helper';
 import { ControllerOptions, CorsOptions, ExtractMethodOptions, HasMethodOptions, ParamMetadata, RouteMetadata } from '../interfaces/common.interface';
 import { CanActivate } from '../interfaces/guard.interface';
 import { Constructor, ExpressHttpMethods, HttpMethod } from '../types/common.type';
-import { getErrorMessage } from '../helpers/utility-functions.helper';
 
 export class NestApplication {
   private app: Express;
@@ -77,13 +77,7 @@ export class NestApplication {
               const guardInstance = this.container.resolve<CanActivate>({ provide: GuardClass });
 
               await new Promise<void>((resolve, reject) => {
-                void guardInstance.canActivate(
-                  req,
-                  res,
-                  (err?: Error | string) => err ? reject(new UnauthorizedException(String(getErrorMessage(err)))) : resolve(),
-                  originalMethod,
-                  controllerClass
-                );
+                void guardInstance.canActivate(req, res, (err?: Error | string) => (err ? reject(new UnauthorizedException(String(getErrorMessage(err)))) : resolve()), originalMethod, controllerClass);
               });
             }
 
@@ -203,7 +197,7 @@ export class NestApplication {
   }
 
   async close (): Promise<void> {
-    if (this.server && this.server.listening) return new Promise((resolve, reject) => this.server!.close((error) => error ? reject(error) : resolve()));
+    if (this.server && this.server.listening) return new Promise((resolve, reject) => this.server!.close((error) => (error ? reject(error) : resolve())));
   }
 
   private hasMethod<T extends object> ({ instance, methodName }: HasMethodOptions<T>): boolean {

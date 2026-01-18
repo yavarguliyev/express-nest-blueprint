@@ -1,7 +1,7 @@
 <div class="login-container">
   <div class="login-card glass">
     <div class="login-header">
-      <div class="logo-icon glow">AG</div>
+      <div class="logo-icon glow">AS</div>
       <h1>Admin Panel</h1>
       <p>Secure login for system administrators</p>
     </div>
@@ -33,18 +33,23 @@
         >
       </div>
 
-      <div *ngIf="error()" class="error-msg">
-        {{ error() }}
-      </div>
+      @if (error()) {
+        <div class="error-msg">
+          {{ error() }}
+        </div>
+      }
 
       <button type="submit" class="btn btn-primary btn-block" [disabled]="loading() || !loginForm.valid">
-        <span *ngIf="!loading()">Sign In</span>
-        <span *ngIf="loading()">Authenticating...</span>
+        @if (!loading()) {
+          <span>Sign In</span>
+        } @else {
+          <span>Authenticating...</span>
+        }
       </button>
     </form>
 
     <div class="login-footer">
-      <p>&copy; 2026 Antigravity Systems. All rights reserved.</p>
+      <p>&copy; 2026 Admin Systems. All rights reserved.</p>
     </div>
   </div>
 </div>

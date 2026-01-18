@@ -1,18 +1,18 @@
-import { Inject } from './decorators/injectable.decorator';
-import { Module } from './decorators/module.decorator';
-import { LoggerModule } from './logger/logger.module';
-import { LoggerMiddleware } from './middleware/logger.middleware';
-import { JwtService } from './services/jwt.service';
 import { CacheModule } from './cache/cache.module';
 import { ComputeModule } from './compute/compute.module';
 import { DatabaseModule } from './database/database.module';
-import { LifecycleModule } from './lifecycle/lifecycle.module';
-import { RedisModule } from './redis/redis.module';
-import { StorageModule } from './storage/storage.module';
+import { Inject } from './decorators/injectable.decorator';
+import { Module } from './decorators/module.decorator';
 import { AuthGuard } from './guards/auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { HeaderAuthGuard } from './guards/header-auth.guard';
+import { LoggerModule } from './logger/logger.module';
+import { LifecycleModule } from './lifecycle/lifecycle.module';
 import { HeaderAuthMiddleware } from './middleware/header-auth.middleware';
+import { LoggerMiddleware } from './middleware/logger.middleware';
+import { RedisModule } from './redis/redis.module';
+import { JwtService } from './services/jwt.service';
+import { StorageModule } from './storage/storage.module';
 
 @Module({
   imports: [LoggerModule.forRoot(), LifecycleModule.forRoot(), DatabaseModule.forRoot(), RedisModule.forRoot(), CacheModule.forRoot(), ComputeModule.forRoot(), StorageModule.forRoot()],
@@ -40,7 +40,7 @@ import { HeaderAuthMiddleware } from './middleware/header-auth.middleware';
   exports: [JwtService]
 })
 export class SharedModule {
-  constructor(@Inject('APP_INITIALIZER') _initializer: unknown) {
+  constructor (@Inject('APP_INITIALIZER') _initializer: unknown) {
     void _initializer;
   }
 }

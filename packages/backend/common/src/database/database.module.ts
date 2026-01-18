@@ -1,11 +1,11 @@
-import { Module } from '../decorators/module.decorator';
-import { DynamicModule } from '../interfaces/common.interface';
-import { DatabaseModuleOptions } from '../interfaces/database.interface';
-import { Logger } from '../logger/logger.service';
 import { ConfigService } from '../config/config.service';
 import { getDatabaseConfig } from '../config/database.config';
 import { DatabaseService } from '../database/database.service';
+import { Module } from '../decorators/module.decorator';
+import { DynamicModule } from '../interfaces/common.interface';
+import { DatabaseModuleOptions } from '../interfaces/database.interface';
 import { LifecycleService } from '../lifecycle/lifecycle.service';
+import { Logger } from '../logger/logger.service';
 
 @Module({
   providers: [DatabaseService],

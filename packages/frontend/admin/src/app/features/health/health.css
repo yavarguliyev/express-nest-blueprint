@@ -8,6 +8,29 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 30px;
+  padding: 0 4px;
+}
+
+.header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.header-content h2 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--primary);
+  line-height: 1.2;
+}
+
+.header-content .text-muted {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--secondary);
+  line-height: 1.4;
+  font-weight: 500;
 }
 
 .diagnostics-grid {
@@ -37,13 +60,21 @@
 .status-label {
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--primary);
   text-transform: uppercase;
 }
 
 .status-value {
   font-size: 2rem;
   font-weight: 800;
+  color: var(--primary);
+}
+
+.status-meta {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--warning);
+  opacity: 0.9;
 }
 
 .status-visual {
@@ -88,6 +119,45 @@
   padding: 24px;
 }
 
+.components-card h3 {
+  font-size: 1.1rem;
+  margin-bottom: 24px;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--primary);
+  text-shadow: 0 0 8px rgba(99, 102, 241, 0.2);
+}
+
+.badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge.info {
+  background: linear-gradient(135deg, var(--primary), #8b5cf6);
+  color: white;
+  border: 1px solid var(--primary);
+}
+
 .components-list {
   display: flex;
   flex-direction: column;
@@ -125,17 +195,12 @@
 .comp-info {
   flex: 1;
   display: flex;
-  flex-direction: column;
+  align-items: center;
 }
 
 .comp-name {
   font-weight: 700;
   font-size: 1rem;
-}
-
-.comp-details {
-  font-size: 0.8rem;
-  color: var(--text-muted);
 }
 
 .status-badge {
@@ -150,13 +215,14 @@
 
 .console {
   background: #000;
-  padding: 20px;
-  border-radius: 12px;
+  padding: 20px 24px;
   font-family: 'Fira Code', 'Courier New', monospace;
   font-size: 0.85rem;
   line-height: 1.6;
   max-height: 200px;
   overflow-y: auto;
+  margin: 0;
+  border-radius: 0 0 12px 12px;
 }
 
 .console-line { margin-bottom: 4px; }

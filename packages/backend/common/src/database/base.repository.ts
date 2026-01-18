@@ -1,8 +1,8 @@
-import { Injectable } from '../decorators/injectable.decorator';
 import { DatabaseService } from './database.service';
-import { ColumnMapping, QueryAllWithPaginationOptions, QueryWithPaginationOptions, QueryPaginationOptionsResults } from './interfaces/query-builder.interface';
-import { DatabaseAdapter } from '../interfaces/database.interface';
 import { QueryBuilder } from './query-builder';
+import { Injectable } from '../decorators/injectable.decorator';
+import { DatabaseAdapter } from '../interfaces/database.interface';
+import { ColumnMapping, QueryAllWithPaginationOptions, QueryWithPaginationOptions, QueryPaginationOptionsResults } from '../interfaces/query-builder.interface';
 
 @Injectable()
 export abstract class BaseRepository<T> {
@@ -15,6 +15,8 @@ export abstract class BaseRepository<T> {
   ) {
     this.queryBuilder = new QueryBuilder(tableName, columnMappings);
   }
+
+  protected abstract getSelectColumns(): string[];
 
   async findAll (options: QueryWithPaginationOptions = {}, connection?: DatabaseAdapter): Promise<T[]> {
     const columns = this.getSelectColumns();
@@ -98,20 +100,11 @@ export abstract class BaseRepository<T> {
   async findAllWithPagination (options: QueryAllWithPaginationOptions, connection?: DatabaseAdapter): Promise<QueryPaginationOptionsResults<T>> {
     const { page, limit, search, searchFields, where, orderBy, orderDirection } = options;
 
-    const queryOptions: QueryWithPaginationOptions = {
-      orderBy: orderBy || 'id',
-      orderDirection: orderDirection || 'ASC'
-    };
-    if (where) {
-      queryOptions.where = where;
-    }
+    const queryOptions: QueryWithPaginationOptions = { orderBy: orderBy || 'id', orderDirection: orderDirection || 'ASC' };
 
-    if (search && searchFields && searchFields.length > 0) {
-      queryOptions.search = { fields: searchFields, term: search };
-    }
+    if (where) queryOptions.where = where;
+    if (search && searchFields && searchFields.length > 0) queryOptions.search = { fields: searchFields, term: search };
 
     return this.findWithPagination({ ...queryOptions, page, limit }, connection);
   }
-
-  protected abstract getSelectColumns(): string[];
 }

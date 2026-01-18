@@ -9,12 +9,12 @@ import { AuthRepository } from '@/modules/auth/auth.repository';
 
 @Injectable()
 export class AuthService {
-  constructor(
+  constructor (
     private readonly usersService: AuthRepository,
     private readonly jwtService: JwtService
   ) {}
 
-  async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
+  async register (registerDto: RegisterDto): Promise<AuthResponseDto> {
     const passwordHash = await this.hashPassword(registerDto.password);
     const userData = { ...registerDto, passwordHash, isEmailVerified: true };
     const user = await this.usersService.createWithAuth(userData);
@@ -22,21 +22,15 @@ export class AuthService {
     return this.generateAuthResponse(user);
   }
 
-  async login(loginDto: LoginDto, options?: { allowedRoles?: UserRoles[]; context?: string }): Promise<AuthResponseDto> {
+  async login (loginDto: LoginDto, options?: { allowedRoles?: UserRoles[]; context?: string }): Promise<AuthResponseDto> {
     const user = await this.usersService.findByEmailWithAuth(loginDto.email);
 
-    if (!user || !user.passwordHash) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
+    if (!user || !user.passwordHash) throw new UnauthorizedException('Invalid credentials');
 
     const isPasswordValid = await this.verifyPassword(loginDto.password, user.passwordHash);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
 
-    if (!user.isActive) {
-      throw new UnauthorizedException('Account is deactivated');
-    }
+    if (!isPasswordValid) throw new UnauthorizedException('Invalid credentials');
+    if (!user.isActive || !user.isEmailVerified) throw new UnauthorizedException('Account is deactivated');
 
     if (options?.allowedRoles && !options.allowedRoles.includes(user.role as UserRoles)) {
       throw new ForbiddenException(`Access denied. Your account does not have the required privileges for ${options.context || 'this service'}.`);
@@ -47,7 +41,7 @@ export class AuthService {
     return this.generateAuthResponse(user);
   }
 
-  private generateAuthResponse(user: AuthResponseUser): AuthResponseDto {
+  private generateAuthResponse (user: AuthResponseUser): AuthResponseDto {
     const payload = { sub: user.id, email: user.email, role: user.role as UserRoles };
 
     const accessToken = this.jwtService.sign(payload);
@@ -68,11 +62,11 @@ export class AuthService {
     });
   }
 
-  private async hashPassword(password: string): Promise<string> {
+  private async hashPassword (password: string): Promise<string> {
     return bcrypt.hash(password, 12);
   }
 
-  private async verifyPassword(password: string, storedHash: string): Promise<boolean> {
+  private async verifyPassword (password: string, storedHash: string): Promise<boolean> {
     return bcrypt.compare(password, storedHash);
   }
 }

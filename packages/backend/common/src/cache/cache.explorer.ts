@@ -1,8 +1,8 @@
+import { CacheService } from '../cache/cache.service';
 import { Container } from '../container/container';
 import { CACHE_METADATA } from '../decorators/cache.decorator';
 import { Injectable } from '../decorators/injectable.decorator';
 import { CacheOptions } from '../interfaces/common.interface';
-import { CacheService } from '../cache/cache.service';
 
 @Injectable()
 export class CacheExplorer {

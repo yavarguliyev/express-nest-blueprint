@@ -3,7 +3,7 @@ import { BaseRepository, CircuitBreaker, CrudTable, DatabaseService, Injectable,
 import { FindUsersQueryDto } from '@modules/users/dtos/find-users-query.dto';
 import { UserResponseDto } from '@modules/users/dtos/user-response.dto';
 
-@CrudTable({ category: 'User Management', name: 'users', displayName: 'Users' })
+@CrudTable({ category: 'Database Management', name: 'users', displayName: 'Users' })
 @Injectable()
 export class UsersRepository extends BaseRepository<UserResponseDto> {
   constructor (databaseService: DatabaseService) {
@@ -20,7 +20,7 @@ export class UsersRepository extends BaseRepository<UserResponseDto> {
   }
 
   protected getSelectColumns (): string[] {
-    return ['id', 'email', 'firstName', 'lastName', 'isActive', 'profileImageUrl', 'isEmailVerified', 'createdAt', 'updatedAt'];
+    return ['id', 'email', 'firstName', 'lastName', 'role', 'isActive', 'profileImageUrl', 'isEmailVerified', 'createdAt', 'updatedAt'];
   }
 
   async findByEmail (email: string, connection?: DatabaseAdapter): Promise<UserResponseDto | null> {

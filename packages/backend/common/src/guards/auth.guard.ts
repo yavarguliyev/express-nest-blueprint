@@ -4,8 +4,8 @@ import { IS_PUBLIC_KEY, REQUIRE_AUTH_KEY } from '../decorators/auth.decorator';
 import { Injectable } from '../decorators/injectable.decorator';
 import { UnauthorizedException } from '../exceptions/http-exceptions';
 import { CanActivate } from '../interfaces/guard.interface';
-import { Constructor } from '../types/common.type';
 import { JwtService } from '../services/jwt.service';
+import { Constructor } from '../types/common.type';
 
 @Injectable()
 export class AuthGuard implements CanActivate {

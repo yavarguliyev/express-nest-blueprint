@@ -1,7 +1,7 @@
+import { BullMQService } from './services/bullmq.service';
+import { QueueManager } from './services/queue-manager.service';
 import { Module } from '../decorators/module.decorator';
 import { DynamicModule } from '../interfaces/common.interface';
-import { BullMQService } from '../bullmq/services/bullmq.service';
-import { QueueManager } from '../bullmq/services/queue-manager.service';
 
 @Module({
   providers: [QueueManager, BullMQService]

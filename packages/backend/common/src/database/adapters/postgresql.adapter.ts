@@ -1,9 +1,9 @@
 import { Pool, PoolClient } from 'pg';
 
+import { TransactionAdapter } from '../../database/adapters/transaction.adapter';
 import { Injectable } from '../../decorators/injectable.decorator';
 import { InternalServerErrorException, ServiceUnavailableException } from '../../exceptions/http-exceptions';
 import { DatabaseAdapter, DatabaseConfig, QueryResult } from '../../interfaces/database.interface';
-import { TransactionAdapter } from '../../database/adapters/transaction.adapter';
 
 @Injectable()
 export class PostgreSQLAdapter implements DatabaseAdapter {

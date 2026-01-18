@@ -12,6 +12,8 @@ import { AuthService } from '../../../core/services/auth.service';
 })
 export class Sidebar {
   private authService = inject(AuthService);
+  
+  user = this.authService.currentUser;
 
   menuItems = [
     { label: 'Dashboard', icon: 'dashboard', route: '/dashboard' },
@@ -19,6 +21,14 @@ export class Sidebar {
     { label: 'System Health', icon: 'monitor_heart', route: '/health' },
     { label: 'Settings', icon: 'settings', route: '/settings' },
   ];
+
+  getUserInitials(): string {
+    const currentUser = this.user();
+    if (!currentUser?.firstName || !currentUser?.lastName) {
+      return 'U';
+    }
+    return (currentUser.firstName.charAt(0) + currentUser.lastName.charAt(0)).toUpperCase();
+  }
 
   logout () {
     this.authService.logout();

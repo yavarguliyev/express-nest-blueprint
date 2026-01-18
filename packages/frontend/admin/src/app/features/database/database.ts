@@ -31,6 +31,13 @@ interface ApiResponse<T> {
   message?: string;
 }
 
+interface ErrorResponse {
+  error?: {
+    message?: string;
+  };
+  message?: string;
+}
+
 interface PaginatedResponse<T> {
   data: T[];
   total: number;
@@ -183,21 +190,18 @@ export class Database implements OnInit {
     return this.selectedTable()?.tableName === 'users';
   }
 
-  isFieldRestricted (id: number, colName: string): boolean {
-    if (!this.isRestrictedTable() || !this.isCurrentUser(id)) return false;
-    const restrictedFields = ['isactive', 'is_active', 'isemailverified', 'is_email_verified'];
-    return restrictedFields.includes(colName.toLowerCase());
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  isFieldRestricted (_id: number, _colName: string): boolean {
+    // Parameters prefixed with underscore to indicate intentional non-use
+    // Remove client-side restrictions - let backend handle validation and show proper error messages
+    return false;
   }
 
   deleteRecord (id: number) {
     const table = this.selectedTable();
     if (!table || !id) return;
 
-    if (this.isRestrictedTable() && this.isCurrentUser(id)) {
-      this.toastService.error('You cannot delete your own account.');
-      return;
-    }
-
+    // Remove client-side restriction - let backend handle validation and show proper error messages
     this.toastService.confirm(
       `CRITICAL: Purge record ${id} from ${table.displayName}? This action is immutable.`,
       () => {
@@ -209,8 +213,8 @@ export class Database implements OnInit {
             this.toastService.success(`Record ${id} successfully purged from matrix.`);
             this.loadTableData();
           },
-          error: (err) => {
-            const msg = err.error?.message || 'Direct purge operation failed.';
+          error: (err: ErrorResponse) => {
+            const msg = err.error?.message || err.message || 'Direct purge operation failed.';
             this.toastService.error(msg);
           },
         });
@@ -224,14 +228,7 @@ export class Database implements OnInit {
 
     const recordId = record['id'] as number;
 
-    if (this.isRestrictedTable() && this.isCurrentUser(recordId)) {
-      const restrictedFields = ['isactive', 'is_active', 'isemailverified', 'is_email_verified'];
-      if (restrictedFields.includes(column.name.toLowerCase())) {
-        this.toastService.error(`You cannot change ${column.name} on your own account.`);
-        return;
-      }
-    }
-
+    // Remove client-side restriction - let backend handle validation and show proper error messages
     const newValue = !record[column.name];
     const updateData = { [column.name]: newValue };
 
@@ -244,11 +241,9 @@ export class Database implements OnInit {
           );
           this.loadTableData();
         },
-        error: (err) => {
-          const msg = err.error?.message || `Failed to toggle ${column.name} state.`;
+        error: (err: ErrorResponse) => {
+          const msg = err.error?.message || err.message || `Failed to toggle ${column.name} state.`;
           this.toastService.error(msg);
-          // Revert the toggle in UI (since we optimistically assumed success, or at least to stay consistent)
-          // Actually we didn't optimistic update, but we should reload just in case
           this.loadTableData();
         },
       });

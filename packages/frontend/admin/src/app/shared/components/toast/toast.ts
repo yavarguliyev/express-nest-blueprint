@@ -64,8 +64,8 @@ import { Toast as ToastInterface, ToastService } from '../../../core/services/to
       }
 
       .toast.confirm {
-        border-left-color: var(--warning);
-        background: rgba(245, 158, 11, 0.1);
+        border-left-color: #DAA520;
+        background: #DAA520;
         cursor: default;
       }
 
@@ -92,12 +92,12 @@ import { Toast as ToastInterface, ToastService } from '../../../core/services/to
       }
 
       .action-btn.confirm {
-        color: var(--warning);
-        border-left: 1px solid rgba(255, 255, 255, 0.1);
+        color: #ffffff;
+        border-left: 1px solid rgba(255, 255, 255, 0.3);
       }
 
       .action-btn.confirm:hover {
-        background: rgba(245, 158, 11, 0.2);
+        background: rgba(255, 255, 255, 0.1);
       }
 
       @keyframes toast-in {
@@ -112,24 +112,24 @@ import { Toast as ToastInterface, ToastService } from '../../../core/services/to
       }
 
       .toast.success {
-        border-left-color: var(--success);
-        color: var(--success);
-        background: rgba(16, 185, 129, 0.1);
+        border-left-color: #4B5320;
+        color: #ffffff;
+        background: #4B5320;
       }
       .toast.error {
-        border-left-color: var(--danger);
-        color: var(--danger);
-        background: rgba(239, 68, 68, 0.1);
+        border-left-color: #FF0000;
+        color: #ffffff;
+        background: #FF0000;
       }
       .toast.info {
-        border-left-color: var(--primary);
-        color: #fff;
-        background: rgba(79, 172, 254, 0.1);
+        border-left-color: #708090;
+        color: #ffffff;
+        background: #708090;
       }
       .toast.warning {
-        border-left-color: var(--warning);
-        color: var(--warning);
-        background: rgba(245, 158, 11, 0.1);
+        border-left-color: #DAA520;
+        color: #ffffff;
+        background: #DAA520;
       }
 
       .toast-icon {

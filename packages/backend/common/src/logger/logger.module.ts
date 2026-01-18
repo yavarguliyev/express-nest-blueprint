@@ -1,6 +1,6 @@
+import { getLoggerConfig } from '../config/logger.config';
 import { DynamicModule, LoggerModuleOptions } from '../interfaces/common.interface';
 import { Logger } from '../logger/logger.service';
-import { getLoggerConfig } from '../config/logger.config';
 
 export class LoggerModule {
   static forRoot (options: LoggerModuleOptions = {}): DynamicModule {

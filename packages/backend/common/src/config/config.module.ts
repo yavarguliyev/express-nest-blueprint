@@ -1,6 +1,6 @@
+import { ConfigService } from '../config/config.service';
 import { Module } from '../decorators/module.decorator';
 import { ConfigModuleOptions, DynamicModule } from '../interfaces/common.interface';
-import { ConfigService } from '../config/config.service';
 
 @Module({
   providers: [ConfigService],

@@ -56,9 +56,7 @@ export class UsersService {
     const user = await this.usersRepository.findById(userId);
     if (!user) throw new NotFoundException(`User with ID ${userId} not found`);
 
-    if (user.profileImageUrl) {
-      user.profileImageUrl = await this.storageService.getDownloadUrl(user.profileImageUrl);
-    }
+    if (user.profileImageUrl) user.profileImageUrl = await this.storageService.getDownloadUrl(user.profileImageUrl);
 
     return ValidationService.transformResponse(UserResponseDto, user);
   }
@@ -68,7 +66,7 @@ export class UsersService {
       const existingUser = await this.usersRepository.findByEmail(createUserDto.email, transaction);
       if (existingUser) throw new BadRequestException(`User with email ${createUserDto.email} already exists`);
 
-      const createdUser = await this.usersRepository.create(createUserDto, ['id', 'email', 'firstName', 'lastName', 'isActive', 'createdAt', 'updatedAt'], transaction);
+      const createdUser = await this.usersRepository.create(createUserDto, ['id', 'email', 'firstName', 'lastName', 'role', 'isActive', 'createdAt', 'updatedAt'], transaction);
       return ValidationService.transformResponse(UserResponseDto, createdUser!);
     });
   }
@@ -91,7 +89,7 @@ export class UsersService {
         if (userWithEmail) throw new BadRequestException(`User with email ${updateUserDto.email} already exists`);
       }
 
-      const updatedUser = await this.usersRepository.update(userId, updateUserDto, ['id', 'email', 'firstName', 'lastName', 'isActive', 'createdAt', 'updatedAt'], transaction);
+      const updatedUser = await this.usersRepository.update(userId, updateUserDto, ['id', 'email', 'firstName', 'lastName', 'role', 'isActive', 'createdAt', 'updatedAt'], transaction);
       if (!updatedUser) throw new BadRequestException(`Failed to update user with ID ${userId}`);
 
       return ValidationService.transformResponse(UserResponseDto, updatedUser);
@@ -101,21 +99,12 @@ export class UsersService {
   async remove (id: string, currentUser?: JwtPayload): Promise<{ message: string }> {
     const userId = this.parseAndValidateId(id);
 
-    // Security Check: Prevent users from deleting themselves
-    if (currentUser && String(currentUser.sub) === String(userId)) {
-      throw new ForbiddenException('You cannot delete your own account');
-    }
+    if (currentUser && String(currentUser.sub) === String(userId)) throw new ForbiddenException('You cannot delete your own account');
 
     const existingUser = await this.usersRepository.findById(userId);
     if (!existingUser) throw new NotFoundException(`User with ID ${userId} not found`);
 
-    if (existingUser.profileImageUrl) {
-      try {
-        await this.storageService.delete(existingUser.profileImageUrl);
-      } catch (e) {
-        this.logger.warn(`Failed to delete user avatar: ${getErrorMessage(e)}`);
-      }
-    }
+    if (existingUser.profileImageUrl) await this.storageService.delete(existingUser.profileImageUrl);
 
     const deleted = await this.usersRepository.delete(userId);
     if (!deleted) throw new BadRequestException(`Failed to delete user with ID ${userId}`);
@@ -132,13 +121,7 @@ export class UsersService {
       const user = await this.usersRepository.findById(userId, transaction);
       if (!user) throw new NotFoundException(`User with ID ${userId} not found`);
 
-      if (user.profileImageUrl) {
-        try {
-          await this.storageService.delete(user.profileImageUrl);
-        } catch (e) {
-          this.logger.warn(`Failed to delete old avatar: ${getErrorMessage(e)}`);
-        }
-      }
+      if (user.profileImageUrl) await this.storageService.delete(user.profileImageUrl);
 
       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
       const key = `avatars/${userId}-${uniqueSuffix}${extname(file.originalname)}`;
@@ -147,22 +130,18 @@ export class UsersService {
 
       try {
         await this.storageService.upload(key, file.buffer, file.mimetype);
-        this.logger.log(`Successfully uploaded avatar to S3: ${key}`);
       } catch (uploadError) {
-        this.logger.error(`S3 upload failed for key ${key}: ${getErrorMessage(uploadError)}`);
         throw new BadRequestException(`Failed to upload avatar to storage: ${getErrorMessage(uploadError)}`);
       }
 
       let imageUrl: string;
       try {
         imageUrl = await this.storageService.getDownloadUrl(key);
-        this.logger.log(`Generated presigned URL for ${key}`);
       } catch (urlError) {
-        this.logger.error(`Failed to generate presigned URL for ${key}: ${getErrorMessage(urlError)}`);
         throw new BadRequestException(`Failed to generate download URL: ${getErrorMessage(urlError)}`);
       }
 
-      const updatedUser = await this.usersRepository.update(userId, { profileImageUrl: key }, ['id', 'email', 'firstName', 'lastName', 'isActive', 'profileImageUrl'], transaction);
+      const updatedUser = await this.usersRepository.update(userId, { profileImageUrl: key }, ['id', 'email', 'firstName', 'lastName', 'role', 'isActive', 'profileImageUrl'], transaction);
 
       const response = ValidationService.transformResponse(UserResponseDto, updatedUser!);
       response.profileImageUrl = imageUrl;
@@ -179,13 +158,9 @@ export class UsersService {
       if (!user) throw new NotFoundException(`User with ID ${userId} not found`);
 
       if (user.profileImageUrl) {
-        try {
-          await this.storageService.delete(user.profileImageUrl);
-        } catch (e) {
-          this.logger.warn(`Failed to delete avatar: ${getErrorMessage(e)}`);
-        }
+        await this.storageService.delete(user.profileImageUrl);
 
-        const updatedUser = await this.usersRepository.update(userId, { profileImageUrl: null }, ['id', 'email', 'firstName', 'lastName', 'isActive', 'profileImageUrl'], transaction);
+        const updatedUser = await this.usersRepository.update(userId, { profileImageUrl: null }, ['id', 'email', 'firstName', 'lastName', 'role', 'isActive', 'profileImageUrl'], transaction);
         return ValidationService.transformResponse(UserResponseDto, updatedUser!);
       }
 

@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 
+import { ConfigService } from '../config/config.service';
 import { Injectable } from '../decorators/injectable.decorator';
 import { NestMiddleware } from '../interfaces/middleware.interface';
-import { ConfigService } from '../config/config.service';
 
 @Injectable()
 export class HeaderAuthMiddleware implements NestMiddleware {

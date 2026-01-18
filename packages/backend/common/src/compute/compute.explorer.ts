@@ -1,8 +1,8 @@
+import { ComputeService } from '../compute/compute.service';
 import { Container } from '../container/container';
 import { COMPUTE_METADATA } from '../decorators/compute.decorator';
 import { Injectable } from '../decorators/injectable.decorator';
 import { ComputeOptions } from '../interfaces/common.interface';
-import { ComputeService } from '../compute/compute.service';
 
 @Injectable()
 export class ComputeExplorer {

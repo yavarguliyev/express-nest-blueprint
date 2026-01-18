@@ -1,8 +1,8 @@
-import { Injectable } from '../decorators/injectable.decorator';
-import { ServiceUnavailableException } from '../exceptions/http-exceptions';
 import { QueueManager } from '../bullmq/services/queue-manager.service';
 import { ComputeService } from '../compute/compute.service';
 import { DatabaseService } from '../database/database.service';
+import { Injectable } from '../decorators/injectable.decorator';
+import { ServiceUnavailableException } from '../exceptions/http-exceptions';
 import { RedisService } from '../redis/redis.service';
 
 @Injectable()

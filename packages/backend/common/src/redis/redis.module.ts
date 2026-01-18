@@ -1,7 +1,7 @@
+import { ConfigService } from '../config/config.service';
 import { BULLMQ_OPTIONS } from '../decorators/bullmq.decorators';
 import { Module } from '../decorators/module.decorator';
 import { DynamicModule } from '../interfaces/common.interface';
-import { ConfigService } from '../config/config.service';
 import { RedisService } from '../redis/redis.service';
 import { LifecycleService } from '../lifecycle/lifecycle.service';
 

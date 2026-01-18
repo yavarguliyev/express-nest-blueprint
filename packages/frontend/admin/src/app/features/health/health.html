@@ -11,10 +11,12 @@
     </button>
   </div>
 
-  <div *ngIf="error()" class="error-banner glass">
-    <span class="material-icons">error_outline</span>
-    {{ error() }}
-  </div>
+  @if (error()) {
+    <div class="error-banner glass">
+      <span class="material-icons">error_outline</span>
+      {{ error() }}
+    </div>
+  }
 
   <div class="diagnostics-grid">
     <div class="overall-status glass" [ngClass]="healthStatus()?.overallStatus === 'up' ? 'status-up' : 'status-down'">
@@ -36,28 +38,29 @@
     <div class="components-card glass">
       <h3>Infrastructure Layers</h3>
       <div class="components-list">
-        <div *ngFor="let comp of healthStatus()?.components" class="comp-item">
-          <div class="comp-icon">
-            <span class="material-icons">{{ comp.name === 'database' ? 'storage' : (comp.name === 'redis' ? 'memory' : 'hub') }}</span>
+        @for (comp of healthStatus()?.components; track comp.name) {
+          <div class="comp-item">
+            <div class="comp-icon">
+              <span class="material-icons">{{ comp.name === 'database' ? 'storage' : (comp.name === 'redis' ? 'memory' : 'hub') }}</span>
+            </div>
+            <div class="comp-info">
+              <span class="comp-name">{{ comp.name }}</span>
+            </div>
+            <div class="comp-status">
+              <span class="status-badge" [ngClass]="comp.status">
+                {{ comp.status === 'up' ? 'Healthy' : 'Failure' }}
+              </span>
+            </div>
           </div>
-          <div class="comp-info">
-            <span class="comp-name">{{ comp.name }}</span>
-            <span class="comp-details">{{ comp.details?.latency ? comp.details.latency + 'ms latency' : 'Cluster Node' }}</span>
-          </div>
-          <div class="comp-status">
-            <span class="status-badge" [ngClass]="comp.status">
-              {{ comp.status === 'up' ? 'Healthy' : 'Failure' }}
-            </span>
-          </div>
-        </div>
+        }
       </div>
     </div>
   </div>
 
   <div class="logs-card glass mt-6">
     <div class="card-header">
-      <h3>System Event Handoffs</h3>
-      <span class="badge info">Realtime</span>
+      <h3>System Activity Log</h3>
+      <span class="badge info">Live</span>
     </div>
     <div class="console">
       <div class="console-line"><span class="timestamp">[17:54:10]</span> <span class="tag info">INFO</span> Initializing health probe sequential scanning...</div>

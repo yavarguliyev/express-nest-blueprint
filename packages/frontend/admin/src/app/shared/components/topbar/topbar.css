@@ -5,12 +5,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  overflow: hidden;
 }
 
 .breadcrumb {
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .user-actions {
@@ -39,24 +42,7 @@
 .user-profile {
   display: flex;
   align-items: center;
-  gap: 12px;
   cursor: pointer;
-}
-
-.user-info {
-  display: flex;
-  flex-direction: column;
-  text-align: right;
-}
-
-.user-name {
-  font-size: 0.9rem;
-  font-weight: 700;
-}
-
-.user-role {
-  font-size: 0.75rem;
-  color: var(--text-muted);
 }
 
 .user-avatar {
@@ -64,14 +50,21 @@
   height: 40px;
   border-radius: 50%;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .user-avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.user-avatar .user-initials {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #fff;
 }

@@ -93,3 +93,5 @@ export type ValueProvider<T = object> = { type: 'value'; value: T };
 export type WhereConditions = '=' | '!=' | '>' | '<' | '>=' | '<=' | 'LIKE' | 'ILIKE' | 'IN' | 'NOT IN';
 
 export type CrudRepository = Partial<SupportsFindWithPagination & SupportsFindAll & SupportsFindById & SupportsCreate & SupportsUpdate & SupportsDelete>;
+
+export type FindUsersWithPagination = { findUsersWithPagination: (opts: { page: number; limit: number; search?: string }) => Promise<{ users: unknown[]; total: number }> };

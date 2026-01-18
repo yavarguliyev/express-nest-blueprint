@@ -1,10 +1,10 @@
 import * as jwt from 'jsonwebtoken';
 
+import { ConfigService } from '../config/config.service';
 import { Injectable } from '../decorators/injectable.decorator';
 import { BadRequestException, UnauthorizedException } from '../exceptions/http-exceptions';
 import { JwtPayload } from '../interfaces/common.interface';
 import { JwtRegisteredClaim, TimeUnit } from '../types/common.type';
-import { ConfigService } from '../config/config.service';
 
 @Injectable()
 export class JwtService {

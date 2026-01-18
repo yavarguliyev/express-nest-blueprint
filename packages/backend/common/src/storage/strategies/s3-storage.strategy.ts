@@ -4,7 +4,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { STORAGE_OPTIONS } from '../../decorators/bullmq.decorators';
 import { Injectable, Inject } from '../../decorators/injectable.decorator';
 import { BadRequestException } from '../../exceptions/http-exceptions';
-import { StorageModuleOptions, StorageUrlOptions } from '../../storage/storage.interface';
+import { StorageModuleOptions, StorageUrlOptions } from '../../interfaces/storage.interface';
 import { StorageService } from '../../storage/storage.service';
 
 @Injectable()

@@ -1,10 +1,10 @@
 import http from 'http';
 
+import { ConfigService } from '../config/config.service';
 import { Injectable } from '../decorators/injectable.decorator';
 import { GracefulShutDownServiceConfig } from '../interfaces/common.interface';
 import { Logger } from '../logger/logger.service';
 import { GracefulShutdownService } from '../services/graceful-shutdown.service';
-import { ConfigService } from '../config/config.service';
 
 @Injectable()
 export class LifecycleService {

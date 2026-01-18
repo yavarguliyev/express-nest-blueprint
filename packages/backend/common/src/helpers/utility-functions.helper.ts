@@ -75,3 +75,25 @@ export const hasGetStatus = (exception: unknown): exception is HasGetStatus => {
 export const hasGetResponse = (exception: unknown): exception is HasGetResponse => {
   return typeof exception === 'object' && exception !== null && 'getResponse' in exception && typeof (exception as HasGetResponse).getResponse === 'function';
 };
+
+export const convertValueToSearchableString = (value: unknown): string => {
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (value instanceof Date) return value.toISOString();
+  if (Array.isArray(value)) return value.map((item) => convertValueToSearchableString(item)).join(' ');
+
+  if (typeof value === 'object' && value !== null) {
+    if (value.toString !== Object.prototype.toString) return (value as { toString(): string }).toString();
+
+    const obj = value as Record<string, unknown>;
+    const searchableProps = ['name', 'title', 'label', 'value', 'text', 'description'];
+
+    for (const prop of searchableProps) {
+      if (prop in obj && typeof obj[prop] === 'string') return obj[prop];
+    }
+
+    return '';
+  }
+
+  return '';
+};

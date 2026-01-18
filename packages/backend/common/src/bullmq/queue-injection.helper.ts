@@ -1,6 +1,6 @@
+import { QueueManager } from './services/queue-manager.service';
 import { Container } from '../container/container';
 import { INJECT_QUEUE_METADATA, QUEUE_MANAGER_TOKEN } from '../decorators/bullmq.decorators';
-import { QueueManager } from '../bullmq/services/queue-manager.service';
 
 export class QueueInjectionHelper {
   static injectQueues (target: object, container: Container): void {

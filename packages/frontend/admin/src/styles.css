@@ -67,14 +67,26 @@ h1, h2, h3, h4 {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary), #3a7bd5);
-  color: #fff;
+  background: linear-gradient(135deg, var(--primary), #8b5cf6);
+  color: white;
+  border: 1px solid var(--primary);
   box-shadow: 0 4px 15px var(--primary-glow);
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px var(--primary-glow);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, var(--text-muted), #64748b);
+  color: white;
+  border: 1px solid var(--text-muted);
+}
+
+.btn-secondary:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #64748b, var(--text-muted));
 }
 
 /* Scrollbar Styling */

@@ -2,8 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 
 import { HttpException } from '../exceptions/http-exception';
 import { ArgumentsHostFilter } from '../filters/argument-host.filter';
-import { ArgumentsHost, ExceptionFilter } from '../interfaces/common.interface';
 import { hasGetResponse, hasGetStatus } from '../helpers/utility-functions.helper';
+import { ArgumentsHost, ExceptionFilter } from '../interfaces/common.interface';
 import { Logger } from '../logger/logger.service';
 
 export class GlobalExceptionFilter implements ExceptionFilter {

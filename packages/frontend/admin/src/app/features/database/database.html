@@ -68,8 +68,6 @@
                       <!-- Boolean toggle projection -->
                       <div *ngIf="col.type === 'boolean'" class="toggle-container">
                         <button class="toggle-btn" 
-                                [class.disabled]="isFieldRestricted(row['id'], col.name)"
-                                [disabled]="isFieldRestricted(row['id'], col.name)"
                                 [ngClass]="row[col.name] ? 'active' : 'inactive'" 
                                 (click)="toggleBoolean(row, col)">
                           <span class="dot"></span>
@@ -85,8 +83,6 @@
                     <td class="text-right">
                       <div class="action-orbit">
                         <button class="orbit-btn danger" 
-                                [class.disabled]="isRestrictedTable() && isCurrentUser(row['id'])"
-                                [disabled]="isRestrictedTable() && isCurrentUser(row['id'])"
                                 (click)="deleteRecord(row['id'])" 
                                 title="Purge Record">
                           <span class="material-icons">delete_sweep</span>

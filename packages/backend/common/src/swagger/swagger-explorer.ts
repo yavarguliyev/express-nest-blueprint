@@ -2,11 +2,11 @@ import { getMetadataStorage } from 'class-validator';
 
 import { REQUIRE_AUTH_KEY, ROLES_KEY, IS_PUBLIC_KEY } from '../decorators/auth.decorator';
 import { CONTROLLER_METADATA } from '../decorators/controller.decorator';
-import { RouteMetadata, ParamMetadata } from '../interfaces/common.interface';
 import { PARAM_METADATA } from '../decorators/param.decorators';
 import { ROUTE_METADATA } from '../decorators/route.decorators';
 import { CONTROLLER_REGISTRY } from '../decorators/register-controller-class.helper';
 import { API_SECURITY_KEY } from '../decorators/swagger.decorators';
+import { RouteMetadata, ParamMetadata } from '../interfaces/common.interface';
 import { OpenAPIObject, OpenAPIOperation, OpenAPISchema, SwaggerConfig } from '../interfaces/swagger-config.interface';
 import { Constructor } from '../types/common.type';
 

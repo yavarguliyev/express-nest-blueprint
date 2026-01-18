@@ -1,8 +1,8 @@
 import http from 'http';
 
-import { GracefulShutDownServiceConfig } from '../interfaces/common.interface';
 import { RetryHelper } from '../helpers/retry.helper';
 import { getErrorMessage } from '../helpers/utility-functions.helper';
+import { GracefulShutDownServiceConfig } from '../interfaces/common.interface';
 import { Logger } from '../logger/logger.service';
 
 export class GracefulShutdownService {

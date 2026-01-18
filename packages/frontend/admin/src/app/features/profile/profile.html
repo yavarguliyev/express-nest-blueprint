@@ -1,0 +1,103 @@
+<div class="profile-page animate-fade-in">
+  <div class="page-header">
+    <div class="header-content">
+      <h2>Profile Settings</h2>
+      <p class="text-muted">Manage your personal information and account preferences</p>
+    </div>
+  </div>
+
+  <div class="profile-container glass">
+    <!-- Avatar Section -->
+    <div class="avatar-section">
+      <div class="avatar-wrapper">
+        <div class="relative group">
+          <div class="avatar-lg glow overflow-hidden relative">
+            @if (user()?.profileImageUrl) {
+              <img [src]="user()?.profileImageUrl" alt="Avatar" />
+            } @else {
+              <span class="material-icons avatar-placeholder">account_circle</span>
+            }
+            
+            <!-- Overlay for upload -->
+            <label class="avatar-overlay">
+              <span class="material-icons">upload</span>
+              <input type="file" class="hidden" (change)="onFileSelected($event)" accept="image/*">
+            </label>
+          </div>
+          
+          <!-- Delete button -->
+          @if (user()?.profileImageUrl) {
+            <button (click)="deleteAvatar()" class="avatar-delete-btn" title="Remove photo">
+              <span class="material-icons">close</span>
+            </button>
+          }
+        </div>
+        <div class="avatar-info">
+          <h3>{{ user()?.firstName }} {{ user()?.lastName }}</h3>
+          <p class="role-badge">{{ user()?.role }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile Form -->
+    <div class="profile-form-section">
+      <h3>Personal Information</h3>
+      <form class="profile-form" (ngSubmit)="saveProfile()">
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input 
+            type="email" 
+            id="email" 
+            class="form-input disabled"
+            [value]="user()?.email"
+            disabled
+            readonly>
+          <small class="form-hint">Email address cannot be changed for security reasons</small>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="firstName">First Name</label>
+            <input 
+              type="text" 
+              id="firstName" 
+              class="form-input"
+              [(ngModel)]="profileForm.firstName"
+              name="firstName"
+              placeholder="Enter your first name"
+              [disabled]="loading()"
+              required>
+          </div>
+          <div class="form-group">
+            <label for="lastName">Last Name</label>
+            <input 
+              type="text" 
+              id="lastName" 
+              class="form-input"
+              [(ngModel)]="profileForm.lastName"
+              name="lastName"
+              placeholder="Enter your last name"
+              [disabled]="loading()"
+              required>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" [disabled]="loading() || !hasChanges()">
+            @if (loading()) {
+              <span class="material-icons spinning">sync</span>
+              <span>Saving...</span>
+            } @else {
+              <span class="material-icons">save</span>
+              <span>Save Changes</span>
+            }
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="resetForm()" [disabled]="loading() || !hasChanges()">
+            <span class="material-icons">refresh</span>
+            <span>Reset</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

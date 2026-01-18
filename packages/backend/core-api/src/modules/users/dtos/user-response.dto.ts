@@ -14,6 +14,9 @@ export class UserResponseDto {
   lastName!: string;
 
   @Expose()
+  role!: string;
+
+  @Expose()
   isActive!: boolean;
 
   @Expose()

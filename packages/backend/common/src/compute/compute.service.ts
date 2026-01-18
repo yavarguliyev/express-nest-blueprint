@@ -1,6 +1,8 @@
 import { Worker, Job, QueueEvents } from 'bullmq';
 
 import { Container } from '../container/container';
+import { BullMQService } from '../bullmq/services/bullmq.service';
+import { QueueManager } from '../bullmq/services/queue-manager.service';
 import { BULLMQ_OPTIONS, COMPUTE_MODULE_OPTIONS } from '../decorators/bullmq.decorators';
 import { Injectable, Inject } from '../decorators/injectable.decorator';
 import { BadRequestException, ServiceUnavailableException } from '../exceptions/http-exceptions';
@@ -8,8 +10,6 @@ import { BullMQModuleOptions, ComputeHandler, ComputeModuleOptions, PatchedMetho
 import { ComputeOptions } from '../interfaces/common.interface';
 import { Logger } from '../logger/logger.service';
 import { Constructor } from '../types/common.type';
-import { BullMQService } from '../bullmq/services/bullmq.service';
-import { QueueManager } from '../bullmq/services/queue-manager.service';
 
 @Injectable()
 export class ComputeService {

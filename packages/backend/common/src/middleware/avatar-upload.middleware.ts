@@ -2,8 +2,8 @@ import { Request, Response, NextFunction, RequestHandler } from 'express';
 import multer, { MulterError } from 'multer';
 
 import { Injectable } from '../decorators/injectable.decorator';
-import { NestMiddleware } from '../interfaces/middleware.interface';
 import { BadRequestException } from '../exceptions/http-exceptions';
+import { NestMiddleware } from '../interfaces/middleware.interface';
 
 @Injectable()
 export class AvatarUploadMiddleware implements NestMiddleware {

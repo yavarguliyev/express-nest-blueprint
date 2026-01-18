@@ -5,12 +5,12 @@ import { AdminMetricsService } from '@modules/admin/services/admin-metrics.servi
 @ApiController({ path: '/admin/dashboard' })
 @Roles('admin')
 export class AdminDashboardController extends BaseController {
-  constructor(private readonly adminMetricsService: AdminMetricsService) {
+  constructor (private readonly adminMetricsService: AdminMetricsService) {
     super({ path: '/admin/dashboard' });
   }
 
   @Get('/metrics')
-  async getMetrics() {
+  async getMetrics () {
     return this.adminMetricsService.getDashboardMetrics();
   }
 }
