@@ -22,7 +22,7 @@ export class Sidebar {
     { label: 'Settings', icon: 'settings', route: '/settings' },
   ];
 
-  getUserInitials(): string {
+  getUserInitials (): string {
     const currentUser = this.user();
     console.log('Sidebar - Current user data:', currentUser); // Debug log
     

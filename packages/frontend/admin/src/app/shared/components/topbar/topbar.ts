@@ -19,7 +19,7 @@ export class Topbar {
   user = this.authService.currentUser;
   currentPageName = signal('Dashboard');
 
-  getUserInitials(): string {
+  getUserInitials (): string {
     const currentUser = this.user();
     console.log('Topbar - Current user data:', currentUser); // Debug log
     
@@ -40,12 +40,12 @@ export class Topbar {
     return initials;
   }
 
-  constructor() {
+  constructor () {
     // Listen to route changes and update page name
     this.router.events
       .pipe(
         filter(event => event instanceof NavigationEnd),
-        map(event => (event as NavigationEnd).url)
+        map(event => (event).url)
       )
       .subscribe(url => {
         this.currentPageName.set(this.getPageNameFromUrl(url));
@@ -55,7 +55,7 @@ export class Topbar {
     this.currentPageName.set(this.getPageNameFromUrl(this.router.url));
   }
 
-  private getPageNameFromUrl(url: string): string {
+  private getPageNameFromUrl (url: string): string {
     const routeMap: Record<string, string> = {
       '/dashboard': 'Dashboard',
       '/database': 'Database',
