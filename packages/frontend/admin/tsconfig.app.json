@@ -4,7 +4,8 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./out-tsc/app",
-    "types": []
+    "types": [],
+    "lib": ["es2023", "dom", "dom.iterable"]
   },
   "include": [
     "src/**/*.ts"

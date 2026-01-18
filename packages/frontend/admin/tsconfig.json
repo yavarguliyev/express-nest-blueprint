@@ -33,7 +33,8 @@
     "emitDecoratorMetadata": true,
     "resolveJsonModule": true,
     "target": "es2023",
-    "module": "preserve"
+    "module": "preserve",
+    "lib": ["es2023", "dom", "dom.iterable"]
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

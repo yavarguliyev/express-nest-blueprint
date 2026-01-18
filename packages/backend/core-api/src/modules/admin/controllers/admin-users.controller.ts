@@ -1,13 +1,13 @@
 import { Request } from 'express';
 
-import { AdminGuard, ApiController, BadRequestException, BaseController, Body, Delete, Param, Patch, Post, Req, StorageService, UseGuards } from '@config/libs';
+import { ApiController, BadRequestException, BaseController, Body, Delete, Param, Patch, Post, Req, Roles, StorageService } from '@config/libs';
 
 import { UsersService } from '@modules/users/users.service';
 
 @ApiController({ path: '/admin/users' })
-@UseGuards(AdminGuard)
+@Roles('admin')
 export class AdminUsersController extends BaseController {
-  constructor (
+  constructor(
     private readonly usersService: UsersService,
     private readonly storageService: StorageService
   ) {
@@ -15,13 +15,13 @@ export class AdminUsersController extends BaseController {
   }
 
   @Patch('/:id/verify')
-  async toggleEmailVerification (@Param('id') id: string, @Body('isEmailVerified') isEmailVerified: boolean) {
+  async toggleEmailVerification(@Param('id') id: string, @Body('isEmailVerified') isEmailVerified: boolean) {
     const updated = await this.usersService.update(id, { isEmailVerified });
     return { success: true, user: updated };
   }
 
   @Post('/:id/profile-image')
-  async uploadProfileImage (@Param('id') id: string, @Req() req: Request) {
+  async uploadProfileImage(@Param('id') id: string, @Req() req: Request) {
     const file = (req as { file?: { buffer: Buffer; originalname: string } }).file;
     if (!file) {
       throw new BadRequestException('No file provided');
@@ -37,7 +37,7 @@ export class AdminUsersController extends BaseController {
   }
 
   @Delete('/:id/profile-image')
-  async deleteProfileImage (@Param('id') id: string) {
+  async deleteProfileImage(@Param('id') id: string) {
     const user = await this.usersService.findOne(id);
     if (user?.profileImageUrl) {
       await this.storageService.delete(user.profileImageUrl);

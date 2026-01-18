@@ -12,7 +12,6 @@ import { StorageModule } from './storage/storage.module';
 import { AuthGuard } from './guards/auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { HeaderAuthGuard } from './guards/header-auth.guard';
-import { AdminGuard } from './guards/admin.guard';
 import { HeaderAuthMiddleware } from './middleware/header-auth.middleware';
 
 @Module({
@@ -21,7 +20,6 @@ import { HeaderAuthMiddleware } from './middleware/header-auth.middleware';
   providers: [
     LoggerMiddleware,
     JwtService,
-    AdminGuard,
     AuthGuard,
     RolesGuard,
     HeaderAuthGuard,
@@ -42,7 +40,7 @@ import { HeaderAuthMiddleware } from './middleware/header-auth.middleware';
   exports: [JwtService]
 })
 export class SharedModule {
-  constructor (@Inject('APP_INITIALIZER') _initializer: unknown) {
+  constructor(@Inject('APP_INITIALIZER') _initializer: unknown) {
     void _initializer;
   }
 }

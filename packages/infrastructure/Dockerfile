@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt
 COPY package*.json tsconfig.json ./
 
 # Copy package manifests for better caching
-COPY packages/common/package*.json ./packages/common/
+COPY packages/backend/common/package*.json ./packages/backend/common/
 COPY packages/backend/core-api/package*.json ./packages/backend/core-api/
 COPY packages/frontend/admin/package*.json ./packages/frontend/admin/
 
@@ -47,7 +47,7 @@ ENV NODE_ENV=production
 # Copy built artifacts and necessary files
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/packages/common ./packages/common
+COPY --from=builder /app/packages/backend/common ./packages/backend/common
 COPY --from=builder /app/packages/backend/core-api ./packages/backend/core-api
 COPY --from=builder /app/packages/frontend/admin/dist/admin/browser ./public/admin
 COPY --from=builder /app/packages/backend/core-api/database.json ./database.json

@@ -9,6 +9,6 @@
     "lint": "eslint \"src/**/*.ts\" --fix"
   },
   "dependencies": {
-    "@config/libs": "file:../../common"
+    "@config/libs": "file:../common"
   }
 }

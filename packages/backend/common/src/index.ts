@@ -35,7 +35,6 @@ export * from './dtos/paginated-response.dto';
 export * from './enums/common.enum';
 export * from './exceptions/http-exceptions';
 export * from './filters/global-exception.filter';
-export * from './guards/admin.guard';
 export * from './guards/auth.guard';
 export * from './guards/header-auth.guard';
 export * from './guards/roles.guard';

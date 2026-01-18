@@ -8,14 +8,14 @@ export class AdminCrudService {
   private readonly logger = new Logger(AdminCrudService.name);
   private repositories = new Map<string, RepositoryEntry>();
 
-  constructor (
+  constructor(
     usersRepository: UsersRepository,
     private readonly storageService: StorageService
   ) {
     this.registerRepository(usersRepository, UsersRepository);
   }
 
-  private registerRepository (repository: CrudRepository, repositoryClass: object): void {
+  private registerRepository(repository: CrudRepository, repositoryClass: object): void {
     const metadata = Reflect.getMetadata(CRUD_TABLE_METADATA_KEY, repositoryClass) as CrudTableOptions | undefined;
 
     if (!metadata) return;
@@ -28,7 +28,7 @@ export class AdminCrudService {
     });
   }
 
-  getTableSchema (): Record<string, TableMetadata[]> {
+  getTableSchema(): Record<string, TableMetadata[]> {
     const schema: Record<string, TableMetadata[]> = {};
 
     for (const [, { metadata }] of this.repositories) {
@@ -46,7 +46,7 @@ export class AdminCrudService {
     return schema;
   }
 
-  private getTableColumns (tableName: string): ColumnMetadata[] {
+  private getTableColumns(tableName: string): ColumnMetadata[] {
     if (tableName === 'users') {
       return [
         { name: 'id', type: 'number', required: true, editable: false },
@@ -62,7 +62,7 @@ export class AdminCrudService {
     return [];
   }
 
-  async getTableData (category: string, name: string, page = 1, limit = 10): Promise<{ data: unknown[]; total: number }> {
+  async getTableData(category: string, name: string, page = 1, limit = 10): Promise<{ data: unknown[]; total: number }> {
     const key = `${category}:${name}`;
     const entry = this.repositories.get(key);
 
@@ -95,7 +95,7 @@ export class AdminCrudService {
     return { data, total };
   }
 
-  async getTableDataByName (name: string, page = 1, limit = 10): Promise<{ data: unknown[]; total: number }> {
+  async getTableDataByName(name: string, page = 1, limit = 10): Promise<{ data: unknown[]; total: number }> {
     let entry: RepositoryEntry | undefined;
 
     for (const [, e] of this.repositories) {
@@ -134,7 +134,7 @@ export class AdminCrudService {
     return { data, total };
   }
 
-  private async signProfileImages (data: Array<{ profileImageUrl?: string }>): Promise<void> {
+  private async signProfileImages(data: Array<{ profileImageUrl?: string }>): Promise<void> {
     await Promise.all(
       data.map(async (item) => {
         if (!item.profileImageUrl) {
@@ -150,35 +150,33 @@ export class AdminCrudService {
     );
   }
 
-  private hasProfileImageUrl (this: void, item: unknown): item is { profileImageUrl?: string } {
+  private hasProfileImageUrl(this: void, item: unknown): item is { profileImageUrl?: string } {
     return typeof item === 'object' && item !== null && 'profileImageUrl' in item;
   }
 
-  async getTableRecord (category: string, name: string, id: number): Promise<unknown> {
+  async getTableRecord(category: string, name: string, id: number): Promise<unknown> {
     const key = `${category}:${name}`;
     const entry = this.repositories.get(key);
     if (!entry || !entry.repository.findById) throw new Error(`Table ${category}:${name} not found or unsupported`);
     return entry.repository.findById(id);
   }
 
-  async createTableRecord (category: string, name: string, data: unknown): Promise<unknown> {
+  async createTableRecord(category: string, name: string, data: unknown): Promise<unknown> {
     const entry = this.repositories.get(`${category}:${name}`);
     if (!entry || !entry.repository.create) throw new Error(`Table ${category}:${name} not found or unsupported`);
     return entry.repository.create(data);
   }
 
-  async updateTableRecord (category: string, name: string, id: number, data: Record<string, unknown>, currentUser?: JwtPayload): Promise<unknown> {
+  async updateTableRecord(category: string, name: string, id: number, data: Record<string, unknown>, currentUser?: JwtPayload): Promise<unknown> {
     if (name === 'users') {
       if (!currentUser) throw new InternalServerErrorException('Security Context Missing: Unable to verify user permissions');
 
-      if (String(currentUser.sub) === String(id)) {
-        const restrictedFields = ['is_active', 'is_email_verified'];
-        const fields = Object.keys(data).map(f => f.toLowerCase());
-        const hasRestrictedField = fields.some(f => restrictedFields.includes(f));
+      if (currentUser.sub === id) {
+        const restrictedFields = ['isActive', 'is_active', 'isEmailVerified', 'is_email_verified'];
+        const fields = Object.keys(data).map((f) => f.toLowerCase());
+        const hasRestrictedField = fields.some((f) => restrictedFields.includes(f));
 
-        if (hasRestrictedField) {
-          throw new ForbiddenException('You are not allowed to update sensitive fields on your own account');
-        }
+        if (hasRestrictedField) throw new ForbiddenException('You are not allowed to update sensitive fields on your own account');
       }
     }
 
@@ -187,13 +185,10 @@ export class AdminCrudService {
     return entry.repository.update(id, data);
   }
 
-  async deleteTableRecord (category: string, name: string, id: number, currentUser?: JwtPayload): Promise<boolean> {
+  async deleteTableRecord(category: string, name: string, id: number, currentUser?: JwtPayload): Promise<boolean> {
     if (name === 'users') {
       if (!currentUser) throw new InternalServerErrorException('Security Context Missing: Unable to verify user permissions');
-
-      if (String(currentUser.sub) === String(id)) {
-        throw new ForbiddenException('You cannot delete your own account');
-      }
+      if (currentUser.sub === id) throw new ForbiddenException('You cannot delete your own account');
     }
 
     const entry = this.repositories.get(`${category}:${name}`);

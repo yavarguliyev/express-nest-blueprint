@@ -4,7 +4,7 @@
   "description": "express app in nest style monorepo",
   "private": true,
   "workspaces": [
-    "packages/common",
+    "packages/backend/common",
     "packages/backend/*",
     "packages/frontend/*"
   ],

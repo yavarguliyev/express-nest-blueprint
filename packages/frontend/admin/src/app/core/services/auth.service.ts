@@ -32,7 +32,7 @@ export class AuthService {
   currentUser = signal<User | null>(this.getCurrentUserFromStorage());
 
   login (credentials: any): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.baseUrl}/login`, credentials).pipe(
+    return this.http.post<AuthResponse>(`${this.baseUrl}/admin-login`, credentials).pipe(
       tap((response) => {
         if (response.success && response.data.accessToken) {
           localStorage.setItem('admin_token', response.data.accessToken);
