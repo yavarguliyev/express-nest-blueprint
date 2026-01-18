@@ -5,10 +5,13 @@
   "compilerOptions": {
     "outDir": "./out-tsc/app",
     "types": [],
-    "lib": ["es2023", "dom", "dom.iterable"]
+    "lib": ["es2023", "dom", "dom.iterable"],
+    "target": "es2023",
+    "module": "preserve"
   },
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "src/**/*.html"
   ],
   "exclude": [
     "src/**/*.spec.ts"

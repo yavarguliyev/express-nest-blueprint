@@ -41,7 +41,9 @@
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
     "typeCheckHostBindings": true,
-    "strictTemplates": true
+    "strictTemplates": true,
+    "strictDomEventTypes": false,
+    "strictDomLocalRefTypes": false
   },
   "files": [],
   "references": [

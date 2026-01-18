@@ -172,7 +172,7 @@ export class AdminCrudService {
       if (!currentUser) throw new InternalServerErrorException('Security Context Missing: Unable to verify user permissions');
 
       if (currentUser.sub === id) {
-        const restrictedFields = ['isActive', 'is_active', 'isEmailVerified', 'is_email_verified'];
+        const restrictedFields = ['isactive', 'is_active', 'isemailverified', 'is_email_verified'];
         const fields = Object.keys(data).map((f) => f.toLowerCase());
         const hasRestrictedField = fields.some((f) => restrictedFields.includes(f));
 
