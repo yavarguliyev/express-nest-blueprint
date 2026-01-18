@@ -34,7 +34,9 @@ export class AuthService {
   login (credentials: any): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.baseUrl}/admin-login`, credentials).pipe(
       tap((response) => {
+        console.log('Login response:', response); // Debug log
         if (response.success && response.data.accessToken) {
+          console.log('User data from login:', response.data.user); // Debug log
           localStorage.setItem('admin_token', response.data.accessToken);
           localStorage.setItem('admin_user', JSON.stringify(response.data.user));
           this.currentUser.set(response.data.user);
@@ -80,7 +82,9 @@ export class AuthService {
       });
       if (response.ok) {
         const json = await response.json() as { data?: User } | User;
+        console.log('Profile sync response:', json); // Debug log
         const userData = this.isUserResponse(json) ? json : (json as { data: User }).data;
+        console.log('Processed user data:', userData); // Debug log
         this.updateCurrentUser(userData);
       }
     } catch (e) {

@@ -21,10 +21,23 @@ export class Topbar {
 
   getUserInitials(): string {
     const currentUser = this.user();
-    if (!currentUser?.firstName || !currentUser?.lastName) {
+    console.log('Topbar - Current user data:', currentUser); // Debug log
+    
+    if (!currentUser) {
       return 'U';
     }
-    return (currentUser.firstName.charAt(0) + currentUser.lastName.charAt(0)).toUpperCase();
+    
+    const firstName = currentUser.firstName?.trim();
+    const lastName = currentUser.lastName?.trim();
+    
+    if (!firstName || !lastName) {
+      console.log('Topbar - Missing name data:', { firstName, lastName }); // Debug log
+      return 'U';
+    }
+    
+    const initials = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
+    console.log('Topbar - Generated initials:', initials); // Debug log
+    return initials;
   }
 
   constructor() {
