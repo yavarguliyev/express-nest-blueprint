@@ -1,8 +1,8 @@
+/* To learn more about Typescript configuration file: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html. */
+/* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
 {
+  "compileOnSave": false,
   "compilerOptions": {
-    "target": "es2023",
-    "module": "commonjs",
-    "lib": ["ES2023"],
     "strict": true,
     "strictNullChecks": true,
     "strictFunctionTypes": true,
@@ -32,12 +32,23 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "resolveJsonModule": true,
-    "baseUrl": ".",
-    "paths": {
-      "@config/libs": ["packages/common/src/index.ts"],
-      "@config/libs/*": ["packages/common/src/*"],
-      "@app/core-api/*": ["packages/backend/core-api/src/*"]
-    }
+    "target": "es2023",
+    "module": "preserve",
+    "lib": ["es2023", "dom", "dom.iterable"]
   },
-  "exclude": ["node_modules", "**/dist"]
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "typeCheckHostBindings": true,
+    "strictTemplates": true,
+    "strictDomEventTypes": false,
+    "strictDomLocalRefTypes": false
+  },
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.app.json"
+    }
+  ]
 }

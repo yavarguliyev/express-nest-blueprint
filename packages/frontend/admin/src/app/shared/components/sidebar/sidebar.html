@@ -1,0 +1,32 @@
+<div class="sidebar-container glass">
+  <div class="sidebar-header">
+    <div class="logo-sm glow">
+      @if (user()?.profileImageUrl) {
+        <img [src]="user()?.profileImageUrl" alt="Profile">
+      } @else {
+        <span class="user-initials">{{ getUserInitials() }}</span>
+      }
+    </div>
+    <span class="brand-name">{{ user()?.firstName }} {{ user()?.lastName }}</span>
+  </div>
+
+  <nav class="sidebar-nav">
+    <ul>
+      @for (item of menuItems; track item.route) {
+        <li>
+          <a [routerLink]="item.route" routerLinkActive="active" class="nav-item">
+            <span class="material-icons">{{ item.icon }}</span>
+            <span class="nav-label">{{ item.label }}</span>
+          </a>
+        </li>
+      }
+    </ul>
+  </nav>
+
+  <div class="sidebar-footer">
+    <button (click)="logout()" class="logout-btn">
+      <span class="material-icons">logout</span>
+      <span>Logout</span>
+    </button>
+  </div>
+</div>

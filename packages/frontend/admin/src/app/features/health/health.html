@@ -1,0 +1,72 @@
+
+<div class="health-page animate-fade-in">
+  <div class="page-header">
+    <div class="header-content">
+      <h2>System Diagnostics</h2>
+      <p class="text-muted">Real-time health status of all infrastructure components</p>
+    </div>
+    <button class="btn btn-primary" (click)="refresh()" [disabled]="loading()">
+      <span class="material-icons" [class.spin]="loading()">refresh</span>
+      {{ loading() ? 'Scanning...' : 'Run Diagnostics' }}
+    </button>
+  </div>
+
+  @if (error()) {
+    <div class="error-banner glass">
+      <span class="material-icons">error_outline</span>
+      {{ error() }}
+    </div>
+  }
+
+  <div class="diagnostics-grid">
+    <div class="overall-status glass" [ngClass]="healthStatus()?.overallStatus === 'up' ? 'status-up' : 'status-down'">
+      <div class="status-header">
+        <span class="status-label">Overall Integrity</span>
+        <span class="status-value">{{ healthStatus()?.overallStatus === 'up' ? 'Operational' : 'Critical' }}</span>
+      </div>
+      <div class="status-visual">
+        <div class="pulse-ring"></div>
+        <span class="material-icons status-icon">
+          {{ healthStatus()?.overallStatus === 'up' ? 'check_circle' : 'warning' }}
+        </span>
+      </div>
+      <div class="status-meta">
+        Last scan: {{ healthStatus()?.timestamp | date:'mediumTime' }}
+      </div>
+    </div>
+
+    <div class="components-card glass">
+      <h3>Infrastructure Layers</h3>
+      <div class="components-list">
+        @for (comp of healthStatus()?.components; track comp.name) {
+          <div class="comp-item">
+            <div class="comp-icon">
+              <span class="material-icons">{{ comp.name === 'database' ? 'storage' : (comp.name === 'redis' ? 'memory' : 'hub') }}</span>
+            </div>
+            <div class="comp-info">
+              <span class="comp-name">{{ comp.name }}</span>
+            </div>
+            <div class="comp-status">
+              <span class="status-badge" [ngClass]="comp.status">
+                {{ comp.status === 'up' ? 'Healthy' : 'Failure' }}
+              </span>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="logs-card glass mt-6">
+    <div class="card-header">
+      <h3>System Activity Log</h3>
+      <span class="badge info">Live</span>
+    </div>
+    <div class="console">
+      <div class="console-line"><span class="timestamp">[17:54:10]</span> <span class="tag info">INFO</span> Initializing health probe sequential scanning...</div>
+      <div class="console-line"><span class="timestamp">[17:54:11]</span> <span class="tag success">OK</span> PostgreSQL connection: latency 4ms.</div>
+      <div class="console-line"><span class="timestamp">[17:54:11]</span> <span class="tag success">OK</span> Redis Cluster: 3 nodes discoverable.</div>
+      <div class="console-line"><span class="timestamp">[17:54:12]</span> <span class="tag warn">WARN</span> High heap memory usage detected (85%).</div>
+    </div>
+  </div>
+</div>

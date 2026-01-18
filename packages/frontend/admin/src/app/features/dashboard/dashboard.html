@@ -1,0 +1,132 @@
+<div class="dashboard-page animate-fade-in">
+  <div class="page-header">
+    <div class="header-content">
+      <h2>System Dashboard</h2>
+      <p class="text-muted">Real-time monitoring and analytics for infrastructure performance</p>
+    </div>
+  </div>
+
+  <div class="dashboard-container">
+  <div class="stats-grid">
+    <div class="stat-card glass animate-slide-up">
+      <div class="stat-icon users-icon"><span class="material-icons">people</span></div>
+      <div class="stat-content">
+        <span class="stat-label">Total Users</span>
+        <h2 class="stat-value">{{ getMetricValue('Total Users') }}</h2>
+        <div class="stat-trend positive">
+          <span class="material-icons">trending_up</span>
+          <span>+12% vs last month</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card glass animate-slide-up" style="animation-delay: 0.1s">
+      <div class="stat-icon memory-icon"><span class="material-icons">memory</span></div>
+      <div class="stat-content">
+        <span class="stat-label">Memory Usage</span>
+        <h2 class="stat-value">{{ getMetricValue('Memory Usage') }} <span class="unit">MB</span></h2>
+        <div class="stat-trend neutral">
+          <span>{{ ((getMetricValue('Memory Usage') / 1024) * 100) | number:'1.1-1' }}% of 1GB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card glass animate-slide-up" style="animation-delay: 0.2s">
+      <div class="stat-icon requests-icon"><span class="material-icons">api</span></div>
+      <div class="stat-content">
+        <span class="stat-label">API Requests</span>
+        <h2 class="stat-value">{{ getMetricValue('Total HTTP Requests') | number }}</h2>
+        <div class="stat-trend positive">
+          <span class="live-indicator"></span>
+          <span>{{ (getMetricValue('Total HTTP Requests') / 60) | number:'1.0-0' }}/min</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card glass animate-slide-up" style="animation-delay: 0.3s">
+      <div class="stat-icon cpu-icon"><span class="material-icons">developer_board</span></div>
+      <div class="stat-content">
+        <span class="stat-label">CPU Usage</span>
+        <h2 class="stat-value">{{ getMetricValue('CPU Usage') | number:'1.1-1' }}<span class="unit">%</span></h2>
+        <div class="stat-trend" [ngClass]="getMetricValue('CPU Usage') > 80 ? 'warning' : 'positive'">
+          <span>{{ getMetricValue('CPU Usage') > 80 ? 'High load' : 'Optimal' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="charts-section animate-fade-in" *ngIf="data()?.charts?.length">
+    <div *ngFor="let chart of data()?.charts" class="chart-card glass">
+      <div class="chart-header">
+        <h4>{{ chart.title }}</h4>
+        <span class="chart-type-tag">{{ chart.type }}</span>
+      </div>
+      <div class="chart-data-list">
+        <div *ngFor="let entry of chart.data" class="chart-row">
+          <span class="chart-label">{{ entry.label }}</span>
+          <div class="chart-bar-container">
+            <div class="chart-bar" [style.width.%]="(entry.value / 10)" [ngClass]="chart.type"></div>
+          </div>
+          <span class="chart-value">{{ entry.value }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-main-grid">
+    <div class="health-overview glass animate-fade-in">
+      <div class="card-header">
+        <div class="header-left">
+          <h3>System Health</h3>
+          <span class="last-check">Last check: {{ health()?.timestamp | date:'shortTime' }}</span>
+        </div>
+        <div class="header-right">
+          <span class="status-pill" [ngClass]="health()?.overallStatus === 'up' ? 'up' : 'down'">
+            <span class="status-dot"></span>
+            {{ health()?.overallStatus === 'up' ? 'All Systems Operational' : 'Issues Detected' }}
+          </span>
+          <button class="refresh-btn" (click)="refreshData()" [disabled]="loading()">
+            <span class="material-icons" [class.spin]="loading()">refresh</span>
+          </button>
+        </div>
+      </div>
+      <div class="health-list">
+        <div *ngFor="let component of health()?.components" class="health-item" [ngClass]="component.status">
+          <div class="comp-status-indicator">
+            <div class="status-ring" [ngClass]="component.status">
+              <span class="material-icons">{{ component.status === 'up' ? 'check' : 'close' }}</span>
+            </div>
+          </div>
+          <div class="comp-info">
+            <span class="comp-name">{{ component.name | titlecase }}</span>
+            <span class="comp-details" *ngIf="component.details?.latency">
+              {{ component.details.latency }}ms response
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="recent-alerts glass animate-fade-in">
+      <div class="card-header">
+        <h3>Recent Alerts</h3>
+      </div>
+      <div class="alerts-list">
+        <div *ngFor="let alert of data()?.alerts" class="alert-item" [ngClass]="alert.type">
+          <span class="material-icons">{{ alert.type === 'warning' ? 'warning' : (alert.type === 'error' ? 'error' : 'info') }}</span>
+          <div class="alert-content">
+            <span class="alert-title">{{ alert.title }}</span>
+            <p>{{ alert.message }}</p>
+          </div>
+        </div>
+        <div *ngIf="!data()?.alerts?.length" class="alert-item info">
+          <span class="material-icons">info</span>
+          <div class="alert-content">
+            <span class="alert-title">No Recent Alerts</span>
+            <p>Your system is performing optimally.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

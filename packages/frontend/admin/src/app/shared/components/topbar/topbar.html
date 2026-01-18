@@ -1,0 +1,21 @@
+<div class="topbar-container glass">
+  <div class="page-info">
+    <span class="breadcrumb">{{ currentPageName() }}</span>
+  </div>
+
+  <div class="user-actions">
+    <div class="notifications">
+      <span class="material-icons">notifications</span>
+      <span class="badge"></span>
+    </div>
+    <div class="user-profile" routerLink="/profile">
+      <div class="user-avatar glow">
+        @if (user()?.profileImageUrl) {
+          <img [src]="user()?.profileImageUrl" alt="Avatar">
+        } @else {
+          <span class="user-initials">{{ getUserInitials() }}</span>
+        }
+      </div>
+    </div>
+  </div>
+</div>
