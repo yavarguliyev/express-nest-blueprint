@@ -27,16 +27,21 @@ export class Login {
   error = signal('');
   loading = signal(false);
 
-  async onSubmit () {
+  onSubmit (): void {
     this.loading.set(true);
     this.error.set('');
 
     this.authService.login({ email: this.email, password: this.password }).subscribe({
-      next: async (res) => {
+      next: (res) => {
         if (res.success) {
           // Sync profile to ensure we have complete user data
-          await this.authService.syncProfile();
-          void this.router.navigate(['/dashboard']);
+          this.authService.syncProfile().then(() => {
+            void this.router.navigate(['/dashboard']);
+          }).catch(() => {
+            // If sync fails, still navigate but log the error
+            console.warn('Profile sync failed after login');
+            void this.router.navigate(['/dashboard']);
+          });
         } else {
           this.error.set('Login failed. Please check your credentials.');
         }
