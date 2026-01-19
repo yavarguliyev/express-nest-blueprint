@@ -8,6 +8,9 @@ yarn-error.log*
 dist/
 build/
 
+# Angular cache
+.angular/
+
 # Environment variables
 .env
 .env.local
