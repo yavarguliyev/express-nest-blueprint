@@ -1,4 +1,6 @@
-import { BaseRepository, CircuitBreaker, CrudTable, DatabaseService, Injectable, QueryAllWithPaginationOptions, DatabaseAdapter } from '@config/libs';
+import { BaseRepository, CircuitBreaker, CrudTable, DatabaseService, Injectable, QueryAllWithPaginationOptions, DatabaseAdapter, ForbiddenException, InternalServerErrorException, StorageService } from '@config/libs';
+import { UserRoles } from '@config/libs';
+import { JwtPayload } from '@config/libs';
 
 import { FindUsersQueryDto } from '@modules/users/dtos/find-users-query.dto';
 import { UserResponseDto } from '@modules/users/dtos/user-response.dto';
@@ -6,7 +8,10 @@ import { UserResponseDto } from '@modules/users/dtos/user-response.dto';
 @CrudTable({ category: 'Database Management', name: 'users', displayName: 'Users' })
 @Injectable()
 export class UsersRepository extends BaseRepository<UserResponseDto> {
-  constructor (databaseService: DatabaseService) {
+  constructor (
+    databaseService: DatabaseService,
+    private readonly storageService: StorageService
+  ) {
     super(databaseService, 'users', {
       firstName: 'first_name',
       lastName: 'last_name',
@@ -22,6 +27,23 @@ export class UsersRepository extends BaseRepository<UserResponseDto> {
 
   protected getSelectColumns (): string[] {
     return ['id', 'email', 'firstName', 'lastName', 'role', 'isActive', 'profileImageUrl', 'isEmailVerified', 'createdAt', 'updatedAt', 'lastLogin'];
+  }
+
+  override getSearchableFields (): string[] {
+    return ['email', 'firstName', 'lastName', 'role'];
+  }
+
+  override async retrieveDataWithPagination (page: number, limit: number, search?: string): Promise<{ data: unknown[]; total: number }> {
+    const searchTerm = search?.trim();
+    const result = await this.findUsersWithPagination({
+      page,
+      limit,
+      ...(searchTerm ? { search: searchTerm } : {})
+    });
+
+    await this.applyPostProcessing(result.users);
+
+    return { data: result.users, total: result.total };
   }
 
   async findByEmail (email: string, connection?: DatabaseAdapter): Promise<UserResponseDto | null> {
@@ -52,5 +74,52 @@ export class UsersRepository extends BaseRepository<UserResponseDto> {
     const result = await this.findAllWithPagination(options);
 
     return { users: result.data, total: result.total };
+  }
+
+  override async update<K extends keyof UserResponseDto> (id: number, data: Partial<UserResponseDto>, returningColumns?: K[], connection?: DatabaseAdapter, currentUser?: JwtPayload): Promise<Pick<UserResponseDto, K> | null> {
+    if (!currentUser) throw new InternalServerErrorException('Security Context Missing: Unable to verify user permissions');
+
+    if (currentUser.sub === id) {
+      const restrictedFields = ['isactive', 'is_active', 'isemailverified', 'is_email_verified', 'role'];
+      const hasRestrictedField = Object.keys(data).some((field) => restrictedFields.some((restricted) => field.toLowerCase() === restricted.toLowerCase()));
+
+      if (hasRestrictedField) throw new ForbiddenException('You are not allowed to update sensitive fields on your own account');
+    }
+
+    const sensitiveFields = ['isActive', 'isEmailVerified'];
+    const hasSensitiveField = Object.keys(data).some((field) => sensitiveFields.some((sensitive) => field.toLowerCase() === sensitive.toLowerCase()));
+
+    if (hasSensitiveField && currentUser.role !== UserRoles.GLOBAL_ADMIN) {
+      throw new ForbiddenException('Only Global Administrators can modify user activation and email verification status');
+    }
+
+    if (data.role !== undefined && currentUser.role !== UserRoles.GLOBAL_ADMIN) throw new ForbiddenException('Only Global Administrators can update user roles');
+
+    return super.update(id, data, returningColumns, connection);
+  }
+
+  override async delete (id: number, connection?: DatabaseAdapter, currentUser?: JwtPayload): Promise<boolean> {
+    if (!currentUser) throw new InternalServerErrorException('Security Context Missing: Unable to verify user permissions');
+    if (currentUser.sub === id) throw new ForbiddenException('You cannot delete your own account');
+    if (currentUser.role !== UserRoles.GLOBAL_ADMIN) throw new ForbiddenException('Only Global Administrators can delete user accounts');
+
+    return super.delete(id, connection);
+  }
+
+  override async applyPostProcessing (data: unknown[]): Promise<void> {
+    await this.signProfileImages(data.filter((item) => this.hasProfileImageUrl(item)));
+  }
+
+  private async signProfileImages (data: Array<{ profileImageUrl?: string }>): Promise<void> {
+    await Promise.all(
+      data.map(async (item) => {
+        if (!item.profileImageUrl) return;
+        item.profileImageUrl = await this.storageService.getDownloadUrl(item.profileImageUrl);
+      })
+    );
+  }
+
+  private hasProfileImageUrl (item: unknown): item is { profileImageUrl?: string } {
+    return typeof item === 'object' && item !== null && 'profileImageUrl' in item;
   }
 }

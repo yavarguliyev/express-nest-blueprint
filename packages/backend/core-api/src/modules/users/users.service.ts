@@ -1,6 +1,6 @@
 import { extname } from 'path';
 
-import { Injectable, Cache, Compute, DatabaseService, PaginatedResponseDto, BadRequestException, NotFoundException, ValidationService, StorageService, Logger, getErrorMessage, ForbiddenException, JwtPayload } from '@config/libs';
+import { Injectable, Cache, Compute, DatabaseService, PaginatedResponseDto, BadRequestException, NotFoundException, ValidationService, StorageService, ForbiddenException, JwtPayload } from '@config/libs';
 import { CreateUserDto } from '@/modules/users/dtos/create-user.dto';
 import { FindUsersQueryDto } from '@/modules/users/dtos/find-users-query.dto';
 import { UpdateUserDto } from '@/modules/users/dtos/update-user.dto';
@@ -9,8 +9,6 @@ import { UsersRepository } from '@/modules/users/users.repository';
 
 @Injectable()
 export class UsersService {
-  private readonly logger = new Logger(UsersService.name);
-
   constructor (
     private readonly usersRepository: UsersRepository,
     private readonly databaseService: DatabaseService,
@@ -40,9 +38,7 @@ export class UsersService {
 
     await Promise.all(
       users.map(async (user) => {
-        if (user.profileImageUrl) {
-          user.profileImageUrl = await this.storageService.getDownloadUrl(user.profileImageUrl);
-        }
+        if (user.profileImageUrl) user.profileImageUrl = await this.storageService.getDownloadUrl(user.profileImageUrl);
       })
     );
 
@@ -55,9 +51,7 @@ export class UsersService {
     const userId = this.parseAndValidateId(id);
     const user = await this.usersRepository.findById(userId);
     if (!user) throw new NotFoundException(`User with ID ${userId} not found`);
-
     if (user.profileImageUrl) user.profileImageUrl = await this.storageService.getDownloadUrl(user.profileImageUrl);
-
     return ValidationService.transformResponse(UserResponseDto, user);
   }
 
@@ -74,7 +68,7 @@ export class UsersService {
   async update (id: string, updateUserDto: UpdateUserDto, currentUser?: JwtPayload): Promise<UserResponseDto> {
     const userId = this.parseAndValidateId(id);
 
-    if (currentUser && String(currentUser.sub) === String(userId)) {
+    if (currentUser && currentUser.sub === userId) {
       if (updateUserDto.isEmailVerified !== undefined || updateUserDto.isActive !== undefined) {
         throw new ForbiddenException('You are not allowed to update sensitive fields (isEmailVerified, isActive) on your own account');
       }
@@ -112,7 +106,7 @@ export class UsersService {
     return { message: 'User deleted successfully' };
   }
 
-  async updateProfileImage (id: string, file?: Express.Multer.File): Promise<UserResponseDto> {
+  async updateProfileImage (id: string, file?: Express.Multer.File, currentUser?: JwtPayload): Promise<UserResponseDto> {
     if (!file) throw new BadRequestException('No file uploaded or file rejected');
 
     const userId = this.parseAndValidateId(id);
@@ -126,22 +120,10 @@ export class UsersService {
       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
       const key = `avatars/${userId}-${uniqueSuffix}${extname(file.originalname)}`;
 
-      this.logger.log(`Attempting to upload avatar to S3 with key: ${key}`);
+      await this.storageService.upload(key, file.buffer, file.mimetype);
+      const imageUrl = await this.storageService.getDownloadUrl(key);
 
-      try {
-        await this.storageService.upload(key, file.buffer, file.mimetype);
-      } catch (uploadError) {
-        throw new BadRequestException(`Failed to upload avatar to storage: ${getErrorMessage(uploadError)}`);
-      }
-
-      let imageUrl: string;
-      try {
-        imageUrl = await this.storageService.getDownloadUrl(key);
-      } catch (urlError) {
-        throw new BadRequestException(`Failed to generate download URL: ${getErrorMessage(urlError)}`);
-      }
-
-      const updatedUser = await this.usersRepository.update(userId, { profileImageUrl: key }, ['id', 'email', 'firstName', 'lastName', 'role', 'isActive', 'profileImageUrl'], transaction);
+      const updatedUser = await this.usersRepository.update(userId, { profileImageUrl: key }, ['id', 'email', 'firstName', 'lastName', 'role', 'isActive', 'profileImageUrl'], transaction, currentUser);
 
       const response = ValidationService.transformResponse(UserResponseDto, updatedUser!);
       response.profileImageUrl = imageUrl;
@@ -150,7 +132,7 @@ export class UsersService {
     });
   }
 
-  async removeProfileImage (id: string): Promise<UserResponseDto> {
+  async removeProfileImage (id: string, currentUser?: JwtPayload): Promise<UserResponseDto> {
     const userId = this.parseAndValidateId(id);
 
     return this.databaseService.getWriteConnection().transactionWithRetry(async (transaction) => {
@@ -160,7 +142,8 @@ export class UsersService {
       if (user.profileImageUrl) {
         await this.storageService.delete(user.profileImageUrl);
 
-        const updatedUser = await this.usersRepository.update(userId, { profileImageUrl: null }, ['id', 'email', 'firstName', 'lastName', 'role', 'isActive', 'profileImageUrl'], transaction);
+        const updatedUser = await this.usersRepository.update(userId, { profileImageUrl: null }, ['id', 'email', 'firstName', 'lastName', 'role', 'isActive', 'profileImageUrl'], transaction, currentUser);
+
         return ValidationService.transformResponse(UserResponseDto, updatedUser!);
       }
 

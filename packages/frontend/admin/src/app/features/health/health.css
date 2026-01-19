@@ -3,6 +3,145 @@
   padding-bottom: 40px;
 }
 
+/* Health-specific gradient styling for text content only */
+.timestamp {
+  background: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .timestamp {
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: unset !important;
+  background-clip: unset !important;
+  color: #000000 !important;
+}
+
+/* Tag styling with more visible backgrounds and gradient text */
+.tag {
+  font-weight: 700 !important;
+  padding: 2px 8px !important;
+  border-radius: 4px !important;
+  font-size: 0.7rem !important;
+  margin-left: 12px !important;
+  margin-right: 8px !important;
+  border: 1px solid !important;
+}
+
+.tag.info {
+  background: rgba(59, 130, 246, 0.25) !important;
+  border-color: rgba(59, 130, 246, 0.5) !important;
+  color: transparent !important;
+  background-image: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) !important;
+  background-clip: text !important;
+  -webkit-background-clip: text !important;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.3) !important;
+}
+
+.tag.success {
+  background: rgba(16, 185, 129, 0.25) !important;
+  border-color: rgba(16, 185, 129, 0.5) !important;
+  color: transparent !important;
+  background-image: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) !important;
+  background-clip: text !important;
+  -webkit-background-clip: text !important;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.3) !important;
+}
+
+.tag.warn {
+  background: rgba(245, 158, 11, 0.25) !important;
+  border-color: rgba(245, 158, 11, 0.5) !important;
+  color: transparent !important;
+  background-image: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) !important;
+  background-clip: text !important;
+  -webkit-background-clip: text !important;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.3) !important;
+}
+
+/* Light mode - more visible backgrounds with black text */
+[data-theme="light"] .tag.info {
+  background: rgba(59, 130, 246, 0.15) !important;
+  border-color: rgba(59, 130, 246, 0.4) !important;
+  color: #000000 !important;
+  background-image: none !important;
+  background-clip: unset !important;
+  -webkit-background-clip: unset !important;
+  box-shadow: 0 0 4px rgba(59, 130, 246, 0.2) !important;
+}
+
+[data-theme="light"] .tag.success {
+  background: rgba(16, 185, 129, 0.15) !important;
+  border-color: rgba(16, 185, 129, 0.4) !important;
+  color: #000000 !important;
+  background-image: none !important;
+  background-clip: unset !important;
+  -webkit-background-clip: unset !important;
+  box-shadow: 0 0 4px rgba(16, 185, 129, 0.2) !important;
+}
+
+[data-theme="light"] .tag.warn {
+  background: rgba(245, 158, 11, 0.15) !important;
+  border-color: rgba(245, 158, 11, 0.4) !important;
+  color: #000000 !important;
+  background-image: none !important;
+  background-clip: unset !important;
+  -webkit-background-clip: unset !important;
+  box-shadow: 0 0 4px rgba(245, 158, 11, 0.2) !important;
+}
+
+/* Component names get gradient styling */
+.comp-name {
+  background: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .comp-name {
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: unset !important;
+  background-clip: unset !important;
+  color: #000000 !important;
+}
+
+/* Component icons get gradient styling */
+.comp-icon .material-icons {
+  background: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+[data-theme="light"] .comp-icon .material-icons {
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: unset !important;
+  background-clip: unset !important;
+  color: #000000 !important;
+}
+
+/* Last check time gets gradient styling */
+.last-check {
+  background: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  font-weight: 600 !important;
+}
+
+[data-theme="light"] .last-check {
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: unset !important;
+  background-clip: unset !important;
+  color: #000000 !important;
+}
+
 .page-header {
   display: flex;
   align-items: center;
@@ -15,14 +154,6 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
-
-.header-content h2 {
-  margin: 0;
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--primary);
-  line-height: 1.2;
 }
 
 .header-content .text-muted {
@@ -60,20 +191,18 @@
 .status-label {
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--primary);
   text-transform: uppercase;
 }
 
 .status-value {
   font-size: 2rem;
   font-weight: 800;
-  color: var(--primary);
+  margin: 4px 0;
 }
 
 .status-meta {
   font-size: 0.85rem;
   font-weight: 500;
-  color: var(--warning);
   opacity: 0.9;
 }
 
@@ -122,7 +251,7 @@
 .components-card h3 {
   font-size: 1.1rem;
   margin-bottom: 24px;
-  color: var(--primary);
+  color: var(--page-accent);
   font-weight: 600;
 }
 
@@ -139,8 +268,8 @@
   margin: 0;
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--primary);
-  text-shadow: 0 0 8px rgba(99, 102, 241, 0.2);
+  color: var(--page-accent);
+  text-shadow: 0 0 8px rgba(217, 119, 6, 0.2);
 }
 
 .badge {
@@ -153,9 +282,9 @@
 }
 
 .badge.info {
-  background: linear-gradient(135deg, var(--primary), #8b5cf6);
+  background: linear-gradient(135deg, var(--page-accent), var(--secondary));
   color: white;
-  border: 1px solid var(--primary);
+  border: 1px solid var(--page-accent);
 }
 
 .components-list {
@@ -185,11 +314,11 @@
   width: 40px;
   height: 40px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(217, 119, 6, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--primary);
+  color: var(--page-accent);
 }
 
 .comp-info {
@@ -214,7 +343,8 @@
 .status-badge.down { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
 
 .console {
-  background: #000;
+  background: var(--console-bg);
+  color: var(--console-text);
   padding: 20px 24px;
   font-family: 'Fira Code', 'Courier New', monospace;
   font-size: 0.85rem;
@@ -223,14 +353,11 @@
   overflow-y: auto;
   margin: 0;
   border-radius: 0 0 12px 12px;
+  border: 1px solid var(--border);
 }
 
 .console-line { margin-bottom: 4px; }
-.timestamp { color: var(--text-muted); margin-right: 8px; }
 .tag { padding: 1px 4px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-right: 8px; }
-.tag.info { background: #3a7bd5; color: #fff; }
-.tag.success { background: var(--success); color: #fff; }
-.tag.warn { background: var(--warning); color: #fff; }
 
 .mt-6 { margin-top: 24px; }
 

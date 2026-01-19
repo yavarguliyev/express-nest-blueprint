@@ -1,4 +1,10 @@
-/* Centralized Toggle Switch Component */
+/* NEW TOGGLE DESIGN - CENTRALIZED */
+
+/* Hide the checkbox */
+.toggle-input {
+  display: none;
+}
+
 .toggle-switch-container {
   display: flex;
   align-items: center;
@@ -7,10 +13,16 @@
 }
 
 .toggle-switch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
-  display: inline-block;
+  width: 90px;
+  height: 30px;
+  background-color: rgb(206, 206, 206); /* Default light mode inactive */
+  border-radius: 40px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition-duration: 0.3s;
 }
 
 .toggle-switch.disabled {
@@ -18,112 +30,92 @@
   opacity: 0.5;
 }
 
-.toggle-input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-  position: absolute;
-}
-
-.toggle-slider {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.15);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 26px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.toggle-slider:before {
+.toggle-switch::after {
   content: "";
   position: absolute;
-  background: linear-gradient(135deg, #ffffff, #f8fafc);
-  border-radius: 50%;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
+  height: 30px;
+  width: 50%;
+  left: 0px;
+  background: conic-gradient(
+    rgba(26, 26, 26, 0.555),
+    white,
+    rgba(26, 26, 26, 0.555),
+    white,
+    rgba(26, 26, 26, 0.555)
+  );
+  border-radius: 40px;
+  transition-duration: 0.3s;
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.281);
 }
 
-.toggle-input:checked + .toggle-slider {
-  background: linear-gradient(135deg, var(--primary), #8b5cf6);
-  border: 1px solid var(--primary);
-  box-shadow: 0 4px 15px var(--primary-glow);
+/* Checked state - knob moves to right */
+.toggle-input:checked + .toggle-switch::after {
+  transform: translateX(100%);
+  transition-duration: 0.3s;
 }
 
-.toggle-input:checked + .toggle-slider:before {
-  background: linear-gradient(135deg, #ffffff, #f1f5f9);
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2), 0 1px 4px rgba(0, 0, 0, 0.15);
+/* Checked state - background color change */
+.toggle-input:checked + .toggle-switch {
+  background: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) !important; /* Use our gradient */
+  transition-duration: 0.3s;
 }
 
-.toggle-switch:hover .toggle-slider:not(.disabled) {
-  border-color: rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-1px);
+/* DARK MODE COLORS */
+[data-theme="dark"] .toggle-switch {
+  background-color: rgba(255, 255, 255, 0.15); /* Dark mode inactive */
 }
 
-.toggle-input:checked + .toggle-slider:hover:not(.disabled) {
-  background: linear-gradient(135deg, #0ea5e9, var(--primary));
-  box-shadow: 0 6px 20px var(--primary-glow);
-  transform: translateY(-1px);
+[data-theme="dark"] .toggle-input:checked + .toggle-switch {
+  background: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) !important; /* Dark mode active - our gradient */
 }
 
-.toggle-slider:active:not(.disabled) {
-  transform: scale(0.98);
+/* LIGHT MODE COLORS */
+[data-theme="light"] .toggle-switch {
+  background-color: silver; /* Light mode inactive - your preferred silver */
 }
 
-.toggle-input:checked + .toggle-slider:active:not(.disabled) {
-  transform: scale(0.98) translateY(-1px);
+[data-theme="light"] .toggle-input:checked + .toggle-switch {
+  background: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) !important; /* Light mode active - our gradient */
 }
 
-/* Size Variants */
+/* SIZE VARIANTS */
 .size-small .toggle-switch {
-  width: 36px;
+  width: 60px;
   height: 20px;
 }
 
-.size-small .toggle-slider:before {
-  height: 14px;
-  width: 14px;
-  left: 2px;
-  top: 2px;
-}
-
-.size-small .toggle-input:checked + .toggle-slider:before {
-  transform: translateX(16px);
+.size-small .toggle-switch::after {
+  height: 20px;
 }
 
 .size-medium .toggle-switch {
-  width: 48px;
-  height: 26px;
-}
-
-.size-medium .toggle-slider:before {
-  height: 18px;
-  width: 18px;
-  left: 2px;
-  top: 2px;
-}
-
-.size-medium .toggle-input:checked + .toggle-slider:before {
-  transform: translateX(22px);
-}
-
-.size-large .toggle-switch {
-  width: 56px;
+  width: 90px;
   height: 30px;
 }
 
-.size-large .toggle-slider:before {
-  height: 22px;
-  width: 22px;
-  left: 2px;
-  top: 2px;
+.size-medium .toggle-switch::after {
+  height: 30px;
 }
 
-.size-large .toggle-input:checked + .toggle-slider:before {
-  transform: translateX(26px);
+.size-large .toggle-switch {
+  width: 120px;
+  height: 40px;
+}
+
+.size-large .toggle-switch::after {
+  height: 40px;
+}
+
+/* HOVER EFFECTS */
+.toggle-switch:hover:not(.disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .toggle-switch:hover:not(.disabled) {
+  box-shadow: 0 4px 15px rgba(206, 27, 251, 0.4); /* Gradient color glow */
+}
+
+[data-theme="light"] .toggle-switch:hover:not(.disabled) {
+  box-shadow: 0 4px 15px rgba(206, 27, 251, 0.3); /* Gradient color glow */
 }

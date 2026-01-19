@@ -1,11 +1,12 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ToggleSwitch } from '../../shared/components/toggle-switch/toggle-switch';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ToggleSwitch],
   templateUrl: './settings.html',
   styleUrl: './settings.css',
 })
@@ -45,6 +46,16 @@ export class Settings implements OnInit {
   successMessage = signal('');
 
   ngOnInit () {}
+
+  onToggleChange (settingId: string, newValue: boolean) {
+    this.settings.update(currentSettings => 
+      currentSettings.map(setting => 
+        setting.id === settingId 
+          ? { ...setting, value: newValue }
+          : setting
+      )
+    );
+  }
 
   saveSettings () {
     this.loading.set(true);

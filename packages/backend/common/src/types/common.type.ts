@@ -92,6 +92,16 @@ export type ValueProvider<T = object> = { type: 'value'; value: T };
 
 export type WhereConditions = '=' | '!=' | '>' | '<' | '>=' | '<=' | 'LIKE' | 'ILIKE' | 'IN' | 'NOT IN';
 
-export type CrudRepository = Partial<SupportsFindWithPagination & SupportsFindAll & SupportsFindById & SupportsCreate & SupportsUpdate & SupportsDelete>;
-
-export type FindUsersWithPagination = { findUsersWithPagination: (opts: { page: number; limit: number; search?: string }) => Promise<{ users: unknown[]; total: number }> };
+export type CrudRepository = Partial<
+  SupportsFindWithPagination &
+    SupportsFindAll &
+    SupportsFindById &
+    SupportsCreate &
+    SupportsUpdate &
+    SupportsDelete & {
+      applyPostProcessing: (data: unknown[]) => Promise<void>;
+      getSearchableFields: () => string[];
+      getColumnMetadata: () => Array<{ name: string; type: string; required: boolean; editable: boolean }>;
+      retrieveDataWithPagination: (page: number, limit: number, search?: string) => Promise<{ data: unknown[]; total: number }>;
+    }
+>;

@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { TextTransformService } from '../../core/services/text-transform.service';
+import { UserRoleHelper } from '../../core/enums/user-roles.enum';
 
 interface ProfileForm {
   firstName: string;
@@ -52,7 +53,7 @@ export class Profile implements OnInit, OnDestroy {
 
   private visibilityListener?: () => void;
 
-  constructor() {
+  constructor () {
     // Effect to update form when user data changes
     effect(() => {
       const currentUser = this.user();
@@ -68,13 +69,13 @@ export class Profile implements OnInit, OnDestroy {
     this.setupVisibilityListener();
   }
 
-  ngOnDestroy() {
+  ngOnDestroy () {
     if (this.visibilityListener) {
       document.removeEventListener('visibilitychange', this.visibilityListener);
     }
   }
 
-  private setupVisibilityListener() {
+  private setupVisibilityListener () {
     this.visibilityListener = () => {
       if (!document.hidden) {
         // Page became visible, refresh profile data
@@ -84,7 +85,7 @@ export class Profile implements OnInit, OnDestroy {
     document.addEventListener('visibilitychange', this.visibilityListener);
   }
 
-  private updateFormFromUser(user: any) {
+  private updateFormFromUser (user: { firstName?: string; lastName?: string }) {
     this.profileForm = {
       firstName: user.firstName || '',
       lastName: user.lastName || ''
@@ -166,8 +167,42 @@ export class Profile implements OnInit, OnDestroy {
   }
 
   // Helper method to get display name for field
-  getFieldDisplayName(fieldName: string): string {
+  getFieldDisplayName (fieldName: string): string {
     return this.textTransform.getDisplayName(fieldName);
+  }
+
+  // Helper method to get proper role display name
+  getRoleDisplayName (): string {
+    const currentUser = this.user();
+    if (!currentUser || !currentUser.role) {
+      return 'Unknown Role';
+    }
+    return UserRoleHelper.getRoleDisplayName(currentUser.role);
+  }
+
+  // Helper method to get user initials for avatar
+  getUserInitials (): string {
+    const currentUser = this.user();
+    if (!currentUser) return 'U';
+    
+    const firstName = currentUser.firstName || '';
+    const lastName = currentUser.lastName || '';
+    
+    if (firstName && lastName) {
+      return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
+    } else if (firstName) {
+      return firstName.charAt(0).toUpperCase();
+    } else if (lastName) {
+      return lastName.charAt(0).toUpperCase();
+    }
+    
+    // Fallback to email or default
+    const email = currentUser.email || '';
+    if (email) {
+      return email.charAt(0).toUpperCase();
+    }
+    
+    return 'U'; // Default fallback
   }
 
   deleteAvatar () {

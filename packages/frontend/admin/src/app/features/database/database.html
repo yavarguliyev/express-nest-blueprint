@@ -74,15 +74,21 @@
                       <!-- Boolean toggle switch -->
                       <div *ngIf="col.type === 'boolean'">
                         <app-toggle-switch 
-                          [checked]="row[col.name]" 
+                          [checked]="getBooleanValue(row, col.name)" 
+                          [disabled]="isSensitiveField(col.name) && !canModifySensitiveFields()"
                           (toggleChange)="updateBooleanValue(row, col, $event)"
                           size="medium">
                         </app-toggle-switch>
                       </div>
 
-                      <!-- Image projection -->
-                      <div *ngIf="isImageUrl(col.name) && row[col.name]" class="avatar-cell">
-                        <img [src]="row[col.name]" class="cell-img">
+                      <!-- Profile Image with click functionality -->
+                      <div *ngIf="isImageUrl(col.name)" class="avatar-cell" (click)="handleImageClick(row, col.name)">
+                        <div *ngIf="row[col.name]" class="profile-image-container">
+                          <img [src]="row[col.name]" class="cell-img" [title]="'Click to view full image'">
+                        </div>
+                        <div *ngIf="!row[col.name]" class="logo-sm glow" [title]="'Click for image info'">
+                          <span class="user-initials">{{ getUserInitials(row) }}</span>
+                        </div>
                       </div>
 
                       <!-- All other values (including dates) -->
@@ -93,9 +99,13 @@
                     <td class="cell-actions text-center" style="width: 160px;">
                       <app-action-buttons
                         [updateConfig]="{ show: true, disabled: false, tooltip: 'Update Record' }"
-                        [deleteConfig]="{ show: true, disabled: false, tooltip: 'Purge Record' }"
-                        (updateClick)="updateRecord(row['id'])"
-                        (deleteClick)="deleteRecord(row['id'])"
+                        [deleteConfig]="{ 
+                          show: true, 
+                          disabled: !canDeleteRecord(), 
+                          tooltip: canDeleteRecord() ? 'Purge Record' : 'Delete restricted to Global Administrators' 
+                        }"
+                        (updateClick)="updateRecord(getNumberValue(row, 'id'))"
+                        (deleteClick)="deleteRecord(getNumberValue(row, 'id'))"
                         size="medium">
                       </app-action-buttons>
                     </td>
@@ -143,10 +153,26 @@
       </div>
       
       <div class="modal-body" *ngIf="selectedTable() && selectedRecord()">
+        <!-- Changes summary -->
+        <div *ngIf="hasFormChanges()" class="changes-summary">
+          <h4>Changes to be applied:</h4>
+          <ul>
+            <li *ngFor="let field of getChangedFields()">
+              <strong>{{ getFieldDisplayName(field.name) }}:</strong>
+              <span class="old-value">{{ formatFieldValue(field.oldValue) }}</span>
+              →
+              <span class="new-value">{{ formatFieldValue(field.newValue) }}</span>
+            </li>
+          </ul>
+        </div>
+        
         <div class="form-container">
           <div *ngFor="let col of selectedTable()!.columns" class="form-field">
             <div *ngIf="col.editable && !isFieldExcludedFromUpdate(col.name)">
-              <label class="field-label">{{ getFieldDisplayName(col.name) }}</label>
+              <label class="field-label">
+                {{ getFieldDisplayName(col.name) }}
+                <span *ngIf="isFieldChanged(col.name)" class="field-changed-indicator" title="Field has been modified">●</span>
+              </label>
               
               <!-- Role dropdown (special case) -->
               <select 
@@ -154,6 +180,7 @@
                 class="form-input role-select"
                 [class.disabled]="isFieldDisabled(col.name)"
                 [class.invalid]="isRoleInvalid()"
+                [class.changed]="isFieldChanged(col.name)"
                 [disabled]="isFieldDisabled(col.name)"
                 [(ngModel)]="updateFormData()[col.name]"
                 (ngModelChange)="updateFormField(col.name, $event)">
@@ -175,6 +202,7 @@
                 type="text"
                 class="form-input"
                 [class.disabled]="isFieldDisabled(col.name)"
+                [class.changed]="isFieldChanged(col.name)"
                 [disabled]="isFieldDisabled(col.name)"
                 [value]="updateFormData()[col.name] || ''"
                 (input)="updateFormField(col.name, $any($event.target).value)"
@@ -186,6 +214,7 @@
                 type="number"
                 class="form-input"
                 [class.disabled]="isFieldDisabled(col.name)"
+                [class.changed]="isFieldChanged(col.name)"
                 [disabled]="isFieldDisabled(col.name)"
                 [value]="updateFormData()[col.name] || ''"
                 (input)="updateFormField(col.name, +$any($event.target).value)"
@@ -200,9 +229,10 @@
         <button class="btn btn-primary" 
                 [class.disabled]="isFormInvalid()"
                 [disabled]="isFormInvalid()"
+                [title]="getUpdateButtonTooltip()"
                 (click)="submitUpdate()">
           <span class="material-icons">save</span>
-          Update Record
+          {{ getUpdateButtonText() }}
         </button>
       </div>
     </div>

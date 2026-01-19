@@ -18,29 +18,29 @@ export class UserRoleHelper {
   /**
    * Check if a user has global admin privileges
    */
-  static isGlobalAdmin(role: string): boolean {
-    return role === UserRoles.GLOBAL_ADMIN;
+  static isGlobalAdmin (role: string): boolean {
+    return role === UserRoles.GLOBAL_ADMIN as string;
   }
 
   /**
    * Check if a user can edit roles (only global admins)
    */
-  static canEditRoles(role: string): boolean {
+  static canEditRoles (role: string): boolean {
     return this.isGlobalAdmin(role);
   }
 
   /**
    * Get all available roles
    */
-  static getAllRoles(): UserRoles[] {
+  static getAllRoles (): UserRoles[] {
     return Object.values(UserRoles);
   }
 
   /**
    * Get role display name
    */
-  static getRoleDisplayName(role: string): string {
-    switch (role) {
+  static getRoleDisplayName (role: string): string {
+    switch (role as UserRoles) {
       case UserRoles.GLOBAL_ADMIN:
         return 'Global Administrator';
       case UserRoles.ADMIN:

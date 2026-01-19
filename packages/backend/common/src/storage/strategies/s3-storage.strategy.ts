@@ -14,7 +14,7 @@ export class S3StorageStrategy extends StorageService {
   private readonly bucketName: string;
   private bucketEnsured = false;
 
-  constructor (@Inject(STORAGE_OPTIONS) options: StorageModuleOptions) {
+  constructor(@Inject(STORAGE_OPTIONS) options: StorageModuleOptions) {
     super();
     if (!options.s3) throw new BadRequestException('S3 configuration is missing');
 
@@ -24,7 +24,7 @@ export class S3StorageStrategy extends StorageService {
         accessKeyId: options.s3.accessKeyId,
         secretAccessKey: options.s3.secretAccessKey
       },
-      forcePathStyle: true
+      forcePathStyle: options.s3.forcePathStyle ?? true
     };
 
     if (options.s3.endpoint) config.endpoint = options.s3.endpoint;
@@ -38,7 +38,7 @@ export class S3StorageStrategy extends StorageService {
     this.bucketName = options.s3.bucketName;
   }
 
-  private async ensureBucket (): Promise<void> {
+  private async ensureBucket(): Promise<void> {
     if (this.bucketEnsured) return;
 
     try {
@@ -51,19 +51,15 @@ export class S3StorageStrategy extends StorageService {
           await this.client.send(new CreateBucketCommand({ Bucket: this.bucketName }));
         } catch (createError: unknown) {
           const cError = createError as { name?: string };
-          if (cError?.name !== 'BucketAlreadyOwnedByYou' && cError?.name !== 'BucketAlreadyExists') {
-            throw createError;
-          }
+          if (cError?.name !== 'BucketAlreadyOwnedByYou' && cError?.name !== 'BucketAlreadyExists') throw createError;
         }
-      } else {
-        throw error;
-      }
+      } else throw error;
     }
 
     this.bucketEnsured = true;
   }
 
-  override async upload (key: string, body: Buffer | Uint8Array | string, contentType?: string): Promise<void> {
+  override async upload(key: string, body: Buffer | Uint8Array | string, contentType?: string): Promise<void> {
     await this.ensureBucket();
 
     const command = new PutObjectCommand({
@@ -76,17 +72,18 @@ export class S3StorageStrategy extends StorageService {
     await this.client.send(command);
   }
 
-  override async getDownloadUrl (key: string, options?: StorageUrlOptions): Promise<string> {
+  override async getDownloadUrl(key: string, options?: StorageUrlOptions): Promise<string> {
     const command = new GetObjectCommand({ Bucket: this.bucketName, Key: key });
-    return getSignedUrl(this.urlClient, command, { expiresIn: options?.expiresIn ?? 3600 });
+    const url = await getSignedUrl(this.urlClient, command, { expiresIn: options?.expiresIn ?? 3600 });
+    return url;
   }
 
-  override async delete (key: string): Promise<void> {
+  override async delete(key: string): Promise<void> {
     const command = new DeleteObjectCommand({ Bucket: this.bucketName, Key: key });
     await this.client.send(command);
   }
 
-  override async exists (key: string): Promise<boolean> {
+  override async exists(key: string): Promise<boolean> {
     try {
       const command = new HeadObjectCommand({ Bucket: this.bucketName, Key: key });
       await this.client.send(command);

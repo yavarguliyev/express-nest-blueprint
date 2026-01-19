@@ -15,7 +15,10 @@ export class ToggleSwitch {
   
   @Output() toggleChange = new EventEmitter<boolean>();
 
-  onToggle(): void {
+  // Generate unique ID for each toggle instance
+  toggleId = `toggle-${Math.random().toString(36).substr(2, 9)}`;
+
+  onToggle (): void {
     if (!this.disabled) {
       this.checked = !this.checked;
       this.toggleChange.emit(this.checked);

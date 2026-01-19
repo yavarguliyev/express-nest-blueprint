@@ -25,7 +25,6 @@ export class Sidebar {
 
   getUserInitials (): string {
     const currentUser = this.user();
-    console.log('Sidebar - Current user data:', currentUser); // Debug log
     
     if (!currentUser) {
       return 'U';
@@ -35,16 +34,14 @@ export class Sidebar {
     const lastName = currentUser.lastName?.trim();
     
     if (!firstName || !lastName) {
-      console.log('Sidebar - Missing name data:', { firstName, lastName }); // Debug log
       return 'U';
     }
     
     const initials = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
-    console.log('Sidebar - Generated initials:', initials); // Debug log
     return initials;
   }
 
-  navigateToProfile() {
+  navigateToProfile () {
     void this.router.navigate(['/profile']);
   }
 

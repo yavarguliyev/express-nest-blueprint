@@ -15,7 +15,9 @@
             @if (user()?.profileImageUrl) {
               <img [src]="user()?.profileImageUrl" alt="Avatar" />
             } @else {
-              <span class="material-icons avatar-placeholder">account_circle</span>
+              <div class="avatar-initials-container">
+                <span class="user-initials avatar-initials">{{ getUserInitials() }}</span>
+              </div>
             }
             
             <!-- Overlay for upload -->
@@ -34,7 +36,7 @@
         </div>
         <div class="avatar-info">
           <h3>{{ user()?.firstName }} {{ user()?.lastName }}</h3>
-          <p class="role-badge">{{ user()?.role }}</p>
+          <p class="role-badge">{{ getRoleDisplayName() }}</p>
         </div>
       </div>
     </div>

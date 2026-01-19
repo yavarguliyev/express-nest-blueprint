@@ -112,7 +112,7 @@ export class TableStyleService {
   /**
    * Get styling configuration for a column
    */
-  getColumnStyle(columnName: string, columnType: string): ColumnStyleConfig {
+  getColumnStyle (columnName: string, columnType: string): ColumnStyleConfig {
     // Check for name-specific styles first
     if (this.nameStyles[columnName]) {
       return this.nameStyles[columnName];
@@ -135,7 +135,7 @@ export class TableStyleService {
   /**
    * Get header classes for a column
    */
-  getHeaderClasses(columnName: string, columnType: string): string {
+  getHeaderClasses (columnName: string, columnType: string): string {
     const style = this.getColumnStyle(columnName, columnType);
     return `${style.headerClass} text-${style.alignment}`;
   }
@@ -143,7 +143,7 @@ export class TableStyleService {
   /**
    * Get cell classes for a column
    */
-  getCellClasses(columnName: string, columnType: string): string {
+  getCellClasses (columnName: string, columnType: string): string {
     const style = this.getColumnStyle(columnName, columnType);
     return `${style.cellClass} text-${style.alignment}`;
   }
@@ -151,7 +151,7 @@ export class TableStyleService {
   /**
    * Get inline styles for a column
    */
-  getColumnStyles(columnName: string, columnType: string): Record<string, string> {
+  getColumnStyles (columnName: string, columnType: string): Record<string, string> {
     const style = this.getColumnStyle(columnName, columnType);
     const styles: Record<string, string> = {};
     
@@ -168,14 +168,14 @@ export class TableStyleService {
   /**
    * Register custom column styling
    */
-  registerColumnStyle(columnName: string, config: ColumnStyleConfig): void {
+  registerColumnStyle (columnName: string, config: ColumnStyleConfig): void {
     this.nameStyles[columnName] = config;
   }
 
   /**
    * Register custom type styling
    */
-  registerTypeStyle(typeName: string, config: ColumnStyleConfig): void {
+  registerTypeStyle (typeName: string, config: ColumnStyleConfig): void {
     this.typeStyles[typeName] = config;
   }
 }

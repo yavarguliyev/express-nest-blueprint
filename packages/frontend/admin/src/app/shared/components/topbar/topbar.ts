@@ -2,26 +2,37 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { ThemeService } from '../../../core/services/theme.service';
+import { ToggleSwitch } from '../toggle-switch/toggle-switch';
 import { filter, map } from 'rxjs/operators';
 import { signal } from '@angular/core';
 
 @Component({
   selector: 'app-topbar',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, ToggleSwitch],
   templateUrl: './topbar.html',
   styleUrl: './topbar.css',
 })
 export class Topbar {
   private authService = inject(AuthService);
+  private themeService = inject(ThemeService);
   private router = inject(Router);
   
   user = this.authService.currentUser;
   currentPageName = signal('Dashboard');
+  
+  // Theme-related methods
+  isDarkMode (): boolean {
+    return this.themeService.isDarkMode();
+  }
+  
+  toggleTheme (): void {
+    this.themeService.toggleTheme();
+  }
 
   getUserInitials (): string {
     const currentUser = this.user();
-    console.log('Topbar - Current user data:', currentUser); // Debug log
     
     if (!currentUser) {
       return 'U';
@@ -31,12 +42,10 @@ export class Topbar {
     const lastName = currentUser.lastName?.trim();
     
     if (!firstName || !lastName) {
-      console.log('Topbar - Missing name data:', { firstName, lastName }); // Debug log
       return 'U';
     }
     
     const initials = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
-    console.log('Topbar - Generated initials:', initials); // Debug log
     return initials;
   }
 

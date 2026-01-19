@@ -22,13 +22,13 @@ export class ActionButtons {
   @Output() updateClick = new EventEmitter<void>();
   @Output() deleteClick = new EventEmitter<void>();
 
-  onUpdate(): void {
+  onUpdate (): void {
     if (!this.updateConfig.disabled) {
       this.updateClick.emit();
     }
   }
 
-  onDelete(): void {
+  onDelete (): void {
     if (!this.deleteConfig.disabled) {
       this.deleteClick.emit();
     }

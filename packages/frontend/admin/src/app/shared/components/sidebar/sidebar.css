@@ -1,3 +1,60 @@
+/* FORCE NAVIGATION GRADIENT - OVERRIDE VIEWENCAPSULATION */
+.nav-label {
+  background: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  font-weight: 600 !important;
+}
+
+.nav-item .material-icons {
+  background: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+/* LIGHT MODE OVERRIDE FOR NAVIGATION */
+[data-theme="light"] .nav-label,
+[data-theme="light"] .nav-item .material-icons {
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: unset !important;
+  background-clip: unset !important;
+  color: #000000 !important;
+}
+
+/* ACTIVE NAVIGATION STYLING */
+.nav-item.active {
+  border-left: 3px solid transparent !important;
+  border-image: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) 1 !important;
+  background: rgba(206, 27, 251, 0.1) !important;
+}
+
+.nav-item:hover:not(.active) {
+  border-left: 2px solid transparent !important;
+  border-image: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) 1 !important;
+}
+
+/* FORCE BRAND NAME GRADIENT - OVERRIDE VIEWENCAPSULATION */
+.brand-name, .brand-name.clickable {
+  background: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  font-weight: 700 !important;
+  font-size: 1.1rem !important;
+}
+
+[data-theme="light"] .brand-name,
+[data-theme="light"] .brand-name.clickable {
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: unset !important;
+  background-clip: unset !important;
+  color: #000000 !important;
+}
+
 .sidebar-container {
   width: var(--sidebar-width);
   height: calc(100vh - 40px);
@@ -52,14 +109,6 @@
   color: #fff;
 }
 
-.brand-name {
-  font-size: 1.1rem;
-  font-weight: 700;
-  background: linear-gradient(to right, #fff, var(--text-muted));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
 .brand-name.clickable {
   cursor: pointer;
   transition: all 0.3s ease;
@@ -68,10 +117,8 @@
 }
 
 .brand-name.clickable:hover {
-  background: linear-gradient(to right, var(--primary), #8b5cf6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   transform: translateX(2px);
+  text-shadow: 0 0 10px rgba(206, 27, 251, 0.4);
 }
 
 .sidebar-nav {
@@ -92,6 +139,7 @@
   border-radius: 12px;
   transition: all 0.2s;
   margin-bottom: 4px;
+  border-left: 3px solid transparent;
 }
 
 .nav-item:hover {
@@ -101,9 +149,8 @@
 
 .nav-item.active {
   color: #fff;
-  background: rgba(0, 210, 255, 0.15);
-  box-shadow: inset 0 0 10px var(--primary-glow);
-  border-left: 3px solid var(--primary);
+  background: rgba(206, 27, 251, 0.15);
+  box-shadow: inset 0 0 10px rgba(206, 27, 251, 0.3);
 }
 
 .material-icons {
@@ -121,16 +168,33 @@
   gap: 12px;
   width: 100%;
   padding: 12px;
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  border: 1px solid #ef4444;
-  color: white;
+  background: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) !important;
+  border: 1px solid transparent;
+  color: white !important;
   cursor: pointer;
   font-weight: 600;
   border-radius: 10px;
   transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(206, 27, 251, 0.3);
 }
 
 .logout-btn:hover {
-  background: linear-gradient(135deg, #dc2626, #b91c1c);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(206, 27, 251, 0.4);
+}
+
+/* Logout button icon and text - white color to show on gradient background */
+.logout-btn .material-icons,
+.logout-btn span:not(.material-icons) {
+  color: white !important;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: unset !important;
+  background-clip: unset !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="light"] .logout-btn .material-icons,
+[data-theme="light"] .logout-btn span:not(.material-icons) {
+  color: white !important;
 }

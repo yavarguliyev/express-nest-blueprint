@@ -97,7 +97,7 @@ export class TextTransformService {
    * @param fieldName - The original field name from database
    * @returns Formatted display name
    */
-  getDisplayName(fieldName: string): string {
+  getDisplayName (fieldName: string): string {
     // Check if we have a specific mapping
     if (this.fieldDisplayNames[fieldName]) {
       return this.fieldDisplayNames[fieldName];
@@ -111,7 +111,7 @@ export class TextTransformService {
    * Convert camelCase to UPPER CASE with spaces
    * Example: firstName -> FIRST NAME
    */
-  private camelCaseToUpperCase(str: string): string {
+  private camelCaseToUpperCase (str: string): string {
     return str
       // Insert space before uppercase letters
       .replace(/([a-z])([A-Z])/g, '$1 $2')
@@ -122,21 +122,21 @@ export class TextTransformService {
   /**
    * Get all registered field mappings (for debugging/admin purposes)
    */
-  getAllMappings(): Record<string, string> {
+  getAllMappings (): Record<string, string> {
     return { ...this.fieldDisplayNames };
   }
 
   /**
    * Register new field mappings at runtime (for dynamic extensions)
    */
-  registerFieldMapping(fieldName: string, displayName: string): void {
+  registerFieldMapping (fieldName: string, displayName: string): void {
     this.fieldDisplayNames[fieldName] = displayName;
   }
 
   /**
    * Register multiple field mappings at once
    */
-  registerFieldMappings(mappings: Record<string, string>): void {
+  registerFieldMappings (mappings: Record<string, string>): void {
     Object.assign(this.fieldDisplayNames, mappings);
   }
 }

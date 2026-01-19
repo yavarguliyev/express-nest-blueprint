@@ -1,16 +1,16 @@
-import { ApiController, BaseController, Get, HealthService, Roles } from '@config/libs';
+import { ApiController, BaseController, Get, HealthService, Roles, UserRoles } from '@config/libs';
 
 import { HealthComponentStatus } from '@modules/admin/interfaces/admin.interface';
 
 @ApiController({ path: '/admin/health' })
-@Roles('global admin', 'admin')
+@Roles(UserRoles.GLOBAL_ADMIN, UserRoles.ADMIN)
 export class AdminHealthController extends BaseController {
-  constructor(private readonly healthService: HealthService) {
+  constructor (private readonly healthService: HealthService) {
     super({ path: '/admin/health' });
   }
 
   @Get()
-  async getHealthStatus() {
+  async getHealthStatus () {
     const health = await this.healthService.checkHealth();
     const components: HealthComponentStatus[] = [];
 

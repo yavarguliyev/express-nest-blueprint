@@ -23,10 +23,12 @@
             <p class="setting-desc">{{ setting.description }}</p>
           </div>
           <div class="setting-action">
-            <label class="switch">
-              <input type="checkbox" [(ngModel)]="setting.value">
-              <span class="slider round"></span>
-            </label>
+            <app-toggle-switch 
+              [checked]="setting.value" 
+              [disabled]="loading()"
+              (toggleChange)="onToggleChange(setting.id, $event)"
+              size="medium">
+            </app-toggle-switch>
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-/* Centralized Table Styling - FIXED */
+/* Centralized Table Styling - Optimized */
 .table-scroll-container {
   overflow-x: auto;
   overflow-y: visible;
@@ -49,108 +49,50 @@
   font-size: 0.9rem;
 }
 
-/* Header Types */
-.header-id { background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.05)); color: #a5b4fc; }
-.header-text { color: var(--primary); }
-.header-email { color: #4ade80; }
-.header-number { color: #fbbf24; }
-.header-boolean { color: #a78bfa; }
-.header-date { color: #f472b6; }
-.header-image { color: #38bdf8; }
-.header-actions { color: #f87171; }
-.header-default { color: #94a3b8; }
-
-/* Cell Types */
-.cell-id { 
+/* Cell Base Styles */
+.cell-id, .cell-text, .cell-default, .cell-email, .cell-number, .cell-date { 
   font-family: 'JetBrains Mono', monospace; 
   font-weight: 600; 
-  color: #a5b4fc; 
   font-size: 0.85rem; 
 }
 
-.cell-text { 
-  font-family: 'JetBrains Mono', monospace; 
-  font-weight: 600; 
-  color: #a5b4fc; 
-  font-size: 0.85rem; 
-  white-space: nowrap;
+.cell-number { text-align: right; font-size: 0.9rem; }
+.cell-email { font-weight: 500; }
+.cell-boolean, .cell-actions { text-align: center; }
+
+/* Light Mode */
+[data-theme="light"] .crud-table th {
+  background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(124, 58, 237, 0.05));
+  color: var(--primary);
+  border-bottom: 2px solid rgba(0, 102, 204, 0.3);
 }
 
-.cell-email { 
-  font-family: 'JetBrains Mono', monospace; 
-  color: #4ade80; 
-  font-size: 0.85rem; 
-  font-weight: 500; 
-  white-space: nowrap;
+[data-theme="light"] .crud-table td {
+  color: #0f172a;
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
-.cell-number { 
-  font-family: 'JetBrains Mono', monospace; 
-  color: #fbbf24; 
-  font-weight: 600; 
-  font-size: 0.9rem; 
-  text-align: right;
+[data-theme="light"] .crud-row {
+  background: rgba(255, 255, 255, 0.6);
 }
 
-.cell-date { 
-  font-family: 'JetBrains Mono', monospace; 
-  color: var(--warning); 
-  font-size: 0.85rem; 
-  font-weight: 600; 
+[data-theme="light"] .crud-row:hover {
+  background: rgba(255, 255, 255, 0.9);
 }
 
-.cell-boolean {
-  text-align: center;
-}
-
-.cell-actions {
-  text-align: center;
-}
-
-.cell-default { 
-  font-family: 'JetBrains Mono', monospace; 
-  font-weight: 600; 
-  color: #a5b4fc; 
-  font-size: 0.85rem; 
-}
-
-/* Alignment */
-.text-left { text-align: left !important; }
-.text-center { text-align: center !important; }
-.text-right { text-align: right !important; }
-
-/* Hover Effects */
-.crud-table th:hover { 
-  background: linear-gradient(135deg, rgba(79, 172, 254, 0.1), rgba(139, 92, 246, 0.08)); 
-  transform: translateY(-1px); 
-  transition: all 0.2s ease; 
-}
-
-.crud-row:hover .cell-text, 
-.crud-row:hover .cell-email, 
-.crud-row:hover .cell-number, 
-.crud-row:hover .cell-date { 
-  color: white; 
-  transition: color 0.2s ease; 
-}
-
-/* Custom Scrollbar */
-.table-scroll-container::-webkit-scrollbar {
-  height: 8px;
-}
-
+/* Scrollbar */
+.table-scroll-container::-webkit-scrollbar { height: 8px; }
 .table-scroll-container::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 4px;
   margin: 0 12px;
 }
-
 .table-scroll-container::-webkit-scrollbar-thumb {
   background: linear-gradient(90deg, var(--primary), #8b5cf6);
   border-radius: 4px;
   border: 1px solid rgba(79, 172, 254, 0.3);
 }
-
 .table-scroll-container::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(90deg, #0ea5e9, var(--primary));
   box-shadow: 0 0 8px var(--primary-glow);
@@ -158,19 +100,10 @@
 
 /* Responsive */
 @media (max-width: 1200px) { 
-  .crud-table th, .crud-table td { 
-    padding: 12px 16px; 
-  } 
-  .crud-table th { 
-    font-size: 0.7rem; 
-  } 
-  .crud-table td { 
-    font-size: 0.85rem; 
-  } 
+  .crud-table th, .crud-table td { padding: 12px 16px; } 
+  .crud-table th { font-size: 0.7rem; } 
+  .crud-table td { font-size: 0.85rem; } 
 }
-
 @media (max-width: 768px) { 
-  .crud-table th, .crud-table td { 
-    padding: 10px 12px; 
-  } 
+  .crud-table th, .crud-table td { padding: 10px 12px; } 
 }

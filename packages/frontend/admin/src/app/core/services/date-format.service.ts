@@ -21,7 +21,7 @@ export class DateFormatService {
   private readonly userLocale: string;
   private readonly userTimezone: string;
 
-  constructor() {
+  constructor () {
     // Get user's locale from browser (e.g., 'en-US', 'tr-TR', 'de-DE')
     this.userLocale = navigator.language || 'en-US';
     
@@ -33,7 +33,7 @@ export class DateFormatService {
    * Format date for table display (compact format)
    * Example: "Jan 19, 14:30"
    */
-  formatForTable(dateValue: string | Date | null | undefined): string {
+  formatForTable (dateValue: string | Date | null | undefined): string {
     if (!dateValue) return '-';
     
     try {
@@ -48,8 +48,8 @@ export class DateFormatService {
         minute: '2-digit',
         hour12: false
       }).format(date);
-    } catch (error) {
-      console.warn('Date formatting error:', error);
+    } catch {
+      console.warn('Date formatting error');
       return 'Invalid Date';
     }
   }
@@ -58,7 +58,7 @@ export class DateFormatService {
    * Format date for detailed view (full format)
    * Example: "January 19, 2026 at 2:30 PM"
    */
-  formatDetailed(dateValue: string | Date | null | undefined): string {
+  formatDetailed (dateValue: string | Date | null | undefined): string {
     if (!dateValue) return 'Not set';
     
     try {
@@ -76,8 +76,8 @@ export class DateFormatService {
         second: '2-digit',
         timeZoneName: 'short'
       }).format(date);
-    } catch (error) {
-      console.warn('Date formatting error:', error);
+    } catch {
+      console.warn('Date formatting error');
       return 'Invalid Date';
     }
   }
@@ -85,7 +85,7 @@ export class DateFormatService {
   /**
    * Format relative time (e.g., "2 hours ago", "in 3 days")
    */
-  formatRelative(dateValue: string | Date | null | undefined): string {
+  formatRelative (dateValue: string | Date | null | undefined): string {
     if (!dateValue) return '-';
     
     try {
@@ -114,8 +114,8 @@ export class DateFormatService {
       }
       
       return rtf.format(0, 'second');
-    } catch (error) {
-      console.warn('Relative date formatting error:', error);
+    } catch {
+      console.warn('Relative date formatting error');
       return 'Invalid Date';
     }
   }
@@ -124,7 +124,7 @@ export class DateFormatService {
    * Format date only (no time)
    * Example: "Jan 19, 2026"
    */
-  formatDateOnly(dateValue: string | Date | null | undefined): string {
+  formatDateOnly (dateValue: string | Date | null | undefined): string {
     if (!dateValue) return '-';
     
     try {
@@ -137,8 +137,8 @@ export class DateFormatService {
         day: 'numeric',
         year: 'numeric'
       }).format(date);
-    } catch (error) {
-      console.warn('Date formatting error:', error);
+    } catch {
+      console.warn('Date formatting error');
       return 'Invalid Date';
     }
   }
@@ -147,7 +147,7 @@ export class DateFormatService {
    * Format time only (no date)
    * Example: "14:30"
    */
-  formatTimeOnly(dateValue: string | Date | null | undefined): string {
+  formatTimeOnly (dateValue: string | Date | null | undefined): string {
     if (!dateValue) return '-';
     
     try {
@@ -160,8 +160,8 @@ export class DateFormatService {
         minute: '2-digit',
         hour12: false
       }).format(date);
-    } catch (error) {
-      console.warn('Time formatting error:', error);
+    } catch {
+      console.warn('Time formatting error');
       return 'Invalid Time';
     }
   }
@@ -169,7 +169,7 @@ export class DateFormatService {
   /**
    * Check if a date is today
    */
-  isToday(dateValue: string | Date | null | undefined): boolean {
+  isToday (dateValue: string | Date | null | undefined): boolean {
     if (!dateValue) return false;
     
     try {
@@ -177,7 +177,7 @@ export class DateFormatService {
       const today = new Date();
       
       return date.toDateString() === today.toDateString();
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -185,7 +185,7 @@ export class DateFormatService {
   /**
    * Check if a date is within the last 24 hours
    */
-  isRecent(dateValue: string | Date | null | undefined): boolean {
+  isRecent (dateValue: string | Date | null | undefined): boolean {
     if (!dateValue) return false;
     
     try {
@@ -194,7 +194,7 @@ export class DateFormatService {
       const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
       
       return diffInHours >= 0 && diffInHours <= 24;
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -202,7 +202,7 @@ export class DateFormatService {
   /**
    * Get user's locale and timezone info (for debugging)
    */
-  getUserInfo(): { locale: string; timezone: string } {
+  getUserInfo (): { locale: string; timezone: string } {
     return {
       locale: this.userLocale,
       timezone: this.userTimezone

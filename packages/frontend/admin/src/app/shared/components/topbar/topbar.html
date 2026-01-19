@@ -8,6 +8,16 @@
       <span class="material-icons">notifications</span>
       <span class="badge"></span>
     </div>
+    
+    <!-- Theme Toggle -->
+    <div class="theme-toggle">
+      <app-toggle-switch 
+        [checked]="isDarkMode()"
+        (toggleChange)="toggleTheme()"
+        size="small">
+      </app-toggle-switch>
+    </div>
+    
     <div class="user-profile" routerLink="/profile">
       <div class="user-avatar glow">
         @if (user()?.profileImageUrl) {

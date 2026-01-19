@@ -8,22 +8,22 @@ import { AuthService } from '@modules/auth/auth.service';
 @Injectable()
 @ApiController({ path: '/auth' })
 export class AuthController extends BaseController {
-  constructor(private readonly authService: AuthService) {
+  constructor (private readonly authService: AuthService) {
     super({ path: '/auth' });
   }
 
   @Post('/login')
-  async login(@Body() loginDto: LoginDto): Promise<AuthResponseDto> {
+  async login (@Body() loginDto: LoginDto): Promise<AuthResponseDto> {
     return this.authService.login(loginDto, { allowedRoles: [UserRoles.ADMIN, UserRoles.MODERATOR, UserRoles.USER], context: 'user portal' });
   }
 
   @Post('/admin-login')
-  async adminLogin(@Body() loginDto: LoginDto): Promise<AuthResponseDto> {
-    return this.authService.login(loginDto, { allowedRoles: [UserRoles.GLOBAL_ADMIN], context: 'admin portal' });
+  async adminLogin (@Body() loginDto: LoginDto): Promise<AuthResponseDto> {
+    return this.authService.login(loginDto, { allowedRoles: [UserRoles.GLOBAL_ADMIN, UserRoles.ADMIN], context: 'admin portal' });
   }
 
   @Post('/register')
-  async register(@Body() registerDto: RegisterDto): Promise<AuthResponseDto> {
+  async register (@Body() registerDto: RegisterDto): Promise<AuthResponseDto> {
     return this.authService.register(registerDto);
   }
 }
