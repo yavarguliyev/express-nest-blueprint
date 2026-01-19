@@ -1,13 +1,13 @@
 <div class="sidebar-container glass">
   <div class="sidebar-header">
-    <div class="logo-sm glow">
+    <div class="logo-sm glow" (click)="navigateToProfile()">
       @if (user()?.profileImageUrl) {
         <img [src]="user()?.profileImageUrl" alt="Profile">
       } @else {
         <span class="user-initials">{{ getUserInitials() }}</span>
       }
     </div>
-    <span class="brand-name">{{ user()?.firstName }} {{ user()?.lastName }}</span>
+    <span class="brand-name clickable" (click)="navigateToProfile()">{{ user()?.firstName }} {{ user()?.lastName }}</span>
   </div>
 
   <nav class="sidebar-nav">

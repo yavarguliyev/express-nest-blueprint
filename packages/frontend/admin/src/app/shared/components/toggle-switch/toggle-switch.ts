@@ -1,0 +1,24 @@
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-toggle-switch',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './toggle-switch.html',
+  styleUrl: './toggle-switch.css',
+})
+export class ToggleSwitch {
+  @Input() checked: boolean = false;
+  @Input() disabled: boolean = false;
+  @Input() size: 'small' | 'medium' | 'large' = 'medium';
+  
+  @Output() toggleChange = new EventEmitter<boolean>();
+
+  onToggle(): void {
+    if (!this.disabled) {
+      this.checked = !this.checked;
+      this.toggleChange.emit(this.checked);
+    }
+  }
+}

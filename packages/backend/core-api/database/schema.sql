@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     password_hash VARCHAR(255),
-    role VARCHAR(50) DEFAULT 'user' CHECK (role IN ('admin', 'user', 'moderator')),
+    role VARCHAR(50) DEFAULT 'user' CHECK (role IN ('global admin', 'admin', 'user', 'moderator')),
     last_login TIMESTAMP WITH TIME ZONE,
     is_email_verified BOOLEAN DEFAULT false,
     profile_image_url VARCHAR(255)
@@ -37,18 +37,18 @@ CREATE TRIGGER update_users_updated_at
 
 -- Insert seed data with password_hash
 INSERT INTO users (email, first_name, last_name, is_active, is_email_verified, role, password_hash) VALUES
-    ('guliyev.yavar@example.com', 'Yavar', 'Guliyev', true, true, 'admin', '$2b$12$XfD0o9PAD8ji4foBV2YRy.PR4/s0f0QHRIFUUylndRMHq1bUAhcwG'),
-    ('john.doe@example.com', 'John', 'Doe', false, false, 'moderator', '$2b$12$XfD0o9PAD8ji4foBV2YRy.PR4/s0f0QHRIFUUylndRMHq1bUAhcwG'),
-    ('jane.smith@example.com', 'Jane', 'Smith', false, false, 'moderator', '$2b$12$XfD0o9PAD8ji4foBV2YRy.PR4/s0f0QHRIFUUylndRMHq1bUAhcwG'),
-    ('bob.johnson@example.com', 'Bob', 'Johnson', false, false, 'user', '$2b$12$XfD0o9PAD8ji4foBV2YRy.PR4/s0f0QHRIFUUylndRMHq1bUAhcwG'),
-    ('alice.wilson@example.com', 'Alice', 'Wilson', true, true, 'user', '$2b$12$XfD0o9PAD8ji4foBV2YRy.PR4/s0f0QHRIFUUylndRMHq1bUAhcwG'),
-    ('michael.brown@example.com', 'Michael', 'Brown', true, false, 'user', '$2b$12$XfD0o9PAD8ji4foBV2YRy.PR4/s0f0QHRIFUUylndRMHq1bUAhcwG'),
-    ('emily.davis@example.com', 'Emily', 'Davis', false, false, 'user', '$2b$12$XfD0o9PAD8ji4foBV2YRy.PR4/s0f0QHRIFUUylndRMHq1bUAhcwG'),
-    ('daniel.miller@example.com', 'Daniel', 'Miller', true, true, 'moderator', '$2b$12$XfD0o9PAD8ji4foBV2YRy.PR4/s0f0QHRIFUUylndRMHq1bUAhcwG'),
+    ('guliyev.yavar@example.com', 'Yavar', 'Guliyev', true, true, 'global admin', '$2b$12$XfD0o9PAD8ji4foBV2YRy.PR4/s0f0QHRIFUUylndRMHq1bUAhcwG'),
+    ('john.doe@example.com', 'John', 'Doe', false, false, 'admin', '$2b$12$XfD0o9PAD8ji4foBV2YRy.PR4/s0f0QHRIFUUylndRMHq1bUAhcwG'),
+    ('jane.smith@example.com', 'Jane', 'Smith', false, false, 'admin', '$2b$12$XfD0o9PAD8ji4foBV2YRy.PR4/s0f0QHRIFUUylndRMHq1bUAhcwG'),
+    ('bob.johnson@example.com', 'Bob', 'Johnson', false, false, 'admin', '$2b$12$XfD0o9PAD8ji4foBV2YRy.PR4/s0f0QHRIFUUylndRMHq1bUAhcwG'),
+    ('alice.wilson@example.com', 'Alice', 'Wilson', true, true, 'moderator', '$2b$12$XfD0o9PAD8ji4foBV2YRy.PR4/s0f0QHRIFUUylndRMHq1bUAhcwG'),
+    ('michael.brown@example.com', 'Michael', 'Brown', true, false, 'moderator', '$2b$12$XfD0o9PAD8ji4foBV2YRy.PR4/s0f0QHRIFUUylndRMHq1bUAhcwG'),
+    ('emily.davis@example.com', 'Emily', 'Davis', false, false, 'moderator', '$2b$12$XfD0o9PAD8ji4foBV2YRy.PR4/s0f0QHRIFUUylndRMHq1bUAhcwG'),
+    ('daniel.miller@example.com', 'Daniel', 'Miller', true, true, 'user', '$2b$12$XfD0o9PAD8ji4foBV2YRy.PR4/s0f0QHRIFUUylndRMHq1bUAhcwG'),
     ('sophia.moore@example.com', 'Sophia', 'Moore', true, false, 'user', '$2b$12$XfD0o9PAD8ji4foBV2YRy.PR4/s0f0QHRIFUUylndRMHq1bUAhcwG'),
     ('william.taylor@example.com', 'William', 'Taylor', false, false, 'user', '$2b$12$XfD0o9PAD8ji4foBV2YRy.PR4/s0f0QHRIFUUylndRMHq1bUAhcwG'),
     ('olivia.anderson@example.com', 'Olivia', 'Anderson', true, true, 'user', '$2b$12$XfD0o9PAD8ji4foBV2YRy.PR4/s0f0QHRIFUUylndRMHq1bUAhcwG'),
-    ('james.thomas@example.com', 'James', 'Thomas', true, false, 'moderator', '$2b$12$XfD0o9PAD8ji4foBV2YRy.PR4/s0f0QHRIFUUylndRMHq1bUAhcwG'),
+    ('james.thomas@example.com', 'James', 'Thomas', true, false, 'user', '$2b$12$XfD0o9PAD8ji4foBV2YRy.PR4/s0f0QHRIFUUylndRMHq1bUAhcwG'),
     ('charlotte.jackson@example.com', 'Charlotte', 'Jackson', false, false, 'user', '$2b$12$XfD0o9PAD8ji4foBV2YRy.PR4/s0f0QHRIFUUylndRMHq1bUAhcwG'),
     ('henry.white@example.com', 'Henry', 'White', true, true, 'user', '$2b$12$XfD0o9PAD8ji4foBV2YRy.PR4/s0f0QHRIFUUylndRMHq1bUAhcwG')
 ON CONFLICT (email) DO NOTHING;

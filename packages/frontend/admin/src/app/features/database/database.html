@@ -1,4 +1,3 @@
-
 <div class="database-page animate-fade-in">
   <div class="page-header">
     <div class="header-content">
@@ -45,49 +44,60 @@
               </div>
             </div>
 
-            <div class="table-scroll-container">
+            <!-- Scroll hint for wide tables -->
+            <div class="scroll-hint" *ngIf="table.columns.length > 6">
+              <span class="material-icons">swipe</span>
+              <span>Scroll horizontally to view all columns</span>
+            </div>
+
+            <div class="table-scroll-container" #tableScrollContainer>
               <div *ngIf="loadingData()" class="shimmer-overlay"></div>
               
               <table class="crud-table">
                 <thead>
                   <tr>
-                    <th *ngFor="let col of table.columns" [class.text-center]="col.type === 'boolean'">
-                      {{ col.name }}
+                    <th *ngFor="let col of table.columns" 
+                        [class]="getHeaderClasses(col.name, col.type)"
+                        [ngStyle]="getColumnStyles(col.name, col.type)">
+                      {{ getFieldDisplayName(col.name) }}
                     </th>
-                    <th class="text-right">Actions</th>
+                    <th class="header-actions text-center" style="width: 160px; min-width: 160px;">
+                      ACTIONS
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr *ngFor="let row of tableData()" class="crud-row">
-                    <td *ngFor="let col of table.columns" [class.text-center]="col.type === 'boolean'">
+                    <td *ngFor="let col of table.columns" 
+                        [class]="getCellClasses(col.name, col.type)"
+                        [ngStyle]="getColumnStyles(col.name, col.type)">
+                      <!-- Boolean toggle switch -->
+                      <div *ngIf="col.type === 'boolean'">
+                        <app-toggle-switch 
+                          [checked]="row[col.name]" 
+                          (toggleChange)="updateBooleanValue(row, col, $event)"
+                          size="medium">
+                        </app-toggle-switch>
+                      </div>
+
                       <!-- Image projection -->
                       <div *ngIf="isImageUrl(col.name) && row[col.name]" class="avatar-cell">
                         <img [src]="row[col.name]" class="cell-img">
                       </div>
-                      
-                      <!-- Boolean toggle projection -->
-                      <div *ngIf="col.type === 'boolean'" class="toggle-container">
-                        <button class="toggle-btn" 
-                                [ngClass]="row[col.name] ? 'active' : 'inactive'" 
-                                (click)="toggleBoolean(row, col)">
-                          <span class="dot"></span>
-                          {{ row[col.name] ? 'Active' : 'Offline' }}
-                        </button>
-                      </div>
 
-                      <!-- Generic value projection -->
-                      <span *ngIf="!isImageUrl(col.name) && col.type !== 'boolean'" class="cell-text">
+                      <!-- All other values (including dates) -->
+                      <span *ngIf="!isImageUrl(col.name) && col.type !== 'boolean'" class="cell-content">
                         {{ formatValue(row[col.name], col) }}
                       </span>
                     </td>
-                    <td class="text-right">
-                      <div class="action-orbit">
-                        <button class="orbit-btn danger" 
-                                (click)="deleteRecord(row['id'])" 
-                                title="Purge Record">
-                          <span class="material-icons">delete_sweep</span>
-                        </button>
-                      </div>
+                    <td class="cell-actions text-center" style="width: 160px;">
+                      <app-action-buttons
+                        [updateConfig]="{ show: true, disabled: false, tooltip: 'Update Record' }"
+                        [deleteConfig]="{ show: true, disabled: false, tooltip: 'Purge Record' }"
+                        (updateClick)="updateRecord(row['id'])"
+                        (deleteClick)="deleteRecord(row['id'])"
+                        size="medium">
+                      </app-action-buttons>
                     </td>
                   </tr>
                   
@@ -118,6 +128,82 @@
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Update Modal -->
+  <div class="modal-overlay" *ngIf="showUpdateModal()" (click)="closeUpdateModal()">
+    <div class="modal-content glass" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Update Record</h3>
+        <button class="close-btn" (click)="closeUpdateModal()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      
+      <div class="modal-body" *ngIf="selectedTable() && selectedRecord()">
+        <div class="form-container">
+          <div *ngFor="let col of selectedTable()!.columns" class="form-field">
+            <div *ngIf="col.editable && !isFieldExcludedFromUpdate(col.name)">
+              <label class="field-label">{{ getFieldDisplayName(col.name) }}</label>
+              
+              <!-- Role dropdown (special case) -->
+              <select 
+                *ngIf="col.name === 'role'"
+                class="form-input role-select"
+                [class.disabled]="isFieldDisabled(col.name)"
+                [class.invalid]="isRoleInvalid()"
+                [disabled]="isFieldDisabled(col.name)"
+                [(ngModel)]="updateFormData()[col.name]"
+                (ngModelChange)="updateFormField(col.name, $event)">
+                <option value="">Select Role</option>
+                <option *ngFor="let role of getAvailableRoles()" 
+                        [value]="role.value">
+                  {{ role.label }}
+                </option>
+              </select>
+              
+              <!-- Role validation message -->
+              <div *ngIf="col.name === 'role' && isRoleInvalid()" class="validation-message">
+                Please select a valid role
+              </div>
+              
+              <!-- Text/String inputs (excluding role) -->
+              <input 
+                *ngIf="(col.type === 'string' || col.type === 'text') && col.name !== 'role'"
+                type="text"
+                class="form-input"
+                [class.disabled]="isFieldDisabled(col.name)"
+                [disabled]="isFieldDisabled(col.name)"
+                [value]="updateFormData()[col.name] || ''"
+                (input)="updateFormField(col.name, $any($event.target).value)"
+                [placeholder]="'Enter ' + getFieldDisplayName(col.name)">
+              
+              <!-- Number inputs -->
+              <input 
+                *ngIf="col.type === 'number' || col.type === 'integer'"
+                type="number"
+                class="form-input"
+                [class.disabled]="isFieldDisabled(col.name)"
+                [disabled]="isFieldDisabled(col.name)"
+                [value]="updateFormData()[col.name] || ''"
+                (input)="updateFormField(col.name, +$any($event.target).value)"
+                [placeholder]="'Enter ' + getFieldDisplayName(col.name)">
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeUpdateModal()">Cancel</button>
+        <button class="btn btn-primary" 
+                [class.disabled]="isFormInvalid()"
+                [disabled]="isFormInvalid()"
+                (click)="submitUpdate()">
+          <span class="material-icons">save</span>
+          Update Record
+        </button>
       </div>
     </div>
   </div>

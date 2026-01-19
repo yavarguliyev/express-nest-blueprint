@@ -1,0 +1,140 @@
+/* Centralized Action Buttons Component */
+.action-buttons-container {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-weight: 500;
+  position: relative;
+  overflow: hidden;
+}
+
+.action-btn:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  border-radius: inherit;
+  transition: opacity 0.3s ease;
+  opacity: 0;
+}
+
+.action-btn:hover:before {
+  opacity: 1;
+}
+
+.action-btn .material-icons {
+  font-size: inherit;
+  color: white;
+  transition: transform 0.2s ease;
+}
+
+.action-btn:hover .material-icons {
+  transform: scale(1.1);
+}
+
+.action-btn:active {
+  transform: scale(0.95);
+}
+
+.action-btn.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Update Button - Primary Blue Gradient */
+.update-btn {
+  background: linear-gradient(135deg, var(--primary), #8b5cf6);
+  border: 1px solid var(--primary);
+  box-shadow: 0 4px 15px var(--primary-glow);
+}
+
+.update-btn:hover {
+  background: linear-gradient(135deg, #0ea5e9, var(--primary));
+  box-shadow: 0 6px 20px var(--primary-glow);
+  transform: translateY(-2px);
+}
+
+.update-btn:active {
+  transform: translateY(-1px) scale(0.95);
+}
+
+/* Delete Button - Red Gradient (matching your image) */
+.delete-btn {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  border: 1px solid #ef4444;
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+
+.delete-btn:hover {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+  transform: translateY(-2px);
+}
+
+.delete-btn:active {
+  transform: translateY(-1px) scale(0.95);
+}
+
+/* Size Variants */
+.size-small .action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 16px;
+}
+
+.size-small .action-btn .material-icons {
+  font-size: 16px;
+}
+
+.size-medium .action-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+}
+
+.size-medium .action-btn .material-icons {
+  font-size: 20px;
+}
+
+.size-large .action-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 24px;
+}
+
+.size-large .action-btn .material-icons {
+  font-size: 24px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .action-buttons-container {
+    gap: 6px;
+  }
+  
+  .size-medium .action-btn {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .size-medium .action-btn .material-icons {
+    font-size: 18px;
+  }
+}

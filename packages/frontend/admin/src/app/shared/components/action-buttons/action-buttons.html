@@ -1,0 +1,21 @@
+<div class="action-buttons-container" [class]="'size-' + size">
+  <!-- Update Button -->
+  <button 
+    *ngIf="updateConfig.show"
+    class="action-btn update-btn" 
+    [class.disabled]="updateConfig.disabled"
+    [title]="updateConfig.tooltip || 'Update Record'"
+    (click)="onUpdate()">
+    <span class="material-icons">edit</span>
+  </button>
+
+  <!-- Delete Button -->
+  <button 
+    *ngIf="deleteConfig.show"
+    class="action-btn delete-btn" 
+    [class.disabled]="deleteConfig.disabled"
+    [title]="deleteConfig.tooltip || 'Delete Record'"
+    (click)="onDelete()">
+    <span class="material-icons">delete</span>
+  </button>
+</div>

@@ -1,9 +1,10 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, OnDestroy, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
+import { TextTransformService } from '../../core/services/text-transform.service';
 
 interface ProfileForm {
   firstName: string;
@@ -30,10 +31,11 @@ interface ErrorResponse {
   templateUrl: './profile.html',
   styleUrl: './profile.css',
 })
-export class Profile implements OnInit {
+export class Profile implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private toastService = inject(ToastService);
   private http = inject(HttpClient);
+  private textTransform = inject(TextTransformService);
 
   user = this.authService.currentUser;
   loading = signal(false);
@@ -48,19 +50,52 @@ export class Profile implements OnInit {
     lastName: ''
   };
 
+  private visibilityListener?: () => void;
+
+  constructor() {
+    // Effect to update form when user data changes
+    effect(() => {
+      const currentUser = this.user();
+      if (currentUser) {
+        this.updateFormFromUser(currentUser);
+      }
+    });
+  }
+
   ngOnInit () {
     void this.authService.syncProfile();
     this.initializeForm();
+    this.setupVisibilityListener();
+  }
+
+  ngOnDestroy() {
+    if (this.visibilityListener) {
+      document.removeEventListener('visibilitychange', this.visibilityListener);
+    }
+  }
+
+  private setupVisibilityListener() {
+    this.visibilityListener = () => {
+      if (!document.hidden) {
+        // Page became visible, refresh profile data
+        void this.authService.syncProfile();
+      }
+    };
+    document.addEventListener('visibilitychange', this.visibilityListener);
+  }
+
+  private updateFormFromUser(user: any) {
+    this.profileForm = {
+      firstName: user.firstName || '',
+      lastName: user.lastName || ''
+    };
+    this.originalForm = { ...this.profileForm };
   }
 
   private initializeForm () {
     const currentUser = this.user();
     if (currentUser) {
-      this.profileForm = {
-        firstName: currentUser.firstName || '',
-        lastName: currentUser.lastName || ''
-      };
-      this.originalForm = { ...this.profileForm };
+      this.updateFormFromUser(currentUser);
     }
   }
 
@@ -128,6 +163,11 @@ export class Profile implements OnInit {
         input.value = '';
       }
     }
+  }
+
+  // Helper method to get display name for field
+  getFieldDisplayName(fieldName: string): string {
+    return this.textTransform.getDisplayName(fieldName);
   }
 
   deleteAvatar () {

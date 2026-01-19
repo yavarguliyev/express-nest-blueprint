@@ -15,12 +15,13 @@ export class UsersRepository extends BaseRepository<UserResponseDto> {
       isEmailVerified: 'is_email_verified',
       password: 'password_hash',
       createdAt: 'created_at',
-      updatedAt: 'updated_at'
+      updatedAt: 'updated_at',
+      lastLogin: 'last_login'
     });
   }
 
   protected getSelectColumns (): string[] {
-    return ['id', 'email', 'firstName', 'lastName', 'role', 'isActive', 'profileImageUrl', 'isEmailVerified', 'createdAt', 'updatedAt'];
+    return ['id', 'email', 'firstName', 'lastName', 'role', 'isActive', 'profileImageUrl', 'isEmailVerified', 'createdAt', 'updatedAt', 'lastLogin'];
   }
 
   async findByEmail (email: string, connection?: DatabaseAdapter): Promise<UserResponseDto | null> {

@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
@@ -12,6 +12,7 @@ import { AuthService } from '../../../core/services/auth.service';
 })
 export class Sidebar {
   private authService = inject(AuthService);
+  private router = inject(Router);
   
   user = this.authService.currentUser;
 
@@ -41,6 +42,10 @@ export class Sidebar {
     const initials = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
     console.log('Sidebar - Generated initials:', initials); // Debug log
     return initials;
+  }
+
+  navigateToProfile() {
+    void this.router.navigate(['/profile']);
   }
 
   logout () {

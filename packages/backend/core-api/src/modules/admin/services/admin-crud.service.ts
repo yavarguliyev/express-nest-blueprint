@@ -230,9 +230,13 @@ export class AdminCrudService {
         { name: 'email', type: 'string', required: true, editable: true },
         { name: 'firstName', type: 'string', required: true, editable: true },
         { name: 'lastName', type: 'string', required: true, editable: true },
+        { name: 'role', type: 'string', required: true, editable: true },
         { name: 'isActive', type: 'boolean', required: true, editable: true },
         { name: 'profileImageUrl', type: 'string', required: false, editable: true },
-        { name: 'isEmailVerified', type: 'boolean', required: true, editable: true }
+        { name: 'isEmailVerified', type: 'boolean', required: true, editable: true },
+        { name: 'createdAt', type: 'datetime', required: true, editable: false },
+        { name: 'updatedAt', type: 'datetime', required: true, editable: false },
+        { name: 'lastLogin', type: 'datetime', required: false, editable: false }
       ];
     }
 

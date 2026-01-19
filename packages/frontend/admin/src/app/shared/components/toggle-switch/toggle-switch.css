@@ -1,0 +1,129 @@
+/* Centralized Toggle Switch Component */
+.toggle-switch-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 0;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toggle-switch.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.toggle-input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.toggle-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 26px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.toggle-slider:before {
+  content: "";
+  position: absolute;
+  background: linear-gradient(135deg, #ffffff, #f8fafc);
+  border-radius: 50%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-input:checked + .toggle-slider {
+  background: linear-gradient(135deg, var(--primary), #8b5cf6);
+  border: 1px solid var(--primary);
+  box-shadow: 0 4px 15px var(--primary-glow);
+}
+
+.toggle-input:checked + .toggle-slider:before {
+  background: linear-gradient(135deg, #ffffff, #f1f5f9);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2), 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+.toggle-switch:hover .toggle-slider:not(.disabled) {
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.toggle-input:checked + .toggle-slider:hover:not(.disabled) {
+  background: linear-gradient(135deg, #0ea5e9, var(--primary));
+  box-shadow: 0 6px 20px var(--primary-glow);
+  transform: translateY(-1px);
+}
+
+.toggle-slider:active:not(.disabled) {
+  transform: scale(0.98);
+}
+
+.toggle-input:checked + .toggle-slider:active:not(.disabled) {
+  transform: scale(0.98) translateY(-1px);
+}
+
+/* Size Variants */
+.size-small .toggle-switch {
+  width: 36px;
+  height: 20px;
+}
+
+.size-small .toggle-slider:before {
+  height: 14px;
+  width: 14px;
+  left: 2px;
+  top: 2px;
+}
+
+.size-small .toggle-input:checked + .toggle-slider:before {
+  transform: translateX(16px);
+}
+
+.size-medium .toggle-switch {
+  width: 48px;
+  height: 26px;
+}
+
+.size-medium .toggle-slider:before {
+  height: 18px;
+  width: 18px;
+  left: 2px;
+  top: 2px;
+}
+
+.size-medium .toggle-input:checked + .toggle-slider:before {
+  transform: translateX(22px);
+}
+
+.size-large .toggle-switch {
+  width: 56px;
+  height: 30px;
+}
+
+.size-large .toggle-slider:before {
+  height: 22px;
+  width: 22px;
+  left: 2px;
+  top: 2px;
+}
+
+.size-large .toggle-input:checked + .toggle-slider:before {
+  transform: translateX(26px);
+}

@@ -24,15 +24,21 @@ import { Topbar } from '../topbar/topbar';
       .app-layout {
         display: flex;
         min-height: 100vh;
+        overflow-x: visible; /* Allow horizontal overflow */
       }
       .main-content {
         flex: 1;
         display: flex;
         flex-direction: column;
+        overflow-x: visible; /* Allow horizontal overflow */
+        min-width: 0; /* Allow flex item to shrink */
       }
       .page-container {
         padding: 0 20px 20px calc(var(--sidebar-width) + 40px);
         flex: 1;
+        overflow-x: visible; /* Allow horizontal overflow */
+        min-width: 0; /* Allow flex item to shrink */
+        width: 100%;
       }
     `,
   ],

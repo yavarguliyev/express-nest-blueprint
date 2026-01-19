@@ -44,7 +44,7 @@
       <h3>Personal Information</h3>
       <form class="profile-form" (ngSubmit)="saveProfile()">
         <div class="form-group">
-          <label for="email">Email Address</label>
+          <label for="email">{{ getFieldDisplayName('email') }}</label>
           <input 
             type="email" 
             id="email" 
@@ -57,7 +57,7 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label for="firstName">First Name</label>
+            <label for="firstName">{{ getFieldDisplayName('firstName') }}</label>
             <input 
               type="text" 
               id="firstName" 
@@ -69,7 +69,7 @@
               required>
           </div>
           <div class="form-group">
-            <label for="lastName">Last Name</label>
+            <label for="lastName">{{ getFieldDisplayName('lastName') }}</label>
             <input 
               type="text" 
               id="lastName" 

@@ -15,7 +15,7 @@
   padding: 30px 20px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 4px;
 }
 
 .logo-sm {
@@ -30,6 +30,13 @@
   font-weight: 800;
   color: #fff;
   overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.logo-sm:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px var(--primary-glow);
 }
 
 .logo-sm img {
@@ -51,6 +58,20 @@
   background: linear-gradient(to right, #fff, var(--text-muted));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+.brand-name.clickable {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.brand-name.clickable:hover {
+  background: linear-gradient(to right, var(--primary), #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transform: translateX(2px);
 }
 
 .sidebar-nav {

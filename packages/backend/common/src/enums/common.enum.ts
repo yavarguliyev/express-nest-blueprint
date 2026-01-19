@@ -27,6 +27,7 @@ export enum LogLevel {
 }
 
 export enum UserRoles {
+  GLOBAL_ADMIN = 'global admin',
   ADMIN = 'admin',
   USER = 'user',
   MODERATOR = 'moderator'
