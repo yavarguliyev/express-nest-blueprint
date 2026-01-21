@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ThemeEditorService, CssToken } from '../../core/services/theme-editor.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { ToastService } from '../../core/services/toast.service';
+import { ThemeSidebarService } from '../../core/services/theme-sidebar.service';
 import { ToggleSwitch } from '../../shared/components/toggle-switch/toggle-switch';
 import { ColorPicker } from './components/color-picker/color-picker';
 import { FontSelector } from './components/font-selector/font-selector';
@@ -20,12 +21,14 @@ export class ThemeEditor implements OnInit {
   themeEditorService = inject(ThemeEditorService);
   private themeService = inject(ThemeService);
   private toastService = inject(ToastService);
+  themeSidebarService = inject(ThemeSidebarService);
 
   tokens = this.themeEditorService.tokens;
   loading = this.themeEditorService.loading;
   currentTheme = this.themeService.currentTheme;
   draftCount = this.themeEditorService.draftCount;
   hasDrafts = this.themeEditorService.hasDrafts;
+  isSidebarCollapsed = this.themeSidebarService.isCollapsed;
 
   selectedCategory = signal<string>('colors');
   showPreview = signal(true);
@@ -57,6 +60,10 @@ export class ThemeEditor implements OnInit {
 
   selectCategory (category: string): void {
     this.selectedCategory.set(category);
+  }
+
+  toggleThemeSidebar (): void {
+    this.themeSidebarService.toggle();
   }
 
   isDarkMode (): boolean {

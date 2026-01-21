@@ -73,10 +73,17 @@
   <!-- Main Content -->
   <div class="theme-editor-content" [class.with-preview]="showPreview()">
     <!-- Sidebar -->
-    <div class="theme-sidebar">
+    <div class="theme-sidebar" [class.collapsed]="themeSidebarService.isCollapsed()">
+      <!-- Toggle Button -->
+      <button class="sidebar-toggle" (click)="themeSidebarService.toggle()" [title]="themeSidebarService.isCollapsed() ? 'Expand Sidebar' : 'Collapse Sidebar'">
+        <span class="material-icons">{{ themeSidebarService.isCollapsed() ? 'menu_open' : 'menu' }}</span>
+      </button>
+
       <!-- Category Navigation -->
       <div class="category-nav">
-        <h3 class="nav-title">Categories</h3>
+        @if (!themeSidebarService.isCollapsed()) {
+          <h3 class="nav-title">Categories</h3>
+        }
 
         @if (loading()) {
           <div class="loading-categories">
@@ -90,11 +97,14 @@
                 class="category-item"
                 [class.active]="selectedCategory() === category"
                 (click)="selectCategory(category)"
+                [title]="themeSidebarService.isCollapsed() ? getCategoryDisplayName(category) : ''"
               >
                 <span class="category-icon">{{ getCategoryIcon(category) }}</span>
-                <span class="category-name">{{ getCategoryDisplayName(category) }}</span>
-                @if (hasChangesInCategory(category)) {
-                  <span class="category-badge">•</span>
+                @if (!themeSidebarService.isCollapsed()) {
+                  <span class="category-name">{{ getCategoryDisplayName(category) }}</span>
+                  @if (hasChangesInCategory(category)) {
+                    <span class="category-badge">•</span>
+                  }
                 }
               </button>
             }

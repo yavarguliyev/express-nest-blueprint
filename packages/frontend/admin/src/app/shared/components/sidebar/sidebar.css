@@ -67,6 +67,47 @@
   top: 0;
   z-index: 100;
   overflow: hidden;
+  transition: width 0.3s ease;
+}
+
+.sidebar-container.collapsed {
+  width: 80px;
+}
+
+/* Toggle Button */
+.sidebar-toggle {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 102;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.sidebar-toggle:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.sidebar-toggle .material-icons {
+  font-size: 16px;
+  color: var(--text-main);
+  transition: color 0.2s ease;
+}
+
+.sidebar-toggle:hover .material-icons {
+  color: white;
 }
 
 .sidebar-header {
@@ -74,6 +115,12 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  transition: all 0.3s ease;
+}
+
+.sidebar-container.collapsed .sidebar-header {
+  justify-content: center;
+  padding: 30px 10px;
 }
 
 .logo-sm {
@@ -127,6 +174,10 @@
   padding: 0 10px;
 }
 
+.sidebar-container.collapsed .sidebar-nav {
+  padding: 0 5px;
+}
+
 .sidebar-nav ul {
   list-style: none;
 }
@@ -141,6 +192,12 @@
   transition: all 0.2s;
   margin-bottom: 4px;
   border-left: 3px solid transparent;
+}
+
+.sidebar-container.collapsed .nav-item {
+  justify-content: center;
+  padding: 14px 8px;
+  gap: 0;
 }
 
 .nav-item:hover {
@@ -163,13 +220,21 @@
   border-top: 1px solid var(--border);
 }
 
+.sidebar-container.collapsed .sidebar-footer {
+  padding: 20px 10px;
+}
+
 .logout-btn {
   display: flex;
   align-items: center;
   gap: 12px;
   width: 100%;
   padding: 12px;
-  background: linear-gradient(81deg, #ce1bfb 10.86%, #35e6cc 89.96%) !important;
+  background: linear-gradient(
+    81deg,
+    var(--btn-primary-start) 10.86%,
+    var(--btn-primary-end) 89.96%
+  ) !important;
   border: 0px solid transparent;
   color: white !important;
   cursor: pointer;
@@ -177,6 +242,12 @@
   border-radius: 10px;
   transition: all 0.2s;
   box-shadow: 0 4px 12px rgba(206, 27, 251, 0.3);
+}
+
+.sidebar-container.collapsed .logout-btn {
+  justify-content: center;
+  gap: 0;
+  padding: 12px 8px;
 }
 
 .logout-btn:hover {

@@ -182,10 +182,15 @@
   display: flex;
   flex: 1;
   overflow: hidden;
+  transition: all 0.3s ease;
 }
 
 .theme-editor-content.with-preview {
   grid-template-columns: 280px 1fr 400px;
+}
+
+.theme-editor-content.with-preview .theme-sidebar.collapsed {
+  width: 80px;
 }
 
 /* Sidebar */
@@ -195,10 +200,57 @@
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
+  position: relative;
+  transition: width 0.3s ease;
+}
+
+.theme-sidebar.collapsed {
+  width: 80px;
+}
+
+/* Toggle Button - matching main sidebar */
+.sidebar-toggle {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  width: 18px;
+  height: 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 102;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.sidebar-toggle:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.sidebar-toggle .material-icons {
+  font-size: 16px;
+  color: var(--text-main);
+  transition: color 0.2s ease;
+}
+
+.sidebar-toggle:hover .material-icons {
+  color: white;
 }
 
 .category-nav {
   padding: 1.5rem;
+  transition: padding 0.3s ease;
+}
+
+.theme-sidebar.collapsed .category-nav {
+  padding: 1.5rem 0.5rem;
 }
 
 .nav-title {
@@ -237,6 +289,12 @@
   transition: all 0.2s ease;
   text-align: left;
   position: relative;
+}
+
+.theme-sidebar.collapsed .category-item {
+  justify-content: center;
+  padding: 0.75rem 0.5rem;
+  gap: 0;
 }
 
 .category-item:hover {
@@ -281,6 +339,11 @@
   flex: 1;
   overflow-y: auto;
   padding: 2rem;
+  transition: margin-left 0.3s ease;
+}
+
+.theme-sidebar.collapsed ~ .token-editor {
+  margin-left: 0;
 }
 
 .loading-tokens {
@@ -312,6 +375,11 @@
   max-width: 800px;
 }
 
+/* When preview is hidden, allow full width for better 3-column layout */
+.theme-editor-content:not(.with-preview) .tokens-container {
+  max-width: none;
+}
+
 .category-header {
   margin-bottom: 2rem;
 }
@@ -336,6 +404,17 @@
   display: grid;
   gap: 1.5rem;
   grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+}
+
+/* When preview is hidden, show 3 columns with smaller cards */
+.theme-editor-content:not(.with-preview) .tokens-grid {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  max-width: none;
+}
+
+/* When both sidebar is collapsed AND preview is hidden, maximize space usage */
+.theme-editor-content:not(.with-preview) .theme-sidebar.collapsed ~ .token-editor .tokens-grid {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 }
 
 /* Token Cards */
@@ -616,8 +695,24 @@
     grid-template-columns: 280px 1fr 350px;
   }
 
+  .theme-editor-content.with-preview .theme-sidebar.collapsed {
+    width: 80px;
+  }
+
   .preview-panel {
     width: 350px;
+  }
+
+  /* When preview is hidden on medium screens, still show 3 columns but smaller */
+  .theme-editor-content:not(.with-preview) .tokens-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+}
+
+@media (max-width: 1024px) {
+  /* On smaller screens without preview, show 2 columns */
+  .theme-editor-content:not(.with-preview) .tokens-grid {
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   }
 }
 
@@ -641,6 +736,11 @@
     width: 100%;
     max-height: 200px;
     overflow-y: auto;
+  }
+
+  .theme-sidebar.collapsed {
+    width: 100%;
+    max-height: 80px;
   }
 
   .category-list {

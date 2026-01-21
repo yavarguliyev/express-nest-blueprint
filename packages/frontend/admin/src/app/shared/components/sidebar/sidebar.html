@@ -1,4 +1,9 @@
-<div class="sidebar-container glass">
+<div class="sidebar-container glass" [class.collapsed]="isCollapsed()">
+  <!-- Toggle Button -->
+  <button class="sidebar-toggle" (click)="toggleSidebar()" [title]="isCollapsed() ? 'Expand Sidebar' : 'Collapse Sidebar'">
+    <span class="material-icons">{{ isCollapsed() ? 'menu_open' : 'menu' }}</span>
+  </button>
+
   <div class="sidebar-header">
     <div class="logo-sm glow" (click)="navigateToProfile()">
       @if (user()?.profileImageUrl) {
@@ -7,16 +12,20 @@
         <span class="user-initials">{{ getUserInitials() }}</span>
       }
     </div>
-    <span class="brand-name clickable" (click)="navigateToProfile()">{{ user()?.firstName }} {{ user()?.lastName }}</span>
+    @if (!isCollapsed()) {
+      <span class="brand-name clickable" (click)="navigateToProfile()">{{ user()?.firstName }} {{ user()?.lastName }}</span>
+    }
   </div>
 
   <nav class="sidebar-nav">
     <ul>
       @for (item of menuItems; track item.route) {
         <li>
-          <a [routerLink]="item.route" routerLinkActive="active" class="nav-item">
+          <a [routerLink]="item.route" routerLinkActive="active" class="nav-item" [title]="isCollapsed() ? item.label : ''">
             <span class="material-icons">{{ item.icon }}</span>
-            <span class="nav-label">{{ item.label }}</span>
+            @if (!isCollapsed()) {
+              <span class="nav-label">{{ item.label }}</span>
+            }
           </a>
         </li>
       }
@@ -24,9 +33,11 @@
   </nav>
 
   <div class="sidebar-footer">
-    <button (click)="logout()" class="logout-btn">
+    <button (click)="logout()" class="logout-btn" [title]="isCollapsed() ? 'Logout' : ''">
       <span class="material-icons">logout</span>
-      <span>Logout</span>
+      @if (!isCollapsed()) {
+        <span>Logout</span>
+      }
     </button>
   </div>
 </div>

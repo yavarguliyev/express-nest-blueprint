@@ -729,31 +729,32 @@ select.form-input.disabled {
   justify-content: center;
 }
 
-.btn-secondary {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--secondary);
-  border: 2px solid rgba(255, 255, 255, 0.15);
+html body .btn-secondary {
+  background: var(--btn-secondary-bg) !important;
+  color: var(--secondary) !important;
+  border: 2px solid rgba(255, 255, 255, 0.15) !important;
 }
 
-.btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: white;
-  border-color: rgba(255, 255, 255, 0.25);
-  transform: translateY(-2px);
+html body .btn-secondary:hover {
+  background: var(--btn-secondary-hover) !important;
+  color: white !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  transform: translateY(-2px) !important;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary), #8b5cf6);
+  background: linear-gradient(81deg, var(--btn-primary-start) 10.86%, var(--btn-primary-end) 89.96%) !important;
   color: white;
-  border: 2px solid var(--primary);
+  border: 2px solid transparent;
   box-shadow: 0 8px 25px var(--primary-glow);
 }
 
-.btn-primary:hover {
-  background: linear-gradient(135deg, #0ea5e9, var(--primary));
-  box-shadow: 0 12px 35px var(--primary-glow);
-  transform: translateY(-3px);
-  border-color: #0ea5e9;
+html body .btn-primary:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(81deg, var(--btn-primary-hover-start, var(--btn-primary-start)) 10.86%, var(--btn-primary-hover-end, var(--btn-primary-end)) 89.96%) !important;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5);
+  border-color: transparent;
+  scale: 1.02 !important;
 }
 
 .btn-primary:active {
@@ -762,18 +763,17 @@ select.form-input.disabled {
 
 .btn-primary.disabled,
 .btn-primary:disabled {
-  opacity: 0.5;
+  opacity: 0.3;
   cursor: not-allowed;
-  background: rgba(79, 172, 254, 0.3);
-  border-color: rgba(79, 172, 254, 0.3);
+  background: linear-gradient(81deg, var(--btn-primary-start), var(--btn-primary-end));
   box-shadow: none;
   transform: none;
 }
 
 .btn-primary.disabled:hover,
 .btn-primary:disabled:hover {
-  background: rgba(79, 172, 254, 0.3);
-  border-color: rgba(79, 172, 254, 0.3);
+  background: linear-gradient(81deg, var(--btn-primary-start), var(--btn-primary-end));
+  opacity: 0.3;
   box-shadow: none;
   transform: none;
 }

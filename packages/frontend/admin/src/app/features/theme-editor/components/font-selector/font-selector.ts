@@ -34,6 +34,7 @@ export interface FontChangeEvent {
           type="text"
           class="custom-font-input"
           [value]="isCustomFont() ? currentValue : ''"
+          [style.font-family]="currentValue"
           (input)="onCustomFontChange($event)"
           (focus)="enableCustomMode()"
           placeholder="Enter custom font family..."
@@ -99,9 +100,10 @@ export interface FontChangeEvent {
         border-radius: 6px;
         color: var(--text-main);
         font-size: 0.875rem;
-        font-family: 'Monaco', 'Menlo', monospace;
         transition: all 0.2s ease;
       }
+
+      /* Force font inheritance for input - removed since we're using style binding */
 
       .custom-font-input:focus,
       .custom-font-input.active {

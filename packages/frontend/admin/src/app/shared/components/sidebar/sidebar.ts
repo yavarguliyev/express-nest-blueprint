@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { SidebarService } from '../../../core/services/sidebar.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -13,8 +14,10 @@ import { AuthService } from '../../../core/services/auth.service';
 export class Sidebar {
   private authService = inject(AuthService);
   private router = inject(Router);
+  private sidebarService = inject(SidebarService);
   
   user = this.authService.currentUser;
+  isCollapsed = this.sidebarService.isCollapsed;
 
   menuItems = [
     { label: 'Dashboard', icon: 'dashboard', route: '/dashboard' },
@@ -40,6 +43,10 @@ export class Sidebar {
     
     const initials = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
     return initials;
+  }
+
+  toggleSidebar (): void {
+    this.sidebarService.toggle();
   }
 
   navigateToProfile () {

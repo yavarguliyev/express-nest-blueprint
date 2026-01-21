@@ -19,7 +19,7 @@
   position: relative;
   width: 90px;
   height: 30px;
-  background-color: rgb(206, 206, 206); /* Default light mode inactive */
+  background-color: var(--toggle-bg-off); /* Use CSS variable for inactive state */
   border-radius: 40px;
   cursor: pointer;
   transition-duration: 0.3s;
@@ -36,13 +36,7 @@
   height: 30px;
   width: 50%;
   left: 0px;
-  background: conic-gradient(
-    rgba(26, 26, 26, 0.555),
-    white,
-    rgba(26, 26, 26, 0.555),
-    white,
-    rgba(26, 26, 26, 0.555)
-  );
+  background: var(--toggle-handle); /* Use CSS variable for handle color */
   border-radius: 40px;
   transition-duration: 0.3s;
   box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.281);
@@ -56,26 +50,26 @@
 
 /* Checked state - background color change */
 .toggle-input:checked + .toggle-switch {
-  background: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) !important; /* Use our gradient */
+  background: var(--toggle-bg-on) !important; /* Use dedicated toggle-on variable */
   transition-duration: 0.3s;
 }
 
 /* DARK MODE COLORS */
 [data-theme="dark"] .toggle-switch {
-  background-color: rgba(255, 255, 255, 0.15); /* Dark mode inactive */
+  background-color: var(--toggle-bg-off); /* Use CSS variable */
 }
 
 [data-theme="dark"] .toggle-input:checked + .toggle-switch {
-  background: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) !important; /* Dark mode active - our gradient */
+  background: var(--toggle-bg-on) !important; /* Use CSS variable */
 }
 
 /* LIGHT MODE COLORS */
 [data-theme="light"] .toggle-switch {
-  background-color: silver; /* Light mode inactive - your preferred silver */
+  background-color: var(--toggle-bg-off); /* Use CSS variable */
 }
 
 [data-theme="light"] .toggle-input:checked + .toggle-switch {
-  background: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) !important; /* Light mode active - our gradient */
+  background: var(--toggle-bg-on) !important; /* Use CSS variable */
 }
 
 /* SIZE VARIANTS */
@@ -113,9 +107,9 @@
 }
 
 [data-theme="dark"] .toggle-switch:hover:not(.disabled) {
-  box-shadow: 0 4px 15px rgba(206, 27, 251, 0.4); /* Gradient color glow */
+  box-shadow: 0 4px 15px var(--primary-glow); /* Use CSS variable for glow */
 }
 
 [data-theme="light"] .toggle-switch:hover:not(.disabled) {
-  box-shadow: 0 4px 15px rgba(206, 27, 251, 0.3); /* Gradient color glow */
+  box-shadow: 0 4px 15px var(--primary-glow); /* Use CSS variable for glow */
 }

@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { Toast } from './shared/components/toast/toast';
+import { ThemeEditorService } from './core/services/theme-editor.service';
 
 @Component({
   selector: 'app-root',
@@ -11,4 +12,11 @@ import { Toast } from './shared/components/toast/toast';
     <app-toast></app-toast>
   `,
 })
-export class App {}
+export class App implements OnInit {
+  private themeEditorService = inject(ThemeEditorService);
+
+  ngOnInit (): void {
+    // Load tokens on app initialization to ensure CSS variables are available
+    this.themeEditorService.loadTokens().subscribe();
+  }
+}
