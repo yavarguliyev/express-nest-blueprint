@@ -28,6 +28,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/settings/settings').then((m) => m.Settings),
       },
       {
+        path: 'theme-editor',
+        loadComponent: () => import('./features/theme-editor/theme-editor').then((m) => m.ThemeEditor),
+      },
+      {
         path: 'profile',
         loadComponent: () => import('./features/profile/profile').then((m) => m.Profile),
       },

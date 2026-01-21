@@ -12,10 +12,9 @@ export class ToggleSwitch {
   @Input() checked: boolean = false;
   @Input() disabled: boolean = false;
   @Input() size: 'small' | 'medium' | 'large' = 'medium';
-  
+
   @Output() toggleChange = new EventEmitter<boolean>();
 
-  // Generate unique ID for each toggle instance
   toggleId = `toggle-${Math.random().toString(36).substr(2, 9)}`;
 
   onToggle (): void {

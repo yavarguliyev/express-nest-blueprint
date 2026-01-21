@@ -1,6 +1,6 @@
 /* FORCE NAVIGATION GRADIENT - OVERRIDE VIEWENCAPSULATION */
 .nav-label {
-  background: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) !important;
+  background: linear-gradient(81deg, #ce1bfb 10.86%, #35e6cc 89.96%) !important;
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
   background-clip: text !important;
@@ -8,15 +8,15 @@
 }
 
 .nav-item .material-icons {
-  background: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) !important;
+  background: linear-gradient(81deg, #ce1bfb 10.86%, #35e6cc 89.96%) !important;
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
   background-clip: text !important;
 }
 
 /* LIGHT MODE OVERRIDE FOR NAVIGATION */
-[data-theme="light"] .nav-label,
-[data-theme="light"] .nav-item .material-icons {
+[data-theme='light'] .nav-label,
+[data-theme='light'] .nav-item .material-icons {
   background: none !important;
   -webkit-background-clip: unset !important;
   -webkit-text-fill-color: unset !important;
@@ -27,18 +27,19 @@
 /* ACTIVE NAVIGATION STYLING */
 .nav-item.active {
   border-left: 3px solid transparent !important;
-  border-image: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) 1 !important;
+  border-image: linear-gradient(81deg, #ce1bfb 10.86%, #35e6cc 89.96%) 1 !important;
   background: rgba(206, 27, 251, 0.1) !important;
 }
 
 .nav-item:hover:not(.active) {
   border-left: 2px solid transparent !important;
-  border-image: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) 1 !important;
+  border-image: linear-gradient(81deg, #ce1bfb 10.86%, #35e6cc 89.96%) 1 !important;
 }
 
 /* FORCE BRAND NAME GRADIENT - OVERRIDE VIEWENCAPSULATION */
-.brand-name, .brand-name.clickable {
-  background: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) !important;
+.brand-name,
+.brand-name.clickable {
+  background: linear-gradient(81deg, #ce1bfb 10.86%, #35e6cc 89.96%) !important;
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
   background-clip: text !important;
@@ -46,8 +47,8 @@
   font-size: 1.1rem !important;
 }
 
-[data-theme="light"] .brand-name,
-[data-theme="light"] .brand-name.clickable {
+[data-theme='light'] .brand-name,
+[data-theme='light'] .brand-name.clickable {
   background: none !important;
   -webkit-background-clip: unset !important;
   -webkit-text-fill-color: unset !important;
@@ -168,8 +169,8 @@
   gap: 12px;
   width: 100%;
   padding: 12px;
-  background: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) !important;
-  border: 1px solid transparent;
+  background: linear-gradient(81deg, #ce1bfb 10.86%, #35e6cc 89.96%) !important;
+  border: 0px solid transparent;
   color: white !important;
   cursor: pointer;
   font-weight: 600;
@@ -194,7 +195,7 @@
   font-weight: 700 !important;
 }
 
-[data-theme="light"] .logout-btn .material-icons,
-[data-theme="light"] .logout-btn span:not(.material-icons) {
+[data-theme='light'] .logout-btn .material-icons,
+[data-theme='light'] .logout-btn span:not(.material-icons) {
   color: white !important;
 }

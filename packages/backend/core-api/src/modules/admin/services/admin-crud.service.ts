@@ -1,14 +1,40 @@
-import { CRUD_TABLE_METADATA_KEY, CrudRepository, CrudTableOptions, Injectable, RepositoryEntry, JwtPayload, NotFoundException, BaseRepository } from '@config/libs';
+import { CRUD_TABLE_METADATA_KEY, CrudRepository, CrudTableOptions, Injectable, RepositoryEntry, JwtPayload, NotFoundException, BaseRepository, parseId } from '@config/libs';
 
 import { TableMetadata, ColumnMetadata } from '@modules/admin/interfaces/admin.interface';
 import { UsersRepository } from '@modules/users/users.repository';
+import { CssFilesRepository } from '@modules/themes/repositories/css-files.repository';
+import { CssTokensRepository } from '@modules/themes/repositories/css-tokens.repository';
+import { CssRulesRepository } from '@modules/themes/repositories/css-rules.repository';
+import { ThemeVersionsRepository } from '@modules/themes/repositories/theme-versions.repository';
+import { TokenUsageRepository } from '@modules/themes/repositories/token-usage.repository';
+import { CssGradientsRepository } from '@modules/themes/repositories/css-gradients.repository';
+import { CssBackupsRepository } from '@modules/themes/repositories/css-backups.repository';
+import { CssAuditLogRepository } from '@modules/themes/repositories/css-audit-log.repository';
 
 @Injectable()
 export class AdminCrudService {
   private repositories = new Map<string, RepositoryEntry>();
 
-  constructor (usersRepository: UsersRepository) {
+  constructor (
+    usersRepository: UsersRepository,
+    cssFilesRepository: CssFilesRepository,
+    cssTokensRepository: CssTokensRepository,
+    cssRulesRepository: CssRulesRepository,
+    themeVersionsRepository: ThemeVersionsRepository,
+    tokenUsageRepository: TokenUsageRepository,
+    cssGradientsRepository: CssGradientsRepository,
+    cssBackupsRepository: CssBackupsRepository,
+    cssAuditLogRepository: CssAuditLogRepository
+  ) {
     this.registerRepository(usersRepository, UsersRepository);
+    this.registerRepository(cssFilesRepository, CssFilesRepository);
+    this.registerRepository(cssTokensRepository, CssTokensRepository);
+    this.registerRepository(cssRulesRepository, CssRulesRepository);
+    this.registerRepository(themeVersionsRepository, ThemeVersionsRepository);
+    this.registerRepository(tokenUsageRepository, TokenUsageRepository);
+    this.registerRepository(cssGradientsRepository, CssGradientsRepository);
+    this.registerRepository(cssBackupsRepository, CssBackupsRepository);
+    this.registerRepository(cssAuditLogRepository, CssAuditLogRepository);
   }
 
   getTableSchema (): Record<string, TableMetadata[]> {
@@ -46,11 +72,12 @@ export class AdminCrudService {
     return entry.repository.retrieveDataWithPagination!(page, limit, search);
   }
 
-  async getTableRecord (category: string, name: string, id: number): Promise<unknown> {
+  async getTableRecord (category: string, name: string, id: string | number): Promise<unknown> {
     const key = `${category}:${name}`;
     const entry = this.repositories.get(key);
     if (!entry || !entry.repository.findById) throw new NotFoundException(`Table ${category}:${name} not found or unsupported`);
-    return entry.repository.findById(id);
+    const parsedId = parseId(id);
+    return entry.repository.findById(parsedId);
   }
 
   async createTableRecord (category: string, name: string, data: unknown): Promise<unknown> {
@@ -59,18 +86,20 @@ export class AdminCrudService {
     return entry.repository.create(data);
   }
 
-  async updateTableRecord (category: string, name: string, id: number, data: Record<string, unknown>, currentUser?: JwtPayload): Promise<unknown> {
+  async updateTableRecord (category: string, name: string, id: string | number, data: Record<string, unknown>, currentUser?: JwtPayload): Promise<unknown> {
     const entry = this.repositories.get(`${category}:${name}`);
     if (!entry || !entry.repository.update) throw new NotFoundException(`Table ${category}:${name} not found or unsupported`);
     const repository = entry.repository as BaseRepository<unknown>;
-    return repository.update(id, data, undefined, undefined, currentUser);
+    const parsedId = parseId(id);
+    return repository.update(parsedId, data, undefined, undefined, currentUser);
   }
 
-  async deleteTableRecord (category: string, name: string, id: number, currentUser?: JwtPayload): Promise<{ success: boolean }> {
+  async deleteTableRecord (category: string, name: string, id: string | number, currentUser?: JwtPayload): Promise<{ success: boolean }> {
     const entry = this.repositories.get(`${category}:${name}`);
     if (!entry || !entry.repository.delete) throw new NotFoundException(`Table ${category}:${name} not found or unsupported`);
     const repository = entry.repository as BaseRepository<unknown>;
-    const success = await repository.delete(id, undefined, currentUser);
+    const parsedId = parseId(id);
+    const success = await repository.delete(parsedId, undefined, currentUser);
     return { success };
   }
 

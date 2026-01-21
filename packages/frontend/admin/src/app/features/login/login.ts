@@ -34,14 +34,14 @@ export class Login {
     this.authService.login({ email: this.email, password: this.password }).subscribe({
       next: (res) => {
         if (res.success) {
-          // Sync profile to ensure we have complete user data
-          this.authService.syncProfile().then(() => {
-            void this.router.navigate(['/dashboard']);
-          }).catch(() => {
-            // If sync fails, still navigate but log the error
-            console.warn('Profile sync failed after login');
-            void this.router.navigate(['/dashboard']);
-          });
+          this.authService
+            .syncProfile()
+            .then(() => {
+              void this.router.navigate(['/dashboard']);
+            })
+            .catch(() => {
+              void this.router.navigate(['/dashboard']);
+            });
         } else {
           this.error.set('Login failed. Please check your credentials.');
         }

@@ -57,7 +57,7 @@ export class QueryBuilder<T> {
     return { query, params: values };
   }
 
-  buildUpdateQuery<K extends string> (id: number, data: Record<string, unknown>, returningColumns: K[]): { query: string; params: unknown[] } {
+  buildUpdateQuery<K extends string> (id: string | number, data: Record<string, unknown>, returningColumns: K[]): { query: string; params: unknown[] } {
     const columns = Object.keys(data);
     const params: unknown[] = [];
     let paramIndex = 1;
@@ -90,7 +90,7 @@ export class QueryBuilder<T> {
     return { query, params };
   }
 
-  buildDeleteQuery (id: number): { query: string; params: unknown[] } {
+  buildDeleteQuery (id: string | number): { query: string; params: unknown[] } {
     const query = `DELETE FROM ${this.tableName} WHERE id = $1`;
     return { query, params: [id] };
   }

@@ -1,8 +1,24 @@
-import { Module, MiddlewareConsumer, NestModule, LoggerMiddleware, HeaderAuthMiddleware, MetricsMiddleware, RateLimitMiddleware, ConfigModule, HealthModule, MetricsModule, ThrottlerModule, CircuitBreakerModule, SharedModule, DatabaseModule } from '@config/libs';
+import {
+  Module,
+  MiddlewareConsumer,
+  NestModule,
+  LoggerMiddleware,
+  HeaderAuthMiddleware,
+  MetricsMiddleware,
+  RateLimitMiddleware,
+  ConfigModule,
+  HealthModule,
+  MetricsModule,
+  ThrottlerModule,
+  CircuitBreakerModule,
+  SharedModule,
+  DatabaseModule
+} from '@config/libs';
 
-import { AuthModule } from '@/modules/auth/auth.module';
-import { UsersModule } from '@/modules/users/users.module';
-import { AdminModule } from '@/modules/admin/admin.module';
+import { AuthModule } from '@modules/auth/auth.module';
+import { UsersModule } from '@modules/users/users.module';
+import { AdminModule } from '@modules/admin/admin.module';
+import { ThemesModule } from '@modules/themes/themes.module';
 
 @Module({
   imports: [
@@ -19,7 +35,8 @@ import { AdminModule } from '@/modules/admin/admin.module';
     CircuitBreakerModule,
     UsersModule,
     AuthModule,
-    AdminModule
+    AdminModule,
+    ThemesModule
   ],
   controllers: [],
   providers: [],

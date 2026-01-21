@@ -9,28 +9,28 @@
     <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
       <div class="form-group">
         <label for="email">Email Address</label>
-        <input 
-          type="email" 
-          id="email" 
-          name="email" 
-          [(ngModel)]="email" 
-          required 
+        <input
+          type="email"
+          id="email"
+          name="email"
+          [(ngModel)]="email"
+          required
           placeholder="guliyev.yavar@example.com"
           class="glass-input"
-        >
+        />
       </div>
 
       <div class="form-group">
         <label for="password">Password</label>
-        <input 
-          type="password" 
-          id="password" 
-          name="password" 
-          [(ngModel)]="password" 
-          required 
+        <input
+          type="password"
+          id="password"
+          name="password"
+          [(ngModel)]="password"
+          required
           placeholder="••••••••"
           class="glass-input"
-        >
+        />
       </div>
 
       @if (error()) {
@@ -39,7 +39,11 @@
         </div>
       }
 
-      <button type="submit" class="btn btn-primary btn-block" [disabled]="loading() || !loginForm.valid">
+      <button
+        type="submit"
+        class="btn btn-primary btn-block"
+        [disabled]="loading() || !loginForm.valid"
+      >
         @if (!loading()) {
           <span>Sign In</span>
         } @else {

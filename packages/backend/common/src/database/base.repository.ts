@@ -100,7 +100,7 @@ export abstract class BaseRepository<T> {
     return result.rows;
   }
 
-  async findById (id: number, connection?: DatabaseAdapter): Promise<T | null> {
+  async findById (id: string | number, connection?: DatabaseAdapter): Promise<T | null> {
     const columns = this.getSelectColumns();
     const { query, params } = this.queryBuilder.buildSelectQuery(columns, { where: { id } });
 
@@ -130,7 +130,7 @@ export abstract class BaseRepository<T> {
     return (result.rows[0] as T) ?? null;
   }
 
-  async update<K extends keyof T> (id: number, data: Partial<T>, returningColumns?: K[], connection?: DatabaseAdapter, _currentUser?: JwtPayload): Promise<Pick<T, K> | null> {
+  async update<K extends keyof T> (id: string | number, data: Partial<T>, returningColumns?: K[], connection?: DatabaseAdapter, _currentUser?: JwtPayload): Promise<Pick<T, K> | null> {
     const columnsToReturn = returningColumns ?? (this.getSelectColumns() as K[]);
     const { query, params } = this.queryBuilder.buildUpdateQuery(id, data as Record<string, unknown>, columnsToReturn.map(String));
 
@@ -142,7 +142,7 @@ export abstract class BaseRepository<T> {
     return (result.rows[0] as T) || null;
   }
 
-  async delete (id: number, connection?: DatabaseAdapter, _currentUser?: JwtPayload): Promise<boolean> {
+  async delete (id: string | number, connection?: DatabaseAdapter, _currentUser?: JwtPayload): Promise<boolean> {
     const { query, params } = this.queryBuilder.buildDeleteQuery(id);
 
     const db = connection || this.databaseService.getWriteConnection();

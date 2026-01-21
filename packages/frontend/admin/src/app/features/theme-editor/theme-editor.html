@@ -1,0 +1,293 @@
+<div class="theme-editor-page animate-fade-in">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h2>
+        <span class="title-icon">🎨</span>
+        Theme Editor
+      </h2>
+      <p class="text-muted">Customize your application's visual appearance</p>
+    </div>
+
+    <div class="header-actions">
+      <!-- Theme Toggle with Text and Icons -->
+      <div class="theme-mode-toggle">
+        <div class="theme-toggle-wrapper">
+          <span class="theme-label">
+            <span class="theme-icon">🌙</span>
+            Dark
+          </span>
+          <app-toggle-switch [checked]="isDarkMode()" (toggleChange)="toggleTheme()" size="small">
+          </app-toggle-switch>
+          <span class="theme-label">
+            <span class="theme-icon">☀️</span>
+            Light
+          </span>
+        </div>
+      </div>
+
+      <!-- Preview Toggle -->
+      <button
+        class="btn btn-primary"
+        [class.active]="showPreview()"
+        (click)="togglePreview()"
+        title="Toggle Preview"
+      >
+        👁️ Preview
+      </button>
+    </div>
+  </div>
+
+  <!-- Draft Status Bar -->
+  @if (hasDrafts()) {
+    <div class="draft-status-bar">
+      <div class="draft-info">
+        <span class="draft-icon">✏️</span>
+        <span class="draft-text">{{ draftCount() }} unsaved changes</span>
+      </div>
+
+      <div class="draft-actions">
+        <button
+          class="btn btn-primary"
+          (click)="resetChanges()"
+          [disabled]="loading() || isPublishing()"
+        >
+          Reset
+        </button>
+        <button
+          class="btn btn-primary"
+          (click)="publishChanges()"
+          [disabled]="loading() || isPublishing()"
+        >
+          @if (isPublishing()) {
+            <span class="loading-spinner"></span>
+            Publishing...
+          } @else {
+            Publish Changes
+          }
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Main Content -->
+  <div class="theme-editor-content" [class.with-preview]="showPreview()">
+    <!-- Sidebar -->
+    <div class="theme-sidebar">
+      <!-- Category Navigation -->
+      <div class="category-nav">
+        <h3 class="nav-title">Categories</h3>
+
+        @if (loading()) {
+          <div class="loading-categories">
+            <div class="loading-spinner"></div>
+            Loading categories...
+          </div>
+        } @else {
+          <div class="category-list">
+            @for (category of categories(); track category) {
+              <button
+                class="category-item"
+                [class.active]="selectedCategory() === category"
+                (click)="selectCategory(category)"
+              >
+                <span class="category-icon">{{ getCategoryIcon(category) }}</span>
+                <span class="category-name">{{ getCategoryDisplayName(category) }}</span>
+                @if (hasChangesInCategory(category)) {
+                  <span class="category-badge">•</span>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Token Editor -->
+    <div class="token-editor">
+      @if (loading()) {
+        <div class="loading-tokens">
+          <div class="loading-spinner"></div>
+          <p>Loading theme tokens...</p>
+        </div>
+      } @else if (currentCategoryTokens().length === 0) {
+        <div class="empty-category">
+          <span class="empty-icon">📭</span>
+          <h3>No tokens found</h3>
+          <p>This category doesn't contain any customizable tokens.</p>
+        </div>
+      } @else {
+        <div class="tokens-container">
+          <div class="category-header">
+            <h2 class="category-title">
+              {{ getCategoryIcon(selectedCategory()) }}
+              {{ getCategoryDisplayName(selectedCategory()) }}
+            </h2>
+            <p class="category-description">
+              Customize {{ selectedCategory() }} tokens for your theme
+            </p>
+          </div>
+
+          <div class="tokens-grid">
+            @for (token of currentCategoryTokens(); track token.id) {
+              <div class="token-card" [class.has-changes]="hasTokenChanges(token.id)">
+                <div class="token-header">
+                  <div class="token-info">
+                    <h4 class="token-name">{{ token.tokenName }}</h4>
+                    @if (token.description) {
+                      <p class="token-description">{{ token.description }}</p>
+                    }
+                  </div>
+                  @if (hasTokenChanges(token.id)) {
+                    <span class="change-indicator" title="Unsaved changes">•</span>
+                  }
+                </div>
+
+                <div class="token-controls">
+                  @switch (getTokenInputType(token)) {
+                    @case ('color') {
+                      <app-color-picker
+                        [tokenId]="token.id"
+                        [currentValue]="getTokenValue(token.id)"
+                        [lightValue]="getTokenValue(token.id, 'light')"
+                        [darkValue]="getTokenValue(token.id, 'dark')"
+                        [currentMode]="currentTheme()"
+                        (valueChange)="onTokenChange($event.tokenId, $event.value, $event.mode)"
+                      >
+                      </app-color-picker>
+                    }
+
+                    @case ('font') {
+                      <app-font-selector
+                        [tokenId]="token.id"
+                        [currentValue]="getTokenValue(token.id)"
+                        (valueChange)="onTokenChange($event.tokenId, $event.value)"
+                      >
+                      </app-font-selector>
+                    }
+
+                    @case ('spacing') {
+                      <app-spacing-slider
+                        [tokenId]="token.id"
+                        [currentValue]="getTokenValue(token.id)"
+                        [tokenName]="token.tokenName"
+                        (valueChange)="onTokenChange($event.tokenId, $event.value)"
+                      >
+                      </app-spacing-slider>
+                    }
+
+                    @default {
+                      <div class="text-input-container">
+                        <input
+                          type="text"
+                          class="token-input"
+                          [value]="getTokenValue(token.id)"
+                          (input)="onTokenChange(token.id, $any($event.target).value)"
+                          [placeholder]="token.defaultValue"
+                        />
+                        <div class="input-hint">Default: {{ token.defaultValue }}</div>
+                      </div>
+                    }
+                  }
+                </div>
+
+                <!-- Token Preview -->
+                <div class="token-preview">
+                  @switch (token.tokenType) {
+                    @case ('color') {
+                      <div
+                        class="color-preview"
+                        [style.background-color]="getTokenValue(token.id)"
+                        [title]="getTokenValue(token.id)"
+                      ></div>
+                    }
+                    @case ('font') {
+                      <div class="font-preview" [style.font-family]="getTokenValue(token.id)">
+                        Aa
+                      </div>
+                    }
+                    @case ('size') {
+                      <div class="size-preview">
+                        <div
+                          class="size-indicator"
+                          [style.width]="getTokenValue(token.id)"
+                          [style.height]="'4px'"
+                        ></div>
+                        <span class="size-value">{{ getTokenValue(token.id) }}</span>
+                      </div>
+                    }
+                    @default {
+                      <div class="value-preview">
+                        {{ getTokenValue(token.id) }}
+                      </div>
+                    }
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Live Preview Panel -->
+    @if (showPreview()) {
+      <div class="preview-panel">
+        <div class="preview-header">
+          <h3 class="preview-title">Live Preview</h3>
+          <button class="close-preview-btn" (click)="togglePreview()" title="Close Preview">
+            ✕
+          </button>
+        </div>
+
+        <div class="preview-content">
+          <!-- Sample UI Components for Preview -->
+          <div class="preview-section">
+            <h4>Colors</h4>
+            <div class="color-samples">
+              <div
+                class="sample-card"
+                style="background: var(--bg-card); border: 1px solid var(--border)"
+              >
+                <h5 style="color: var(--text-main)">Sample Card</h5>
+                <p style="color: var(--text-muted)">
+                  This is a sample card with primary text and muted text.
+                </p>
+                <button class="btn btn-primary">Primary Button</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="preview-section">
+            <h4>Typography</h4>
+            <div class="typography-samples">
+              <h1 style="font-family: var(--font-family); color: var(--text-main)">Heading 1</h1>
+              <h2 style="font-family: var(--font-family); color: var(--text-main)">Heading 2</h2>
+              <p style="font-family: var(--font-family); color: var(--text-main)">
+                This is a paragraph with the current font family applied.
+              </p>
+            </div>
+          </div>
+
+          <div class="preview-section">
+            <h4>Status Colors</h4>
+            <div class="status-samples">
+              <div class="status-item">
+                <span class="status-dot" style="background: var(--success)"></span>
+                Success
+              </div>
+              <div class="status-item">
+                <span class="status-dot" style="background: var(--warning)"></span>
+                Warning
+              </div>
+              <div class="status-item">
+                <span class="status-dot" style="background: var(--danger)"></span>
+                Danger
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

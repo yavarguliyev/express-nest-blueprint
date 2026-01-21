@@ -20,6 +20,7 @@ export class Sidebar {
     { label: 'Dashboard', icon: 'dashboard', route: '/dashboard' },
     { label: 'Database', icon: 'storage', route: '/database' },
     { label: 'System Health', icon: 'monitor_heart', route: '/health' },
+    { label: 'Theme Editor', icon: 'palette', route: '/theme-editor' },
     { label: 'Settings', icon: 'settings', route: '/settings' },
   ];
 

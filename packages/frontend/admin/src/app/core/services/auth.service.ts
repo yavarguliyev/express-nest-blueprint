@@ -59,7 +59,6 @@ export class AuthService {
     return userJson ? (JSON.parse(userJson) as User) : null;
   }
 
-  // Deprecated: existing code might use this, but we prefer the signal
   getCurrentUser (): User | null {
     return this.currentUser();
   }
@@ -74,17 +73,13 @@ export class AuthService {
   }
 
   async syncProfile (): Promise<void> {
-    try {
-      const response = await fetch(`${this.apiUrl}/admin/profile?t=${Date.now()}`, {
-        headers: this.getHeaders()
-      });
-      if (response.ok) {
-        const json = await response.json() as { data?: User } | User;
-        const userData = this.isUserResponse(json) ? json : (json as { data: User }).data;
-        this.updateCurrentUser(userData);
-      }
-    } catch (e) {
-      console.error('Failed to sync profile', e);
+    const response = await fetch(`${this.apiUrl}/admin/profile?t=${Date.now()}`, {
+      headers: this.getHeaders(),
+    });
+    if (response.ok) {
+      const json = (await response.json()) as { data?: User } | User;
+      const userData = this.isUserResponse(json) ? json : (json as { data: User }).data;
+      this.updateCurrentUser(userData);
     }
   }
 
@@ -97,50 +92,35 @@ export class AuthService {
     formData.append('file', file);
 
     const token = this.getToken();
-    try {
-      const response = await fetch(`${this.apiUrl}/admin/profile/upload`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
-      });
+    const response = await fetch(`${this.apiUrl}/admin/profile/upload`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
 
-      if (response.ok) {
-        await this.syncProfile();
-      } else {
-        throw new Error('Upload failed');
-      }
-    } catch (e) {
-      console.error('Upload error', e);
-      throw e;
-    }
+    if (response.ok) await this.syncProfile();
+    else throw new Error('Upload failed');
   }
 
   async deleteAvatar (): Promise<void> {
     const token = this.getToken();
-    try {
-      const response = await fetch(`${this.apiUrl}/admin/profile/image`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+    const response = await fetch(`${this.apiUrl}/admin/profile/image`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-      if (response.ok) {
-        await this.syncProfile();
-      }
-    } catch (e) {
-      console.error('Delete error', e);
-      throw e;
-    }
+    if (response.ok) await this.syncProfile();
   }
 
   private getHeaders (): HeadersInit {
     const token = this.getToken();
     return {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
     };
   }
 }

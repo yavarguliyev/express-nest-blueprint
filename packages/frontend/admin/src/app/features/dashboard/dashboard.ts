@@ -21,7 +21,6 @@ export class Dashboard implements OnInit {
   loading = signal(true);
   error = signal('');
 
-  // Make Math available in template
   Math = Math;
 
   ngOnInit () {

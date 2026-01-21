@@ -18,49 +18,46 @@ export class Topbar {
   private authService = inject(AuthService);
   private themeService = inject(ThemeService);
   private router = inject(Router);
-  
+
   user = this.authService.currentUser;
   currentPageName = signal('Dashboard');
-  
-  // Theme-related methods
+
   isDarkMode (): boolean {
     return this.themeService.isDarkMode();
   }
-  
+
   toggleTheme (): void {
     this.themeService.toggleTheme();
   }
 
   getUserInitials (): string {
     const currentUser = this.user();
-    
+
     if (!currentUser) {
       return 'U';
     }
-    
+
     const firstName = currentUser.firstName?.trim();
     const lastName = currentUser.lastName?.trim();
-    
+
     if (!firstName || !lastName) {
       return 'U';
     }
-    
+
     const initials = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
     return initials;
   }
 
   constructor () {
-    // Listen to route changes and update page name
     this.router.events
       .pipe(
-        filter(event => event instanceof NavigationEnd),
-        map(event => (event).url)
+        filter((event) => event instanceof NavigationEnd),
+        map((event) => event.url),
       )
-      .subscribe(url => {
+      .subscribe((url) => {
         this.currentPageName.set(this.getPageNameFromUrl(url));
       });
 
-    // Set initial page name
     this.currentPageName.set(this.getPageNameFromUrl(this.router.url));
   }
 
@@ -70,16 +67,15 @@ export class Topbar {
       '/database': 'Database',
       '/health': 'Health',
       '/settings': 'Settings',
-      '/profile': 'Profile'
+      '/profile': 'Profile',
     };
 
-    // Remove any query parameters and get the base path
     const basePath = url.split('?')[0];
-    
+
     if (basePath && routeMap[basePath]) {
       return routeMap[basePath];
     }
-    
+
     return 'Dashboard';
   }
 }

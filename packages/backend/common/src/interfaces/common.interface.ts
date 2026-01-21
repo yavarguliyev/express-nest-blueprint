@@ -226,7 +226,7 @@ export interface SupportsFindAll {
 }
 
 export interface SupportsFindById {
-  findById(id: number): Promise<unknown>;
+  findById(id: string | number): Promise<unknown>;
 }
 
 export interface SupportsCreate {
@@ -234,11 +234,11 @@ export interface SupportsCreate {
 }
 
 export interface SupportsUpdate {
-  update(id: number, data: unknown): Promise<unknown>;
+  update(id: string | number, data: unknown): Promise<unknown>;
 }
 
 export interface SupportsDelete {
-  delete(id: number): Promise<boolean>;
+  delete(id: string | number): Promise<boolean>;
 }
 
 export interface RepositoryEntry {

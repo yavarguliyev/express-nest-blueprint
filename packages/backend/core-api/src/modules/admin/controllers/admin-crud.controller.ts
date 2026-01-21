@@ -26,7 +26,7 @@ export class AdminCrudController extends BaseController {
 
   @Get('/:category/:name/:id')
   async getTableRecord (@Param('category') category: string, @Param('name') name: string, @Param('id') id: string) {
-    return this.adminCrudService.getTableRecord(category, name, parseInt(id, 10));
+    return this.adminCrudService.getTableRecord(category, name, id);
   }
 
   @Post('/:category/:name')
@@ -36,11 +36,11 @@ export class AdminCrudController extends BaseController {
 
   @Patch('/:category/:name/:id')
   async updateTableRecord (@Param('category') category: string, @Param('name') name: string, @Param('id') id: string, @Body() data: Record<string, unknown>, @CurrentUser() user: JwtPayload) {
-    return this.adminCrudService.updateTableRecord(category, name, parseInt(id, 10), data, user);
+    return this.adminCrudService.updateTableRecord(category, name, id, data, user);
   }
 
   @Delete('/:category/:name/:id')
   async deleteTableRecord (@Param('category') category: string, @Param('name') name: string, @Param('id') id: string, @CurrentUser() user: JwtPayload) {
-    return this.adminCrudService.deleteTableRecord(category, name, parseInt(id, 10), user);
+    return this.adminCrudService.deleteTableRecord(category, name, id, user);
   }
 }

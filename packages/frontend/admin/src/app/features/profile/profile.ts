@@ -43,18 +43,17 @@ export class Profile implements OnInit, OnDestroy {
 
   profileForm: ProfileForm = {
     firstName: '',
-    lastName: ''
+    lastName: '',
   };
 
   private originalForm: ProfileForm = {
     firstName: '',
-    lastName: ''
+    lastName: '',
   };
 
   private visibilityListener?: () => void;
 
   constructor () {
-    // Effect to update form when user data changes
     effect(() => {
       const currentUser = this.user();
       if (currentUser) {
@@ -78,7 +77,6 @@ export class Profile implements OnInit, OnDestroy {
   private setupVisibilityListener () {
     this.visibilityListener = () => {
       if (!document.hidden) {
-        // Page became visible, refresh profile data
         void this.authService.syncProfile();
       }
     };
@@ -88,7 +86,7 @@ export class Profile implements OnInit, OnDestroy {
   private updateFormFromUser (user: { firstName?: string; lastName?: string }) {
     this.profileForm = {
       firstName: user.firstName || '',
-      lastName: user.lastName || ''
+      lastName: user.lastName || '',
     };
     this.originalForm = { ...this.profileForm };
   }
@@ -101,8 +99,10 @@ export class Profile implements OnInit, OnDestroy {
   }
 
   hasChanges (): boolean {
-    return this.profileForm.firstName !== this.originalForm.firstName ||
-           this.profileForm.lastName !== this.originalForm.lastName;
+    return (
+      this.profileForm.firstName !== this.originalForm.firstName ||
+      this.profileForm.lastName !== this.originalForm.lastName
+    );
   }
 
   resetForm () {
@@ -119,21 +119,23 @@ export class Profile implements OnInit, OnDestroy {
     }
 
     this.loading.set(true);
-    
+
     try {
       const updateData = {
         firstName: this.profileForm.firstName.trim(),
-        lastName: this.profileForm.lastName.trim()
+        lastName: this.profileForm.lastName.trim(),
       };
 
-      await this.http.patch<ApiResponse<void>>(`/api/v1/admin/crud/Database Management/users/${currentUser.id}`, updateData).toPromise();
-      
-      // Update the original form data
+      await this.http
+        .patch<
+          ApiResponse<void>
+        >(`/api/v1/admin/crud/Database Management/users/${currentUser.id}`, updateData)
+        .toPromise();
+
       this.originalForm = { ...this.profileForm };
-      
-      // Sync profile to get updated data
+
       await this.authService.syncProfile();
-      
+
       this.toastService.success('Profile information updated successfully');
     } catch (error) {
       const err = error as ErrorResponse;
@@ -147,14 +149,14 @@ export class Profile implements OnInit, OnDestroy {
   async onFileSelected (event: Event) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
-    
+
     if (file) {
       if (!file.type.match('image.*')) {
         this.toastService.error('Only image files are allowed');
         input.value = '';
         return;
       }
-      
+
       try {
         await this.authService.uploadAvatar(file);
         this.toastService.success('Profile photo updated successfully');
@@ -166,12 +168,10 @@ export class Profile implements OnInit, OnDestroy {
     }
   }
 
-  // Helper method to get display name for field
   getFieldDisplayName (fieldName: string): string {
     return this.textTransform.getDisplayName(fieldName);
   }
 
-  // Helper method to get proper role display name
   getRoleDisplayName (): string {
     const currentUser = this.user();
     if (!currentUser || !currentUser.role) {
@@ -180,14 +180,13 @@ export class Profile implements OnInit, OnDestroy {
     return UserRoleHelper.getRoleDisplayName(currentUser.role);
   }
 
-  // Helper method to get user initials for avatar
   getUserInitials (): string {
     const currentUser = this.user();
     if (!currentUser) return 'U';
-    
+
     const firstName = currentUser.firstName || '';
     const lastName = currentUser.lastName || '';
-    
+
     if (firstName && lastName) {
       return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
     } else if (firstName) {
@@ -195,29 +194,25 @@ export class Profile implements OnInit, OnDestroy {
     } else if (lastName) {
       return lastName.charAt(0).toUpperCase();
     }
-    
-    // Fallback to email or default
+
     const email = currentUser.email || '';
     if (email) {
       return email.charAt(0).toUpperCase();
     }
-    
-    return 'U'; // Default fallback
+
+    return 'U';
   }
 
   deleteAvatar () {
-    this.toastService.confirm(
-      'Are you sure you want to remove your profile photo?',
-      () => {
-        void (async () => {
-          try {
-            await this.authService.deleteAvatar();
-            this.toastService.success('Profile photo removed');
-          } catch {
-            this.toastService.error('Failed to remove profile photo');
-          }
-        })();
-      }
-    );
+    this.toastService.confirm('Are you sure you want to remove your profile photo?', () => {
+      void (async () => {
+        try {
+          await this.authService.deleteAvatar();
+          this.toastService.success('Profile photo removed');
+        } catch {
+          this.toastService.error('Failed to remove profile photo');
+        }
+      })();
+    });
   }
 }
