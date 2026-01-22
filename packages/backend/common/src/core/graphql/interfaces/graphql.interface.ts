@@ -22,6 +22,7 @@ export interface ArgMetadata {
   type?: string;
   typeFunc?: TypeFunc | undefined;
   isArgs?: boolean;
+  isCurrentUser?: boolean;
 }
 
 export interface FieldMetadata {

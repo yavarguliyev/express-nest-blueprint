@@ -36,7 +36,7 @@ export * from './core/middleware/middleware-consumer';
 export * from './core/middleware/rate-limit.middleware';
 export * from './core/graphql/interfaces/graphql.interface';
 export * from './core/graphql/decorators/resolver.decorator';
-export { Query as GqlQuery, Mutation as GqlMutation, Arg as GqlArg, Args as GqlArgs, QUERY_METADATA, MUTATION_METADATA, ARG_METADATA } from './core/graphql/decorators/field.decorators';
+export { Query as GqlQuery, Mutation as GqlMutation, Arg as GqlArg, Args as GqlArgs, GqlCurrentUser, QUERY_METADATA, MUTATION_METADATA, ARG_METADATA } from './core/graphql/decorators/field.decorators';
 export * from './core/graphql/decorators/object-type.decorator';
 export * from './core/graphql/schema/schema-builder';
 export * from './core/graphql/graphql-application';

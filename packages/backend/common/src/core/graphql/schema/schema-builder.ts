@@ -26,6 +26,7 @@ import { CanActivate } from '../../../domain/interfaces/guard.interface';
 import { AuthGuard } from '../../guards/auth.guard';
 import { RolesGuard } from '../../guards/roles.guard';
 import { getErrorMessage } from '../../../domain/helpers/utility-functions.helper';
+import { AuthenticatedRequest } from '../../../domain/interfaces/common.interface';
 
 export class SchemaBuilder {
   private container: Container;
@@ -182,6 +183,7 @@ export class SchemaBuilder {
               return argsObj;
             }
 
+            if (arg.isCurrentUser) return (req as unknown as AuthenticatedRequest).user;
             return arg.name ? resolverArgs[arg.name] : undefined;
           });
 

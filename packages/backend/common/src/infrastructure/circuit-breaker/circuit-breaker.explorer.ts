@@ -8,9 +8,9 @@ import { CircuitBreakerOptions } from '../../domain/interfaces/common.interface'
 
 @Injectable()
 export class CircuitBreakerExplorer {
-  constructor(private readonly circuitBreakerService: CircuitBreakerService) {}
+  constructor (private readonly circuitBreakerService: CircuitBreakerService) {}
 
-  explore(): void {
+  explore (): void {
     const services = Container.getInstance().getServices();
 
     for (const [token, entry] of services) {
@@ -36,7 +36,7 @@ export class CircuitBreakerExplorer {
     }
   }
 
-  private patchMethod(instance: Record<string, unknown>, propertyName: string, options: CircuitBreakerOptions): void {
+  private patchMethod (instance: Record<string, unknown>, propertyName: string, options: CircuitBreakerOptions): void {
     const originalMethod = instance[propertyName] as (...args: unknown[]) => Promise<unknown>;
     const circuitKey = options.key || `${instance.constructor.name}.${propertyName}`;
     const circuitBreakerService = this.circuitBreakerService;

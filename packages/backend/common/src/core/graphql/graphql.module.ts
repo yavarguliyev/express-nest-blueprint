@@ -9,7 +9,7 @@ import { LifecycleService } from '../../application/lifecycle/lifecycle.service'
   exports: []
 })
 export class GraphQLModule {
-  static forRoot(options: { resolvers: Constructor[] }): DynamicModule {
+  static forRoot (options: { resolvers: Constructor[] }): DynamicModule {
     const { resolvers } = options;
 
     return {

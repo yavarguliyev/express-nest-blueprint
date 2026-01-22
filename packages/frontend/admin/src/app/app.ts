@@ -15,7 +15,7 @@ import { ThemeEditorService } from './core/services/theme-editor.service';
 export class App implements OnInit {
   private themeEditorService = inject(ThemeEditorService);
 
-  ngOnInit(): void {
+  ngOnInit (): void {
     this.themeEditorService.loadTokens().subscribe();
   }
 }

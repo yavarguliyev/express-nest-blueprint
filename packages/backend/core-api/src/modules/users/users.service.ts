@@ -83,7 +83,7 @@ export class UsersService {
         if (userWithEmail) throw new BadRequestException(`User with email ${updateUserDto.email} already exists`);
       }
 
-      const updatedUser = await this.usersRepository.update(userId, updateUserDto, ['id', 'email', 'firstName', 'lastName', 'role', 'isActive', 'createdAt', 'updatedAt'], transaction);
+      const updatedUser = await this.usersRepository.update(userId, updateUserDto, ['id', 'email', 'firstName', 'lastName', 'role', 'isActive', 'createdAt', 'updatedAt'], transaction, currentUser);
       if (!updatedUser) throw new BadRequestException(`Failed to update user with ID ${userId}`);
 
       return ValidationService.transformResponse(UserResponseDto, updatedUser);
@@ -100,7 +100,7 @@ export class UsersService {
 
     if (existingUser.profileImageUrl) await this.storageService.delete(existingUser.profileImageUrl);
 
-    const deleted = await this.usersRepository.delete(userId);
+    const deleted = await this.usersRepository.delete(userId, undefined, currentUser);
     if (!deleted) throw new BadRequestException(`Failed to delete user with ID ${userId}`);
 
     return { message: 'User deleted successfully' };

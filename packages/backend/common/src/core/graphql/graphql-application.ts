@@ -9,20 +9,20 @@ import { Injectable } from '../decorators/injectable.decorator';
 export class GraphQLApplication {
   private schemaBuilder: SchemaBuilder;
 
-  constructor(container: Container) {
+  constructor (container: Container) {
     this.schemaBuilder = new SchemaBuilder(container);
   }
 
-  applyMiddleware(app: Express, path = '/graphql'): void {
+  applyMiddleware (app: Express, path = '/graphql'): void {
     const schema = this.schemaBuilder.build();
     app.all(path, createHandler({ schema, context: (req, res) => ({ req, res }) }));
   }
 
-  destroy(): void {
+  destroy (): void {
     this.schemaBuilder.clearCache();
   }
 
-  applyGraphiQL(app: Express, path = '/graphiql'): void {
+  applyGraphiQL (app: Express, path = '/graphiql'): void {
     app.get(path, (_req: Request, res: Response) => {
       res.send(`
         <!DOCTYPE html>

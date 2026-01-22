@@ -66,3 +66,15 @@ export const Args = (typeFunc?: TypeFunc): ParameterDecorator => {
     }
   };
 };
+
+export const GqlCurrentUser = (): ParameterDecorator => {
+  return (target: object, propertyKey: string | symbol | undefined, parameterIndex: number): void => {
+    if (propertyKey) {
+      const existingArgs = (Reflect.getMetadata(ARG_METADATA, target, propertyKey) || []) as ArgMetadata[];
+      existingArgs.push({ index: parameterIndex, isCurrentUser: true });
+      Reflect.defineMetadata(ARG_METADATA, existingArgs, target, propertyKey);
+    }
+  };
+};
+
+export const CurrentUser = GqlCurrentUser;
