@@ -21,6 +21,8 @@
     "dotenv": "^17.2.1",
     "express": "^4.17.1",
     "express-rate-limit": "^8.0.1",
+    "graphql": "^15.10.1",
+    "graphql-http": "^1.22.4",
     "helmet": "^8.1.0",
     "ioredis": "^5.8.0",
     "jsonwebtoken": "^9.0.2",

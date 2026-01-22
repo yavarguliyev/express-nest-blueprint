@@ -3,7 +3,7 @@ import { join } from 'path';
 import 'reflect-metadata';
 import express, { Request, Response } from 'express';
 
-import { ConfigService, NestFactory, AppName, AppRoles, getErrorMessage, Logger, LifecycleService, SwaggerModule, DocumentBuilder } from '@config/libs';
+import { ConfigService, NestFactory, AppName, AppRoles, getErrorMessage, Logger, LifecycleService, SwaggerModule, DocumentBuilder, GraphQLApplication } from '@config/libs';
 import { AppModule } from '@/app.module';
 
 async function bootstrap (): Promise<void> {
@@ -16,10 +16,11 @@ async function bootstrap (): Promise<void> {
     const configService = app.get(ConfigService);
     const port = configService.get<number>('PORT', 3000);
     const host = configService.get<string>('HOST', '0.0.0.0');
+    const isProduction = configService.get<string>('NODE_ENV') === 'production';
     const role = (configService.get<string>('APP_ROLE', AppRoles.API) || '') as AppRoles;
 
     if (role === AppRoles.API) {
-      if (process.env['NODE_ENV'] !== 'production') {
+      if (!isProduction) {
         const swaggerConfig = new DocumentBuilder()
           .setTitle('Express Nest Blueprint API')
           .setDescription('The API description for the Express Nest Blueprint project')
@@ -32,12 +33,20 @@ async function bootstrap (): Promise<void> {
         Logger.log('📖 Swagger documentation enabled at /api', 'Bootstrap');
       }
 
+      const graphqlApp = app.get(GraphQLApplication);
+      graphqlApp.applyMiddleware(app.getExpressApp(), '/graphql');
+      if (!isProduction) {
+        graphqlApp.applyGraphiQL(app.getExpressApp(), '/graphiql');
+        Logger.log('🔮 GraphQL endpoint enabled at /graphql', 'Bootstrap');
+        Logger.log('🎮 GraphiQL playground enabled at /graphiql', 'Bootstrap');
+      }
+
       const dockerAdminPath = join(__dirname, '../../../../public/admin');
       const localAdminPath = join(__dirname, '../../../../packages/frontend/admin/dist/admin/browser');
       const adminPath = existsSync(dockerAdminPath) ? dockerAdminPath : localAdminPath;
 
       if (existsSync(adminPath)) {
-        const baseUrl = process.env['NODE_ENV'] === 'production' ? '' : '/admin';
+        const baseUrl = isProduction ? '' : '/admin';
         app.use(baseUrl || '/', express.static(adminPath));
         app.use(`${baseUrl}/*`, (_req: Request, res: Response) => res.sendFile(join(adminPath, 'index.html')));
       }

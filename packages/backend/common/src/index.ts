@@ -1,126 +1,108 @@
 export * from './application/nest-application';
 export * from './application/nest-factory';
+export * from './application/lifecycle/lifecycle.module';
+export * from './application/lifecycle/lifecycle.service';
+export * from './application/services/graceful-shutdown.service';
+export * from './application/services/jwt.service';
+export * from './application/services/validation.service';
+export * from './application/shared.module';
 
-export * from './bullmq/services/bullmq.service';
-export * from './bullmq/services/queue-manager.service';
-export * from './bullmq/bullmq.module';
-export * from './bullmq/queue-injection.helper';
+export * from './core/container/container';
+export * from './core/decorators/auth.decorator';
+export * from './core/decorators/bullmq.decorators';
+export * from './core/decorators/cache.decorator';
+export * from './core/decorators/circuit-breaker.decorator';
+export * from './core/decorators/compute.decorator';
+export * from './core/decorators/controller.decorator';
+export * from './core/decorators/crud.decorator';
+export * from './core/decorators/injectable.decorator';
+export * from './core/decorators/middleware.decorators';
+export * from './core/decorators/module.decorator';
+export * from './core/decorators/param.decorators';
+export * from './core/decorators/register-controller-class.helper';
+export * from './core/decorators/route.decorators';
+export * from './core/decorators/swagger.decorators';
+export * from './core/controllers/base.controller';
+export * from './core/guards/auth.guard';
+export * from './core/guards/header-auth.guard';
+export * from './core/guards/roles.guard';
+export * from './core/filters/argument-host.filter';
+export * from './core/filters/global-exception.filter';
+export * from './core/middleware/avatar-upload.middleware';
+export * from './core/middleware/header-auth.middleware';
+export * from './core/middleware/logger.middleware';
+export * from './core/middleware/metrics.middleware';
+export * from './core/middleware/middleware-consumer';
+export * from './core/middleware/rate-limit.middleware';
+export * from './core/graphql/interfaces/graphql.interface';
+export * from './core/graphql/decorators/resolver.decorator';
+export { Query as GqlQuery, Mutation as GqlMutation, Arg as GqlArg, Args as GqlArgs, QUERY_METADATA, MUTATION_METADATA, ARG_METADATA } from './core/graphql/decorators/field.decorators';
+export * from './core/graphql/decorators/object-type.decorator';
+export * from './core/graphql/schema/schema-builder';
+export * from './core/graphql/graphql-application';
+export * from './core/graphql/graphql.module';
+export * from './core/graphql/registry/type-registry';
+export * from './core/swagger/document-builder';
+export * from './core/swagger/swagger-explorer';
+export * from './core/swagger/swagger-module';
 
-export * from './cache/cache.explorer';
-export * from './cache/cache.module';
-export * from './cache/cache.service';
+export * from './domain/interfaces/bullmq.interface';
+export * from './domain/interfaces/common.interface';
+export * from './domain/interfaces/database.interface';
+export * from './domain/interfaces/guard.interface';
+export * from './domain/interfaces/middleware.interface';
+export * from './domain/interfaces/query-builder.interface';
+export * from './domain/interfaces/storage.interface';
+export * from './domain/interfaces/swagger-config.interface';
+export * from './domain/types/common.type';
+export * from './domain/enums/common.enum';
+export * from './domain/constants/common.const';
+export * from './domain/constants/provider-resolvers.const';
+export * from './domain/constants/system.const';
+export * from './domain/dtos/paginated-response.dto';
+export * from './domain/dtos/pagination.dto';
+export * from './domain/dtos/query-results.dto';
+export * from './domain/exceptions/http-exception';
+export * from './domain/exceptions/http-exceptions';
+export * from './domain/exceptions/validation.exception';
+export * from './domain/helpers/retry.helper';
+export * from './domain/helpers/utility-functions.helper';
 
-export * from './circuit-breaker/circuit-breaker.explorer';
-export * from './circuit-breaker/circuit-breaker.module';
-export * from './circuit-breaker/circuit-breaker.service';
-
-export * from './compute/compute.module';
-export * from './compute/compute.service';
-export * from './compute/compute.explorer';
-
-export * from './config/config.module';
-export * from './config/config.service';
-export * from './config/database.config';
-export * from './config/logger.config';
-
-export * from './constants/common.const';
-export * from './constants/provider-resolvers.const';
-export * from './constants/system.const';
-
-export * from './container/container';
-
-export * from './controllers/base.controller';
-
-export * from './database/adapters/postgresql.adapter';
-export * from './database/adapters/transaction.adapter';
-export * from './database/base.repository';
-export * from './database/database.module';
-export * from './database/database.service';
-export * from './database/query-builder';
-
-export * from './decorators/auth.decorator';
-export * from './decorators/bullmq.decorators';
-export * from './decorators/cache.decorator';
-export * from './decorators/circuit-breaker.decorator';
-export * from './decorators/compute.decorator';
-export * from './decorators/controller.decorator';
-export * from './decorators/crud.decorator';
-export * from './decorators/injectable.decorator';
-export * from './decorators/middleware.decorators';
-export * from './decorators/module.decorator';
-export * from './decorators/param.decorators';
-export * from './decorators/register-controller-class.helper';
-export * from './decorators/route.decorators';
-export * from './decorators/swagger.decorators';
-
-export * from './dtos/paginated-response.dto';
-export * from './dtos/pagination.dto';
-export * from './dtos/query-results.dto';
-
-export * from './enums/common.enum';
-
-export * from './exceptions/http-exception';
-export * from './exceptions/http-exceptions';
-export * from './exceptions/validation.exception';
-
-export * from './filters/argument-host.filter';
-export * from './filters/global-exception.filter';
-
-export * from './guards/auth.guard';
-export * from './guards/header-auth.guard';
-export * from './guards/roles.guard';
-
-export * from './health/health.controller';
-export * from './health/health.module';
-export * from './health/health.service';
-
-export * from './helpers/retry.helper';
-export * from './helpers/utility-functions.helper';
-
-export * from './interfaces/bullmq.interface';
-export * from './interfaces/common.interface';
-export * from './interfaces/database.interface';
-export * from './interfaces/guard.interface';
-export * from './interfaces/middleware.interface';
-export * from './interfaces/query-builder.interface';
-export * from './interfaces/storage.interface';
-export * from './interfaces/swagger-config.interface';
-
-export * from './lifecycle/lifecycle.module';
-export * from './lifecycle/lifecycle.service';
-
-export * from './logger/logger.module';
-export * from './logger/logger.service';
-
-export * from './metrics/metrics.controller';
-export * from './metrics/metrics.module';
-export * from './metrics/metrics.service';
-
-export * from './middleware/avatar-upload.middleware';
-export * from './middleware/header-auth.middleware';
-export * from './middleware/logger.middleware';
-export * from './middleware/metrics.middleware';
-export * from './middleware/middleware-consumer';
-export * from './middleware/rate-limit.middleware';
-
-export * from './redis/redis.module';
-export * from './redis/redis.service';
-
-export * from './services/graceful-shutdown.service';
-export * from './services/jwt.service';
-export * from './services/validation.service';
-
-export * from './storage/strategies/s3-storage.strategy';
-export * from './storage/storage.module';
-export * from './storage/storage.service';
-
-export * from './swagger/document-builder';
-export * from './swagger/swagger-explorer';
-export * from './swagger/swagger-module';
-
-export * from './throttler/throttler.module';
-export * from './throttler/throttler.service';
-
-export * from './types/common.type';
-
-export * from './shared.module';
+export * from './infrastructure/database/adapters/postgresql.adapter';
+export * from './infrastructure/database/adapters/transaction.adapter';
+export * from './infrastructure/database/base.repository';
+export * from './infrastructure/database/database.module';
+export * from './infrastructure/database/database.service';
+export * from './infrastructure/database/query-builder';
+export * from './infrastructure/redis/redis.module';
+export * from './infrastructure/redis/redis.service';
+export * from './infrastructure/cache/cache.explorer';
+export * from './infrastructure/cache/cache.module';
+export * from './infrastructure/cache/cache.service';
+export * from './infrastructure/storage/strategies/s3-storage.strategy';
+export * from './infrastructure/storage/storage.module';
+export * from './infrastructure/storage/storage.service';
+export * from './infrastructure/bullmq/services/bullmq.service';
+export * from './infrastructure/bullmq/services/queue-manager.service';
+export * from './infrastructure/bullmq/bullmq.module';
+export * from './infrastructure/bullmq/queue-injection.helper';
+export * from './infrastructure/config/config.module';
+export * from './infrastructure/config/config.service';
+export * from './infrastructure/config/database.config';
+export * from './infrastructure/config/logger.config';
+export * from './infrastructure/logger/logger.module';
+export * from './infrastructure/logger/logger.service';
+export * from './infrastructure/metrics/metrics.controller';
+export * from './infrastructure/metrics/metrics.module';
+export * from './infrastructure/metrics/metrics.service';
+export * from './infrastructure/health/health.controller';
+export * from './infrastructure/health/health.module';
+export * from './infrastructure/health/health.service';
+export * from './infrastructure/throttler/throttler.module';
+export * from './infrastructure/throttler/throttler.service';
+export * from './infrastructure/circuit-breaker/circuit-breaker.explorer';
+export * from './infrastructure/circuit-breaker/circuit-breaker.module';
+export * from './infrastructure/circuit-breaker/circuit-breaker.service';
+export * from './infrastructure/compute/compute.module';
+export * from './infrastructure/compute/compute.service';
+export * from './infrastructure/compute/compute.explorer';

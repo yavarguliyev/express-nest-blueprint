@@ -8,23 +8,24 @@
 
 1. [Features](#-features)
 2. [Architecture Overview](#-architecture-overview)
-3. [Internal Flow and Architecture](#-internal-flow-and-architecture)
+3. [Interaction Flow in DDD and Architecture](#-interaction-flow-in-ddd-and-architecture)
 4. [Key Technical Features](#-key-technical-features)
 5. [Design Patterns](#-design-patterns)
 6. [Principles](#-principles)
 7. [Technologies](#-technologies)
 8. [Getting Started](#-getting-started)
 9. [Project Structure](#-project-structure)
-10. [API Documentation](#-api-documentation)
-11. [Running the Application](#-running-the-application)
-12. [Usage](#-usage)
-13. [Health Monitoring](#-health-monitoring)
-14. [Local-to-Cloud Migration](#-local-to-cloud-migration)
-15. [Testing & Validation](#-testing--validation)
-16. [Enterprise Orchestration (Kubernetes)](#-enterprise-orchestration-kubernetes)
-17. [Observability (Prometheus)](#-observability-prometheus)
-18. [Contributing](#-contributing)
-19. [License](#-license)
+10. [API Documentation (REST)](#-api-documentation-rest)
+11. [API Documentation (GraphQL)](#-api-documentation-graphql)
+12. [Running the Application](#-running-the-application)
+13. [Usage](#-usage)
+14. [Health Monitoring](#-health-monitoring)
+15. [Local-to-Cloud Migration](#-local-to-cloud-migration)
+16. [Testing & Validation](#-testing--validation)
+17. [Enterprise Orchestration (Kubernetes)](#-enterprise-orchestration-kubernetes)
+18. [Observability (Prometheus)](#-observability-prometheus)
+19. [Contributing](#-contributing)
+20. [License](#-license)
 
 ---
 
@@ -67,7 +68,11 @@ We have transitioned to a **Monorepo** structure to ensure independent scalabili
 
 ---
 
-# 🧩🔄⚙️🌐 Internal Flow and Architecture
+# 🧩 Interaction Flow in DDD and Architecture
+
+This project strictly adheres to Domain-Driven Design (DDD) principles, ensuring that each layer has a clear responsibility and that dependencies flow inwards.
+
+![Interaction Flow](./image/interaction-flow.png)
 
 ## 1. Request Layer
 
@@ -197,19 +202,46 @@ cp .env.example .env
 
 ```bash
 /
-├── packages
+├── packages/               # Monorepo Workspaces
 │   ├── backend/
-│              core-api # Main API & Worker Application
-│              common   # Shared Library (@config/libs)
-│   ├── frontend/admin         # Angular Admin Dashboard
-│   └── infrastructure         # DevOps (Docker, K8s, Scripts)
-├── package.json               # Root Configuration
-└── tsconfig.json              # Root Types
+│   │   ├── core-api        # Main API & Worker Application
+│   │   │   ├── src/modules/*/graphql  # Feature-specific GraphQL types
+│   │   │   └── src/main.ts            # App Bootstrap & Lifecycle registration
+│   │   └── common          # Shared Library (@config/libs)
+│   │       ├── src/application        # Lifecycle & Graceful Shutdown
+│   │       ├── src/core               # DI Container, GraphQL Engine, Guards
+│   │       ├── src/infrastructure     # Config, DB, Redis, Cache, Compute, Storage
+│   │       └── src/domain             # Enums, Interfaces, Types, Exceptions
+│   ├── frontend/admin      # Angular 18+ Admin Dashboard
+│   └── infrastructure      # DevOps & Infrastructure
+│       ├── deployment/dev  # Local dev environment (PostgreSQL, Redis)
+│       ├── infra           # K8s manifests (ArgoCD, Prometheus, Zero-trust)
+│       └── scripts         # Maintenance & Stress-test scripts
+├── image/                  # Project assets and architectural diagrams
+├── node_modules/           # Monorepo-level dependencies (shared across packages)
+├── .gitignore              # Standard Git exclusion matching monorepo patterns
+├── .prettierrc             # Unified code formatting rules
+├── eslint.config.mjs       # Project-wide linting configuration
+├── LICENSE                 # MIT License details
+├── package-lock.json       # Deterministic dependency tree for the entire workspace
+├── package.json            # Monorepo root (links all packages via Workspaces)
+├── README.md               # You are here!
+└── tsconfig.json           # Global TypeScript configuration and path aliases
 ```
+
+### 🏛️ Why This Structure?
+
+This project follows a **Modular Monorepo Architecture** for several critical reasons:
+
+1.  **Strict Separation of Concerns**: By isolating the `common` library (Shared Kernel), we ensure that core logic (like DI, Security, and Database adapters) is reusable and never coupled to a specific delivery mechanism (REST or GraphQL).
+2.  **Shared Infrastructure**: Root-level configuration files (`tsconfig.json`, `eslint.config.mjs`) ensure consistent standards across all backend and frontend packages, reducing maintenance overhead.
+3.  **Scalability**: The separation of `core-api` from `infrastructure` allows you to scale background workers independently of the API gateway while keeping the deployment logic (Kubernetes) centralized.
+4.  **Developer Experience**: NPM Workspaces allow for local linking, so changes in `packages/backend/common` are immediately reflected in `packages/backend/core-api` without needing to publish packages.
+5.  **Single Source of Truth**: Assets, documentation, and shared dependencies live at the root, ensuring that the entire ecosystem (API, Workers, Admin UI) moves in sync.
 
 ---
 
-# 📚 API Documentation
+# 📚 API Documentation (REST)
 
 This project uses **Swagger (OpenAPI)** for interactive documentation.
 
@@ -221,6 +253,72 @@ Access at: `http://localhost:3000/api` (Dev Mode only)
 
 1.  **JWT**: Click "Authorize" and enter your Bearer token.
 2.  **API Key**: Enter `HEALTH_CHECK_SECRET` for infrastructure endpoints.
+
+---
+
+# 🔮 API Documentation (GraphQL)
+
+The project includes a custom, Nest-style GraphQL engine built on top of Express.
+
+## Endpoints
+
+- **GraphQL API**: `http://localhost:3000/graphql` (POST)
+- **GraphiQL Playground**: `http://localhost:3000/graphiql` (GET - Dev Mode only)
+
+## Authentication in GraphQL
+
+To access protected resolvers (like `UsersResolver`), you must include a Bearer token in the `Authorization` header:
+
+```json
+{
+  "Authorization": "Bearer YOUR_JWT_TOKEN"
+}
+```
+
+## Example: Users Query (RBAC Enforced)
+
+```graphql
+query GetUsers {
+  users(page: 1, limit: 10) {
+    data {
+      id
+      email
+      firstName
+      lastName
+      role
+      isActive
+    }
+    pagination {
+      total
+      totalPages
+      page
+    }
+  }
+}
+```
+
+## Example: Create User Mutation
+
+```graphql
+mutation CreateUser {
+  createUser(email: "newuser@example.com", password: "StrongPassword123", firstName: "John", lastName: "Doe") {
+    id
+    email
+    role
+  }
+}
+```
+
+## Example: Delete User Mutation
+
+```graphql
+mutation DeleteUser {
+  deleteUser(id: "123") {
+    success
+    message
+  }
+}
+```
 
 ---
 

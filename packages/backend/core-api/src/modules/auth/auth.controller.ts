@@ -14,7 +14,7 @@ export class AuthController extends BaseController {
 
   @Post('/login')
   async login (@Body() loginDto: LoginDto): Promise<AuthResponseDto> {
-    return this.authService.login(loginDto, { allowedRoles: [UserRoles.ADMIN, UserRoles.MODERATOR, UserRoles.USER], context: 'user portal' });
+    return this.authService.login(loginDto, { allowedRoles: [UserRoles.GLOBAL_ADMIN, UserRoles.ADMIN, UserRoles.MODERATOR, UserRoles.USER], context: 'user portal' });
   }
 
   @Post('/admin-login')

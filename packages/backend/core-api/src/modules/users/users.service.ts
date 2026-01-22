@@ -65,7 +65,7 @@ export class UsersService {
     });
   }
 
-  async update (id: string, updateUserDto: UpdateUserDto, currentUser?: JwtPayload): Promise<UserResponseDto> {
+  async update (id: string | number, updateUserDto: UpdateUserDto, currentUser?: JwtPayload): Promise<UserResponseDto> {
     const userId = this.parseAndValidateId(id);
 
     if (currentUser && currentUser.sub === userId) {
@@ -90,7 +90,7 @@ export class UsersService {
     });
   }
 
-  async remove (id: string, currentUser?: JwtPayload): Promise<{ message: string }> {
+  async remove (id: string | number, currentUser?: JwtPayload): Promise<{ message: string }> {
     const userId = this.parseAndValidateId(id);
 
     if (currentUser && String(currentUser.sub) === String(userId)) throw new ForbiddenException('You cannot delete your own account');
@@ -151,8 +151,8 @@ export class UsersService {
     });
   }
 
-  private parseAndValidateId (id: string): number {
-    const userId = parseInt(id, 10);
+  private parseAndValidateId (id: string | number): number {
+    const userId = typeof id === 'number' ? id : parseInt(id, 10);
     if (isNaN(userId) || userId <= 0) throw new BadRequestException('Invalid user ID. ID must be a positive number');
 
     return userId;

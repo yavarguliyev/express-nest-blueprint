@@ -5,31 +5,31 @@ export class UserResponseDto {
   id!: number;
 
   @Expose()
-  email!: string;
+  email?: string | undefined;
 
   @Expose()
-  firstName!: string;
+  firstName?: string | undefined;
 
   @Expose()
-  lastName!: string;
+  lastName?: string | undefined;
 
   @Expose()
-  role!: string;
+  role?: string | undefined;
 
   @Expose()
-  isActive!: boolean;
+  isActive?: boolean | undefined;
 
   @Expose()
   profileImageUrl?: string | null | undefined;
 
   @Expose()
-  isEmailVerified!: boolean;
+  isEmailVerified?: boolean | undefined;
 
   @Expose()
   @Type(() => Date)
-  createdAt!: Date;
+  createdAt?: Date | undefined;
 
   @Expose()
   @Type(() => Date)
-  updatedAt!: Date;
+  updatedAt?: Date | undefined;
 }

@@ -3,22 +3,23 @@ import { ClassConstructor } from 'class-transformer';
 import express, { Express, Request, Response, NextFunction, RequestHandler, Application } from 'express';
 import { Server } from 'http';
 
-import { paramHandlers } from '../constants/common.const';
-import { METHODS } from '../constants/system.const';
-import { Container } from '../container/container';
-import { CONTROLLER_METADATA } from '../decorators/controller.decorator';
-import { GUARDS_METADATA } from '../decorators/middleware.decorators';
-import { PARAM_METADATA } from '../decorators/param.decorators';
-import { CONTROLLER_REGISTRY } from '../decorators/register-controller-class.helper';
-import { ROUTE_METADATA } from '../decorators/route.decorators';
-import { BadRequestException, InternalServerErrorException, UnauthorizedException } from '../exceptions/http-exceptions';
-import { GlobalExceptionFilter } from '../filters/global-exception.filter';
-import { AuthGuard } from '../guards/auth.guard';
-import { RolesGuard } from '../guards/roles.guard';
-import { getErrorMessage } from '../helpers/utility-functions.helper';
-import { ControllerOptions, CorsOptions, ExtractMethodOptions, HasMethodOptions, ParamMetadata, RouteMetadata } from '../interfaces/common.interface';
-import { CanActivate } from '../interfaces/guard.interface';
-import { Constructor, ExpressHttpMethods, HttpMethod } from '../types/common.type';
+import { Container } from '../core/container/container';
+import { CONTROLLER_METADATA } from '../core/decorators/controller.decorator';
+import { GUARDS_METADATA } from '../core/decorators/middleware.decorators';
+import { PARAM_METADATA } from '../core/decorators/param.decorators';
+import { CONTROLLER_REGISTRY } from '../core/decorators/register-controller-class.helper';
+import { ROUTE_METADATA } from '../core/decorators/route.decorators';
+import { GlobalExceptionFilter } from '../core/filters/global-exception.filter';
+import { AuthGuard } from '../core/guards/auth.guard';
+import { RolesGuard } from '../core/guards/roles.guard';
+import { paramHandlers } from '../domain/constants/common.const';
+import { METHODS } from '../domain/constants/system.const';
+import { BadRequestException, InternalServerErrorException, UnauthorizedException } from '../domain/exceptions/http-exceptions';
+import { getErrorMessage } from '../domain/helpers/utility-functions.helper';
+import { ControllerOptions, CorsOptions, ExtractMethodOptions, HasMethodOptions, ParamMetadata, RouteMetadata } from '../domain/interfaces/common.interface';
+import { CanActivate } from '../domain/interfaces/guard.interface';
+import { Constructor, ExpressHttpMethods, HttpMethod } from '../domain/types/common.type';
+import { ConfigService } from '../infrastructure/config/config.service';
 
 export class NestApplication {
   private app: Express;
@@ -35,6 +36,7 @@ export class NestApplication {
 
   init = (): void => this.initialize();
   getExpressApp = (): Express => this.app;
+  getContainer = (): Container => this.container;
   get = <T extends object>(provide: Constructor<T> | string | symbol): T => this.container.resolve({ provide });
 
   registerController<T extends object> (controllerClass: Constructor<T>): void {
@@ -113,7 +115,11 @@ export class NestApplication {
   }
 
   setupGlobalErrorHandler (): void {
-    this.app.use(GlobalExceptionFilter.create());
+    const configService = this.container.has(ConfigService) 
+      ? this.container.resolve<ConfigService>({ provide: ConfigService }) 
+      : undefined;
+      
+    this.app.use(GlobalExceptionFilter.create(configService));
     this.app.use((req: Request, res: Response) => {
       res.status(404).json({
         success: false,
@@ -197,7 +203,11 @@ export class NestApplication {
   }
 
   async close (): Promise<void> {
-    if (this.server && this.server.listening) return new Promise((resolve, reject) => this.server!.close((error) => (error ? reject(error) : resolve())));
+    if (this.server && this.server.listening) {
+      await new Promise<void>((resolve, reject) => this.server!.close((error) => (error ? reject(error) : resolve())));
+    }
+
+    this.container.clear();
   }
 
   private hasMethod<T extends object> ({ instance, methodName }: HasMethodOptions<T>): boolean {

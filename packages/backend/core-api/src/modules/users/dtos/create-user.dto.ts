@@ -7,16 +7,16 @@ export class CreateUserDto {
   email!: string;
 
   @IsString({ message: 'First name must be a string' })
-  @IsNotEmpty({ message: 'First name is required' })
+  @IsOptional()
   @MinLength(2, { message: 'First name must be at least 2 characters long' })
   @MaxLength(50, { message: 'First name must not exceed 50 characters' })
-  firstName!: string;
+  firstName?: string | undefined;
 
   @IsString({ message: 'Last name must be a string' })
-  @IsNotEmpty({ message: 'Last name is required' })
+  @IsOptional()
   @MinLength(2, { message: 'Last name must be at least 2 characters long' })
   @MaxLength(50, { message: 'Last name must not exceed 50 characters' })
-  lastName!: string;
+  lastName?: string | undefined;
 
   @IsString({ message: 'Password must be a string' })
   @IsNotEmpty({ message: 'Password is required' })
@@ -25,5 +25,5 @@ export class CreateUserDto {
 
   @IsOptional()
   @IsBoolean({ message: 'isActive must be a boolean value' })
-  isActive?: boolean = true;
+  isActive?: boolean | undefined = true;
 }

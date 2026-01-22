@@ -12,13 +12,15 @@ import {
   ThrottlerModule,
   CircuitBreakerModule,
   SharedModule,
-  DatabaseModule
+  DatabaseModule,
+  GraphQLModule
 } from '@config/libs';
 
 import { AuthModule } from '@modules/auth/auth.module';
 import { UsersModule } from '@modules/users/users.module';
 import { AdminModule } from '@modules/admin/admin.module';
 import { ThemesModule } from '@modules/themes/themes.module';
+import { UsersResolver } from '@modules/users/users.resolver';
 
 @Module({
   imports: [
@@ -33,6 +35,7 @@ import { ThemesModule } from '@modules/themes/themes.module';
     ThrottlerModule,
     MetricsModule,
     CircuitBreakerModule,
+    GraphQLModule.forRoot({ resolvers: [UsersResolver] }),
     UsersModule,
     AuthModule,
     AdminModule,

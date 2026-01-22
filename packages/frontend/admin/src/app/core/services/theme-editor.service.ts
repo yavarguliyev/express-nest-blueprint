@@ -76,7 +76,7 @@ export class ThemeEditorService {
 
   hasDrafts = computed(() => this.draftCount() > 0);
 
-  constructor () {
+  constructor() {
     this.loadDraftsFromStorage();
 
     effect(() => {
@@ -85,27 +85,18 @@ export class ThemeEditorService {
     });
   }
 
-  loadTokens (): Observable<CssToken[]> {
+  loadTokens(): Observable<CssToken[]> {
     this._loading.set(true);
-    
-    console.log('Loading tokens from API...');
-    
+
     const url = `/api/v1/admin/crud/Database Management/css_tokens`;
-    console.log('API URL:', url);
 
     return this.http
-      .get<
-        ApiResponse<PaginatedResponse<CssToken>>
-      >(url, { params: { limit: '1000' } })
+      .get<ApiResponse<PaginatedResponse<CssToken>>>(url, { params: { limit: '1000' } })
       .pipe(
         map((response) => {
-          console.log('API response:', response);
           return response.data.data;
         }),
         tap((tokens) => {
-          console.log('Tokens received:', tokens.length);
-          const buttonTokens = tokens.filter(t => t.tokenName.includes('btn-'));
-          console.log('Button tokens from API:', buttonTokens);
           this._tokens.set(tokens);
           this._loading.set(false);
           this.applyCurrentTokens();
@@ -113,7 +104,7 @@ export class ThemeEditorService {
       );
   }
 
-  getTokenValue (tokenId: string, mode?: 'light' | 'dark'): string {
+  getTokenValue(tokenId: string, mode?: 'light' | 'dark'): string {
     const draft = this._drafts().get(tokenId);
     const token = this._tokens().find((t) => t.id === tokenId);
 
@@ -132,7 +123,7 @@ export class ThemeEditorService {
     return token.defaultValue;
   }
 
-  updateTokenDraft (
+  updateTokenDraft(
     tokenId: string,
     value: string,
     mode: 'light' | 'dark' | 'default' = 'default',
@@ -152,7 +143,6 @@ export class ThemeEditorService {
 
     const updatedDraft = { ...existingDraft };
 
-    // Special handling for toggle, button, and secondary button tokens - update both light and dark modes
     const isToggleToken = token.tokenName.includes('toggle');
     const isButtonToken = token.tokenName.includes('btn-');
     const shouldUpdateBothModes = isToggleToken || isButtonToken;
@@ -164,7 +154,6 @@ export class ThemeEditorService {
       updatedDraft.darkModeValue = value;
       if (shouldUpdateBothModes) updatedDraft.lightModeValue = value;
     } else {
-      // For default mode, update all three values
       updatedDraft.defaultValue = value;
       updatedDraft.lightModeValue = value;
       updatedDraft.darkModeValue = value;
@@ -187,11 +176,10 @@ export class ThemeEditorService {
     this.applyTokenToCSS(token.tokenName, value);
   }
 
-  private applyTokenToCSS (tokenName: string, value: string): void {
+  private applyTokenToCSS(tokenName: string, value: string): void {
     if (typeof document !== 'undefined') {
       document.documentElement.style.setProperty(tokenName, value);
-      
-      // Auto-generate hover colors for primary buttons
+
       if (tokenName === '--btn-primary-start') {
         const hoverColor = this.adjustColor(value, 15);
         document.documentElement.style.setProperty('--btn-primary-hover-start', hoverColor);
@@ -202,46 +190,56 @@ export class ThemeEditorService {
     }
   }
 
-  private adjustColor (color: string, percent: number): string {
-    // Handle hex colors
+  private adjustColor(color: string, percent: number): string {
     if (color.startsWith('#')) {
       const hex = color.slice(1);
       const num = parseInt(hex, 16);
-      const r = Math.min(255, Math.floor((num >> 16) + (255 - (num >> 16)) * percent / 100));
-      const g = Math.min(255, Math.floor(((num >> 8) & 0x00FF) + (255 - ((num >> 8) & 0x00FF)) * percent / 100));
-      const b = Math.min(255, Math.floor((num & 0x0000FF) + (255 - (num & 0x0000FF)) * percent / 100));
+      const r = Math.min(255, Math.floor((num >> 16) + ((255 - (num >> 16)) * percent) / 100));
+      const g = Math.min(
+        255,
+        Math.floor(((num >> 8) & 0x00ff) + ((255 - ((num >> 8) & 0x00ff)) * percent) / 100),
+      );
+      const b = Math.min(
+        255,
+        Math.floor((num & 0x0000ff) + ((255 - (num & 0x0000ff)) * percent) / 100),
+      );
       return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
     }
-    
-    // Handle rgb/rgba colors
+
     if (color.startsWith('rgb')) {
       const matches = color.match(/\d+/g);
       if (matches && matches.length >= 3) {
-        const r = Math.min(255, parseInt(matches[0]) + Math.floor((255 - parseInt(matches[0])) * percent / 100));
-        const g = Math.min(255, parseInt(matches[1]!) + Math.floor((255 - parseInt(matches[1]!)) * percent / 100));
-        const b = Math.min(255, parseInt(matches[2]!) + Math.floor((255 - parseInt(matches[2]!)) * percent / 100));
+        const r = Math.min(
+          255,
+          parseInt(matches[0]) + Math.floor(((255 - parseInt(matches[0])) * percent) / 100),
+        );
+        const g = Math.min(
+          255,
+          parseInt(matches[1]!) + Math.floor(((255 - parseInt(matches[1]!)) * percent) / 100),
+        );
+        const b = Math.min(
+          255,
+          parseInt(matches[2]!) + Math.floor(((255 - parseInt(matches[2]!)) * percent) / 100),
+        );
         const a = matches[3] ? parseFloat(matches[3]) : 1;
         return matches.length > 3 ? `rgba(${r}, ${g}, ${b}, ${a})` : `rgb(${r}, ${g}, ${b})`;
       }
     }
-    
-    return color; // Return original if can't parse
+
+    return color;
   }
 
-  applyCurrentTokens (): void {
+  applyCurrentTokens(): void {
     if (typeof document === 'undefined') return;
 
     const tokens = this._tokens();
     const currentMode = this.getCurrentThemeFromDocument();
-    
-    console.log('Applying tokens, mode:', currentMode, 'total tokens:', tokens.length);
 
     tokens.forEach((token) => {
       const value = this.getTokenValue(token.id, currentMode);
       if (value) {
         document.documentElement.style.setProperty(token.tokenName, value);
-        
-        // Auto-generate hover colors for primary buttons
+
         if (token.tokenName === '--btn-primary-start') {
           const hoverColor = this.adjustColor(value, 15);
           document.documentElement.style.setProperty('--btn-primary-hover-start', hoverColor);
@@ -249,23 +247,15 @@ export class ThemeEditorService {
           const hoverColor = this.adjustColor(value, 15);
           document.documentElement.style.setProperty('--btn-primary-hover-end', hoverColor);
         }
-        
-        // Debug button tokens specifically
-        if (token.tokenName.includes('btn-')) {
-          console.log(`Applied ${token.tokenName} = ${value}`);
-          // Check if it was actually set
-          const actualValue = getComputedStyle(document.documentElement).getPropertyValue(token.tokenName);
-          console.log(`Computed value for ${token.tokenName}: "${actualValue.trim()}"`);
-        }
       }
     });
   }
 
-  private getCurrentThemeFromDocument (): 'light' | 'dark' {
+  private getCurrentThemeFromDocument(): 'light' | 'dark' {
     return this.themeService.currentTheme();
   }
 
-  publishDrafts (): Observable<boolean> {
+  publishDrafts(): Observable<boolean> {
     const drafts = Array.from(this._drafts().values()).filter((draft) => draft.hasChanges);
 
     if (drafts.length === 0) {
@@ -305,34 +295,34 @@ export class ThemeEditorService {
     });
   }
 
-  resetDrafts (): void {
+  resetDrafts(): void {
     this._drafts.set(new Map());
     this.saveDraftsToStorage();
     this.applyCurrentTokens();
   }
 
-  private clearDrafts (): void {
+  private clearDrafts(): void {
     this._drafts.set(new Map());
     this.saveDraftsToStorage();
   }
 
-  getDraft (tokenId: string): TokenDraft | null {
+  getDraft(tokenId: string): TokenDraft | null {
     return this._drafts().get(tokenId) || null;
   }
 
-  hasTokenChanges (tokenId: string): boolean {
+  hasTokenChanges(tokenId: string): boolean {
     const draft = this._drafts().get(tokenId);
     return draft ? draft.hasChanges : false;
   }
 
-  private saveDraftsToStorage (): void {
+  private saveDraftsToStorage(): void {
     if (typeof window !== 'undefined') {
       const draftsArray = Array.from(this._drafts().entries());
       localStorage.setItem(this.DRAFT_STORAGE_KEY, JSON.stringify(draftsArray));
     }
   }
 
-  private loadDraftsFromStorage (): void {
+  private loadDraftsFromStorage(): void {
     if (typeof window !== 'undefined') {
       localStorage.removeItem(this.DRAFT_STORAGE_KEY);
 
@@ -344,11 +334,11 @@ export class ThemeEditorService {
     }
   }
 
-  getTokensByCategory (category: string): CssToken[] {
+  getTokensByCategory(category: string): CssToken[] {
     return this._tokens().filter((token) => token.tokenCategory === category);
   }
 
-  getCategories (): string[] {
+  getCategories(): string[] {
     const tokens = this._tokens();
     const categories = new Set(tokens.map((token) => token.tokenCategory));
     return Array.from(categories).sort();

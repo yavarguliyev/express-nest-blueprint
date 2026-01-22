@@ -1,13 +1,13 @@
 import 'reflect-metadata';
 
 import { NestApplication } from './nest-application';
-import { Container } from '../container/container';
-import { MODULE_METADATA } from '../decorators/module.decorator';
-import { AppName } from '../enums/common.enum';
-import { BadRequestException } from '../exceptions/http-exceptions';
-import { DynamicModule, ModuleMetadata, RegisterModuleOptions, NestModule, RegisterOptions } from '../interfaces/common.interface';
-import { MiddlewareConsumerImpl } from '../middleware/middleware-consumer';
-import { Constructor, InitializerToken, ObjectProvider } from '../types/common.type';
+import { Container } from '../core/container/container';
+import { MODULE_METADATA } from '../core/decorators/module.decorator';
+import { MiddlewareConsumerImpl } from '../core/middleware/middleware-consumer';
+import { AppName } from '../domain/enums/common.enum';
+import { BadRequestException } from '../domain/exceptions/http-exceptions';
+import { DynamicModule, ModuleMetadata, RegisterModuleOptions, NestModule, RegisterOptions } from '../domain/interfaces/common.interface';
+import { Constructor, InitializerToken, ObjectProvider } from '../domain/types/common.type';
 
 export class NestFactory {
   private static readonly apps = new Map<AppName, NestApplication>();
@@ -18,6 +18,7 @@ export class NestFactory {
     if (this.apps.has(appName)) return this.apps.get(appName)!;
 
     const container = Container.getInstance();
+    container.register({ provide: Container, useValue: container });
     const factory = new NestFactory();
 
     await factory.registerModule({ moduleOrConfig: moduleClass }, container);
