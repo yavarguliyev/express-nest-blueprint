@@ -56,6 +56,7 @@ delete_k8s_resources() {
   kubectl delete -f "${K8S_DIR}/postgres/" --ignore-not-found
   kubectl delete -f "${K8S_DIR}/redis/" --ignore-not-found
   kubectl delete -f "${K8S_DIR}/minio/" --ignore-not-found
+  kubectl delete -f "${K8S_DIR}/kafka/" --ignore-not-found
   kubectl delete -f "${K8S_DIR}/base/" --ignore-not-found
 
   print_info "Kubernetes resources deleted successfully!"

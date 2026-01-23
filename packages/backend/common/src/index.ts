@@ -106,3 +106,6 @@ export * from './infrastructure/circuit-breaker/circuit-breaker.service';
 export * from './infrastructure/compute/compute.module';
 export * from './infrastructure/compute/compute.service';
 export * from './infrastructure/compute/compute.explorer';
+export * from './infrastructure/kafka/kafka.interfaces';
+export * from './infrastructure/kafka/kafka.module';
+export * from './infrastructure/kafka/kafka.service';

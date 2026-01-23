@@ -85,11 +85,15 @@ print_info "Deploying Infrastructure (Postgres, Redis & MinIO)..."
 kubectl apply -f ../k8s/postgres/postgres-manifests.yaml
 kubectl apply -f ../k8s/redis/redis-manifests.yaml
 kubectl apply -f ../k8s/minio/minio-manifests.yaml
+kubectl apply -f ../k8s/kafka/zookeeper.yaml
+kubectl apply -f ../k8s/kafka/kafka.yaml
 
 print_info "Waiting for Infrastructure to be ready..."
 kubectl wait --for=condition=ready pod -l service=postgres -n $NAMESPACE --timeout=60s || print_warn "Postgres still starting..."
 kubectl wait --for=condition=ready pod -l service=redis -n $NAMESPACE --timeout=60s || print_warn "Redis still starting..."
 kubectl wait --for=condition=ready pod -l app=minio -n $NAMESPACE --timeout=60s || print_warn "MinIO still starting..."
+kubectl wait --for=condition=ready pod -l app=zookeeper -n $NAMESPACE --timeout=60s || print_warn "Zookeeper still starting..."
+kubectl wait --for=condition=ready pod -l app=kafka -n $NAMESPACE --timeout=60s || print_warn "Kafka still starting..."
 
 # 5. Run Database Migrations (before deploying API)
 print_info "Running database migrations..."
@@ -182,6 +186,10 @@ print_info "   • Health:   http://api.local/health/live"
 print_info ""
 print_info "🎨 Admin UI:"
 print_info "   • Dashboard: http://api.local/admin/"
+print_info ""
+print_info "🔮 GraphQL Endpoint:"
+print_info "   • URL: http://localhost:8080/graphql"
+print_info "   • URL: http://api.local/graphql"
 print_info ""
 print_info "💾 Storage:"
 print_info "   • Files: http://api.local/express-nest-blueprint/..."
