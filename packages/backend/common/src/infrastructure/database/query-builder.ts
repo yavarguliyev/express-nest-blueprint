@@ -58,7 +58,7 @@ export class QueryBuilder<T> {
   }
 
   buildUpdateQuery<K extends string> (id: string | number, data: Record<string, unknown>, returningColumns: K[]): { query: string; params: unknown[] } {
-    const columns = Object.keys(data);
+    const columns = Object.keys(data).filter((key) => data[key] !== undefined);
     const params: unknown[] = [];
     let paramIndex = 1;
 

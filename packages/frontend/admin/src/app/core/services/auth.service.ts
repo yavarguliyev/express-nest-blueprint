@@ -2,6 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
+import { API_ENDPOINTS } from '../constants/api-endpoints';
 
 export interface User {
   id: number;
@@ -26,13 +27,11 @@ export interface AuthResponse {
 export class AuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
-  private baseUrl = '/api/v1/auth';
-  private apiUrl = '/api/v1';
 
   currentUser = signal<User | null>(this.getCurrentUserFromStorage());
 
   login (credentials: any): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.baseUrl}/admin-login`, credentials).pipe(
+    return this.http.post<AuthResponse>(API_ENDPOINTS.AUTH.LOGIN, credentials).pipe(
       tap((response) => {
         if (response.success && response.data.accessToken) {
           localStorage.setItem('admin_token', response.data.accessToken);
@@ -73,7 +72,7 @@ export class AuthService {
   }
 
   async syncProfile (): Promise<void> {
-    const response = await fetch(`${this.apiUrl}/admin/profile?t=${Date.now()}`, {
+    const response = await fetch(`${API_ENDPOINTS.AUTH.PROFILE}?t=${Date.now()}`, {
       headers: this.getHeaders(),
     });
     if (response.ok) {
@@ -92,7 +91,7 @@ export class AuthService {
     formData.append('file', file);
 
     const token = this.getToken();
-    const response = await fetch(`${this.apiUrl}/admin/profile/upload`, {
+    const response = await fetch(API_ENDPOINTS.AUTH.UPLOAD_AVATAR, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -106,7 +105,7 @@ export class AuthService {
 
   async deleteAvatar (): Promise<void> {
     const token = this.getToken();
-    const response = await fetch(`${this.apiUrl}/admin/profile/image`, {
+    const response = await fetch(API_ENDPOINTS.AUTH.DELETE_AVATAR, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`,

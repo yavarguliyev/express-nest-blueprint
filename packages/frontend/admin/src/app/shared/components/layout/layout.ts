@@ -25,20 +25,20 @@ import { SidebarService } from '../../../core/services/sidebar.service';
       .app-layout {
         display: flex;
         min-height: 100vh;
-        overflow-x: visible;
+        overflow: visible !important;
       }
       .main-content {
         flex: 1;
         display: flex;
         flex-direction: column;
-        overflow-x: visible;
+        overflow: visible !important;
         min-width: 0;
         transition: all 0.3s ease;
       }
       .page-container {
         padding: 0 20px 20px calc(var(--sidebar-width) + 40px);
         flex: 1;
-        overflow-x: visible;
+        overflow: visible !important;
         min-width: 0;
         width: 100%;
         transition: padding-left 0.3s ease;
@@ -51,6 +51,6 @@ import { SidebarService } from '../../../core/services/sidebar.service';
 })
 export class Layout {
   private sidebarService = inject(SidebarService);
-  
+
   isCollapsed = this.sidebarService.isCollapsed;
 }

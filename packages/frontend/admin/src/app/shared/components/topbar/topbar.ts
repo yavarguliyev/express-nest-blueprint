@@ -4,13 +4,14 @@ import { RouterLink, Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { ThemeService } from '../../../core/services/theme.service';
 import { ToggleSwitch } from '../toggle-switch/toggle-switch';
+import { NotificationDropdownComponent } from '../notification-dropdown/notification-dropdown.component';
 import { filter, map } from 'rxjs/operators';
 import { signal } from '@angular/core';
 
 @Component({
   selector: 'app-topbar',
   standalone: true,
-  imports: [CommonModule, RouterLink, ToggleSwitch],
+  imports: [CommonModule, RouterLink, ToggleSwitch, NotificationDropdownComponent],
   templateUrl: './topbar.html',
   styleUrl: './topbar.css',
 })

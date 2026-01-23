@@ -5,7 +5,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  overflow: hidden;
+  overflow: visible !important;
+  position: relative;
+  z-index: 10002;
 }
 
 .breadcrumb {
@@ -20,18 +22,10 @@
   display: flex;
   align-items: center;
   gap: 20px;
-}
-
-.notifications {
   position: relative;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: color 0.2s ease;
+  z-index: 10000;
 }
 
-.notifications:hover {
-  color: var(--primary);
-}
 
 /* Theme Toggle Styling */
 .theme-toggle {
@@ -62,16 +56,6 @@
   border-color: rgba(0, 0, 0, 0.2);
 }
 
-.badge {
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  width: 8px;
-  height: 8px;
-  background: var(--danger);
-  border-radius: 50%;
-  box-shadow: 0 0 5px var(--danger);
-}
 
 .user-profile {
   display: flex;

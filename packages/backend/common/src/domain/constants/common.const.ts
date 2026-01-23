@@ -21,7 +21,7 @@ export const paramHandlers: Record<string, ParamHandler> = {
     args[index] = typeof param.data === 'string' ? req.params[param.data] : req.params;
   },
   query: async (param, index, args, paramTypes, req) => {
-    if (!param.data && paramTypes[index] && req.query) {
+    if (!param.data && paramTypes[index] && req.query && paramTypes[index] !== Object) {
       const dtoClass = paramTypes[index];
       args[index] = await ValidationService.validateQuery(dtoClass, req.query);
     } else {

@@ -1,6 +1,8 @@
-import { Kafka, Producer, Consumer, EachMessageHandler } from 'kafkajs';
+import { Kafka, Producer, Consumer, EachMessageHandler, logLevel, LogEntry } from 'kafkajs';
+
 import { Injectable, Inject } from '../../core/decorators/injectable.decorator';
 import { KafkaModuleOptions, KafkaMessagePayload, KafkaSubscribeOptions, KafkaMessageHandler } from './kafka.interfaces';
+import { Logger } from '../logger/logger.service';
 
 export const KAFKA_OPTIONS = Symbol('KAFKA_OPTIONS');
 
@@ -13,11 +15,26 @@ export class KafkaService {
   private isConsumerConnected = false;
 
   constructor (@Inject(KAFKA_OPTIONS) private options: KafkaModuleOptions) {
-    this.kafka = new Kafka(this.options.config);
+    const kafkaLogger =
+      () =>
+      (entry: LogEntry) => {
+        const { label, level, log } = entry;
+        const { message, ...extra } = log;
+        const context = `Kafka:${label}`;
+        if (level <= logLevel.ERROR) Logger.error(message, JSON.stringify(extra), context);
+        else if (level <= logLevel.WARN) Logger.warn(message, context);
+        else if (level <= logLevel.INFO) Logger.log(message, context);
+        else Logger.debug(message, context);
+      };
+
+    this.kafka = new Kafka({
+      ...this.options.config,
+      logCreator: kafkaLogger
+    });
     this.producer = this.kafka.producer(this.options.producerConfig);
     this.consumer = this.kafka.consumer({
       groupId: this.options.consumerConfig?.groupId || 'default-group',
-      ...this.options.consumerConfig,
+      ...this.options.consumerConfig
     });
   }
 
@@ -51,36 +68,34 @@ export class KafkaService {
           key: payload.key ?? null,
           value: JSON.stringify(payload.value),
           headers: payload.headers ?? {},
-          ...(payload.timestamp ? { timestamp: payload.timestamp } : {}),
-        },
-      ],
+          ...(payload.timestamp ? { timestamp: payload.timestamp } : {})
+        }
+      ]
     });
   }
 
-  async subscribe (options: KafkaSubscribeOptions, handler: KafkaMessageHandler): Promise<void> {
+  async subscribe<T = unknown> (options: KafkaSubscribeOptions, handler: KafkaMessageHandler<T>): Promise<void> {
     if (!this.isConsumerConnected) {
       await this.connect();
     }
 
     await this.consumer.subscribe({
       topic: options.topic,
-      fromBeginning: options.fromBeginning ?? false,
+      fromBeginning: options.fromBeginning ?? false
     });
 
     const eachMessageHandler: EachMessageHandler = async ({ topic, partition, message }) => {
-      const value = message.value ? (JSON.parse(message.value.toString()) as unknown) : null;
+      const value = message.value ? (JSON.parse(message.value.toString()) as T) : (null as unknown as T);
       await handler({
         topic,
         partition,
         value,
         key: message.key,
         headers: message.headers as Record<string, string | Buffer | (string | Buffer)[]>,
-        timestamp: message.timestamp,
+        timestamp: message.timestamp
       });
     };
 
-    await this.consumer.run({
-      eachMessage: eachMessageHandler,
-    });
+    await this.consumer.run({ eachMessage: eachMessageHandler });
   }
 }

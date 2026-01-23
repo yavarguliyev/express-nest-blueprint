@@ -15,7 +15,7 @@ export class Sidebar {
   private authService = inject(AuthService);
   private router = inject(Router);
   private sidebarService = inject(SidebarService);
-  
+
   user = this.authService.currentUser;
   isCollapsed = this.sidebarService.isCollapsed;
 
@@ -29,18 +29,18 @@ export class Sidebar {
 
   getUserInitials (): string {
     const currentUser = this.user();
-    
+
     if (!currentUser) {
       return 'U';
     }
-    
+
     const firstName = currentUser.firstName?.trim();
     const lastName = currentUser.lastName?.trim();
-    
+
     if (!firstName || !lastName) {
       return 'U';
     }
-    
+
     const initials = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
     return initials;
   }

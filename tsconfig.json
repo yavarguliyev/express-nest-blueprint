@@ -34,8 +34,8 @@
     "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
-      "@config/libs": ["packages/common/src/index.ts"],
-      "@config/libs/*": ["packages/common/src/*"],
+      "@config/libs": ["packages/backend/common/src/index.ts"],
+      "@config/libs/*": ["packages/backend/common/src/*"],
       "@app/core-api/*": ["packages/backend/core-api/src/*"]
     }
   },

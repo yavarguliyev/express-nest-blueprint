@@ -1,9 +1,11 @@
+import { logLevel } from 'kafkajs';
+
+import { KafkaModuleOptions } from './kafka.interfaces';
+import { KafkaService, KAFKA_OPTIONS } from './kafka.service';
+import { LifecycleService } from '../../application/lifecycle/lifecycle.service';
+import { ConfigService } from '../config/config.service';
 import { Module } from '../../core/decorators/module.decorator';
 import { DynamicModule } from '../../domain/interfaces/common.interface';
-import { ConfigService } from '../config/config.service';
-import { LifecycleService } from '../../application/lifecycle/lifecycle.service';
-import { KafkaService, KAFKA_OPTIONS } from './kafka.service';
-import { KafkaModuleOptions } from './kafka.interfaces';
 
 @Module({
   providers: [KafkaService],
@@ -28,10 +30,11 @@ export class KafkaModule {
               config: {
                 clientId,
                 brokers,
+                logLevel: logLevel.INFO
               },
               consumerConfig: {
-                groupId,
-              },
+                groupId
+              }
             };
           }) as (...args: unknown[]) => unknown,
           inject: [ConfigService]
@@ -40,10 +43,12 @@ export class KafkaModule {
         {
           provide: 'KAFKA_INITIALIZER',
           useFactory: ((kafkaService: KafkaService, lifecycleService: LifecycleService) => {
-            return (): void => lifecycleService && lifecycleService.registerShutdownHandler({ 
-              name: 'Kafka Service', 
-              disconnect: () => kafkaService.disconnect() 
-            });
+            return (): void =>
+              lifecycleService &&
+              lifecycleService.registerShutdownHandler({
+                name: 'Kafka Service',
+                disconnect: () => kafkaService.disconnect()
+              });
           }) as (...args: unknown[]) => unknown,
           inject: [KafkaService, LifecycleService]
         }

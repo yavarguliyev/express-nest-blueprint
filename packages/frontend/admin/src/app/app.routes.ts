@@ -29,7 +29,8 @@ export const routes: Routes = [
       },
       {
         path: 'theme-editor',
-        loadComponent: () => import('./features/theme-editor/theme-editor').then((m) => m.ThemeEditor),
+        loadComponent: () =>
+          import('./features/theme-editor/theme-editor').then((m) => m.ThemeEditor),
       },
       {
         path: 'profile',

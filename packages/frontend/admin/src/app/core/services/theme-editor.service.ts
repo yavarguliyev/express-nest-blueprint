@@ -2,6 +2,7 @@ import { Injectable, inject, signal, computed, effect } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map, tap } from 'rxjs';
 import { ThemeService } from './theme.service';
+import { API_ENDPOINTS } from '../constants/api-endpoints';
 
 export interface CssToken {
   id: string;
@@ -88,7 +89,7 @@ export class ThemeEditorService {
   loadTokens (): Observable<CssToken[]> {
     this._loading.set(true);
 
-    const url = `/api/v1/admin/crud/Database Management/css_tokens`;
+    const url = API_ENDPOINTS.ADMIN.CRUD('Database Management', 'css_tokens');
 
     return this.http
       .get<ApiResponse<PaginatedResponse<CssToken>>>(url, { params: { limit: '1000' } })
@@ -269,7 +270,7 @@ export class ThemeEditorService {
 
     const updateRequests = drafts.map((draft) =>
       this.http.patch<ApiResponse<CssToken>>(
-        `/api/v1/admin/crud/Database Management/css_tokens/${draft.id}`,
+        API_ENDPOINTS.ADMIN.CRUD_ID('Database Management', 'css_tokens', draft.id),
         {
           lightModeValue: draft.lightModeValue,
           darkModeValue: draft.darkModeValue,

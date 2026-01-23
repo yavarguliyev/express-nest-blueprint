@@ -8,12 +8,11 @@ import { Toast as ToastInterface, ToastService } from '../../../core/services/to
   imports: [CommonModule],
   template: `
     <div class="toast-container">
-      <div
-        *ngFor="let toast of toastService.toasts()"
-        class="toast glass"
-        [ngClass]="toast.type"
-      >
-        <div class="toast-content" (click)="toast.type !== 'confirm' && toastService.remove(toast.id)">
+      <div *ngFor="let toast of toastService.toasts()" class="toast glass" [ngClass]="toast.type">
+        <div
+          class="toast-content"
+          (click)="toast.type !== 'confirm' && toastService.remove(toast.id)"
+        >
           <span class="material-icons toast-icon">
             {{ getIcon(toast.type) }}
           </span>
@@ -22,7 +21,7 @@ import { Toast as ToastInterface, ToastService } from '../../../core/services/to
             <span class="material-icons">close</span>
           </button>
         </div>
-        
+
         <div *ngIf="toast.type === 'confirm'" class="toast-actions">
           <button class="action-btn cancel" (click)="handleCancel(toast)">ABORT</button>
           <button class="action-btn confirm" (click)="handleConfirm(toast)">PROCEED</button>
@@ -36,7 +35,7 @@ import { Toast as ToastInterface, ToastService } from '../../../core/services/to
         position: fixed;
         top: 24px;
         right: 24px;
-        z-index: 9999;
+        z-index: 20000;
         display: flex;
         flex-direction: column;
         gap: 12px;
@@ -64,8 +63,8 @@ import { Toast as ToastInterface, ToastService } from '../../../core/services/to
       }
 
       .toast.confirm {
-        border-left-color: #DAA520;
-        background: #DAA520;
+        border-left-color: #daa520;
+        background: #daa520;
         cursor: default;
       }
 
@@ -112,14 +111,14 @@ import { Toast as ToastInterface, ToastService } from '../../../core/services/to
       }
 
       .toast.success {
-        border-left-color: #4B5320;
+        border-left-color: #4b5320;
         color: #ffffff;
-        background: #4B5320;
+        background: #4b5320;
       }
       .toast.error {
-        border-left-color: #FF0000;
+        border-left-color: #ff0000;
         color: #ffffff;
-        background: #FF0000;
+        background: #ff0000;
       }
       .toast.info {
         border-left-color: #708090;
@@ -127,9 +126,9 @@ import { Toast as ToastInterface, ToastService } from '../../../core/services/to
         background: #708090;
       }
       .toast.warning {
-        border-left-color: #DAA520;
+        border-left-color: #daa520;
         color: #ffffff;
-        background: #DAA520;
+        background: #daa520;
       }
 
       .toast-icon {

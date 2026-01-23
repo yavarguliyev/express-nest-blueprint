@@ -82,7 +82,7 @@ export class ComputeModule {
                               const timer = setTimeout(() => {
                                 workerProcess.kill('SIGKILL');
                                 resolve();
-                              }, 1000);
+                              }, 200);
 
                               workerProcess.once('exit', () => {
                                 clearTimeout(timer);

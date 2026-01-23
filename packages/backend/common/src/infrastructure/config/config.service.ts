@@ -1,4 +1,4 @@
-import { config } from 'dotenv';
+import { config, type DotenvConfigOptions } from 'dotenv';
 import { existsSync } from 'fs';
 import { resolve } from 'path';
 
@@ -67,7 +67,7 @@ export class ConfigService {
       const envPath = resolve(process.cwd(), envFilePath);
 
       if (existsSync(envPath)) {
-        const result = config({ path: envPath });
+        const result = config({ path: envPath, override: false } satisfies DotenvConfigOptions);
 
         if (result.error) this.logger.error('Failed to load environment file', result.error.message);
       }

@@ -48,12 +48,10 @@ export class Settings implements OnInit {
   ngOnInit () {}
 
   onToggleChange (settingId: string, newValue: boolean) {
-    this.settings.update(currentSettings => 
-      currentSettings.map(setting => 
-        setting.id === settingId 
-          ? { ...setting, value: newValue }
-          : setting
-      )
+    this.settings.update((currentSettings) =>
+      currentSettings.map((setting) =>
+        setting.id === settingId ? { ...setting, value: newValue } : setting,
+      ),
     );
   }
 

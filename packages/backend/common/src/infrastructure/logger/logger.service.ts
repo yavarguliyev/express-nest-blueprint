@@ -26,7 +26,7 @@ export class Logger {
     }
 
     return winston.format.combine(
-      winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
+      winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
       winston.format.colorize({ all: true }),
       winston.format.printf((info: winston.Logform.TransformableInfo) => {
         const timestampRaw = info['timestamp'];

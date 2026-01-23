@@ -13,9 +13,29 @@ import { DatabaseModule } from '../infrastructure/database/database.module';
 import { LoggerModule } from '../infrastructure/logger/logger.module';
 import { RedisModule } from '../infrastructure/redis/redis.module';
 import { StorageModule } from '../infrastructure/storage/storage.module';
+import { CircuitBreakerModule } from '../infrastructure/circuit-breaker/circuit-breaker.module';
+import { HealthModule } from '../infrastructure/health/health.module';
+import { MetricsModule } from '../infrastructure/metrics/metrics.module';
+import { ThrottlerModule } from '../infrastructure/throttler/throttler.module';
+import { KafkaModule } from '../infrastructure/kafka/kafka.module';
+import { NotificationsModule } from '../infrastructure/notifications/notifications.module';
 
 @Module({
-  imports: [LoggerModule.forRoot(), LifecycleModule.forRoot(), DatabaseModule.forRoot(), RedisModule.forRoot(), CacheModule.forRoot(), ComputeModule.forRoot(), StorageModule.forRoot()],
+  imports: [
+    LoggerModule.forRoot(),
+    LifecycleModule.forRoot(),
+    DatabaseModule.forRoot(),
+    RedisModule.forRoot(),
+    CacheModule.forRoot(),
+    ComputeModule.forRoot(),
+    StorageModule.forRoot(),
+    HealthModule,
+    ThrottlerModule,
+    MetricsModule,
+    CircuitBreakerModule,
+    KafkaModule.forRoot(),
+    NotificationsModule.forRoot()
+  ],
   controllers: [],
   providers: [
     LoggerMiddleware,
@@ -34,7 +54,18 @@ import { StorageModule } from '../infrastructure/storage/storage.module';
           }
         }
       }) as (...args: unknown[]) => Promise<void>,
-      inject: ['LOGGER_INITIALIZER', 'LIFECYCLE_INITIALIZER', 'DATABASE_INITIALIZER', 'REDIS_INITIALIZER', 'CIRCUIT_BREAKER_INITIALIZER', 'COMPUTE_INITIALIZER', 'CACHE_INITIALIZER', 'GRAPHQL_INITIALIZER']
+      inject: [
+        'LOGGER_INITIALIZER',
+        'LIFECYCLE_INITIALIZER',
+        'DATABASE_INITIALIZER',
+        'REDIS_INITIALIZER',
+        'CIRCUIT_BREAKER_INITIALIZER',
+        'COMPUTE_INITIALIZER',
+        'CACHE_INITIALIZER',
+        'GRAPHQL_INITIALIZER',
+        'KAFKA_INITIALIZER',
+        'NOTIFICATION_INITIALIZER'
+      ]
     }
   ],
   exports: [JwtService]

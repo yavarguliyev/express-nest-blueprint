@@ -18,7 +18,7 @@ export class ActionButtons {
   @Input() updateConfig: ActionButtonConfig = { show: true };
   @Input() deleteConfig: ActionButtonConfig = { show: true };
   @Input() size: 'small' | 'medium' | 'large' = 'medium';
-  
+
   @Output() updateClick = new EventEmitter<void>();
   @Output() deleteClick = new EventEmitter<void>();
 

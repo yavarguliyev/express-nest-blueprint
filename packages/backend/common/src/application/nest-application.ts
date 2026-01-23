@@ -115,10 +115,8 @@ export class NestApplication {
   }
 
   setupGlobalErrorHandler (): void {
-    const configService = this.container.has(ConfigService) 
-      ? this.container.resolve<ConfigService>({ provide: ConfigService }) 
-      : undefined;
-      
+    const configService = this.container.has(ConfigService) ? this.container.resolve<ConfigService>({ provide: ConfigService }) : undefined;
+
     this.app.use(GlobalExceptionFilter.create(configService));
     this.app.use((req: Request, res: Response) => {
       res.status(404).json({

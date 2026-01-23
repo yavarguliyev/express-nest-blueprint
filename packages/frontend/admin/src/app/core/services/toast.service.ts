@@ -23,7 +23,7 @@ export class ToastService {
     type: ToastType = 'info',
     duration: number = 4000,
     onConfirm?: () => void,
-    onCancel?: () => void
+    onCancel?: () => void,
   ) {
     const id = this.counter++;
     const toast: Toast = { id, message, type, duration, onConfirm, onCancel };

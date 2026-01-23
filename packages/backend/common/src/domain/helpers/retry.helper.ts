@@ -20,6 +20,7 @@ export class RetryHelper {
         if (attempt === maxRetries) throw error;
         if (onRetry) onRetry(attempt);
 
+        this.logger.log(`Waiting ${retryDelay}ms before retry...`, 'info');
         await this.delay(retryDelay);
       }
     }

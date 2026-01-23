@@ -51,15 +51,13 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   private getErrorMessage (exception: unknown): string | object {
     if (exception instanceof HttpException) return exception.getResponse();
     if (hasGetResponse(exception)) return exception.getResponse();
-    
+
     if (exception instanceof Error) {
-      const isProduction = this.configService 
-        ? this.configService.get('NODE_ENV') === 'production'
-        : process.env['NODE_ENV'] === 'production';
-        
+      const isProduction = this.configService ? this.configService.get('NODE_ENV') === 'production' : process.env['NODE_ENV'] === 'production';
+
       return isProduction ? 'Internal Server Error' : exception.message;
     }
-    
+
     return 'Internal Server Error';
   }
 

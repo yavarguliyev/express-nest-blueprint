@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
+import { API_ENDPOINTS } from '../constants/api-endpoints';
 
 export interface DashboardMetric {
   name: string;
@@ -43,17 +44,16 @@ export interface HealthStatus {
 })
 export class DashboardService {
   private http = inject(HttpClient);
-  private baseUrl = '/api/v1/admin';
 
   getMetrics (): Observable<DashboardResponse> {
     return this.http
-      .get<{ success: boolean; data: DashboardResponse }>(`${this.baseUrl}/dashboard/metrics`)
+      .get<{ success: boolean; data: DashboardResponse }>(API_ENDPOINTS.ADMIN.DASHBOARD_METRICS)
       .pipe(map((res) => res.data));
   }
 
   getHealth (): Observable<HealthStatus> {
     return this.http
-      .get<{ success: boolean; data: HealthStatus }>(`${this.baseUrl}/health`)
+      .get<{ success: boolean; data: HealthStatus }>(API_ENDPOINTS.ADMIN.HEALTH)
       .pipe(map((res) => res.data));
   }
 }

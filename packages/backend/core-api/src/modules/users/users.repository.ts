@@ -1,4 +1,4 @@
-import { BaseRepository, CircuitBreaker, CrudTable, DatabaseService, Injectable, QueryAllWithPaginationOptions, DatabaseAdapter, ForbiddenException, InternalServerErrorException, StorageService } from '@config/libs';
+import { BaseRepository, CircuitBreaker, CrudTable, DatabaseService, Injectable, QueryAllWithPaginationOptions, DatabaseAdapter, ForbiddenException, InternalServerErrorException, StorageService, KafkaService } from '@config/libs';
 import { UserRoles } from '@config/libs';
 import { JwtPayload } from '@config/libs';
 
@@ -10,7 +10,8 @@ import { UserResponseDto } from '@modules/users/dtos/user-response.dto';
 export class UsersRepository extends BaseRepository<UserResponseDto> {
   constructor (
     databaseService: DatabaseService,
-    private readonly storageService: StorageService
+    private readonly storageService: StorageService,
+    private readonly kafkaService: KafkaService
   ) {
     super(databaseService, 'users', {
       firstName: 'first_name',
@@ -95,7 +96,28 @@ export class UsersRepository extends BaseRepository<UserResponseDto> {
 
     if (data.role !== undefined && currentUser.role !== UserRoles.GLOBAL_ADMIN) throw new ForbiddenException('Only Global Administrators can update user roles');
 
-    return super.update(id, data, returningColumns, connection);
+    const updatedUser = await super.update(id, data, returningColumns, connection);
+    if (!updatedUser) return null;
+
+    if (currentUser?.role === UserRoles.GLOBAL_ADMIN) {
+      const fullUser = updatedUser as unknown as UserResponseDto;
+
+      await this.kafkaService.produce({
+        topic: 'notification.events',
+        value: {
+          type: 'USER_UPDATED',
+          title: 'Profile Update',
+          message: `${fullUser.email || 'User'} updated`,
+          metadata: { changes: data, updatedBy: currentUser?.email },
+          entityId: fullUser.id || id,
+          entityType: 'user',
+          recipientIds: [currentUser.sub],
+          timestamp: new Date().toISOString()
+        }
+      });
+    }
+
+    return updatedUser;
   }
 
   override async delete (id: number, connection?: DatabaseAdapter, currentUser?: JwtPayload): Promise<boolean> {

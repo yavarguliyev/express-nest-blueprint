@@ -6,6 +6,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { TextTransformService } from '../../core/services/text-transform.service';
 import { UserRoleHelper } from '../../core/enums/user-roles.enum';
+import { API_ENDPOINTS } from '../../core/constants/api-endpoints';
 
 interface ProfileForm {
   firstName: string;
@@ -129,7 +130,7 @@ export class Profile implements OnInit, OnDestroy {
       await this.http
         .patch<
           ApiResponse<void>
-        >(`/api/v1/admin/crud/Database Management/users/${currentUser.id}`, updateData)
+        >(API_ENDPOINTS.ADMIN.CRUD_ID('Database Management', 'users', currentUser.id), updateData)
         .toPromise();
 
       this.originalForm = { ...this.profileForm };

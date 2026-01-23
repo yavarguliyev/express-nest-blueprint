@@ -95,7 +95,7 @@ services:
       - common
 
   zookeeper:
-    image: confluentinc/cp-zookeeper:latest
+    image: confluentinc/cp-zookeeper:7.5.0
     container_name: zookeeper_container
     env_file:
       - .env
@@ -103,7 +103,7 @@ services:
       - common
 
   kafka:
-    image: confluentinc/cp-kafka:latest
+    image: confluentinc/cp-kafka:7.5.0
     container_name: kafka_container
     depends_on:
       - zookeeper

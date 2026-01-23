@@ -20,6 +20,7 @@ import { DateFormatService } from '../../core/services/date-format.service';
 import { UserRoleHelper } from '../../core/enums/user-roles.enum';
 import { ToggleSwitch } from '../../shared/components/toggle-switch/toggle-switch';
 import { ActionButtons } from '../../shared/components/action-buttons/action-buttons';
+import { API_ENDPOINTS } from '../../core/constants/api-endpoints';
 
 interface Column {
   name: string;
@@ -126,7 +127,7 @@ export class Database implements OnInit, AfterViewInit {
 
   loadSchema () {
     this.loadingSchema.set(true);
-    this.http.get<ApiResponse<Schema>>('/api/v1/admin/crud/schema').subscribe({
+    this.http.get<ApiResponse<Schema>>(API_ENDPOINTS.ADMIN.SCHEMA).subscribe({
       next: (res) => {
         const schemaData = res.data;
         this.schema.set(schemaData);
@@ -171,7 +172,7 @@ export class Database implements OnInit, AfterViewInit {
     if (!table) return;
 
     this.loadingData.set(true);
-    const url = `/api/v1/admin/crud/${table.category}/${table.name}`;
+    const url = API_ENDPOINTS.ADMIN.CRUD(table.category, table.name);
     this.http
       .get<ApiResponse<PaginatedResponse<Record<string, unknown>>>>(url, {
         params: {
@@ -331,7 +332,7 @@ export class Database implements OnInit, AfterViewInit {
     this.http
       .patch<
         ApiResponse<void>
-      >(`/api/v1/admin/crud/${table.category}/${table.name}/${recordId}`, changedData)
+      >(API_ENDPOINTS.ADMIN.CRUD_ID(table.category, table.name, recordId), changedData)
       .subscribe({
         next: () => {
           this.toastService.success(
@@ -365,8 +366,8 @@ export class Database implements OnInit, AfterViewInit {
     this.toastService.confirm(
       `CRITICAL: Purge record ${id} from ${table.displayName}? This action is immutable.`,
       () => {
-        this.http
-          .delete<ApiResponse<void>>(`/api/v1/admin/crud/${table.category}/${table.name}/${id}`)
+      this.http
+          .delete<ApiResponse<void>>(API_ENDPOINTS.ADMIN.CRUD_ID(table.category, table.name, id))
           .subscribe({
             next: () => {
               if (this.isCurrentUser(id)) {
@@ -402,7 +403,7 @@ export class Database implements OnInit, AfterViewInit {
     this.http
       .patch<
         ApiResponse<void>
-      >(`/api/v1/admin/crud/${table.category}/${table.name}/${recordId}`, updateData)
+      >(API_ENDPOINTS.ADMIN.CRUD_ID(table.category, table.name, recordId), updateData)
       .subscribe({
         next: () => {
           this.toastService.success(

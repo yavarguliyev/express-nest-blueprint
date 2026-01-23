@@ -6,7 +6,9 @@
     "baseUrl": "./src",
     "paths": {
       "@/*": ["./*"],
-      "@modules/*": ["./modules/*"]
+      "@modules/*": ["./modules/*"],
+      "@config/libs": ["../common/src/index.ts"],
+      "@config/libs/*": ["../common/src/*"]
     }
   },
   "include": ["src/**/*"]

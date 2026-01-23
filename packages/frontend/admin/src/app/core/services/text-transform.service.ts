@@ -55,6 +55,7 @@ export class TextTransformService {
     isVisible: 'VISIBLE',
     isPublic: 'PUBLIC',
     isPrivate: 'PRIVATE',
+    isRead: 'READ',
     allowNotifications: 'NOTIFICATIONS',
     allowEmails: 'EMAIL NOTIFICATIONS',
     allowSms: 'SMS NOTIFICATIONS',
