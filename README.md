@@ -45,6 +45,12 @@
 - **Intelligent Worker Spawning**
   - The API process automatically spawns and manages a pool of child worker processes.
 
+## Event-Driven Notifications (Kafka)
+
+- **Decoupled Messaging**: Service-to-service communication via Kafka events.
+- **Scalable Processing**: High-throughput notification delivery handled by background consumers.
+- **Real-time Streaming**: Instant UI updates via Server-Sent Events (SSE) powered by Redis Pub/Sub.
+
 ## System Resilience
 
 - **Lazy Initialization Pattern**: Strictly ordered startup sequence (DB -> Redis -> App).
@@ -64,7 +70,40 @@ We have transitioned to a **Monorepo** structure to ensure independent scalabili
 - **Frontend (`packages/frontend/admin`)**: The administrative UI.
 - **Infrastructure (`packages/infrastructure`)**: Centralized DevOps configuration.
 
-![Architectural Overview](./image/architectural-overview.png)
+```mermaid
+graph TD
+    User["User (Admin Panel)"]
+    
+    subgraph Frontend["Frontend (Angular)"]
+        UI["Admin UI"]
+        SSE["SSE Listener"]
+    end
+
+    subgraph Backend["Backend (Express/Nest-style)"]
+        API["API Gateway (Role: API)"]
+        Worker["Background Worker (Role: WORKER)"]
+        
+        API -- "@Compute" --> Redis
+        Worker -- "Pulls Jobs" --> Redis
+    end
+
+    subgraph Infra["Infrastructure"]
+        Postgres[("PostgreSQL")]
+        Redis[("Redis / BullMQ")]
+        Kafka[("Apache Kafka")]
+    end
+
+    User <--> UI
+    UI <--> API
+    API <--> Postgres
+    
+    API -- "Produces Events" --> Kafka
+    Kafka -- "Consumes Events" --> Worker
+    Worker -- "Persists / Updates" --> Postgres
+    Worker -- "Publishes updates" --> Redis
+    Redis -- "Broadcasting" --> API
+    API -- "SSE Stream" --> SSE
+```
 
 ---
 
@@ -72,7 +111,39 @@ We have transitioned to a **Monorepo** structure to ensure independent scalabili
 
 This project strictly adheres to Domain-Driven Design (DDD) principles, ensuring that each layer has a clear responsibility and that dependencies flow inwards.
 
-![Interaction Flow](./image/interaction-flow.png)
+```mermaid
+graph LR
+    subgraph RequestLayer["1. Request Layer"]
+        Ctrl["Controller"]
+    end
+
+    subgraph DomainLayer["2. Business Logic"]
+        Service["Service"]
+        Compute["@Compute Proxy"]
+    end
+
+    subgraph Messaging["3. Event Bus / Queue"]
+        Kafka["Kafka (Events)"]
+        BullMQ["BullMQ (Jobs)"]
+    end
+
+    subgraph InfraLayer["4. Infrastructure"]
+        Handler["Event Handler"]
+        Repo["Repository"]
+    end
+
+    subgraph DB["5. Persistence"]
+        PG[("Postgres")]
+    end
+
+    Ctrl --> Service
+    Service -- "Side Effect" --> Kafka
+    Service -- "Compute Task" --> Compute
+    Compute --> BullMQ
+    Kafka --> Handler
+    Handler --> Repo
+    Repo --> PG
+```
 
 ## 1. Request Layer
 
@@ -88,6 +159,7 @@ This project strictly adheres to Domain-Driven Design (DDD) principles, ensuring
 
 - **DatabaseService**: Manages PostgreSQL connections.
 - **Redis/BullMQ**: Handles the transport layer for offloaded jobs.
+- **Kafka**: Manages event-driven communication (e.g., notification triggers).
 - **LifecycleModule**: Coordinates system-wide startup and shutdown.
 
 ---
@@ -160,6 +232,7 @@ This project strictly adheres to Domain-Driven Design (DDD) principles, ensuring
 - **Runtime**: Node.js (v20+)
 - **Language**: TypeScript
 - **Queue**: BullMQ / Redis
+- **Event Bus**: Apache Kafka
 - **Database**: PostgreSQL
 - **Frontend**: Angular 18+ (Standalone)
 
@@ -341,6 +414,19 @@ npm run build
 # Start Backend
 npm run start -w @app/core-api
 ```
+
+---
+
+# 📨 Event-Driven Messaging (Kafka)
+
+The system uses **Apache Kafka** for asynchronous, event-driven communication. This ensures that the primary API remains responsive while complex side effects (like multi-channel notifications) are handled in the background.
+
+### Workflow:
+1.  **Event Production**: The API emits a `NotificationEvent` (e.g., `user.created`).
+2.  **Message Brokering**: Kafka persists the event and distributes it to the consumer group.
+3.  **Consumption**: Dedicated **Worker** processes consume the message.
+4.  **Action**: The `NotificationEventHandler` creates database records.
+5.  **Streaming**: Redis Pub/Sub broadcasts the new notification to active SSE connections.
 
 ---
 
