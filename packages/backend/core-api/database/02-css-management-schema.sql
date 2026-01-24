@@ -288,6 +288,16 @@ INSERT INTO css_tokens (token_name, token_category, token_type, default_value, l
 VALUES 
     ('--font-family', 'typography', 'font', '''Inter'', -apple-system, BlinkMacSystemFont, ''Segoe UI'', Roboto, sans-serif', '''Inter'', -apple-system, BlinkMacSystemFont, ''Segoe UI'', Roboto, sans-serif', '''Inter'', -apple-system, BlinkMacSystemFont, ''Segoe UI'', Roboto, sans-serif', 'Primary font family', true);
 
+-- Draft Status Bar Color Tokens
+INSERT INTO css_tokens (token_name, token_category, token_type, default_value, light_mode_value, dark_mode_value, description, is_customizable)
+VALUES 
+    ('--draft-status-bg', 'colors', 'gradient', 'linear-gradient(90deg, var(--warning), var(--secondary))', 'linear-gradient(90deg, var(--warning), var(--secondary))', 'linear-gradient(90deg, var(--warning), var(--secondary))', 'Draft status bar background gradient', true),
+    ('--draft-status-text', 'colors', 'color', '#ffffff', '#ffffff', '#ffffff', 'Draft status bar text color', true),
+    ('--draft-status-icon', 'colors', 'color', '#ffffff', '#ffffff', '#ffffff', 'Draft status bar icon color', true),
+    ('--draft-status-muted', 'colors', 'color', 'rgba(255, 255, 255, 0.9)', 'rgba(255, 255, 255, 0.9)', 'rgba(255, 255, 255, 0.9)', 'Draft status bar muted text color', true),
+    ('--draft-count-bg', 'colors', 'color', 'rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.2)', 'Draft count badge background', true),
+    ('--draft-count-text', 'colors', 'color', '#ffffff', '#ffffff', '#ffffff', 'Draft count badge text color', true);
+
 -- ===============================================
 -- SEED DATA: CSS Gradients
 -- ===============================================

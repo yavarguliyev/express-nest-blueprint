@@ -5,7 +5,7 @@ import { JwtPayload } from '@config/libs';
 import { FindUsersQueryDto } from '@modules/users/dtos/find-users-query.dto';
 import { UserResponseDto } from '@modules/users/dtos/user-response.dto';
 
-@CrudTable({ category: 'Database Management', name: 'users', displayName: 'Users' })
+@CrudTable({ category: 'Database Management', name: 'users', displayName: 'Users', actions: { create: true, update: true, delete: true } })
 @Injectable()
 export class UsersRepository extends BaseRepository<UserResponseDto> {
   constructor (

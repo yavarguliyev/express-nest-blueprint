@@ -56,6 +56,11 @@ export interface CrudTableOptions {
   category: string;
   name: string;
   displayName?: string;
+  actions?: {
+    create?: boolean;
+    update?: boolean;
+    delete?: boolean;
+  };
 }
 
 export interface ConfigModuleOptions {

@@ -24,55 +24,31 @@ export class NotificationEventHandler {
   }
 
   async startConsuming (): Promise<void> {
-    if (this.appRole !== 'WORKER') {
-      this.logger.log('Skipping notification consumer initialization (Role is not WORKER)');
-      return;
-    }
-
-    this.logger.log('Starting notification event consumer...');
+    if (this.appRole !== 'WORKER') return;
 
     try {
       await this.kafkaService.subscribe({ topic: 'notification.events' }, async (payload: KafkaMessagePayload<NotificationEventPayload>) => {
         const event = payload.value;
-        this.logger.log(`Received notification event: ${event?.type}`);
+        if (!event || !event.recipientIds) return;
 
-        if (!event || !event.recipientIds) {
-          this.logger.warn('Received invalid notification event (missing event or recipientIds)');
-          return;
-        }
+        const notifications = await this.notificationsService.createBulkNotifications(
+          event?.recipientIds?.map((recipientId) => {
+            const dto: CreateNotificationDto = { type: event.type, title: event.title, message: event.message, recipientId };
 
-        try {
-          const notifications = await this.notificationsService.createBulkNotifications(
-            event?.recipientIds?.map((recipientId) => {
-              const dto: CreateNotificationDto = {
-                type: event.type,
-                title: event.title,
-                message: event.message,
-                recipientId
-              };
+            if (event.metadata) dto.metadata = event.metadata;
+            if (event.entityId) dto.entityId = event.entityId;
+            if (event.entityType) dto.entityType = event.entityType;
 
-              if (event.metadata) dto.metadata = event.metadata;
-              if (event.entityId) dto.entityId = event.entityId;
-              if (event.entityType) dto.entityType = event.entityType;
+            return dto;
+          })
+        );
 
-              return dto;
-            })
-          );
-
-          this.logger.log(`Created ${notifications.length} notifications`);
-
-          for (const notification of notifications) {
-            await this.redisService.getClient().publish('notifications', JSON.stringify(notification));
-          }
-        } catch (error) {
-          this.logger.error(`Error processing notification event: ${getErrorMessage(error)}`);
+        for (const notification of notifications) {
+          await this.redisService.getClient().publish('notifications', JSON.stringify(notification));
         }
       });
-      this.logger.log('Notification consumer initialized successfully');
     } catch (error) {
       this.logger.error(`Failed to start notification consumer: ${getErrorMessage(error)}`);
     }
-
-    this.logger.log('Notification consumer background task initiated');
   }
 }

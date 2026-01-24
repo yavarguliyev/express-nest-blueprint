@@ -136,47 +136,6 @@
   color: #111827 !important; /* Active "Light" label - dark text */
 }
 
-/* Draft Status Bar */
-.draft-status-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  background: linear-gradient(90deg, var(--warning), var(--secondary));
-  color: white;
-  font-size: 0.875rem;
-}
-
-.draft-info {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.draft-icon {
-  font-size: 1rem;
-}
-
-.draft-actions {
-  display: flex;
-  gap: 0.75rem;
-}
-
-.draft-actions .btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* Ensure draft button text is visible */
-.draft-actions .btn-primary {
-  color: white !important;
-}
-
-.draft-actions .btn-primary:hover {
-  color: white !important;
-}
-
 /* Main Content */
 .theme-editor-content {
   display: flex;

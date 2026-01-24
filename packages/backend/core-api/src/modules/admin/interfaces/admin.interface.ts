@@ -37,6 +37,16 @@ export interface TableMetadata {
   displayName: string;
   tableName: string;
   columns: ColumnMetadata[];
+  actions?: {
+    create?: boolean;
+    update?: boolean;
+    delete?: boolean;
+    bulkOperations?: {
+      enabled: boolean;
+      maxBatchSize: number;
+      supportedOperations: ('create' | 'update' | 'delete')[];
+    };
+  };
 }
 
 export interface ColumnMetadata {

@@ -286,7 +286,13 @@ export const up = (pgm) => {
       ('--toggle-bg-on', 'colors', 'color', 'linear-gradient(81deg, #ce1bfb 10.86%, #35e6cc 89.96%)', 'linear-gradient(81deg, #1d4ed8 10.86%, #3b82f6 89.96%)', 'linear-gradient(81deg, #ce1bfb 10.86%, #35e6cc 89.96%)', 'Toggle switch background when on', true),
       ('--toggle-handle', 'colors', 'color', '#ffffff', '#ffffff', '#ffffff', 'Toggle switch handle color', true),
       ('--sidebar-width', 'spacing', 'size', '260px', '260px', '260px', 'Sidebar width', true),
-      ('--font-family', 'typography', 'font', '''Inter'', -apple-system, BlinkMacSystemFont, ''Segoe UI'', Roboto, sans-serif', '''Inter'', -apple-system, BlinkMacSystemFont, ''Segoe UI'', Roboto, sans-serif', '''Inter'', -apple-system, BlinkMacSystemFont, ''Segoe UI'', Roboto, sans-serif', 'Primary font family', true)
+      ('--font-family', 'typography', 'font', '''Inter'', -apple-system, BlinkMacSystemFont, ''Segoe UI'', Roboto, sans-serif', '''Inter'', -apple-system, BlinkMacSystemFont, ''Segoe UI'', Roboto, sans-serif', '''Inter'', -apple-system, BlinkMacSystemFont, ''Segoe UI'', Roboto, sans-serif', 'Primary font family', true),
+      ('--draft-status-bg', 'colors', 'gradient', 'linear-gradient(90deg, var(--warning), var(--secondary))', 'linear-gradient(90deg, var(--warning), var(--secondary))', 'linear-gradient(90deg, var(--warning), var(--secondary))', 'Draft status bar background gradient', true),
+      ('--draft-status-text', 'colors', 'color', '#ffffff', '#ffffff', '#ffffff', 'Draft status bar text color', true),
+      ('--draft-status-icon', 'colors', 'color', '#ffffff', '#ffffff', '#ffffff', 'Draft status bar icon color', true),
+      ('--draft-status-muted', 'colors', 'color', 'rgba(255, 255, 255, 0.9)', 'rgba(255, 255, 255, 0.9)', 'rgba(255, 255, 255, 0.9)', 'Draft status bar muted text color', true),
+      ('--draft-count-bg', 'colors', 'color', 'rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.2)', 'Draft count badge background', true),
+      ('--draft-count-text', 'colors', 'color', '#ffffff', '#ffffff', '#ffffff', 'Draft count badge text color', true)
     ON CONFLICT (token_name) DO NOTHING;
   `);
 

@@ -4,7 +4,7 @@ import { FindCssQueryDto } from '@modules/themes/dtos/find-css-audit-log.dto';
 import { CssAuditLogEntity } from '@modules/themes/interfaces/theme.interface';
 import { CssEntityType } from '@modules/themes/types/theme.type';
 
-@CrudTable({ category: 'Database Management', name: 'css_audit_log', displayName: 'CSS Audit Log' })
+@CrudTable({ category: 'Database Management', name: 'css_audit_log', displayName: 'CSS Audit Log', actions: { create: false, update: false, delete: false } })
 @Injectable()
 export class CssAuditLogRepository extends BaseRepository<CssAuditLogEntity> {
   constructor (databaseService: DatabaseService) {

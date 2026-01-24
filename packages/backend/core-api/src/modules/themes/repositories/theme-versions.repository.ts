@@ -3,7 +3,7 @@ import { BaseRepository, CircuitBreaker, CrudTable, DatabaseService, Injectable,
 import { FindCssQueryDto } from '@modules/themes/dtos/find-css-audit-log.dto';
 import { ThemeVersionEntity } from '@modules/themes/interfaces/theme.interface';
 
-@CrudTable({ category: 'Database Management', name: 'theme_versions', displayName: 'Theme Versions' })
+@CrudTable({ category: 'Database Management', name: 'theme_versions', displayName: 'Theme Versions', actions: { create: false, update: false, delete: false } })
 @Injectable()
 export class ThemeVersionsRepository extends BaseRepository<ThemeVersionEntity> {
   constructor (databaseService: DatabaseService) {

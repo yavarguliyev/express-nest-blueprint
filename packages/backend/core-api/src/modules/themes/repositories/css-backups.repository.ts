@@ -3,7 +3,7 @@ import { BaseRepository, CircuitBreaker, CrudTable, DatabaseService, Injectable,
 import { FindCssQueryDto } from '@modules/themes/dtos/find-css-audit-log.dto';
 import { CssBackupEntity } from '@modules/themes/interfaces/theme.interface';
 
-@CrudTable({ category: 'Database Management', name: 'css_backups', displayName: 'CSS Backups' })
+@CrudTable({ category: 'Database Management', name: 'css_backups', displayName: 'CSS Backups', actions: { create: false, update: false, delete: false } })
 @Injectable()
 export class CssBackupsRepository extends BaseRepository<CssBackupEntity> {
   constructor (databaseService: DatabaseService) {

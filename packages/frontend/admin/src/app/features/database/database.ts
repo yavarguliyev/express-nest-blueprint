@@ -1,25 +1,18 @@
-import {
-  Component,
-  inject,
-  OnInit,
-  signal,
-  ElementRef,
-  ViewChild,
-  AfterViewInit,
-  HostListener,
-} from '@angular/core';
+import { Component, inject, OnInit, signal, ElementRef, ViewChild, AfterViewInit, HostListener, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { ToastService } from '../../core/services/toast.service';
 import { AuthService } from '../../core/services/auth.service';
+import { DatabaseDraftService } from '../../core/services/database-draft.service';
 import { TextTransformService } from '../../core/services/text-transform.service';
 import { TableStyleService } from '../../core/services/table-style.service';
 import { DateFormatService } from '../../core/services/date-format.service';
 import { UserRoleHelper } from '../../core/enums/user-roles.enum';
 import { ToggleSwitch } from '../../shared/components/toggle-switch/toggle-switch';
 import { ActionButtons } from '../../shared/components/action-buttons/action-buttons';
+import { DraftStatusBar, DraftStatusConfig } from '../../shared/components/draft-status-bar/draft-status-bar';
 import { API_ENDPOINTS } from '../../core/constants/api-endpoints';
 
 interface Column {
@@ -35,6 +28,11 @@ interface TableMetadata {
   displayName: string;
   tableName: string;
   columns: Column[];
+  actions?: {
+    create?: boolean;
+    update?: boolean;
+    delete?: boolean;
+  };
 }
 
 interface Schema {
@@ -44,13 +42,6 @@ interface Schema {
 interface ApiResponse<T> {
   success: boolean;
   data: T;
-  message?: string;
-}
-
-interface ErrorResponse {
-  error?: {
-    message?: string;
-  };
   message?: string;
 }
 
@@ -65,7 +56,7 @@ interface PaginatedResponse<T> {
 @Component({
   selector: 'app-database',
   standalone: true,
-  imports: [CommonModule, FormsModule, ToggleSwitch, ActionButtons],
+  imports: [CommonModule, FormsModule, ToggleSwitch, ActionButtons, DraftStatusBar],
   templateUrl: './database.html',
   styleUrl: './database.css',
 })
@@ -73,6 +64,7 @@ export class Database implements OnInit, AfterViewInit {
   private http = inject(HttpClient);
   private toastService = inject(ToastService);
   private authService = inject(AuthService);
+  draftService = inject(DatabaseDraftService);
   private textTransform = inject(TextTransformService);
   private tableStyle = inject(TableStyleService);
   private dateFormat = inject(DateFormatService);
@@ -96,6 +88,25 @@ export class Database implements OnInit, AfterViewInit {
   showUpdateModal = signal(false);
   updateFormData = signal<Record<string, unknown>>({});
   originalFormData = signal<Record<string, unknown>>({});
+
+  draftCount = this.draftService.draftCount;
+  hasDrafts = this.draftService.hasDrafts;
+  affectedTables = this.draftService.affectedTables;
+  showBulkActions = signal(false);
+  isPublishing = signal(false);
+
+  // Computed config for the draft status bar
+  draftStatusConfig = computed<DraftStatusConfig>(() => ({
+    draftCount: this.draftCount(),
+    hasDrafts: this.hasDrafts(),
+    affectedItems: this.affectedTables(),
+    isProcessing: this.isPublishing(),
+    itemType: 'table',
+    resetButtonText: 'Reset All',
+    saveButtonText: 'Save Changes',
+    resetButtonIcon: 'refresh',
+    saveButtonIcon: 'save'
+  }));
 
   constructor () {
     this.searchSubject.pipe(debounceTime(400), distinctUntilChanged()).subscribe((query) => {
@@ -283,6 +294,14 @@ export class Database implements OnInit, AfterViewInit {
       }
     });
 
+    this.draftService.createDraft({
+      type: 'update',
+      table: table.name,
+      category: table.category,
+      recordId: id,
+      data: formData
+    }, record);
+
     this.selectedRecord.set(record);
     this.updateFormData.set(formData);
     this.originalFormData.set({ ...formData });
@@ -328,28 +347,12 @@ export class Database implements OnInit, AfterViewInit {
     }
 
     const recordId = record['id'] as number;
-
-    this.http
-      .patch<
-        ApiResponse<void>
-      >(API_ENDPOINTS.ADMIN.CRUD_ID(table.category, table.name, recordId), changedData)
-      .subscribe({
-        next: () => {
-          this.toastService.success(
-            `Record ${recordId} updated successfully in ${table.displayName}.`,
-          );
-          this.closeUpdateModal();
-          this.loadTableData(false);
-
-          if (table.tableName === 'users' && this.isCurrentUser(recordId)) {
-            void this.authService.syncProfile();
-          }
-        },
-        error: (err: ErrorResponse) => {
-          const msg = err.error?.message || err.message || 'Update operation failed.';
-          this.toastService.error(msg);
-        },
-      });
+    const draftId = `${table.category}:${table.name}:${recordId}`;
+    
+    this.draftService.updateDraft(draftId, currentData);
+    
+    this.toastService.success(`Changes saved as draft for record ${recordId}. Use "Save Changes" to apply all drafts.`);
+    this.closeUpdateModal();
   }
 
   updateFormField (fieldName: string, value: unknown) {
@@ -364,23 +367,22 @@ export class Database implements OnInit, AfterViewInit {
     if (!table || !id) return;
 
     this.toastService.confirm(
-      `CRITICAL: Purge record ${id} from ${table.displayName}? This action is immutable.`,
+      `Mark record ${id} for deletion? You can review and apply all changes with "Save Changes".`,
       () => {
-      this.http
-          .delete<ApiResponse<void>>(API_ENDPOINTS.ADMIN.CRUD_ID(table.category, table.name, id))
-          .subscribe({
-            next: () => {
-              if (this.isCurrentUser(id)) {
-                this.authService.logout();
-              }
-              this.toastService.success(`Record ${id} successfully purged from matrix.`);
-              this.loadTableData(false);
-            },
-            error: (err: ErrorResponse) => {
-              const msg = err.error?.message || err.message || 'Direct purge operation failed.';
-              this.toastService.error(msg);
-            },
-          });
+        const record = this.tableData().find((row) => row['id'] === id);
+        if (!record) return;
+
+        // Create delete draft
+        this.draftService.createDraft({
+          type: 'delete',
+          table: table.name,
+          category: table.category,
+          recordId: id
+        }, record);
+
+        this.toastService.success(
+          `Record ${id} marked for deletion. Use "Save Changes" to apply all changes.`
+        );
       },
     );
   }
@@ -397,26 +399,31 @@ export class Database implements OnInit, AfterViewInit {
     }
 
     const recordId = record['id'] as number;
-
-    const updateData = { [column.name]: newValue };
-
-    this.http
-      .patch<
-        ApiResponse<void>
-      >(API_ENDPOINTS.ADMIN.CRUD_ID(table.category, table.name, recordId), updateData)
-      .subscribe({
-        next: () => {
-          this.toastService.success(
-            `${column.name} updated to ${newValue ? 'ACTIVE' : 'OFFLINE'} for record ${recordId}.`,
-          );
-          this.loadTableData(false);
-        },
-        error: (err: ErrorResponse) => {
-          const msg = err.error?.message || err.message || `Failed to toggle ${column.name} state.`;
-          this.toastService.error(msg);
-          this.loadTableData(false);
-        },
-      });
+    
+    // Create or update draft with the boolean change
+    const draftId = `${table.category}:${table.name}:${recordId}`;
+    let existingDraft = this.draftService.getDraft(draftId);
+    
+    if (!existingDraft) {
+      // Create new draft if none exists
+      this.draftService.createDraft({
+        type: 'update',
+        table: table.name,
+        category: table.category,
+        recordId: recordId
+      }, record);
+      existingDraft = this.draftService.getDraft(draftId);
+    }
+    
+    if (existingDraft) {
+      // Update the draft with the new boolean value
+      const updatedData = { ...existingDraft.draftData, [column.name]: newValue };
+      this.draftService.updateDraft(draftId, updatedData);
+      
+      this.toastService.success(
+        `${column.name} change saved as draft. Use "Save Changes" to apply all changes.`
+      );
+    }
   }
 
   formatValue (value: unknown, column: Column): string {
@@ -452,6 +459,14 @@ export class Database implements OnInit, AfterViewInit {
   }
 
   getBooleanValue (row: Record<string, unknown>, columnName: string): boolean {
+    const recordId = this.getNumberValue(row, 'id');
+    const draftData = this.getRecordDraftData(recordId);
+    
+    // If there's draft data, use the draft value, otherwise use original value
+    if (draftData && columnName in draftData) {
+      return draftData[columnName] as boolean;
+    }
+    
     return row[columnName] as boolean;
   }
 
@@ -585,6 +600,14 @@ export class Database implements OnInit, AfterViewInit {
     return currentUser ? UserRoleHelper.isGlobalAdmin(currentUser.role) : false;
   }
 
+  hasAnyActions (): boolean {
+    const table = this.selectedTable();
+    if (!table) return false;
+    
+    const actions = table.actions || { create: true, update: true, delete: true };
+    return actions.update !== false || actions.delete !== false;
+  }
+
   canModifySensitiveFields (): boolean {
     const currentUser = this.authService.getCurrentUser();
     return currentUser ? UserRoleHelper.isGlobalAdmin(currentUser.role) : false;
@@ -647,6 +670,75 @@ export class Database implements OnInit, AfterViewInit {
       return 'Make changes to enable update';
     }
     return 'Save changes to record';
+  }
+
+  publishAllChanges (): void {
+    if (!this.hasDrafts()) {
+      this.toastService.info('No changes to publish');
+      return;
+    }
+
+    this.isPublishing.set(true);
+
+    this.draftService.publishDrafts().subscribe({
+      next: (response) => {
+        this.isPublishing.set(false);
+        if (response.success) {
+          this.toastService.success(`Successfully published ${response.summary.successful} changes`);
+          this.loadTableData(false);
+        } else {
+          this.toastService.error(`Published ${response.summary.successful} changes, ${response.summary.failed} failed`);
+        }
+      },
+      error: () => {
+        this.isPublishing.set(false);
+        this.toastService.error('Failed to publish changes');
+      }
+    });
+  }
+
+  resetAllChanges (): void {
+    if (!this.hasDrafts()) {
+      this.toastService.info('No changes to reset');
+      return;
+    }
+
+    this.toastService.confirm(
+      `Reset all ${this.draftCount()} unsaved changes? This cannot be undone.`,
+      () => {
+        this.draftService.resetDrafts();
+        this.loadTableData(false); // Refresh the table to show original values
+        this.toastService.success('All changes have been reset');
+      }
+    );
+  }
+
+  hasRecordDraft (recordId: number): boolean {
+    const table = this.selectedTable();
+    if (!table) return false;
+    
+    const draftId = `${table.category}:${table.name}:${recordId}`;
+    return this.draftService.hasDraftChanges(draftId);
+  }
+
+  getRecordDraftType (recordId: number): 'create' | 'update' | 'delete' | null {
+    const table = this.selectedTable();
+    if (!table) return null;
+    
+    const draft = this.draftService.getDraftForRecord(table.category, table.name, recordId);
+    return draft ? draft.operation : null;
+  }
+
+  isRecordMarkedForDeletion (recordId: number): boolean {
+    return this.getRecordDraftType(recordId) === 'delete';
+  }
+
+  getRecordDraftData (recordId: number): Record<string, unknown> | null {
+    const table = this.selectedTable();
+    if (!table) return null;
+    
+    const draft = this.draftService.getDraftForRecord(table.category, table.name, recordId);
+    return draft ? draft.draftData : null;
   }
 
   private setupScrollIndicators () {

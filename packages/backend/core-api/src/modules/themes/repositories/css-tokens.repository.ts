@@ -3,7 +3,7 @@ import { BaseRepository, CircuitBreaker, CrudTable, DatabaseService, Injectable,
 import { FindCssQueryDto } from '@modules/themes/dtos/find-css-audit-log.dto';
 import { CssTokenEntity } from '@modules/themes/interfaces/theme.interface';
 
-@CrudTable({ category: 'Database Management', name: 'css_tokens', displayName: 'CSS Tokens' })
+@CrudTable({ category: 'Database Management', name: 'css_tokens', displayName: 'CSS Tokens', actions: { create: false, update: false, delete: false } })
 @Injectable()
 export class CssTokensRepository extends BaseRepository<CssTokenEntity> {
   constructor (databaseService: DatabaseService) {

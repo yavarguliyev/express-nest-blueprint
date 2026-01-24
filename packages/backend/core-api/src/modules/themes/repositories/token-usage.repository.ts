@@ -3,7 +3,7 @@ import { BaseRepository, CircuitBreaker, CrudTable, DatabaseService, Injectable,
 import { TokenUsageEntity } from '@modules/themes/interfaces/theme.interface';
 import { FindCssQueryDto } from '@modules/themes/dtos/find-css-audit-log.dto';
 
-@CrudTable({ category: 'Database Management', name: 'token_usage', displayName: 'Token Usage' })
+@CrudTable({ category: 'Database Management', name: 'token_usage', displayName: 'Token Usage', actions: { create: false, update: false, delete: false } })
 @Injectable()
 export class TokenUsageRepository extends BaseRepository<TokenUsageEntity> {
   constructor (databaseService: DatabaseService) {

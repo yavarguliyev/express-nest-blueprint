@@ -3,7 +3,7 @@ import { BaseRepository, CircuitBreaker, CrudTable, DatabaseService, Injectable,
 import { FindCssQueryDto } from '@modules/themes/dtos/find-css-audit-log.dto';
 import { CssRuleEntity } from '@modules/themes/interfaces/theme.interface';
 
-@CrudTable({ category: 'Database Management', name: 'css_rules', displayName: 'CSS Rules' })
+@CrudTable({ category: 'Database Management', name: 'css_rules', displayName: 'CSS Rules', actions: { create: false, update: false, delete: false } })
 @Injectable()
 export class CssRulesRepository extends BaseRepository<CssRuleEntity> {
   constructor (databaseService: DatabaseService) {

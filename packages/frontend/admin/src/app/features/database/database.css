@@ -1006,3 +1006,112 @@ html body .btn-primary:hover {
 [data-theme='light'] .new-value {
   color: #059669;
 }
+
+/* Draft Change Indicators */
+.crud-row.has-draft-changes {
+  border-left: 3px solid var(--color-warning, #f59e0b);
+  background-color: var(--color-warning-light, rgba(245, 158, 11, 0.05));
+  position: relative;
+}
+
+.crud-row.has-draft-changes:hover {
+  background-color: var(--color-warning-light, rgba(245, 158, 11, 0.1));
+}
+
+/* Records marked for deletion */
+.crud-row.marked-for-deletion {
+  border-left: 3px solid #dc2626;
+  background-color: rgba(220, 38, 38, 0.05);
+  opacity: 0.7;
+}
+
+.crud-row.marked-for-deletion:hover {
+  background-color: rgba(220, 38, 38, 0.1);
+}
+
+.change-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-warning, #f59e0b);
+  margin-right: 8px;
+  position: relative;
+  animation: pulse-warning 2s infinite;
+}
+
+.change-indicator.delete-indicator {
+  background-color: #dc2626;
+  animation: pulse-danger 2s infinite;
+}
+
+.change-indicator::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 50%;
+  border: 1px solid var(--color-warning, #f59e0b);
+  opacity: 0.3;
+}
+
+.change-indicator.delete-indicator::after {
+  border-color: #dc2626;
+}
+
+@keyframes pulse-warning {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes pulse-danger {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+/* Table modifications for draft indicators */
+.crud-table .crud-row.has-draft-changes td:first-child {
+  position: relative;
+  padding-left: 20px;
+}
+
+/* Bulk status bar spacing */
+.database-page {
+  padding-bottom: 80px;
+}
+
+/* Draft count badge in category headers */
+.category-header .draft-badge {
+  background: var(--color-warning, #f59e0b);
+  color: white;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-left: 8px;
+  font-weight: 600;
+}
+
+/* Table header draft indicators */
+.table-header .draft-indicator {
+  background: var(--color-warning, #f59e0b);
+  color: white;
+  font-size: 10px;
+  padding: 1px 4px;
+  border-radius: 8px;
+  margin-left: 6px;
+  font-weight: 600;
+}

@@ -39,36 +39,11 @@
   </div>
 
   <!-- Draft Status Bar -->
-  @if (hasDrafts()) {
-    <div class="draft-status-bar">
-      <div class="draft-info">
-        <span class="draft-icon">✏️</span>
-        <span class="draft-text">{{ draftCount() }} unsaved changes</span>
-      </div>
-
-      <div class="draft-actions">
-        <button
-          class="btn btn-primary"
-          (click)="resetChanges()"
-          [disabled]="loading() || isPublishing()"
-        >
-          Reset
-        </button>
-        <button
-          class="btn btn-primary"
-          (click)="publishChanges()"
-          [disabled]="loading() || isPublishing()"
-        >
-          @if (isPublishing()) {
-            <span class="loading-spinner"></span>
-            Publishing...
-          } @else {
-            Publish Changes
-          }
-        </button>
-      </div>
-    </div>
-  }
+  <app-draft-status-bar 
+    [config]="draftStatusConfig()"
+    (saveChanges)="publishChanges()"
+    (resetChanges)="resetChanges()">
+  </app-draft-status-bar>
 
   <!-- Main Content -->
   <div class="theme-editor-content" [class.with-preview]="showPreview()">

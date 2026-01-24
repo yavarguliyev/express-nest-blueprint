@@ -61,16 +61,26 @@
                         [ngStyle]="getColumnStyles(col.name, col.type)">
                       {{ getFieldDisplayName(col.name) }}
                     </th>
-                    <th class="header-actions text-center" style="width: 160px; min-width: 160px;">
+                    <th *ngIf="hasAnyActions()" class="header-actions text-center" style="width: 160px; min-width: 160px;">
                       ACTIONS
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let row of tableData()" class="crud-row">
+                  <tr *ngFor="let row of tableData()" 
+                      class="crud-row" 
+                      [class.has-draft-changes]="hasRecordDraft(getNumberValue(row, 'id'))"
+                      [class.marked-for-deletion]="isRecordMarkedForDeletion(getNumberValue(row, 'id'))">
                     <td *ngFor="let col of table.columns" 
                         [class]="getCellClasses(col.name, col.type)"
                         [ngStyle]="getColumnStyles(col.name, col.type)">
+                      
+                      <!-- Draft change indicator -->
+                      <span *ngIf="hasRecordDraft(getNumberValue(row, 'id')) && col === table.columns[0]" 
+                            class="change-indicator" 
+                            [class.delete-indicator]="isRecordMarkedForDeletion(getNumberValue(row, 'id'))"
+                            [title]="isRecordMarkedForDeletion(getNumberValue(row, 'id')) ? 'This record is marked for deletion' : 'This record has unsaved changes'">
+                      </span>
                       <!-- Boolean toggle switch -->
                       <div *ngIf="col.type === 'boolean'">
                         <app-toggle-switch 
@@ -96,11 +106,15 @@
                         {{ formatValue(row[col.name], col) }}
                       </span>
                     </td>
-                    <td class="cell-actions text-center" style="width: 160px;">
+                    <td *ngIf="hasAnyActions()" class="cell-actions text-center" style="width: 160px;">
                       <app-action-buttons
-                        [updateConfig]="{ show: true, disabled: false, tooltip: 'Update Record' }"
+                        [updateConfig]="{ 
+                          show: selectedTable()?.actions?.update !== false, 
+                          disabled: false, 
+                          tooltip: 'Update Record' 
+                        }"
                         [deleteConfig]="{ 
-                          show: true, 
+                          show: selectedTable()?.actions?.delete !== false, 
                           disabled: !canDeleteRecord(), 
                           tooltip: canDeleteRecord() ? 'Purge Record' : 'Delete restricted to Global Administrators' 
                         }"
@@ -112,7 +126,7 @@
                   </tr>
                   
                   <tr *ngIf="tableData().length === 0 && !loadingData()">
-                    <td [attr.colspan]="table.columns.length + 1" class="empty-cell">
+                    <td [attr.colspan]="table.columns.length + (hasAnyActions() ? 1 : 0)" class="empty-cell">
                       No entities found in this sector.
                     </td>
                   </tr>
@@ -141,6 +155,13 @@
       </div>
     </div>
   </div>
+
+  <!-- Draft Status Bar -->
+  <app-draft-status-bar 
+    [config]="draftStatusConfig()"
+    (saveChanges)="publishAllChanges()"
+    (resetChanges)="resetAllChanges()">
+  </app-draft-status-bar>
 
   <!-- Update Modal -->
   <div class="modal-overlay" *ngIf="showUpdateModal()" (click)="closeUpdateModal()">

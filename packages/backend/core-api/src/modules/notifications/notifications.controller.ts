@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 
 import { Get, Patch, Delete, Query, Param, Injectable, NotificationsService, NotificationStreamService, JwtPayload, CurrentUser, Req, Res, ApiController, BaseController, Roles, UserRoles } from '@config/libs';
-import { NotificationQueryDto } from './dtos/notification-query.dto';
+import { NotificationQueryDto } from '@modules/notifications/dtos/notification-query.dto';
 
 @Injectable()
 @ApiController({ path: '/notifications' })

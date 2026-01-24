@@ -14,16 +14,10 @@ export class NotificationStreamService {
 
   init (): void {
     const subscriber = this.redisService.getClient().duplicate();
-    void subscriber.subscribe('notifications').catch(() => {
-      // Silent error for subscription failure
-    });
+    void subscriber.subscribe('notifications').catch(() => {});
     subscriber.on('message', (_channel, message) => {
-      try {
-        const notification = JSON.parse(message) as NotificationEntity;
-        this.broadcast(notification.recipientId, notification);
-      } catch {
-        // Silent error
-      }
+      const notification = JSON.parse(message) as NotificationEntity;
+      this.broadcast(notification.recipientId, notification);
     });
   }
 
@@ -36,12 +30,8 @@ export class NotificationStreamService {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
-
     this.addClient(recipientId, res);
-
-    req.on('close', () => {
-      this.removeClient(recipientId, res);
-    });
+    req.on('close', () => this.removeClient(recipientId, res));
   }
 
   removeClient (recipientId: number, response: Response): void {

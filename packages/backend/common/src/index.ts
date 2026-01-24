@@ -47,6 +47,7 @@ export * from './core/swagger/swagger-explorer';
 export * from './core/swagger/swagger-module';
 
 export * from './domain/interfaces/bullmq.interface';
+export * from './domain/interfaces/bulk-operations.interface';
 export * from './domain/interfaces/common.interface';
 export * from './domain/interfaces/database.interface';
 export * from './domain/interfaces/guard.interface';

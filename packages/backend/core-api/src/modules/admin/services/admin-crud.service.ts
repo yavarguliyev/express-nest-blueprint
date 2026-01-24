@@ -50,7 +50,8 @@ export class AdminCrudService {
         name: metadata.name,
         displayName: metadata.displayName || metadata.name,
         tableName: metadata.name,
-        columns: this.getTableColumns(metadata.name)
+        columns: this.getTableColumns(metadata.name),
+        actions: metadata.actions || { create: true, update: true, delete: true }
       });
     }
 
