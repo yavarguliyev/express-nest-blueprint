@@ -2,6 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
+import { GlobalCacheService } from './global-cache.service';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
 
 export interface User {
@@ -27,6 +28,7 @@ export interface AuthResponse {
 export class AuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
+  private cacheService = inject(GlobalCacheService);
 
   currentUser = signal<User | null>(this.getCurrentUserFromStorage());
 
@@ -71,13 +73,24 @@ export class AuthService {
     this.currentUser.set(user);
   }
 
-  async syncProfile (): Promise<void> {
+  async syncProfile (forceRefresh: boolean = false): Promise<void> {
+    if (!forceRefresh) {
+      const cachedProfile = this.cacheService.get<User>('user-profile');
+      if (cachedProfile) {
+        this.updateCurrentUser(cachedProfile);
+        return;
+      }
+    }
+
     const response = await fetch(`${API_ENDPOINTS.AUTH.PROFILE}?t=${Date.now()}`, {
       headers: this.getHeaders(),
     });
+
     if (response.ok) {
       const json = (await response.json()) as { data?: User } | User;
       const userData = this.isUserResponse(json) ? json : (json as { data: User }).data;
+
+      this.cacheService.set('user-profile', userData, 5 * 60 * 1000);
       this.updateCurrentUser(userData);
     }
   }
@@ -99,8 +112,11 @@ export class AuthService {
       body: formData,
     });
 
-    if (response.ok) await this.syncProfile();
-    else throw new Error('Upload failed');
+    if (response.ok) {
+      await this.syncProfile(true);
+    } else {
+      throw new Error('Upload failed');
+    }
   }
 
   async deleteAvatar (): Promise<void> {
@@ -112,7 +128,9 @@ export class AuthService {
       },
     });
 
-    if (response.ok) await this.syncProfile();
+    if (response.ok) {
+      await this.syncProfile(true);
+    }
   }
 
   private getHeaders (): HeadersInit {

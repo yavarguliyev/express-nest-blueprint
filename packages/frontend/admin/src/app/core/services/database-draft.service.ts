@@ -218,7 +218,6 @@ export class DatabaseDraftService {
         recordId: draft.recordId,
       };
 
-      // Only include data for operations that need it
       if (draft.operation !== 'delete') {
         operation.data = draft.draftData;
       }
@@ -276,11 +275,7 @@ export class DatabaseDraftService {
       },
     };
 
-    try {
-      localStorage.setItem(this.DRAFT_STORAGE_KEY, JSON.stringify(storage));
-    } catch {
-      // Storage failed - continue without persistence
-    }
+    localStorage.setItem(this.DRAFT_STORAGE_KEY, JSON.stringify(storage));
   }
 
   private loadDraftsFromStorage (): void {

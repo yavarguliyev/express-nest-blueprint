@@ -9,12 +9,23 @@ import { ToggleSwitch } from '../../shared/components/toggle-switch/toggle-switc
 import { ColorPicker } from './components/color-picker/color-picker';
 import { FontSelector } from './components/font-selector/font-selector';
 import { SpacingSlider } from './components/spacing-slider/spacing-slider';
-import { DraftStatusBar, DraftStatusConfig } from '../../shared/components/draft-status-bar/draft-status-bar';
+import {
+  DraftStatusBar,
+  DraftStatusConfig,
+} from '../../shared/components/draft-status-bar/draft-status-bar';
 
 @Component({
   selector: 'app-theme-editor',
   standalone: true,
-  imports: [CommonModule, FormsModule, ToggleSwitch, ColorPicker, FontSelector, SpacingSlider, DraftStatusBar],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ToggleSwitch,
+    ColorPicker,
+    FontSelector,
+    SpacingSlider,
+    DraftStatusBar,
+  ],
   templateUrl: './theme-editor.html',
   styleUrl: './theme-editor.css',
 })
@@ -36,7 +47,6 @@ export class ThemeEditor implements OnInit {
   isPublishing = signal(false);
   categories = computed(() => this.themeEditorService.getCategories());
 
-  // Computed config for the draft status bar
   draftStatusConfig = computed<DraftStatusConfig>(() => ({
     draftCount: this.draftCount(),
     hasDrafts: this.hasDrafts(),
@@ -46,7 +56,7 @@ export class ThemeEditor implements OnInit {
     resetButtonText: 'Reset',
     saveButtonText: 'Publish Changes',
     resetButtonIcon: 'refresh',
-    saveButtonIcon: 'publish'
+    saveButtonIcon: 'publish',
   }));
 
   currentCategoryTokens = computed(() => {
@@ -55,7 +65,14 @@ export class ThemeEditor implements OnInit {
   });
 
   ngOnInit () {
-    this.loadTokens();
+    if (!this.themeEditorService.hasTokens()) {
+      this.loadTokens();
+    } else {
+      const categories = this.categories();
+      if (categories.length > 0 && categories[0]) {
+        this.selectedCategory.set(categories[0]);
+      }
+    }
   }
 
   loadTokens (): void {
@@ -115,7 +132,7 @@ export class ThemeEditor implements OnInit {
 
   getAffectedCategories (): string[] {
     const categories = this.categories();
-    return categories.filter(category => this.hasChangesInCategory(category));
+    return categories.filter((category) => this.hasChangesInCategory(category));
   }
 
   publishChanges (): void {

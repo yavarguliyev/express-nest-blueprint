@@ -1,7 +1,8 @@
 import { Injectable, inject, signal, computed, effect } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map, tap } from 'rxjs';
+import { Observable, map, tap, of } from 'rxjs';
 import { ThemeService } from './theme.service';
+import { GlobalCacheService } from './global-cache.service';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
 
 export interface CssToken {
@@ -47,6 +48,7 @@ export interface PaginatedResponse<T> {
 export class ThemeEditorService {
   private http = inject(HttpClient);
   private themeService = inject(ThemeService);
+  private cacheService = inject(GlobalCacheService);
   private readonly DRAFT_STORAGE_KEY = 'theme-editor-drafts';
 
   private _tokens = signal<CssToken[]>([]);
@@ -86,7 +88,23 @@ export class ThemeEditorService {
     });
   }
 
+  setTokens (tokens: CssToken[]): void {
+    this._tokens.set(tokens);
+    this.applyCurrentTokens();
+  }
+
+  hasTokens (): boolean {
+    return this._tokens().length > 0 || this.cacheService.has('css-tokens');
+  }
+
   loadTokens (): Observable<CssToken[]> {
+    const cachedTokens = this.cacheService.get<CssToken[]>('css-tokens');
+    if (cachedTokens) {
+      this._tokens.set(cachedTokens);
+      this.applyCurrentTokens();
+      return of(cachedTokens);
+    }
+
     this._loading.set(true);
 
     const url = API_ENDPOINTS.ADMIN.CRUD('Database Management', 'css_tokens');
@@ -101,6 +119,8 @@ export class ThemeEditorService {
           this._tokens.set(tokens);
           this._loading.set(false);
           this.applyCurrentTokens();
+
+          this.cacheService.set('css-tokens', tokens, 10 * 60 * 1000);
         }),
       );
   }

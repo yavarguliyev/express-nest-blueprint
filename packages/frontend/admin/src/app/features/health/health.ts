@@ -16,7 +16,9 @@ export class Health implements OnInit {
   error = signal('');
 
   ngOnInit () {
-    this.refresh();
+    if (window.location.pathname.includes('/health')) {
+      this.refresh();
+    }
   }
 
   refresh () {

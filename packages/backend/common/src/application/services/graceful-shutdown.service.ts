@@ -22,7 +22,6 @@ export class GracefulShutdownService {
 
   public async shutDown (httpServer?: http.Server): Promise<void> {
     const shutdownTimer = setTimeout(() => {
-      this.logger.error('Graceful shutdown timed out, forcing exit.');
       process.exit(1);
     }, this.shutdownTimeout);
 
@@ -30,8 +29,6 @@ export class GracefulShutdownService {
       this.logger.log('Graceful shutdown initiated...');
 
       if (httpServer?.listening) {
-        this.logger.log('Closing HTTP server...');
-
         if ('closeAllConnections' in httpServer && typeof httpServer.closeAllConnections === 'function') {
           (httpServer.closeAllConnections as () => void)();
         }
@@ -49,20 +46,18 @@ export class GracefulShutdownService {
         });
       }
 
-      this.logger.log('Disconnecting services...');
       await this.disconnectServices();
       this.logger.log('All services disconnected.');
     } catch (error) {
       this.logger.error(`Error during shutdown: ${getErrorMessage(error)}`);
     } finally {
       clearTimeout(shutdownTimer);
-      this.logger.log('Finalizing shutdown. Exit 0.');
       process.exit(0);
     }
   }
 
   private async disconnectServices (): Promise<void> {
-    const serviceTimeout = 2000; // 2s timeout per service
+    const serviceTimeout = 2000;
 
     const disconnectPromises = this.services.map(async (service) => {
       const disconnectPromise = this.retryDisconnect(service);
@@ -72,7 +67,6 @@ export class GracefulShutdownService {
 
       return Promise.race([disconnectPromise, timeoutPromise]).catch((error) => {
         this.logger.error(`Failed to disconnect ${service.name}: ${getErrorMessage(error)}`);
-        // Continue with other services even if one fails or times out
       });
     });
 
@@ -87,5 +81,4 @@ export class GracefulShutdownService {
       onRetry: (attempt) => this.logger.log(`Retrying ${service.name} disconnect, attempt ${attempt}`)
     });
   }
-
 }

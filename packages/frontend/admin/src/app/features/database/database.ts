@@ -1,4 +1,14 @@
-import { Component, inject, OnInit, signal, ElementRef, ViewChild, AfterViewInit, HostListener, computed } from '@angular/core';
+import {
+  Component,
+  inject,
+  OnInit,
+  signal,
+  ElementRef,
+  ViewChild,
+  AfterViewInit,
+  HostListener,
+  computed,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
@@ -12,7 +22,10 @@ import { DateFormatService } from '../../core/services/date-format.service';
 import { UserRoleHelper } from '../../core/enums/user-roles.enum';
 import { ToggleSwitch } from '../../shared/components/toggle-switch/toggle-switch';
 import { ActionButtons } from '../../shared/components/action-buttons/action-buttons';
-import { DraftStatusBar, DraftStatusConfig } from '../../shared/components/draft-status-bar/draft-status-bar';
+import {
+  DraftStatusBar,
+  DraftStatusConfig,
+} from '../../shared/components/draft-status-bar/draft-status-bar';
 import { API_ENDPOINTS } from '../../core/constants/api-endpoints';
 
 interface Column {
@@ -95,7 +108,6 @@ export class Database implements OnInit, AfterViewInit {
   showBulkActions = signal(false);
   isPublishing = signal(false);
 
-  // Computed config for the draft status bar
   draftStatusConfig = computed<DraftStatusConfig>(() => ({
     draftCount: this.draftCount(),
     hasDrafts: this.hasDrafts(),
@@ -105,7 +117,7 @@ export class Database implements OnInit, AfterViewInit {
     resetButtonText: 'Reset All',
     saveButtonText: 'Save Changes',
     resetButtonIcon: 'refresh',
-    saveButtonIcon: 'save'
+    saveButtonIcon: 'save',
   }));
 
   constructor () {
@@ -125,7 +137,9 @@ export class Database implements OnInit, AfterViewInit {
   }
 
   ngOnInit () {
-    this.loadSchema();
+    if (window.location.pathname.includes('/database')) {
+      this.loadSchema();
+    }
   }
 
   ngAfterViewInit () {
@@ -137,6 +151,10 @@ export class Database implements OnInit, AfterViewInit {
   debugTableData () {}
 
   loadSchema () {
+    if (this.schema()) {
+      return;
+    }
+
     this.loadingSchema.set(true);
     this.http.get<ApiResponse<Schema>>(API_ENDPOINTS.ADMIN.SCHEMA).subscribe({
       next: (res) => {
@@ -294,13 +312,16 @@ export class Database implements OnInit, AfterViewInit {
       }
     });
 
-    this.draftService.createDraft({
-      type: 'update',
-      table: table.name,
-      category: table.category,
-      recordId: id,
-      data: formData
-    }, record);
+    this.draftService.createDraft(
+      {
+        type: 'update',
+        table: table.name,
+        category: table.category,
+        recordId: id,
+        data: formData,
+      },
+      record,
+    );
 
     this.selectedRecord.set(record);
     this.updateFormData.set(formData);
@@ -348,10 +369,12 @@ export class Database implements OnInit, AfterViewInit {
 
     const recordId = record['id'] as number;
     const draftId = `${table.category}:${table.name}:${recordId}`;
-    
+
     this.draftService.updateDraft(draftId, currentData);
-    
-    this.toastService.success(`Changes saved as draft for record ${recordId}. Use "Save Changes" to apply all drafts.`);
+
+    this.toastService.success(
+      `Changes saved as draft for record ${recordId}. Use "Save Changes" to apply all drafts.`,
+    );
     this.closeUpdateModal();
   }
 
@@ -372,16 +395,18 @@ export class Database implements OnInit, AfterViewInit {
         const record = this.tableData().find((row) => row['id'] === id);
         if (!record) return;
 
-        // Create delete draft
-        this.draftService.createDraft({
-          type: 'delete',
-          table: table.name,
-          category: table.category,
-          recordId: id
-        }, record);
+        this.draftService.createDraft(
+          {
+            type: 'delete',
+            table: table.name,
+            category: table.category,
+            recordId: id,
+          },
+          record,
+        );
 
         this.toastService.success(
-          `Record ${id} marked for deletion. Use "Save Changes" to apply all changes.`
+          `Record ${id} marked for deletion. Use "Save Changes" to apply all changes.`,
         );
       },
     );
@@ -399,29 +424,29 @@ export class Database implements OnInit, AfterViewInit {
     }
 
     const recordId = record['id'] as number;
-    
-    // Create or update draft with the boolean change
+
     const draftId = `${table.category}:${table.name}:${recordId}`;
     let existingDraft = this.draftService.getDraft(draftId);
-    
+
     if (!existingDraft) {
-      // Create new draft if none exists
-      this.draftService.createDraft({
-        type: 'update',
-        table: table.name,
-        category: table.category,
-        recordId: recordId
-      }, record);
+      this.draftService.createDraft(
+        {
+          type: 'update',
+          table: table.name,
+          category: table.category,
+          recordId: recordId,
+        },
+        record,
+      );
       existingDraft = this.draftService.getDraft(draftId);
     }
-    
+
     if (existingDraft) {
-      // Update the draft with the new boolean value
       const updatedData = { ...existingDraft.draftData, [column.name]: newValue };
       this.draftService.updateDraft(draftId, updatedData);
-      
+
       this.toastService.success(
-        `${column.name} change saved as draft. Use "Save Changes" to apply all changes.`
+        `${column.name} change saved as draft. Use "Save Changes" to apply all changes.`,
       );
     }
   }
@@ -461,12 +486,11 @@ export class Database implements OnInit, AfterViewInit {
   getBooleanValue (row: Record<string, unknown>, columnName: string): boolean {
     const recordId = this.getNumberValue(row, 'id');
     const draftData = this.getRecordDraftData(recordId);
-    
-    // If there's draft data, use the draft value, otherwise use original value
+
     if (draftData && columnName in draftData) {
       return draftData[columnName] as boolean;
     }
-    
+
     return row[columnName] as boolean;
   }
 
@@ -603,7 +627,7 @@ export class Database implements OnInit, AfterViewInit {
   hasAnyActions (): boolean {
     const table = this.selectedTable();
     if (!table) return false;
-    
+
     const actions = table.actions || { create: true, update: true, delete: true };
     return actions.update !== false || actions.delete !== false;
   }
@@ -684,16 +708,20 @@ export class Database implements OnInit, AfterViewInit {
       next: (response) => {
         this.isPublishing.set(false);
         if (response.success) {
-          this.toastService.success(`Successfully published ${response.summary.successful} changes`);
+          this.toastService.success(
+            `Successfully published ${response.summary.successful} changes`,
+          );
           this.loadTableData(false);
         } else {
-          this.toastService.error(`Published ${response.summary.successful} changes, ${response.summary.failed} failed`);
+          this.toastService.error(
+            `Published ${response.summary.successful} changes, ${response.summary.failed} failed`,
+          );
         }
       },
       error: () => {
         this.isPublishing.set(false);
         this.toastService.error('Failed to publish changes');
-      }
+      },
     });
   }
 
@@ -707,16 +735,16 @@ export class Database implements OnInit, AfterViewInit {
       `Reset all ${this.draftCount()} unsaved changes? This cannot be undone.`,
       () => {
         this.draftService.resetDrafts();
-        this.loadTableData(false); // Refresh the table to show original values
+        this.loadTableData(false);
         this.toastService.success('All changes have been reset');
-      }
+      },
     );
   }
 
   hasRecordDraft (recordId: number): boolean {
     const table = this.selectedTable();
     if (!table) return false;
-    
+
     const draftId = `${table.category}:${table.name}:${recordId}`;
     return this.draftService.hasDraftChanges(draftId);
   }
@@ -724,7 +752,7 @@ export class Database implements OnInit, AfterViewInit {
   getRecordDraftType (recordId: number): 'create' | 'update' | 'delete' | null {
     const table = this.selectedTable();
     if (!table) return null;
-    
+
     const draft = this.draftService.getDraftForRecord(table.category, table.name, recordId);
     return draft ? draft.operation : null;
   }
@@ -736,7 +764,7 @@ export class Database implements OnInit, AfterViewInit {
   getRecordDraftData (recordId: number): Record<string, unknown> | null {
     const table = this.selectedTable();
     if (!table) return null;
-    
+
     const draft = this.draftService.getDraftForRecord(table.category, table.name, recordId);
     return draft ? draft.draftData : null;
   }

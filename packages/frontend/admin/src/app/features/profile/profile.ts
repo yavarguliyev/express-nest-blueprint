@@ -64,7 +64,13 @@ export class Profile implements OnInit, OnDestroy {
   }
 
   ngOnInit () {
-    void this.authService.syncProfile();
+    const hasValidProfile = this.authService.getCurrentUser();
+    if (!hasValidProfile) {
+      const cachedProfile = localStorage.getItem('admin_user');
+      if (!cachedProfile) {
+        void this.authService.syncProfile();
+      }
+    }
     this.initializeForm();
     this.setupVisibilityListener();
   }
@@ -78,7 +84,14 @@ export class Profile implements OnInit, OnDestroy {
   private setupVisibilityListener () {
     this.visibilityListener = () => {
       if (!document.hidden) {
-        void this.authService.syncProfile();
+        const lastSync = localStorage.getItem('profile-last-sync');
+        const now = Date.now();
+        const fiveMinutes = 5 * 60 * 1000;
+
+        if (!lastSync || now - parseInt(lastSync) > fiveMinutes) {
+          void this.authService.syncProfile();
+          localStorage.setItem('profile-last-sync', now.toString());
+        }
       }
     };
     document.addEventListener('visibilitychange', this.visibilityListener);

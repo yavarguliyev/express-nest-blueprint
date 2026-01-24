@@ -24,7 +24,28 @@ export class Dashboard implements OnInit {
   Math = Math;
 
   ngOnInit () {
-    void this.refreshData();
+    if (!window.location.pathname.includes('/dashboard')) {
+      return;
+    }
+
+    const cacheStatus = this.dashboardService.hasValidCache();
+
+    if (cacheStatus.metrics && cacheStatus.health) {
+      this.loading.set(false);
+
+      this.dashboardService.getMetrics(true).subscribe({
+        next: (data) => this.data.set(data),
+        error: () => {},
+      });
+
+      this.dashboardService.getHealth(true).subscribe({
+        next: (data) => this.health.set(data),
+        error: () => {},
+      });
+      return;
+    }
+
+    this.refreshData();
   }
 
   getMetricValue (name: string): number {
@@ -36,7 +57,7 @@ export class Dashboard implements OnInit {
     this.loading.set(true);
     this.error.set('');
 
-    this.dashboardService.getMetrics().subscribe({
+    this.dashboardService.refreshMetrics().subscribe({
       next: (data) => {
         this.data.set(data);
         this.loading.set(false);
@@ -47,7 +68,7 @@ export class Dashboard implements OnInit {
       },
     });
 
-    this.dashboardService.getHealth().subscribe({
+    this.dashboardService.refreshHealth().subscribe({
       next: (data) => this.health.set(data),
       error: () => this.error.set('Failed to load health status'),
     });
