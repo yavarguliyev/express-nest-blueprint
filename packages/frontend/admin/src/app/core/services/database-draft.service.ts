@@ -9,6 +9,7 @@ import {
   DraftStorage,
   ValidationResult,
 } from '../interfaces/database-bulk.interface';
+import { TokenNotificationService } from './token-notification.service';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
 
 @Injectable({
@@ -16,6 +17,7 @@ import { API_ENDPOINTS } from '../constants/api-endpoints';
 })
 export class DatabaseDraftService {
   private http = inject(HttpClient);
+  private tokenNotificationService = inject(TokenNotificationService);
   private readonly DRAFT_STORAGE_KEY = 'database-drafts';
   private readonly STORAGE_VERSION = '1.0.0';
 
@@ -50,11 +52,11 @@ export class DatabaseDraftService {
     return Array.from(categories);
   });
 
-  constructor () {
+  constructor() {
     this.loadDraftsFromStorage();
   }
 
-  createDraft (operation: DatabaseOperation, originalData: Record<string, unknown>): void {
+  createDraft(operation: DatabaseOperation, originalData: Record<string, unknown>): void {
     const draftId = this.generateDraftId(operation.category, operation.table, operation.recordId);
     const currentDrafts = this._drafts();
 
@@ -76,7 +78,7 @@ export class DatabaseDraftService {
     this.saveDraftsToStorage();
   }
 
-  updateDraft (draftId: string, data: Record<string, unknown>): void {
+  updateDraft(draftId: string, data: Record<string, unknown>): void {
     const currentDrafts = this._drafts();
     const existingDraft = currentDrafts.get(draftId);
 
@@ -100,7 +102,7 @@ export class DatabaseDraftService {
     this.saveDraftsToStorage();
   }
 
-  deleteDraft (draftId: string): void {
+  deleteDraft(draftId: string): void {
     const currentDrafts = this._drafts();
     const newDrafts = new Map(currentDrafts);
     newDrafts.delete(draftId);
@@ -108,16 +110,16 @@ export class DatabaseDraftService {
     this.saveDraftsToStorage();
   }
 
-  getDraft (draftId: string): DatabaseDraft | null {
+  getDraft(draftId: string): DatabaseDraft | null {
     return this._drafts().get(draftId) || null;
   }
 
-  hasDraftChanges (draftId: string): boolean {
+  hasDraftChanges(draftId: string): boolean {
     const draft = this._drafts().get(draftId);
     return draft ? draft.hasChanges : false;
   }
 
-  getDraftForRecord (
+  getDraftForRecord(
     category: string,
     table: string,
     recordId: number | string,
@@ -126,7 +128,7 @@ export class DatabaseDraftService {
     return this.getDraft(draftId);
   }
 
-  publishDrafts (): Observable<BulkOperationResponse> {
+  publishDrafts(): Observable<BulkOperationResponse> {
     const allDrafts = Array.from(this._drafts().values()).filter((draft) => draft.hasChanges);
 
     if (allDrafts.length === 0) {
@@ -169,6 +171,8 @@ export class DatabaseDraftService {
         map((response) => response.data),
         tap((bulkResponse) => {
           if (bulkResponse.success) {
+            const cssTokenOperations = operations.filter((op) => op.table === 'css_tokens');
+
             bulkResponse.results.forEach((result) => {
               if (result.success) {
                 const draftId = this.generateDraftId(
@@ -183,6 +187,10 @@ export class DatabaseDraftService {
               }
             });
             this.saveDraftsToStorage();
+
+            if (cssTokenOperations.length > 0) {
+              this.tokenNotificationService.notifyAllTokensUpdated('database');
+            }
           }
         }),
         finalize(() => {
@@ -191,12 +199,12 @@ export class DatabaseDraftService {
       );
   }
 
-  resetDrafts (): void {
+  resetDrafts(): void {
     this._drafts.set(new Map());
     this.saveDraftsToStorage();
   }
 
-  validateDrafts (): Observable<ValidationResult> {
+  validateDrafts(): Observable<ValidationResult> {
     const allDrafts = Array.from(this._drafts().values()).filter((draft) => draft.hasChanges);
 
     if (allDrafts.length === 0) {
@@ -236,11 +244,11 @@ export class DatabaseDraftService {
       .pipe(map((response) => response.data));
   }
 
-  private generateDraftId (category: string, table: string, recordId?: number | string): string {
+  private generateDraftId(category: string, table: string, recordId?: number | string): string {
     return `${category}:${table}:${recordId || 'new'}`;
   }
 
-  private hasDataChanges (
+  private hasDataChanges(
     original: Record<string, unknown>,
     modified: Record<string, unknown>,
   ): boolean {
@@ -260,7 +268,7 @@ export class DatabaseDraftService {
     return false;
   }
 
-  private saveDraftsToStorage (): void {
+  private saveDraftsToStorage(): void {
     if (typeof window === 'undefined') return;
 
     const draftsArray = Array.from(this._drafts().entries());
@@ -278,7 +286,7 @@ export class DatabaseDraftService {
     localStorage.setItem(this.DRAFT_STORAGE_KEY, JSON.stringify(storage));
   }
 
-  private loadDraftsFromStorage (): void {
+  private loadDraftsFromStorage(): void {
     if (typeof window === 'undefined') return;
 
     try {

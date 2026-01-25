@@ -467,14 +467,14 @@ h4 {
 
 /* PAGINATION CONTROLS GRADIENT */
 .page-btn.active {
-  background: linear-gradient(81deg, #ce1bfb 10.86%, #35e6cc 89.96%) !important;
+  background: linear-gradient(81deg, var(--btn-primary-start) 10.86%, var(--btn-primary-end) 89.96%) !important;
   border: 1px solid transparent !important;
   color: white !important;
 }
 
 .page-btn:hover:not(:disabled):not(.active) {
   border: 1px solid transparent !important;
-  border-image: linear-gradient(81deg, #ce1bfb 10.86%, #35e6cc 89.96%) 1 !important;
+  border-image: linear-gradient(81deg, var(--btn-primary-hover-start, var(--btn-primary-start)) 10.86%, var(--btn-primary-hover-end, var(--btn-primary-end)) 89.96%) 1 !important;
 }
 
 /* SIDEBAR NAVIGATION STYLING - SAME AS HEADINGS */

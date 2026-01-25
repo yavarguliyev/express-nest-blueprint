@@ -268,6 +268,8 @@ INSERT INTO css_tokens (token_name, token_category, token_type, default_value, l
 VALUES 
     ('--btn-primary-start', 'colors', 'color', '#ce1bfb', '#1d4ed8', '#ce1bfb', 'Primary button gradient start color', true),
     ('--btn-primary-end', 'colors', 'color', '#35e6cc', '#3b82f6', '#35e6cc', 'Primary button gradient end color', true),
+    ('--btn-primary-hover-start', 'colors', 'color', '#d63dfc', '#2563eb', '#d63dfc', 'Primary button hover gradient start color', true),
+    ('--btn-primary-hover-end', 'colors', 'color', '#4ae9d1', '#60a5fa', '#4ae9d1', 'Primary button hover gradient end color', true),
     ('--btn-secondary-bg', 'colors', 'color', 'rgba(255, 255, 255, 0.08)', 'rgba(0, 0, 0, 0.05)', 'rgba(255, 255, 255, 0.08)', 'Secondary button background', true),
     ('--btn-secondary-hover', 'colors', 'color', 'rgba(255, 255, 255, 0.15)', 'rgba(0, 0, 0, 0.1)', 'rgba(255, 255, 255, 0.15)', 'Secondary button hover background', true);
 

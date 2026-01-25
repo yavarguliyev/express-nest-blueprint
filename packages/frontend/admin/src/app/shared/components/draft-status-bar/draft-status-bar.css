@@ -118,14 +118,14 @@
 }
 
 .draft-status-bar .btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
+  transform: translateY(-2px) !important;
   background: linear-gradient(
     81deg,
     var(--btn-primary-hover-start, var(--btn-primary-start)) 10.86%,
     var(--btn-primary-hover-end, var(--btn-primary-end)) 89.96%
   ) !important;
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5);
-  border-color: transparent;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5) !important;
+  border-color: transparent !important;
   scale: 1.02 !important;
 }
 

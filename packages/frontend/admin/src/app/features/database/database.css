@@ -409,7 +409,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 0px solid rgba(255, 255, 255, 0.1) !important;
   background: rgba(255, 255, 255, 0.03);
   color: #94a3b8;
   cursor: pointer;
@@ -789,14 +789,14 @@ html body .btn-secondary:hover {
 }
 
 html body .btn-primary:hover {
-  transform: translateY(-2px);
+  transform: translateY(-2px) !important;
   background: linear-gradient(
     81deg,
     var(--btn-primary-hover-start, var(--btn-primary-start)) 10.86%,
     var(--btn-primary-hover-end, var(--btn-primary-end)) 89.96%
   ) !important;
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5);
-  border-color: transparent;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5) !important;
+  border-color: transparent !important;
   scale: 1.02 !important;
 }
 
@@ -815,10 +815,10 @@ html body .btn-primary:hover {
 
 .btn-primary.disabled:hover,
 .btn-primary:disabled:hover {
-  background: linear-gradient(81deg, var(--btn-primary-start), var(--btn-primary-end));
-  opacity: 0.3;
-  box-shadow: none;
-  transform: none;
+  background: linear-gradient(81deg, var(--btn-primary-start), var(--btn-primary-end)) !important;
+  opacity: 0.3 !important;
+  box-shadow: none !important;
+  transform: none !important;
 }
 
 @keyframes fadeIn {
@@ -1062,7 +1062,8 @@ html body .btn-primary:hover {
 }
 
 @keyframes pulse-warning {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
@@ -1073,7 +1074,8 @@ html body .btn-primary:hover {
 }
 
 @keyframes pulse-danger {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
