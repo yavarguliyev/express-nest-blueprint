@@ -1,4 +1,4 @@
-import { CRUD_TABLE_METADATA_KEY, CrudRepository, CrudTableOptions, Injectable, RepositoryEntry, JwtPayload, NotFoundException, BaseRepository, parseId, NotificationsRepository } from '@config/libs';
+import { CRUD_TABLE_METADATA_KEY, CrudRepository, CrudTableOptions, Injectable, RepositoryEntry, JwtPayload, NotFoundException, BaseRepository, parseId } from '@config/libs';
 
 import { TableMetadata, ColumnMetadata } from '@modules/admin/interfaces/admin.interface';
 import { UsersRepository } from '@modules/users/users.repository';
@@ -24,8 +24,7 @@ export class AdminCrudService {
     tokenUsageRepository: TokenUsageRepository,
     cssGradientsRepository: CssGradientsRepository,
     cssBackupsRepository: CssBackupsRepository,
-    cssAuditLogRepository: CssAuditLogRepository,
-    notificationsRepository: NotificationsRepository
+    cssAuditLogRepository: CssAuditLogRepository
   ) {
     this.registerRepository(usersRepository, UsersRepository);
     this.registerRepository(cssFilesRepository, CssFilesRepository);
@@ -36,7 +35,6 @@ export class AdminCrudService {
     this.registerRepository(cssGradientsRepository, CssGradientsRepository);
     this.registerRepository(cssBackupsRepository, CssBackupsRepository);
     this.registerRepository(cssAuditLogRepository, CssAuditLogRepository);
-    this.registerRepository(notificationsRepository, NotificationsRepository);
   }
 
   getTableSchema (): Record<string, TableMetadata[]> {

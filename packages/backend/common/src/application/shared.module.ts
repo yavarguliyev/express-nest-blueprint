@@ -18,7 +18,6 @@ import { HealthModule } from '../infrastructure/health/health.module';
 import { MetricsModule } from '../infrastructure/metrics/metrics.module';
 import { ThrottlerModule } from '../infrastructure/throttler/throttler.module';
 import { KafkaModule } from '../infrastructure/kafka/kafka.module';
-import { NotificationsModule } from '../infrastructure/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -33,8 +32,7 @@ import { NotificationsModule } from '../infrastructure/notifications/notificatio
     ThrottlerModule,
     MetricsModule,
     CircuitBreakerModule,
-    KafkaModule.forRoot(),
-    NotificationsModule.forRoot()
+    KafkaModule.forRoot()
   ],
   controllers: [],
   providers: [
@@ -54,18 +52,7 @@ import { NotificationsModule } from '../infrastructure/notifications/notificatio
           }
         }
       }) as (...args: unknown[]) => Promise<void>,
-      inject: [
-        'LOGGER_INITIALIZER',
-        'LIFECYCLE_INITIALIZER',
-        'DATABASE_INITIALIZER',
-        'REDIS_INITIALIZER',
-        'CIRCUIT_BREAKER_INITIALIZER',
-        'COMPUTE_INITIALIZER',
-        'CACHE_INITIALIZER',
-        'GRAPHQL_INITIALIZER',
-        'KAFKA_INITIALIZER',
-        'NOTIFICATION_INITIALIZER'
-      ]
+      inject: ['LOGGER_INITIALIZER', 'LIFECYCLE_INITIALIZER', 'DATABASE_INITIALIZER', 'REDIS_INITIALIZER', 'CIRCUIT_BREAKER_INITIALIZER', 'COMPUTE_INITIALIZER', 'CACHE_INITIALIZER', 'GRAPHQL_INITIALIZER', 'KAFKA_INITIALIZER']
     }
   ],
   exports: [JwtService]

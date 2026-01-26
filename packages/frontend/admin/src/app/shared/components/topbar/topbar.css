@@ -8,6 +8,12 @@
   overflow: visible !important;
   position: relative;
   z-index: 10002;
+  transition: margin-left 0.3s ease;
+}
+
+/* When sidebar is collapsed, reduce left margin */
+.topbar-container.sidebar-collapsed {
+  margin-left: calc(80px + 40px);
 }
 
 .breadcrumb {

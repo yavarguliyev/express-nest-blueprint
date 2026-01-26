@@ -1,11 +1,9 @@
-<div class="topbar-container glass">
+<div class="topbar-container glass" [class.sidebar-collapsed]="isCollapsed()">
   <div class="page-info">
     <span class="breadcrumb">{{ currentPageName() }}</span>
   </div>
 
   <div class="user-actions">
-    <app-notification-dropdown></app-notification-dropdown>
-    
     <!-- Theme Toggle -->
     <div class="theme-toggle">
       <app-toggle-switch 

@@ -3,25 +3,27 @@ import { CommonModule } from '@angular/common';
 import { RouterLink, Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { ThemeService } from '../../../core/services/theme.service';
+import { SidebarService } from '../../../core/services/sidebar.service';
 import { ToggleSwitch } from '../toggle-switch/toggle-switch';
-import { NotificationDropdownComponent } from '../notification-dropdown/notification-dropdown.component';
 import { filter, map } from 'rxjs/operators';
 import { signal } from '@angular/core';
 
 @Component({
   selector: 'app-topbar',
   standalone: true,
-  imports: [CommonModule, RouterLink, ToggleSwitch, NotificationDropdownComponent],
+  imports: [CommonModule, RouterLink, ToggleSwitch],
   templateUrl: './topbar.html',
   styleUrl: './topbar.css',
 })
 export class Topbar {
   private authService = inject(AuthService);
   private themeService = inject(ThemeService);
+  private sidebarService = inject(SidebarService);
   private router = inject(Router);
 
   user = this.authService.currentUser;
   currentPageName = signal('Dashboard');
+  isCollapsed = this.sidebarService.isCollapsed;
 
   isDarkMode (): boolean {
     return this.themeService.isDarkMode();

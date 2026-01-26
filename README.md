@@ -171,6 +171,7 @@ graph LR
 - **Strict Role detection**: Automatic role assignment for parent and child processes.
 - **Rate Limiting (Throttling)**: Intelligent request limiting based on IP and User ID.
 - **Error Handling**: Standardized Exception Filters.
+- **Git Hooks (Husky)**: Automated pre-commit and pre-push hooks for code quality checks including linting and build validation across all workspaces.
 
 ---
 

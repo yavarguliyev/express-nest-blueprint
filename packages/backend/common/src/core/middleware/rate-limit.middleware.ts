@@ -17,7 +17,7 @@ export class RateLimitMiddleware implements NestMiddleware {
   use (req: Request, res: Response, next: NextFunction): void {
     const key = String(req.headers['x-forwarded-for'] || req.ip || 'unknown');
     const path = (req.originalUrl || req.path || '').toLowerCase();
-    const isAdminPath = path.includes('admin') || path.includes('notifications');
+    const isAdminPath = path.includes('admin');
     const currentLimit = isAdminPath ? 5000 : this.limit;
 
     this.throttlerService

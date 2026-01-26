@@ -5,7 +5,6 @@ import { UsersModule } from '@modules/users/users.module';
 import { AdminModule } from '@modules/admin/admin.module';
 import { ThemesModule } from '@modules/themes/themes.module';
 import { UsersResolver } from '@modules/users/users.resolver';
-import { NotificationsModule } from '@modules/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -16,7 +15,6 @@ import { NotificationsModule } from '@modules/notifications/notifications.module
     }),
     DatabaseModule.forRoot(),
     SharedModule,
-    NotificationsModule,
     GraphQLModule.forRoot({ resolvers: [UsersResolver] }),
     UsersModule,
     AuthModule,
@@ -30,7 +28,7 @@ import { NotificationsModule } from '@modules/notifications/notifications.module
 export class AppModule implements NestModule {
   configure (consumer: MiddlewareConsumer): void {
     consumer.apply(MetricsMiddleware, LoggerMiddleware).forRoutes('*');
-    consumer.apply(RateLimitMiddleware).exclude('/health*', '/metrics*', '/api/v1/notifications/stream').forRoutes('*');
+    consumer.apply(RateLimitMiddleware).exclude('/health*', '/metrics*').forRoutes('*');
     consumer.apply(HeaderAuthMiddleware).forRoutes('*');
   }
 }

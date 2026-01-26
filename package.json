@@ -26,7 +26,8 @@
     "remove:running:port": "lsof -ti:3000 | xargs kill -9",
     "migrate:up": "node-pg-migrate up --migrations-dir packages/backend/core-api/database/migrations",
     "migrate:down": "node-pg-migrate down --migrations-dir packages/backend/core-api/database/migrations",
-    "migrate:create": "node-pg-migrate create --migrations-dir packages/backend/core-api/database/migrations"
+    "migrate:create": "node-pg-migrate create --migrations-dir packages/backend/core-api/database/migrations",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
@@ -39,6 +40,7 @@
     "eslint": "^9.34.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
+    "husky": "^9.1.7",
     "nodemon": "^3.1.10",
     "prettier": "^3.6.2",
     "ts-node": "^10.9.2",

@@ -81,7 +81,7 @@ export class ThemeEditorService {
 
   hasDrafts = computed(() => this.draftCount() > 0);
 
-  constructor() {
+  constructor () {
     this.loadDraftsFromStorage();
 
     effect(() => {
@@ -97,16 +97,16 @@ export class ThemeEditorService {
     });
   }
 
-  setTokens(tokens: CssToken[]): void {
+  setTokens (tokens: CssToken[]): void {
     this._tokens.set(tokens);
     this.applyCurrentTokens();
   }
 
-  hasTokens(): boolean {
+  hasTokens (): boolean {
     return this._tokens().length > 0 || this.cacheService.has('css-tokens');
   }
 
-  loadTokens(): Observable<CssToken[]> {
+  loadTokens (): Observable<CssToken[]> {
     const cachedTokens = this.cacheService.get<CssToken[]>('css-tokens');
     if (cachedTokens) {
       this._tokens.set(cachedTokens);
@@ -134,7 +134,7 @@ export class ThemeEditorService {
       );
   }
 
-  getTokenValue(tokenId: string, mode?: 'light' | 'dark'): string {
+  getTokenValue (tokenId: string, mode?: 'light' | 'dark'): string {
     const draft = this._drafts().get(tokenId);
     const token = this._tokens().find((t) => t.id === tokenId);
 
@@ -153,7 +153,7 @@ export class ThemeEditorService {
     return token.defaultValue;
   }
 
-  updateTokenDraft(
+  updateTokenDraft (
     tokenId: string,
     value: string,
     mode: 'light' | 'dark' | 'default' = 'default',
@@ -206,7 +206,7 @@ export class ThemeEditorService {
     this.applyTokenToCSS(token.tokenName, value);
   }
 
-  private applyTokenToCSS(tokenName: string, value: string): void {
+  private applyTokenToCSS (tokenName: string, value: string): void {
     if (typeof document !== 'undefined') {
       document.documentElement.style.setProperty(tokenName, value);
 
@@ -214,7 +214,7 @@ export class ThemeEditorService {
     }
   }
 
-  private applyRelatedTokens(tokenName: string, value: string): void {
+  private applyRelatedTokens (tokenName: string, value: string): void {
     const tokenRelationships: Record<string, string[]> = {
       '--btn-primary-start': ['--btn-primary-hover-start'],
       '--btn-primary-end': ['--btn-primary-hover-end'],
@@ -243,7 +243,7 @@ export class ThemeEditorService {
     });
   }
 
-  private generateRelatedTokenValue(
+  private generateRelatedTokenValue (
     _baseTokenName: string,
     relatedTokenName: string,
     baseValue: string,
@@ -258,7 +258,7 @@ export class ThemeEditorService {
     return generator ? generator(baseValue) : null;
   }
 
-  private adjustOpacity(color: string, newOpacity: number): string {
+  private adjustOpacity (color: string, newOpacity: number): string {
     if (color.startsWith('rgba(')) {
       return color.replace(/,\s*[\d.]+\)$/, `, ${newOpacity})`);
     }
@@ -268,7 +268,7 @@ export class ThemeEditorService {
     return color;
   }
 
-  applyCurrentTokens(): void {
+  applyCurrentTokens (): void {
     if (typeof document === 'undefined') return;
 
     const tokens = this._tokens();
@@ -289,11 +289,11 @@ export class ThemeEditorService {
     });
   }
 
-  private getCurrentThemeFromDocument(): 'light' | 'dark' {
+  private getCurrentThemeFromDocument (): 'light' | 'dark' {
     return this.themeService.currentTheme();
   }
 
-  private adjustColor(color: string, percent: number): string {
+  private adjustColor (color: string, percent: number): string {
     if (color.startsWith('#')) {
       const hex = color.slice(1);
       const num = parseInt(hex, 16);
@@ -332,7 +332,7 @@ export class ThemeEditorService {
     return color;
   }
 
-  publishDrafts(): Observable<boolean> {
+  publishDrafts (): Observable<boolean> {
     const drafts = Array.from(this._drafts().values()).filter((draft) => draft.hasChanges);
 
     if (drafts.length === 0) {
@@ -378,34 +378,34 @@ export class ThemeEditorService {
     });
   }
 
-  resetDrafts(): void {
+  resetDrafts (): void {
     this._drafts.set(new Map());
     this.saveDraftsToStorage();
     this.applyCurrentTokens();
   }
 
-  private clearDrafts(): void {
+  private clearDrafts (): void {
     this._drafts.set(new Map());
     this.saveDraftsToStorage();
   }
 
-  getDraft(tokenId: string): TokenDraft | null {
+  getDraft (tokenId: string): TokenDraft | null {
     return this._drafts().get(tokenId) || null;
   }
 
-  hasTokenChanges(tokenId: string): boolean {
+  hasTokenChanges (tokenId: string): boolean {
     const draft = this._drafts().get(tokenId);
     return draft ? draft.hasChanges : false;
   }
 
-  private saveDraftsToStorage(): void {
+  private saveDraftsToStorage (): void {
     if (typeof window !== 'undefined') {
       const draftsArray = Array.from(this._drafts().entries());
       localStorage.setItem(this.DRAFT_STORAGE_KEY, JSON.stringify(draftsArray));
     }
   }
 
-  private loadDraftsFromStorage(): void {
+  private loadDraftsFromStorage (): void {
     if (typeof window !== 'undefined') {
       localStorage.removeItem(this.DRAFT_STORAGE_KEY);
 
@@ -417,22 +417,22 @@ export class ThemeEditorService {
     }
   }
 
-  getTokensByCategory(category: string): CssToken[] {
+  getTokensByCategory (category: string): CssToken[] {
     return this._tokens().filter((token) => token.tokenCategory === category);
   }
 
-  getCategories(): string[] {
+  getCategories (): string[] {
     const tokens = this._tokens();
     const categories = new Set(tokens.map((token) => token.tokenCategory));
     return Array.from(categories).sort();
   }
 
-  refreshTokens(): Observable<CssToken[]> {
+  refreshTokens (): Observable<CssToken[]> {
     this.cacheService.delete('css-tokens');
     return this.loadTokens();
   }
 
-  hasToken(tokenName: string): boolean {
+  hasToken (tokenName: string): boolean {
     return this._tokens().some((token) => token.tokenName === tokenName);
   }
 }

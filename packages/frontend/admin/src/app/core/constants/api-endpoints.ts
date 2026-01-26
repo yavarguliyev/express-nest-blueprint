@@ -8,15 +8,7 @@ export const API_ENDPOINTS = {
     UPLOAD_AVATAR: `${API_BASE}/admin/profile/upload`,
     DELETE_AVATAR: `${API_BASE}/admin/profile/image`,
   },
-  NOTIFICATIONS: {
-    BASE: `${API_BASE}/notifications`,
-    UNREAD_COUNT: `${API_BASE}/notifications/unread-count`,
-    MARK_AS_READ: (id: number | string) => `${API_BASE}/notifications/${id}/read`,
-    MARK_ALL_AS_READ: `${API_BASE}/notifications/read-all`,
-    DELETE: (id: number | string) => `${API_BASE}/notifications/${id}`,
-    DELETE_ALL: `${API_BASE}/notifications/all`,
-    STREAM: `${API_BASE}/notifications/stream`,
-  },
+
   ADMIN: {
     BASE: `${API_BASE}/admin`,
     DASHBOARD_METRICS: `${API_BASE}/admin/dashboard/metrics`,
