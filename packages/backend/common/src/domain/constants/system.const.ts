@@ -12,12 +12,12 @@ export const levelMap: Record<LogLevel, string> = {
 };
 
 export const parsers: Record<ParserType, ParserFn> = {
-  boolean: (v) => v.toLowerCase() === 'true',
+  boolean: v => v.toLowerCase() === 'true',
   number: (v, def) => {
     const n = Number(v);
     return isNaN(n) ? def : n;
   },
-  string: (v) => v
+  string: v => v
 };
 
 export const INITIALIZER_TOKENS = [

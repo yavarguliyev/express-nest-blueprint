@@ -4,13 +4,13 @@ import { BullMQModule } from '../bullmq/bullmq.module';
 import { ComputeExplorer } from '../compute/compute.explorer';
 import { ComputeService } from '../compute/compute.service';
 import { ConfigService } from '../config/config.service';
-import { COMPUTE_MODULE_OPTIONS } from '../../core/decorators/bullmq.decorators';
-import { Module } from '../../core/decorators/module.decorator';
-import { AppRoles } from '../../domain/enums/common.enum';
-import { spawnWorker } from '../../domain/helpers/utility-functions.helper';
-import { ComputeModuleOptions } from '../../domain/interfaces/bullmq.interface';
-import { DynamicModule } from '../../domain/interfaces/common.interface';
 import { LifecycleService } from '../../application/lifecycle/lifecycle.service';
+import { Module } from '../../core/decorators/module.decorator';
+import { COMPUTE_MODULE_OPTIONS } from '../../core/decorators/bullmq.decorators';
+import { DynamicModule } from '../../domain/interfaces/common.interface';
+import { AppRoles } from '../../domain/enums/common.enum';
+import { ComputeModuleOptions } from '../../domain/interfaces/bullmq.interface';
+import { spawnWorker } from '../../domain/helpers/utility-functions.helper';
 
 @Module({
   imports: [],
@@ -45,7 +45,13 @@ export class ComputeModule {
         {
           provide: 'COMPUTE_INITIALIZER',
           useFactory: (...args: unknown[]): (() => void) => {
-            const [explorer, computeService, lifecycleService, options, configService] = args as [ComputeExplorer, ComputeService, LifecycleService, ComputeModuleOptions, ConfigService];
+            const [explorer, computeService, lifecycleService, options, configService] = args as [
+              ComputeExplorer,
+              ComputeService,
+              LifecycleService,
+              ComputeModuleOptions,
+              ConfigService
+            ];
             const role = configService.get<string>('APP_ROLE', AppRoles.API) as AppRoles;
 
             return () => {
@@ -78,7 +84,7 @@ export class ComputeModule {
                           disconnect: async () => {
                             if (workerProcess.killed || workerProcess.exitCode !== null) return;
 
-                            return new Promise<void>((resolve) => {
+                            return new Promise<void>(resolve => {
                               const timer = setTimeout(() => {
                                 workerProcess.kill('SIGKILL');
                                 resolve();

@@ -1,11 +1,11 @@
 import * as bcrypt from 'bcrypt';
 
 import { Injectable, UnauthorizedException, ValidationService, JwtService, UserRoles, ForbiddenException } from '@config/libs';
-import { AuthResponseDto } from '@/modules/auth/dtos/auth-response.dto';
-import { LoginDto } from '@/modules/auth/dtos/login.dto';
-import { RegisterDto } from '@/modules/auth/dtos/register.dto';
-import { AuthResponseUser } from '@/modules/auth/interfaces/auth-response.interface';
-import { AuthRepository } from '@/modules/auth/auth.repository';
+import { AuthResponseDto } from '@modules/auth/dtos/auth-response.dto';
+import { LoginDto } from '@modules/auth/dtos/login.dto';
+import { RegisterDto } from '@modules/auth/dtos/register.dto';
+import { AuthResponseUser } from '@modules/auth/interfaces/auth-response.interface';
+import { AuthRepository } from '@modules/auth/auth.repository';
 
 @Injectable()
 export class AuthService {

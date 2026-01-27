@@ -3,8 +3,19 @@ import { join } from 'path';
 import 'reflect-metadata';
 import express, { Request, Response } from 'express';
 
-import { ConfigService, NestFactory, AppName, AppRoles, getErrorMessage, Logger, LifecycleService, SwaggerModule, DocumentBuilder, GraphQLApplication } from '@config/libs';
-import { AppModule } from '@/app.module';
+import {
+  ConfigService,
+  NestFactory,
+  AppName,
+  AppRoles,
+  getErrorMessage,
+  Logger,
+  LifecycleService,
+  SwaggerModule,
+  DocumentBuilder,
+  GraphQLApplication
+} from '@config/libs';
+import { AppModule } from '@app.module';
 
 async function bootstrap (): Promise<void> {
   let lifecycleService: LifecycleService | undefined;

@@ -19,5 +19,3 @@ export interface KafkaSubscribeOptions {
   topic: string | RegExp;
   fromBeginning?: boolean;
 }
-
-export type KafkaMessageHandler<T = unknown> = (payload: KafkaMessagePayload<T>) => Promise<void> | void;

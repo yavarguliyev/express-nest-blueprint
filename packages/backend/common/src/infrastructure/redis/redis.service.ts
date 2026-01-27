@@ -1,7 +1,7 @@
 import Redis from 'ioredis';
 
 import { BULLMQ_OPTIONS } from '../../core/decorators/bullmq.decorators';
-import { Injectable, Inject } from '../../core/decorators/injectable.decorator';
+import { Inject, Injectable } from '../../core/decorators/injectable.decorator';
 import { BullMQModuleOptions } from '../../domain/interfaces/bullmq.interface';
 
 @Injectable()
@@ -13,7 +13,7 @@ export class RedisService {
     const clusterNodes = process.env['REDIS_CLUSTER_NODES'];
 
     if (clusterNodes) {
-      const nodes = clusterNodes.split(',').map((node) => {
+      const nodes = clusterNodes.split(',').map(node => {
         const parts = node.split(':');
         const host = parts[0] || 'localhost';
         const port = parseInt(parts[1] || '6379', 10);

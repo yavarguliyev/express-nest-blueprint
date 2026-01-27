@@ -12,7 +12,25 @@ import { CssAuditLogRepository } from '@modules/themes/repositories/css-audit-lo
 @Module({
   imports: [],
   controllers: [],
-  providers: [CssFilesRepository, CssTokensRepository, CssRulesRepository, ThemeVersionsRepository, TokenUsageRepository, CssGradientsRepository, CssBackupsRepository, CssAuditLogRepository],
-  exports: [CssFilesRepository, CssTokensRepository, CssRulesRepository, ThemeVersionsRepository, TokenUsageRepository, CssGradientsRepository, CssBackupsRepository, CssAuditLogRepository]
+  providers: [
+    CssFilesRepository,
+    CssTokensRepository,
+    CssRulesRepository,
+    ThemeVersionsRepository,
+    TokenUsageRepository,
+    CssGradientsRepository,
+    CssBackupsRepository,
+    CssAuditLogRepository
+  ],
+  exports: [
+    CssFilesRepository,
+    CssTokensRepository,
+    CssRulesRepository,
+    ThemeVersionsRepository,
+    TokenUsageRepository,
+    CssGradientsRepository,
+    CssBackupsRepository,
+    CssAuditLogRepository
+  ]
 })
 export class ThemesModule {}

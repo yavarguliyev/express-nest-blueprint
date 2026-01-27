@@ -1,8 +1,9 @@
 import { Kafka, Producer, Consumer, EachMessageHandler, logLevel, LogEntry } from 'kafkajs';
 
-import { Injectable, Inject } from '../../core/decorators/injectable.decorator';
-import { KafkaModuleOptions, KafkaMessagePayload, KafkaSubscribeOptions, KafkaMessageHandler } from './kafka.interfaces';
 import { Logger } from '../logger/logger.service';
+import { Inject, Injectable } from '../../core/decorators/injectable.decorator';
+import { KafkaMessagePayload, KafkaModuleOptions, KafkaSubscribeOptions } from '../../domain/interfaces/kafka.interface';
+import { KafkaMessageHandler } from 'domain/types/common.type';
 
 export const KAFKA_OPTIONS = Symbol('KAFKA_OPTIONS');
 
@@ -15,17 +16,18 @@ export class KafkaService {
   private isConsumerConnected = false;
 
   constructor (@Inject(KAFKA_OPTIONS) private options: KafkaModuleOptions) {
-    const kafkaLogger =
-      () =>
-      (entry: LogEntry) => {
+    const kafkaLogger = (): ((entry: LogEntry) => void) => {
+      return (entry: LogEntry): void => {
         const { label, level, log } = entry;
         const { message, ...extra } = log;
         const context = `Kafka:${label}`;
+
         if (level <= logLevel.ERROR) Logger.error(message, JSON.stringify(extra), context);
         else if (level <= logLevel.WARN) Logger.warn(message, context);
         else if (level <= logLevel.INFO) Logger.log(message, context);
         else Logger.debug(message, context);
       };
+    };
 
     this.kafka = new Kafka({
       ...this.options.config,

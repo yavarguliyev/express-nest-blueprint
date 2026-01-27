@@ -2,8 +2,8 @@ import { register, MetricValue } from 'prom-client';
 
 import { Injectable } from '@config/libs';
 
-import { ChartData, DashboardMetric, DashboardAlert } from '@/modules/admin/interfaces/admin.interface';
-import { UsersRepository } from '@/modules/users/users.repository';
+import { ChartData, DashboardMetric, DashboardAlert } from '@modules/admin/interfaces/admin.interface';
+import { UsersRepository } from '@modules/users/users.repository';
 
 @Injectable()
 export class AdminMetricsService {
@@ -102,7 +102,7 @@ export class AdminMetricsService {
     const alerts: DashboardAlert[] = [];
     const now = new Date().toISOString();
 
-    const cpuUsage = metrics.find((m) => m.name === 'CPU Usage')?.value || 0;
+    const cpuUsage = metrics.find(m => m.name === 'CPU Usage')?.value || 0;
     if (cpuUsage > 5.0) {
       alerts.push({
         title: 'High CPU Load',
@@ -112,7 +112,7 @@ export class AdminMetricsService {
       });
     }
 
-    const memoryUsage = metrics.find((m) => m.name === 'Memory Usage')?.value || 0;
+    const memoryUsage = metrics.find(m => m.name === 'Memory Usage')?.value || 0;
     if (memoryUsage > 500) {
       alerts.push({
         title: 'Memory Pressure',

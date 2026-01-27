@@ -42,11 +42,11 @@ export class QueryBuilder<T> {
 
   buildInsertQuery<K extends keyof T> (data: Record<string, unknown>, returningColumns?: K[]): { query: string; params: unknown[] } {
     const columnsKeys = Object.keys(data);
-    const dbColumns = columnsKeys.map((col) => this.columnMappings[col] || col);
+    const dbColumns = columnsKeys.map(col => this.columnMappings[col] || col);
     const values = Object.values(data);
     const placeholders = values.map((_, index) => `$${index + 1}`).join(', ');
     const colsToReturn = returningColumns ?? (columnsKeys as K[]);
-    const returning = colsToReturn.map((col) => `${String(this.columnMappings[col as string] || col)} AS "${String(col)}"`).join(', ');
+    const returning = colsToReturn.map(col => `${String(this.columnMappings[col as string] || col)} AS "${String(col)}"`).join(', ');
 
     const query = `
       INSERT INTO ${this.tableName} (${dbColumns.join(', ')})
@@ -57,13 +57,17 @@ export class QueryBuilder<T> {
     return { query, params: values };
   }
 
-  buildUpdateQuery<K extends string> (id: string | number, data: Record<string, unknown>, returningColumns: K[]): { query: string; params: unknown[] } {
-    const columns = Object.keys(data).filter((key) => data[key] !== undefined);
+  buildUpdateQuery<K extends string> (
+    id: string | number,
+    data: Record<string, unknown>,
+    returningColumns: K[]
+  ): { query: string; params: unknown[] } {
+    const columns = Object.keys(data).filter(key => data[key] !== undefined);
     const params: unknown[] = [];
     let paramIndex = 1;
 
     const setClause = columns
-      .map((col) => {
+      .map(col => {
         const dbColumn = this.columnMappings[col] || col;
         params.push(data[col]);
         return `${dbColumn} = $${paramIndex++}`;
@@ -75,7 +79,7 @@ export class QueryBuilder<T> {
     const returning = returningColumns.length
       ? 'RETURNING ' +
         returningColumns
-          .map((col) => this.columnMappings[col] || col)
+          .map(col => this.columnMappings[col] || col)
           .map((c, i) => `${c} AS "${returningColumns[i]}"`)
           .join(', ')
       : '';
@@ -108,14 +112,18 @@ export class QueryBuilder<T> {
 
   private mapColumns (columns: string[]): string {
     return columns
-      .map((col) => {
+      .map(col => {
         const mapping = this.columnMappings[col];
         return mapping ? `${mapping} as "${col}"` : col;
       })
       .join(', ');
   }
 
-  private buildWhereConditions (options: QueryWithPaginationOptions, params: unknown[], startParamIndex: number): { conditions: string[]; paramIndex: number } {
+  private buildWhereConditions (
+    options: QueryWithPaginationOptions,
+    params: unknown[],
+    startParamIndex: number
+  ): { conditions: string[]; paramIndex: number } {
     const conditions: string[] = [];
     let paramIndex = startParamIndex;
 
@@ -128,7 +136,7 @@ export class QueryBuilder<T> {
     }
 
     if (options.where && Array.isArray(options.where)) {
-      options.where.forEach((condition) => {
+      options.where.forEach(condition => {
         const dbColumn = this.columnMappings[condition.field] || condition.field;
         conditions.push(`${dbColumn} ${condition.operator} $${paramIndex++}`);
         params.push(condition.value);
@@ -136,7 +144,7 @@ export class QueryBuilder<T> {
     }
 
     if (options.search && options.search.fields.length > 0 && options.search.term) {
-      const searchConditions = options.search.fields.map((field) => {
+      const searchConditions = options.search.fields.map(field => {
         const dbColumn = this.columnMappings[field] || field;
         return `LOWER(${dbColumn}) LIKE LOWER($${paramIndex})`;
       });

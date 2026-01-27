@@ -1,6 +1,6 @@
 import { CONTROLLER_METADATA } from '../decorators/controller.decorator';
 import { INJECTABLE_METADATA } from '../decorators/injectable.decorator';
-import { registerControllerClass } from '../decorators/register-controller-class.helper';
+import { registerControllerClass } from '../decorators/register-controller-class.decorator';
 import { ApiControllerOptions, BaseControllerOptions, ApiVersionConfig } from '../../domain/interfaces/common.interface';
 import { Constructor } from '../../domain/types/common.type';
 

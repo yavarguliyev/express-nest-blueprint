@@ -15,13 +15,13 @@ export class Health implements OnInit {
   loading = signal(true);
   error = signal('');
 
-  ngOnInit () {
+  ngOnInit (): void {
     if (window.location.pathname.includes('/health')) {
       this.refresh();
     }
   }
 
-  refresh () {
+  refresh (): void {
     this.loading.set(true);
     this.error.set('');
     this.dashboardService.getHealth().subscribe({

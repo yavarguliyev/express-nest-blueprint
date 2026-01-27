@@ -30,7 +30,14 @@ export class DocumentBuilder {
     return this;
   }
 
-  addBearerAuth (options: { type: 'http'; scheme: 'bearer'; bearerFormat?: string; description?: string } = { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, name: string = 'bearer'): this {
+  addBearerAuth (
+    options: { type: 'http'; scheme: 'bearer'; bearerFormat?: string; description?: string } = {
+      type: 'http',
+      scheme: 'bearer',
+      bearerFormat: 'JWT'
+    },
+    name: string = 'bearer'
+  ): this {
     this.config.securitySchemes = {
       ...this.config.securitySchemes,
       [name]: options

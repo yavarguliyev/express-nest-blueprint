@@ -1,7 +1,7 @@
 import { CircuitBreakerService } from '../circuit-breaker/circuit-breaker.service';
 import { Container } from '../../core/container/container';
-import { Injectable } from '../../core/decorators/injectable.decorator';
 import { CIRCUIT_BREAKER_METADATA } from '../../core/decorators/circuit-breaker.decorator';
+import { Injectable } from '../../core/decorators/injectable.decorator';
 import { CircuitBreakerState } from '../../domain/enums/common.enum';
 import { ServiceUnavailableException } from '../../domain/exceptions/http-exceptions';
 import { CircuitBreakerOptions } from '../../domain/interfaces/common.interface';

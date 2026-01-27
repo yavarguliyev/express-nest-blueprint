@@ -3,7 +3,12 @@ import { BaseRepository, CircuitBreaker, CrudTable, DatabaseService, Injectable,
 import { TokenUsageEntity } from '@modules/themes/interfaces/theme.interface';
 import { FindCssQueryDto } from '@modules/themes/dtos/find-css-audit-log.dto';
 
-@CrudTable({ category: 'Database Management', name: 'token_usage', displayName: 'Token Usage', actions: { create: false, update: false, delete: false } })
+@CrudTable({
+  category: 'Database Management',
+  name: 'token_usage',
+  displayName: 'Token Usage',
+  actions: { create: false, update: false, delete: false }
+})
 @Injectable()
 export class TokenUsageRepository extends BaseRepository<TokenUsageEntity> {
   constructor (databaseService: DatabaseService) {
@@ -62,7 +67,12 @@ export class TokenUsageRepository extends BaseRepository<TokenUsageEntity> {
     return this.findAll({ where: { propertyName } }, connection);
   }
 
-  async findUsageByTokenAndRule (tokenId: string, ruleId: string, propertyName: string, connection?: DatabaseAdapter): Promise<TokenUsageEntity | null> {
+  async findUsageByTokenAndRule (
+    tokenId: string,
+    ruleId: string,
+    propertyName: string,
+    connection?: DatabaseAdapter
+  ): Promise<TokenUsageEntity | null> {
     return this.findOne({ tokenId, ruleId, propertyName }, connection);
   }
 }

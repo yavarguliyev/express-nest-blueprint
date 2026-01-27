@@ -1,4 +1,5 @@
-import { QueryMetadata, MutationMetadata, ArgMetadata, TypeFunc } from '../interfaces/graphql.interface';
+import { QueryMetadata, MutationMetadata, ArgMetadata } from '../../domain/interfaces/graphql.interface';
+import { TypeFunc } from '../../domain/types/common.type';
 
 export const QUERY_METADATA = Symbol.for('GQL_QUERY_METADATA');
 export const MUTATION_METADATA = Symbol.for('GQL_MUTATION_METADATA');
@@ -37,7 +38,7 @@ export const Arg = (name: string, typeFunc?: TypeFunc): ParameterDecorator => {
         const paramTypes = Reflect.getMetadata('design:paramtypes', target, propertyKey) as unknown[] | undefined;
         if (paramTypes && paramTypes[parameterIndex]) {
           const type = paramTypes[parameterIndex];
-          effectiveTypeFunc = () => type;
+          effectiveTypeFunc = (): unknown => type;
         }
       }
 
@@ -57,7 +58,7 @@ export const Args = (typeFunc?: TypeFunc): ParameterDecorator => {
         const paramTypes = Reflect.getMetadata('design:paramtypes', target, propertyKey) as unknown[] | undefined;
         if (paramTypes && paramTypes[parameterIndex]) {
           const type = paramTypes[parameterIndex];
-          effectiveTypeFunc = () => type;
+          effectiveTypeFunc = (): unknown => type;
         }
       }
 

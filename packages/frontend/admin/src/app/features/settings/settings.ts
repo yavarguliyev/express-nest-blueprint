@@ -45,9 +45,9 @@ export class Settings implements OnInit {
   loading = signal(false);
   successMessage = signal('');
 
-  ngOnInit () {}
+  ngOnInit (): void {}
 
-  onToggleChange (settingId: string, newValue: boolean) {
+  onToggleChange (settingId: string, newValue: boolean): void {
     this.settings.update((currentSettings) =>
       currentSettings.map((setting) =>
         setting.id === settingId ? { ...setting, value: newValue } : setting,
@@ -55,7 +55,7 @@ export class Settings implements OnInit {
     );
   }
 
-  saveSettings () {
+  saveSettings (): void {
     this.loading.set(true);
     setTimeout(() => {
       this.loading.set(false);

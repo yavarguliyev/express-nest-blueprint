@@ -1,9 +1,26 @@
-import { ApiController, BaseController, Roles, Injectable, Get, Post, Put, Delete, Body, Param, Query, PaginatedResponseDto, CurrentUser, JwtPayload, UserRoles } from '@config/libs';
-import { CreateUserDto } from '@/modules/users/dtos/create-user.dto';
-import { FindUsersQueryDto } from '@/modules/users/dtos/find-users-query.dto';
-import { UpdateUserDto } from '@/modules/users/dtos/update-user.dto';
-import { UserResponseDto } from '@/modules/users/dtos/user-response.dto';
-import { UsersService } from '@/modules/users/users.service';
+import {
+  ApiController,
+  BaseController,
+  Roles,
+  Injectable,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Query,
+  PaginatedResponseDto,
+  CurrentUser,
+  JwtPayload,
+  UserRoles
+} from '@config/libs';
+
+import { CreateUserDto } from '@modules/users/dtos/create-user.dto';
+import { FindUsersQueryDto } from '@modules/users/dtos/find-users-query.dto';
+import { UpdateUserDto } from '@modules/users/dtos/update-user.dto';
+import { UserResponseDto } from '@modules/users/dtos/user-response.dto';
+import { UsersService } from '@modules/users/users.service';
 
 @Injectable()
 @ApiController({ path: '/users' })

@@ -1,4 +1,6 @@
-import { FieldMetadata, OBJECT_TYPE_METADATA, INPUT_TYPE_METADATA, FIELD_METADATA, TypeFunc } from '../interfaces/graphql.interface';
+import { FieldMetadata } from '../../domain/interfaces/graphql.interface';
+import { OBJECT_TYPE_METADATA, INPUT_TYPE_METADATA, FIELD_METADATA } from '../../domain/constants/graphql.const';
+import { TypeFunc } from '../../domain/types/common.type';
 
 export const ObjectType = (name?: string): ClassDecorator => {
   return (target: object): void => {
@@ -31,7 +33,7 @@ export function Field (typeFuncOrOptions?: TypeFunc | { nullable?: boolean }, ma
     if (!typeFunc) {
       const designType = Reflect.getMetadata('design:type', target, propertyKey) as unknown;
       if (designType) {
-        typeFunc = () => designType;
+        typeFunc = (): unknown => designType;
       }
     }
 

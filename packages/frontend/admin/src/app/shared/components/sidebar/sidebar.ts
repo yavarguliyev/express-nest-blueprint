@@ -49,11 +49,11 @@ export class Sidebar {
     this.sidebarService.toggle();
   }
 
-  navigateToProfile () {
+  navigateToProfile (): void {
     void this.router.navigate(['/profile']);
   }
 
-  logout () {
+  logout (): void {
     this.authService.logout();
   }
 }

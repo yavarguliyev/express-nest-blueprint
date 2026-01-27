@@ -9,7 +9,7 @@ export default tseslint.config(
   ...tseslint.configs.recommendedTypeChecked,
   eslintPluginPrettierRecommended,
   {
-    ignores: ['eslint.config.mjs'],
+    ignores: ['eslint.config.mjs']
   },
   {
     languageOptions: {
@@ -18,28 +18,49 @@ export default tseslint.config(
       sourceType: 'module',
       parserOptions: {
         projectService: true,
-        tsconfigRootDir: path.dirname(new URL(import.meta.url).pathname),
-      },
-    },
+        tsconfigRootDir: path.dirname(new URL(import.meta.url).pathname)
+      }
+    }
   },
   {
     rules: {
-      '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-floating-promises': 'warn',
-      '@typescript-eslint/no-unsafe-argument': 'warn',
-      'indent': 'off',
-      'no-console': 0,
-      'no-useless-constructor': 0,
-      'no-dupe-class-members': 0,
-      'no-unused-vars': 0,
-      '@typescript-eslint/no-unused-vars': 1,
-      'no-use-before-define': 'off',
-      '@typescript-eslint/no-require-imports': 2,
-      'no-redeclare': 0,
-      '@typescript-eslint/no-redeclare': 2,
-      'semi': ['error', 'always'],
+      // Enforce strong typing - no any types allowed
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/explicit-function-return-type': 'error',
+      '@typescript-eslint/explicit-module-boundary-types': 'error',
+
+      // Absolutely no console statements
+      'no-console': 'error',
+
+      // No comments allowed - code must be self-documenting
+      'spaced-comment': 'off',
+      'no-inline-comments': 'error',
+
+      // File and function size limits
+      'max-lines': ['error', 450],
+      'max-lines-per-function': ['error', 300],
+      complexity: ['error', 150],
+
+      // Other quality rules
+      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/no-unsafe-argument': 'error',
+      '@typescript-eslint/no-unused-vars': 'error',
+      '@typescript-eslint/no-require-imports': 'error',
+      '@typescript-eslint/no-redeclare': 'error',
+      '@typescript-eslint/ban-ts-comment': 'error',
+
+      // Code style
+      semi: ['error', 'always'],
       'space-before-function-paren': ['error', { anonymous: 'always', named: 'always', asyncArrow: 'always' }],
-      "prettier/prettier": "off"
+      'prettier/prettier': 'off',
+
+      // Disable rules that conflict with our standards
+      indent: 'off',
+      'no-useless-constructor': 'off',
+      'no-dupe-class-members': 'off',
+      'no-unused-vars': 'off',
+      'no-use-before-define': 'off',
+      'no-redeclare': 'off'
     }
   }
 );

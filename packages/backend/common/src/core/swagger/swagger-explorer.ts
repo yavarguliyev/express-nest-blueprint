@@ -3,11 +3,11 @@ import { getMetadataStorage } from 'class-validator';
 import { REQUIRE_AUTH_KEY, ROLES_KEY, IS_PUBLIC_KEY } from '../decorators/auth.decorator';
 import { CONTROLLER_METADATA } from '../decorators/controller.decorator';
 import { PARAM_METADATA } from '../decorators/param.decorators';
+import { CONTROLLER_REGISTRY } from '../decorators/register-controller-class.decorator';
 import { ROUTE_METADATA } from '../decorators/route.decorators';
-import { CONTROLLER_REGISTRY } from '../decorators/register-controller-class.helper';
 import { API_SECURITY_KEY } from '../decorators/swagger.decorators';
 import { RouteMetadata, ParamMetadata } from '../../domain/interfaces/common.interface';
-import { OpenAPIObject, OpenAPIOperation, OpenAPISchema, SwaggerConfig } from '../../domain/interfaces/swagger-config.interface';
+import { OpenAPISchema, SwaggerConfig, OpenAPIObject, OpenAPIOperation } from '../../domain/interfaces/swagger-config.interface';
 import { Constructor } from '../../domain/types/common.type';
 
 export class SwaggerExplorer {
@@ -23,14 +23,14 @@ export class SwaggerExplorer {
       const controllerIsPublic = Reflect.getMetadata(IS_PUBLIC_KEY, controller) as boolean;
 
       const prototype = controller.prototype as object;
-      const methods = Object.getOwnPropertyNames(prototype).filter((m) => m !== 'constructor');
+      const methods = Object.getOwnPropertyNames(prototype).filter(m => m !== 'constructor');
 
-      methods.forEach((methodName) => {
+      methods.forEach(methodName => {
         const routes = (Reflect.getMetadata(ROUTE_METADATA, prototype, methodName) || []) as RouteMetadata[];
         const params = (Reflect.getMetadata(PARAM_METADATA, prototype, methodName) || []) as ParamMetadata[];
         const paramTypes = (Reflect.getMetadata('design:paramtypes', prototype, methodName) || []) as Constructor[];
 
-        routes.forEach((route) => {
+        routes.forEach(route => {
           const fullPath = this.normalizePath(basePath, route.path);
           const httpMethod = route.method.toLowerCase();
 
@@ -70,7 +70,7 @@ export class SwaggerExplorer {
             operation.security = [...(operation.security || []), ...(methodSecurity || []), ...(controllerSecurity || [])];
           }
 
-          params.forEach((param) => {
+          params.forEach(param => {
             const type: Constructor | undefined = paramTypes[param.index];
             if (param.type === 'body') {
               operation.requestBody = {
@@ -93,7 +93,7 @@ export class SwaggerExplorer {
                   const schemaName = schema.$ref.split('/').pop()!;
                   const properties = this.schemas[schemaName]?.properties || {};
 
-                  Object.keys(properties).forEach((prop) => {
+                  Object.keys(properties).forEach(prop => {
                     const propSchema = properties[prop]!;
                     operation.parameters?.push({
                       name: prop,
@@ -189,7 +189,7 @@ export class SwaggerExplorer {
   private humanize (str: string): string {
     return str
       .replace(/([A-Z])/g, ' $1')
-      .replace(/^./, (s) => s.toUpperCase())
+      .replace(/^./, s => s.toUpperCase())
       .trim();
   }
 }

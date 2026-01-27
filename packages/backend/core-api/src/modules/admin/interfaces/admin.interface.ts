@@ -1,3 +1,5 @@
+import { ComputeStatus, DatabaseStatus, QueueStatus, RedisStatus } from '@config/libs';
+
 export interface DashboardAlert {
   title: string;
   message: string;
@@ -28,7 +30,7 @@ export interface HealthComponentStatus {
   name: string;
   status: 'up' | 'down' | 'degraded';
   message?: string;
-  details?: Record<string, unknown>;
+  details?: DatabaseStatus | RedisStatus | QueueStatus | ComputeStatus;
 }
 
 export interface TableMetadata {

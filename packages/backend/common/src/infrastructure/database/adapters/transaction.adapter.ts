@@ -19,7 +19,10 @@ export class TransactionAdapter implements DatabaseAdapter {
   }
 
   private validateQueryResult<T> (rows: unknown[]): T[] {
-    if (!Array.isArray(rows)) throw new InternalServerErrorException('Invalid query result: expected array of rows');
+    if (!Array.isArray(rows)) {
+      throw new InternalServerErrorException('Invalid query result: expected array of rows');
+    }
+
     return rows as T[];
   }
 

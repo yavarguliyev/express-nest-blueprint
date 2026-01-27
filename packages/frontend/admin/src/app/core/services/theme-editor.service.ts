@@ -363,7 +363,6 @@ export class ThemeEditorService {
           this.loadTokens().subscribe(() => {
             this._loading.set(false);
 
-            // Notify other services that tokens have been updated
             const updatedTokenIds = drafts.map((draft) => draft.id);
             this.tokenNotificationService.notifyTokensUpdated(updatedTokenIds, 'theme-editor');
 

@@ -37,8 +37,8 @@ export class GracefulShutdownService {
           (httpServer.closeIdleConnections as () => void)();
         }
 
-        await new Promise<void>((resolve) => {
-          httpServer.close((err) => {
+        await new Promise<void>(resolve => {
+          httpServer.close(err => {
             if (err) this.logger.error(`Error closing HTTP server: ${getErrorMessage(err)}`);
             else this.logger.log('HTTP server closed.');
             resolve();
@@ -59,13 +59,13 @@ export class GracefulShutdownService {
   private async disconnectServices (): Promise<void> {
     const serviceTimeout = 2000;
 
-    const disconnectPromises = this.services.map(async (service) => {
+    const disconnectPromises = this.services.map(async service => {
       const disconnectPromise = this.retryDisconnect(service);
       const timeoutPromise = new Promise<void>((_, reject) => {
         setTimeout(() => reject(new Error(`Timeout disconnecting ${service.name} after ${serviceTimeout}ms`)), serviceTimeout);
       });
 
-      return Promise.race([disconnectPromise, timeoutPromise]).catch((error) => {
+      return Promise.race([disconnectPromise, timeoutPromise]).catch(error => {
         this.logger.error(`Failed to disconnect ${service.name}: ${getErrorMessage(error)}`);
       });
     });
@@ -78,7 +78,7 @@ export class GracefulShutdownService {
       serviceName: service.name,
       maxRetries: this.maxRetries,
       retryDelay: this.retryDelay,
-      onRetry: (attempt) => this.logger.log(`Retrying ${service.name} disconnect, attempt ${attempt}`)
+      onRetry: attempt => this.logger.log(`Retrying ${service.name} disconnect, attempt ${attempt}`)
     });
   }
 }

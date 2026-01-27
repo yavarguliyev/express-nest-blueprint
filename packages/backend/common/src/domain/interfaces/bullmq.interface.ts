@@ -99,3 +99,10 @@ export interface PendingJob {
   resolve: (value: unknown) => void;
   reject: (reason: Error) => void;
 }
+
+export interface ComputeServiceStatus {
+  workerEnabled: boolean;
+  workerStatus: 'running' | 'stopped' | 'not_initialized';
+  pendingJobsCount: number;
+  handlersCount: number;
+}

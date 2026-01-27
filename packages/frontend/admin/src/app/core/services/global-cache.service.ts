@@ -10,7 +10,7 @@ interface CacheItem<T> {
   providedIn: 'root',
 })
 export class GlobalCacheService {
-  private cache = new Map<string, CacheItem<any>>();
+  private cache = new Map<string, CacheItem<unknown>>();
   private readonly DEFAULT_TTL = 5 * 60 * 1000;
 
   get<T> (key: string): T | null {

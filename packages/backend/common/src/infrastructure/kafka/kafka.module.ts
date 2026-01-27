@@ -1,10 +1,10 @@
 import { logLevel } from 'kafkajs';
 
-import { KafkaModuleOptions } from './kafka.interfaces';
 import { KafkaService, KAFKA_OPTIONS } from './kafka.service';
-import { LifecycleService } from '../../application/lifecycle/lifecycle.service';
 import { ConfigService } from '../config/config.service';
+import { LifecycleService } from '../../application/lifecycle/lifecycle.service';
 import { Module } from '../../core/decorators/module.decorator';
+import { KafkaModuleOptions } from '../../domain/interfaces/kafka.interface';
 import { DynamicModule } from '../../domain/interfaces/common.interface';
 
 @Module({

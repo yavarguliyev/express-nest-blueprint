@@ -24,7 +24,7 @@ export class ToastService {
     duration: number = 4000,
     onConfirm?: () => void,
     onCancel?: () => void,
-  ) {
+  ): void {
     const id = this.counter++;
     const toast: Toast = { id, message, type, duration, onConfirm, onCancel };
     this.toasts.update((t) => [...t, toast]);
@@ -34,27 +34,27 @@ export class ToastService {
     }
   }
 
-  success (message: string, duration?: number) {
+  success (message: string, duration?: number): void {
     this.show(message, 'success', duration);
   }
 
-  error (message: string, duration?: number) {
+  error (message: string, duration?: number): void {
     this.show(message, 'error', duration);
   }
 
-  info (message: string, duration?: number) {
+  info (message: string, duration?: number): void {
     this.show(message, 'info', duration);
   }
 
-  warning (message: string, duration?: number) {
+  warning (message: string, duration?: number): void {
     this.show(message, 'warning', duration);
   }
 
-  confirm (message: string, onConfirm: () => void, onCancel?: () => void) {
+  confirm (message: string, onConfirm: () => void, onCancel?: () => void): void {
     this.show(message, 'confirm', 0, onConfirm, onCancel);
   }
 
-  remove (id: number) {
+  remove (id: number): void {
     this.toasts.update((t) => t.filter((toast) => toast.id !== id));
   }
 }

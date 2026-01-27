@@ -1,11 +1,11 @@
 import { ConfigService } from '../config/config.service';
+import { S3StorageStrategy } from '../storage/strategies/s3-storage.strategy';
+import { StorageService } from '../storage/storage.service';
 import { STORAGE_OPTIONS } from '../../core/decorators/bullmq.decorators';
 import { Module } from '../../core/decorators/module.decorator';
 import { DynamicModule } from '../../domain/interfaces/common.interface';
-import { BadRequestException } from '../../domain/exceptions/http-exceptions';
 import { StorageModuleOptions } from '../../domain/interfaces/storage.interface';
-import { S3StorageStrategy } from '../storage/strategies/s3-storage.strategy';
-import { StorageService } from '../storage/storage.service';
+import { BadRequestException } from '../../domain/exceptions/http-exceptions';
 
 @Module({})
 export class StorageModule {

@@ -1,8 +1,8 @@
+import { GraphQLApplication } from './graphql-application';
+import { LifecycleService } from '../../application/lifecycle/lifecycle.service';
 import { Module } from '../../core/decorators/module.decorator';
 import { DynamicModule } from '../../domain/interfaces/common.interface';
 import { Constructor } from '../../domain/types/common.type';
-import { GraphQLApplication } from './graphql-application';
-import { LifecycleService } from '../../application/lifecycle/lifecycle.service';
 
 @Module({
   providers: [],
@@ -17,7 +17,7 @@ export class GraphQLModule {
       global: true,
       providers: [
         GraphQLApplication,
-        ...resolvers.map((resolver) => ({
+        ...resolvers.map(resolver => ({
           provide: resolver,
           useClass: resolver
         })),

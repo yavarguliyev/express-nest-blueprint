@@ -2,8 +2,8 @@ import { Pool, PoolClient } from 'pg';
 
 import { TransactionAdapter } from '../adapters/transaction.adapter';
 import { Injectable } from '../../../core/decorators/injectable.decorator';
-import { InternalServerErrorException, ServiceUnavailableException } from '../../../domain/exceptions/http-exceptions';
 import { DatabaseAdapter, DatabaseConfig, QueryResult } from '../../../domain/interfaces/database.interface';
+import { InternalServerErrorException, ServiceUnavailableException } from '../../../domain/exceptions/http-exceptions';
 
 @Injectable()
 export class PostgreSQLAdapter implements DatabaseAdapter {
@@ -97,7 +97,7 @@ export class PostgreSQLAdapter implements DatabaseAdapter {
         if (error && typeof error === 'object' && 'code' in error) {
           if (error.code === '40P01' || error.code === '40001') {
             const delay = Math.pow(2, attempt) * 100;
-            await new Promise((resolve) => setTimeout(resolve, delay));
+            await new Promise(resolve => setTimeout(resolve, delay));
             continue;
           }
         }

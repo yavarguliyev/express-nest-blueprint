@@ -1,5 +1,5 @@
-import { DATABASE_ADAPTER_MAP } from '../../domain/constants/common.const';
 import { Injectable } from '../../core/decorators/injectable.decorator';
+import { DATABASE_ADAPTER_MAP } from '../../domain/constants/common.const';
 import { InternalServerErrorException } from '../../domain/exceptions/http-exceptions';
 import { DatabaseAdapter, DatabaseConfig } from '../../domain/interfaces/database.interface';
 
@@ -46,7 +46,7 @@ export class DatabaseService {
     this.isClosing = true;
 
     try {
-      const disconnectPromises = Array.from(this.adapters.values()).map((adapter) => adapter.disconnect());
+      const disconnectPromises = Array.from(this.adapters.values()).map(adapter => adapter.disconnect());
       await Promise.all(disconnectPromises);
 
       this.adapters.clear();

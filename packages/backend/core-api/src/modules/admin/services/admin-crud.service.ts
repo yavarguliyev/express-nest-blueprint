@@ -1,4 +1,14 @@
-import { CRUD_TABLE_METADATA_KEY, CrudRepository, CrudTableOptions, Injectable, RepositoryEntry, JwtPayload, NotFoundException, BaseRepository, parseId } from '@config/libs';
+import {
+  CRUD_TABLE_METADATA_KEY,
+  CrudRepository,
+  CrudTableOptions,
+  Injectable,
+  RepositoryEntry,
+  JwtPayload,
+  NotFoundException,
+  BaseRepository,
+  parseId
+} from '@config/libs';
 
 import { TableMetadata, ColumnMetadata } from '@modules/admin/interfaces/admin.interface';
 import { UsersRepository } from '@modules/users/users.repository';
@@ -56,7 +66,13 @@ export class AdminCrudService {
     return schema;
   }
 
-  async getTableData (category: string, name: string, pageNum?: string, limitNum?: string, search?: string): Promise<{ data: unknown[]; total: number }> {
+  async getTableData (
+    category: string,
+    name: string,
+    pageNum?: string,
+    limitNum?: string,
+    search?: string
+  ): Promise<{ data: unknown[]; total: number }> {
     const page = pageNum ? parseInt(pageNum, 10) : 1;
     const limit = limitNum ? parseInt(limitNum, 10) : 10;
     const key = `${category}:${name}`;
@@ -87,7 +103,13 @@ export class AdminCrudService {
     return entry.repository.create(data);
   }
 
-  async updateTableRecord (category: string, name: string, id: string | number, data: Record<string, unknown>, currentUser?: JwtPayload): Promise<unknown> {
+  async updateTableRecord (
+    category: string,
+    name: string,
+    id: string | number,
+    data: Record<string, unknown>,
+    currentUser?: JwtPayload
+  ): Promise<unknown> {
     const entry = this.repositories.get(`${category}:${name}`);
     if (!entry || !entry.repository.update) throw new NotFoundException(`Table ${category}:${name} not found or unsupported`);
     const repository = entry.repository as BaseRepository<unknown>;

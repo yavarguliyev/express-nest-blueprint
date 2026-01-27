@@ -42,7 +42,8 @@ export class AuthRepository extends BaseRepository<AuthResponseDto> {
 
   async createWithAuth (userData: RegisterDto): Promise<AuthResponseUser> {
     const alreadyExisting = await this.findByEmailWithAuth(userData.email);
-    if (alreadyExisting) throw new BadRequestException(`A user with the email "${userData.email}" already exists. Please use a different email address.`);
+    if (alreadyExisting)
+      throw new BadRequestException(`A user with the email "${userData.email}" already exists. Please use a different email address.`);
 
     const { query, params } = this.queryBuilder.buildInsertQuery({
       email: userData.email,

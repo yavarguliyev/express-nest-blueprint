@@ -1,3 +1,4 @@
+import { Response } from 'express';
 import { register, collectDefaultMetrics, Counter, Histogram, Gauge } from 'prom-client';
 
 import { Injectable } from '../../core/decorators/injectable.decorator';
@@ -30,12 +31,10 @@ export class MetricsService {
     });
   }
 
-  getMetrics (): Promise<string> {
-    return register.metrics();
-  }
-
-  getContentType (): string {
-    return register.contentType;
+  getMetrics (res: Response): Promise<string> {
+    const metrics = register.metrics();
+    res.set('Content-Type', this.getContentType());
+    return metrics;
   }
 
   incRequests (method: string, path: string, status: string): void {
@@ -52,5 +51,9 @@ export class MetricsService {
 
   decActiveRequests (): void {
     this.activeRequests.dec();
+  }
+
+  private getContentType (): string {
+    return register.contentType;
   }
 }

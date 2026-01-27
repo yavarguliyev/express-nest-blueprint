@@ -1,10 +1,19 @@
 import { QueueManager } from '../bullmq/services/queue-manager.service';
 import { ComputeService } from '../compute/compute.service';
 import { DatabaseService } from '../database/database.service';
+import { RedisService } from '../redis/redis.service';
 import { Injectable } from '../../core/decorators/injectable.decorator';
 import { ServiceUnavailableException } from '../../domain/exceptions/http-exceptions';
-import { RedisService } from '../redis/redis.service';
 import { getErrorMessage } from '../../domain/helpers/utility-functions.helper';
+import {
+  LiveCheckResult,
+  ReadyCheckResult,
+  HealthCheckResult,
+  ComputeStatus,
+  DatabaseStatus,
+  RedisStatus,
+  QueueStatus
+} from '../../domain/interfaces/common.interface';
 
 @Injectable()
 export class HealthService {
@@ -15,14 +24,14 @@ export class HealthService {
     private readonly computeService: ComputeService
   ) {}
 
-  checkLive () {
+  checkLive (): LiveCheckResult {
     return {
       status: 'up',
       timestamp: new Date().toISOString()
     };
   }
 
-  async checkReady () {
+  async checkReady (): Promise<ReadyCheckResult> {
     const dbStatus = this.checkDatabase();
     const redisStatus = await this.checkRedis();
 
@@ -42,7 +51,7 @@ export class HealthService {
     };
   }
 
-  async checkHealth () {
+  async checkHealth (): Promise<HealthCheckResult> {
     const dbStatus = this.checkDatabase();
     const redisStatus = await this.checkRedis();
     const queueStatus = await this.checkQueues();
@@ -62,7 +71,7 @@ export class HealthService {
     };
   }
 
-  private checkCompute () {
+  private checkCompute (): ComputeStatus {
     try {
       return { status: 'up', ...this.computeService.getStatus() };
     } catch (error) {
@@ -70,7 +79,7 @@ export class HealthService {
     }
   }
 
-  private checkDatabase () {
+  private checkDatabase (): DatabaseStatus {
     try {
       const adapter = this.databaseService.getConnection();
       const connected = adapter.isConnected();
@@ -80,7 +89,7 @@ export class HealthService {
     }
   }
 
-  private async checkRedis () {
+  private async checkRedis (): Promise<RedisStatus> {
     try {
       const redis = this.redisService.getClient();
       await redis.ping();
@@ -90,7 +99,7 @@ export class HealthService {
     }
   }
 
-  private async checkQueues () {
+  private async checkQueues (): Promise<QueueStatus> {
     try {
       const queues = this.queueManager.getAllQueues();
       const health = [];

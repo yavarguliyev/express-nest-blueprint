@@ -120,8 +120,8 @@
             </div>
             <div class="comp-info">
               <span class="comp-name">{{ component.name | titlecase }}</span>
-              <span class="comp-details" *ngIf="component.details?.latency">
-                {{ component.details.latency }}ms response
+              <span class="comp-details" *ngIf="component.details?.['latency']">
+                {{ component.details?.['latency'] }}ms response
               </span>
             </div>
           </div>

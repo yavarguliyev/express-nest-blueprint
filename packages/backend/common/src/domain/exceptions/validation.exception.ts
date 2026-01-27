@@ -28,10 +28,10 @@ export class ValidationException extends BadRequestException {
         });
       }
 
-      if (error.children && error.children.length > 0) error.children.forEach((childError) => processError(childError, fieldPath));
+      if (error.children && error.children.length > 0) error.children.forEach(childError => processError(childError, fieldPath));
     };
 
-    errors.forEach((error) => processError(error));
+    errors.forEach(error => processError(error));
 
     return formattedErrors;
   }

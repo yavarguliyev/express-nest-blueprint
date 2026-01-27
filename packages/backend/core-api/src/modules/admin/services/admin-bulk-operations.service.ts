@@ -1,4 +1,16 @@
-import { getErrorMessage, Injectable, InternalServerErrorException, DatabaseService, DatabaseOperation, BulkOperationResponse, OperationResult, ValidationResult, ValidationItem, ConflictItem, JwtPayload } from '@config/libs';
+import {
+  getErrorMessage,
+  Injectable,
+  InternalServerErrorException,
+  DatabaseService,
+  DatabaseOperation,
+  BulkOperationResponse,
+  OperationResult,
+  ValidationResult,
+  ValidationItem,
+  ConflictItem,
+  JwtPayload
+} from '@config/libs';
 
 import { AdminCrudService } from '@modules/admin/services/admin-crud.service';
 
@@ -34,8 +46,8 @@ export class AdminBulkOperationsService {
         results,
         summary: {
           total: operations.length,
-          successful: results.filter((r) => r.success).length,
-          failed: results.filter((r) => !r.success).length
+          successful: results.filter(r => r.success).length,
+          failed: results.filter(r => !r.success).length
         }
       };
     });
@@ -76,7 +88,7 @@ export class AdminBulkOperationsService {
     }
 
     return {
-      valid: validationResults.every((result) => result.valid),
+      valid: validationResults.every(result => result.valid),
       validationResults,
       conflicts
     };
@@ -91,10 +103,20 @@ export class AdminBulkOperationsService {
           const existingRecord = await this.adminCrudService.getTableRecord(operation.category, operation.table, operation.recordId!);
 
           if (!existingRecord) {
-            conflicts.push({ recordId: operation.recordId!, table: operation.table, conflictType: 'constraint_violation', details: 'Record not found' });
+            conflicts.push({
+              recordId: operation.recordId!,
+              table: operation.table,
+              conflictType: 'constraint_violation',
+              details: 'Record not found'
+            });
           }
         } catch (error) {
-          conflicts.push({ recordId: operation.recordId!, table: operation.table, conflictType: 'constraint_violation', details: getErrorMessage(error) });
+          conflicts.push({
+            recordId: operation.recordId!,
+            table: operation.table,
+            conflictType: 'constraint_violation',
+            details: getErrorMessage(error)
+          });
         }
       }
     }
@@ -107,7 +129,13 @@ export class AdminBulkOperationsService {
       case 'create':
         return this.adminCrudService.createTableRecord(operation.category, operation.table, this.sanitizeData(operation.data!));
       case 'update':
-        return this.adminCrudService.updateTableRecord(operation.category, operation.table, operation.recordId!, this.sanitizeData(operation.data!), user);
+        return this.adminCrudService.updateTableRecord(
+          operation.category,
+          operation.table,
+          operation.recordId!,
+          this.sanitizeData(operation.data!),
+          user
+        );
       case 'delete':
         return this.adminCrudService.deleteTableRecord(operation.category, operation.table, operation.recordId!, user);
       default: {

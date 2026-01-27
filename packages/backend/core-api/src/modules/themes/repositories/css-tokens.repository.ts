@@ -3,7 +3,12 @@ import { BaseRepository, CircuitBreaker, CrudTable, DatabaseService, Injectable,
 import { FindCssQueryDto } from '@modules/themes/dtos/find-css-audit-log.dto';
 import { CssTokenEntity } from '@modules/themes/interfaces/theme.interface';
 
-@CrudTable({ category: 'Database Management', name: 'css_tokens', displayName: 'CSS Tokens', actions: { create: false, update: false, delete: false } })
+@CrudTable({
+  category: 'Database Management',
+  name: 'css_tokens',
+  displayName: 'CSS Tokens',
+  actions: { create: false, update: false, delete: false }
+})
 @Injectable()
 export class CssTokensRepository extends BaseRepository<CssTokenEntity> {
   constructor (databaseService: DatabaseService) {
@@ -21,7 +26,19 @@ export class CssTokensRepository extends BaseRepository<CssTokenEntity> {
   }
 
   protected getSelectColumns (): string[] {
-    return ['id', 'tokenName', 'tokenCategory', 'tokenType', 'defaultValue', 'lightModeValue', 'darkModeValue', 'description', 'isCustomizable', 'createdAt', 'updatedAt'];
+    return [
+      'id',
+      'tokenName',
+      'tokenCategory',
+      'tokenType',
+      'defaultValue',
+      'lightModeValue',
+      'darkModeValue',
+      'description',
+      'isCustomizable',
+      'createdAt',
+      'updatedAt'
+    ];
   }
 
   override getSearchableFields (): string[] {

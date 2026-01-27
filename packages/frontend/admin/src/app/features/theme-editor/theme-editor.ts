@@ -64,7 +64,7 @@ export class ThemeEditor implements OnInit {
     return this.themeEditorService.getTokensByCategory(category);
   });
 
-  ngOnInit () {
+  ngOnInit (): void {
     if (!this.themeEditorService.hasTokens()) {
       this.loadTokens();
     } else {

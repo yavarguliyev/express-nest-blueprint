@@ -1,11 +1,20 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand, HeadObjectCommand, GetObjectCommand, S3ClientConfig, CreateBucketCommand, HeadBucketCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+  HeadObjectCommand,
+  GetObjectCommand,
+  S3ClientConfig,
+  CreateBucketCommand,
+  HeadBucketCommand
+} from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
+import { StorageService } from '../storage.service';
 import { STORAGE_OPTIONS } from '../../../core/decorators/bullmq.decorators';
 import { Injectable, Inject } from '../../../core/decorators/injectable.decorator';
 import { BadRequestException } from '../../../domain/exceptions/http-exceptions';
 import { StorageModuleOptions, StorageUrlOptions } from '../../../domain/interfaces/storage.interface';
-import { StorageService } from '../storage.service';
 
 @Injectable()
 export class S3StorageStrategy extends StorageService {

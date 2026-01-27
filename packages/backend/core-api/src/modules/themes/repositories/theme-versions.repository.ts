@@ -1,9 +1,25 @@
-import { BaseRepository, CircuitBreaker, CrudTable, DatabaseService, Injectable, QueryAllWithPaginationOptions, DatabaseAdapter, JwtPayload, ForbiddenException, UserRoles } from '@config/libs';
+import {
+  BaseRepository,
+  CircuitBreaker,
+  CrudTable,
+  DatabaseService,
+  Injectable,
+  QueryAllWithPaginationOptions,
+  DatabaseAdapter,
+  JwtPayload,
+  ForbiddenException,
+  UserRoles
+} from '@config/libs';
 
 import { FindCssQueryDto } from '@modules/themes/dtos/find-css-audit-log.dto';
 import { ThemeVersionEntity } from '@modules/themes/interfaces/theme.interface';
 
-@CrudTable({ category: 'Database Management', name: 'theme_versions', displayName: 'Theme Versions', actions: { create: false, update: false, delete: false } })
+@CrudTable({
+  category: 'Database Management',
+  name: 'theme_versions',
+  displayName: 'Theme Versions',
+  actions: { create: false, update: false, delete: false }
+})
 @Injectable()
 export class ThemeVersionsRepository extends BaseRepository<ThemeVersionEntity> {
   constructor (databaseService: DatabaseService) {
@@ -20,7 +36,19 @@ export class ThemeVersionsRepository extends BaseRepository<ThemeVersionEntity> 
   }
 
   protected getSelectColumns (): string[] {
-    return ['id', 'versionName', 'versionNumber', 'status', 'isActive', 'tokenOverrides', 'description', 'createdBy', 'publishedAt', 'createdAt', 'updatedAt'];
+    return [
+      'id',
+      'versionName',
+      'versionNumber',
+      'status',
+      'isActive',
+      'tokenOverrides',
+      'description',
+      'createdBy',
+      'publishedAt',
+      'createdAt',
+      'updatedAt'
+    ];
   }
 
   override getSearchableFields (): string[] {
@@ -75,7 +103,13 @@ export class ThemeVersionsRepository extends BaseRepository<ThemeVersionEntity> 
     return this.findAll({ where: { status } }, connection);
   }
 
-  override async update<K extends keyof ThemeVersionEntity> (id: number, data: Partial<ThemeVersionEntity>, returningColumns?: K[], connection?: DatabaseAdapter, currentUser?: JwtPayload): Promise<Pick<ThemeVersionEntity, K> | null> {
+  override async update<K extends keyof ThemeVersionEntity> (
+    id: number,
+    data: Partial<ThemeVersionEntity>,
+    returningColumns?: K[],
+    connection?: DatabaseAdapter,
+    currentUser?: JwtPayload
+  ): Promise<Pick<ThemeVersionEntity, K> | null> {
     if (currentUser && currentUser.role !== UserRoles.GLOBAL_ADMIN && currentUser.role !== UserRoles.ADMIN) {
       throw new ForbiddenException('Only administrators can update theme versions');
     }
@@ -91,7 +125,8 @@ export class ThemeVersionsRepository extends BaseRepository<ThemeVersionEntity> 
   }
 
   override async delete (id: number, connection?: DatabaseAdapter, currentUser?: JwtPayload): Promise<boolean> {
-    if (currentUser && currentUser.role !== UserRoles.GLOBAL_ADMIN) throw new ForbiddenException('Only Global Administrators can delete theme versions');
+    if (currentUser && currentUser.role !== UserRoles.GLOBAL_ADMIN)
+      throw new ForbiddenException('Only Global Administrators can delete theme versions');
     const theme = await this.findById(id, connection);
     if (theme?.isActive) throw new ForbiddenException('Cannot delete the active theme version');
     return super.delete(id, connection, currentUser);

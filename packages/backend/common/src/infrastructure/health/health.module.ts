@@ -1,6 +1,6 @@
-import { Module } from '../../core/decorators/module.decorator';
 import { HealthController } from '../health/health.controller';
 import { HealthService } from '../health/health.service';
+import { Module } from '../../core/decorators/module.decorator';
 
 @Module({
   controllers: [HealthController],

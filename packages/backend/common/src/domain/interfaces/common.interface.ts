@@ -250,3 +250,63 @@ export interface RepositoryEntry {
   repository: CrudRepository;
   metadata: CrudTableOptions;
 }
+
+export interface DatabaseStatus {
+  status: 'up' | 'down';
+  error?: string;
+}
+
+export interface RedisStatus {
+  status: 'up' | 'down';
+  info?: {
+    status: string;
+  };
+  error?: string;
+}
+
+export interface QueueStatus {
+  status: 'up' | 'down';
+  items?: unknown[];
+  error?: string;
+}
+
+export interface ComputeStatus {
+  status: 'up' | 'down';
+  workerEnabled?: boolean;
+  workerStatus?: 'running' | 'stopped' | 'not_initialized';
+  pendingJobsCount?: number;
+  handlersCount?: number;
+  error?: string;
+}
+
+export interface HealthCheckResult {
+  status: 'up' | 'down';
+  timestamp: string;
+  components: {
+    database?: DatabaseStatus;
+    redis?: RedisStatus;
+    queues?: QueueStatus;
+    compute?: ComputeStatus;
+  };
+}
+
+export interface LiveCheckResult {
+  status: 'up';
+  timestamp: string;
+}
+
+export interface ReadyCheckResult {
+  status: 'up';
+  timestamp: string;
+  components: {
+    database: DatabaseStatus;
+    redis: RedisStatus;
+  };
+}
+
+export interface RateLimitStatus {
+  total: number;
+  remaining: number;
+  reset: number;
+  isBlocked: boolean;
+}

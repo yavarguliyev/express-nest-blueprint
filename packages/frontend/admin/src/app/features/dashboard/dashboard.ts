@@ -23,7 +23,7 @@ export class Dashboard implements OnInit {
 
   Math = Math;
 
-  ngOnInit () {
+  ngOnInit (): void {
     if (!window.location.pathname.includes('/dashboard')) {
       return;
     }
@@ -53,7 +53,7 @@ export class Dashboard implements OnInit {
     return metric ? metric.value : 0;
   }
 
-  refreshData () {
+  refreshData (): void {
     this.loading.set(true);
     this.error.set('');
 

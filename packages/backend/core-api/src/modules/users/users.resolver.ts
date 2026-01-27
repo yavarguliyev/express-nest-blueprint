@@ -1,4 +1,15 @@
-import { Injectable, Resolver, GqlQuery as Query, GqlMutation as Mutation, GqlArg as Arg, GqlArgs as Args, Roles, UserRoles, GqlCurrentUser as CurrentUser, JwtPayload } from '@config/libs';
+import {
+  Injectable,
+  Resolver,
+  GqlQuery as Query,
+  GqlMutation as Mutation,
+  GqlArg as Arg,
+  GqlArgs as Args,
+  Roles,
+  UserRoles,
+  GqlCurrentUser as CurrentUser,
+  JwtPayload
+} from '@config/libs';
 
 import { UsersService } from '@modules/users/users.service';
 import { User, UserList, DeleteResponse, CreateUserInput, UpdateUserInput, UsersArgs } from '@modules/users/graphql/user.types';
@@ -31,6 +42,6 @@ export class UsersResolver {
 
   @Mutation(() => DeleteResponse)
   async deleteUser (@Arg('id') id: string, @CurrentUser() currentUser: JwtPayload): Promise<DeleteResponse> {
-    return this.usersService.remove(id, currentUser).then((res) => ({ ...res, success: true }));
+    return this.usersService.remove(id, currentUser).then(res => ({ ...res, success: true }));
   }
 }

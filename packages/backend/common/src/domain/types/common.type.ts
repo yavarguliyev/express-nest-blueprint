@@ -2,12 +2,40 @@ import { Job } from 'bullmq';
 import { ClassConstructor } from 'class-transformer';
 import { Request, Response, NextFunction, RequestHandler, Application } from 'express';
 
+import { BULK_OPERATION_TYPES, CONFLICT_RESOLUTION_STRATEGIES, CONFLICT_TYPES } from '../constants/bulk-operation.const';
 import { INITIALIZER_TOKENS, METHODS } from '../constants/system.const';
-import type { Container } from '../../core/container/container';
 import { DataProcessingJobData, ReportJobData } from '../interfaces/bullmq.interface';
-import { ParamMetadata, SupportsCreate, SupportsDelete, SupportsFindAll, SupportsFindById, SupportsFindWithPagination, SupportsUpdate } from '../interfaces/common.interface';
+import {
+  ParamMetadata,
+  SupportsCreate,
+  SupportsDelete,
+  SupportsFindAll,
+  SupportsFindById,
+  SupportsFindWithPagination,
+  SupportsUpdate
+} from '../interfaces/common.interface';
 import { DatabaseAdapter, DatabaseConfig } from '../interfaces/database.interface';
+import { KafkaMessagePayload } from '../interfaces/kafka.interface';
 import { NestMiddleware } from '../interfaces/middleware.interface';
+
+export type GraphQLContext = {
+  req: Request;
+  res: Response;
+};
+
+import type { Container } from '../../core/container/container';
+
+export type KafkaMessageHandler<T = unknown> = (payload: KafkaMessagePayload<T>) => Promise<void> | void;
+
+export type TypeFuncValue = unknown;
+
+export type TypeFunc = () => TypeFuncValue;
+
+export type BulkOperationType = (typeof BULK_OPERATION_TYPES)[keyof typeof BULK_OPERATION_TYPES];
+
+export type ConflictType = (typeof CONFLICT_TYPES)[keyof typeof CONFLICT_TYPES];
+
+export type ConflictResolutionStrategy = (typeof CONFLICT_RESOLUTION_STRATEGIES)[keyof typeof CONFLICT_RESOLUTION_STRATEGIES];
 
 export type AdapterConstructor = new (config: DatabaseConfig) => DatabaseAdapter;
 
@@ -59,7 +87,15 @@ export type ObjectProvider<T = unknown> = {
   useValue?: T;
 };
 
-export type ParamHandler = (param: ParamMetadata, index: number, args: unknown[], paramTypes: ClassConstructor<object>[], req: Request, res: Response, next: NextFunction) => void | Promise<void>;
+export type ParamHandler = (
+  param: ParamMetadata,
+  index: number,
+  args: unknown[],
+  paramTypes: ClassConstructor<object>[],
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => void | Promise<void>;
 
 export type ParserType = 'boolean' | 'number' | 'string';
 

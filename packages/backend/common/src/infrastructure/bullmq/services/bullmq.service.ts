@@ -1,14 +1,14 @@
-import { Queue, JobsOptions } from 'bullmq';
+import { Queue, JobsOptions, Job } from 'bullmq';
 
+import { QueueManager } from '../services/queue-manager.service';
 import { Injectable } from '../../../core/decorators/injectable.decorator';
 import { BadRequestException } from '../../../domain/exceptions/http-exceptions';
-import { QueueManager } from '../services/queue-manager.service';
 
 @Injectable()
 export class BullMQService {
   constructor (private readonly queueManager: QueueManager) {}
 
-  async addJob<T = unknown> (queueName: string, data: T, options?: JobsOptions) {
+  async addJob<T = unknown> (queueName: string, data: T, options?: JobsOptions): Promise<Job> {
     const queue = this.queueManager.getQueue(queueName);
     if (!queue) throw new BadRequestException(`Queue ${queueName} not found`);
 
@@ -19,7 +19,7 @@ export class BullMQService {
     return this.queueManager.getQueue(queueName);
   }
 
-  async getJobCounts (queueName: string) {
+  async getJobCounts (queueName: string): Promise<{ [index: string]: number }> {
     const queue = this.queueManager.getQueue(queueName);
     if (!queue) throw new BadRequestException(`Queue ${queueName} not found`);
 

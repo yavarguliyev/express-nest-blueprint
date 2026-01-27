@@ -1,16 +1,24 @@
 import { Worker, Job, QueueEvents } from 'bullmq';
 
-import { Container } from '../../core/container/container';
 import { BullMQService } from '../bullmq/services/bullmq.service';
 import { QueueManager } from '../bullmq/services/queue-manager.service';
+import { Logger } from '../logger/logger.service';
+import { Container } from '../../core/container/container';
 import { BULLMQ_OPTIONS, COMPUTE_MODULE_OPTIONS } from '../../core/decorators/bullmq.decorators';
 import { Injectable, Inject } from '../../core/decorators/injectable.decorator';
 import { BadRequestException, ServiceUnavailableException } from '../../domain/exceptions/http-exceptions';
-import { BullMQModuleOptions, ComputeHandler, ComputeModuleOptions, PatchedMethod, ComputeJobData, PendingJob } from '../../domain/interfaces/bullmq.interface';
-import { ComputeOptions } from '../../domain/interfaces/common.interface';
-import { Logger } from '../logger/logger.service';
-import { Constructor } from '../../domain/types/common.type';
 import { getErrorMessage } from '../../domain/helpers/utility-functions.helper';
+import {
+  ComputeHandler,
+  PendingJob,
+  BullMQModuleOptions,
+  ComputeModuleOptions,
+  ComputeJobData,
+  PatchedMethod,
+  ComputeServiceStatus
+} from '../../domain/interfaces/bullmq.interface';
+import { ComputeOptions } from '../../domain/interfaces/common.interface';
+import { Constructor } from '../../domain/types/common.type';
 
 @Injectable()
 export class ComputeService {
@@ -119,7 +127,7 @@ export class ComputeService {
     return method.apply(instance, args);
   }
 
-  public getStatus () {
+  public getStatus (): ComputeServiceStatus {
     return {
       workerEnabled: !!this.worker,
       workerStatus: this.worker ? (this.worker.isRunning() ? 'running' : 'stopped') : 'not_initialized',

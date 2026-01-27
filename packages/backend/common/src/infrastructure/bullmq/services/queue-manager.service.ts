@@ -1,10 +1,10 @@
 import { Queue, QueueOptions } from 'bullmq';
 import Redis from 'ioredis';
 
+import { RedisService } from '../../redis/redis.service';
 import { Injectable } from '../../../core/decorators/injectable.decorator';
 import { BadRequestException } from '../../../domain/exceptions/http-exceptions';
 import { QueueHealth } from '../../../domain/interfaces/bullmq.interface';
-import { RedisService } from '../../redis/redis.service';
 
 @Injectable()
 export class QueueManager {
@@ -47,7 +47,7 @@ export class QueueManager {
   }
 
   async closeAllQueues (): Promise<void> {
-    const closePromises = Array.from(this.queues.values()).map((queue) => queue.close());
+    const closePromises = Array.from(this.queues.values()).map(queue => queue.close());
     await Promise.all(closePromises);
     this.queues.clear();
   }

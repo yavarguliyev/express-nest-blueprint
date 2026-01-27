@@ -2,10 +2,10 @@ import { Request, Response, NextFunction } from 'express';
 
 import { IS_PUBLIC_KEY, REQUIRE_AUTH_KEY } from '../decorators/auth.decorator';
 import { Injectable } from '../decorators/injectable.decorator';
-import { UnauthorizedException } from '../../domain/exceptions/http-exceptions';
-import { CanActivate } from '../../domain/interfaces/guard.interface';
 import { JwtService } from '../../application/services/jwt.service';
+import { UnauthorizedException } from '../../domain/exceptions/http-exceptions';
 import { Constructor } from '../../domain/types/common.type';
+import { CanActivate } from '../../domain/interfaces/guard.interface';
 
 @Injectable()
 export class AuthGuard implements CanActivate {

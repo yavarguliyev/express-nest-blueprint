@@ -5,7 +5,7 @@
     "rootDir": "./src",
     "baseUrl": "./src",
     "paths": {
-      "@/*": ["./*"],
+      "@*": ["./*"],
       "@modules/*": ["./modules/*"],
       "@config/libs": ["../common/src/index.ts"],
       "@config/libs/*": ["../common/src/*"]

@@ -15,7 +15,8 @@ export const API_ENDPOINTS = {
     HEALTH: `${API_BASE}/admin/health`,
     SCHEMA: `${API_BASE}/admin/crud/schema`,
     CRUD: (category: string, resource: string) => `${API_BASE}/admin/crud/${category}/${resource}`,
-    CRUD_ID: (category: string, resource: string, id: string | number) => `${API_BASE}/admin/crud/${category}/${resource}/${id}`,
+    CRUD_ID: (category: string, resource: string, id: string | number) =>
+      `${API_BASE}/admin/crud/${category}/${resource}/${id}`,
     BULK_OPERATIONS: `${API_BASE}/admin/bulk-operations`,
     BULK_OPERATIONS_VALIDATE: `${API_BASE}/admin/bulk-operations/validate`,
   },

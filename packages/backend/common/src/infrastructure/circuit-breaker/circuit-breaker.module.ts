@@ -8,7 +8,9 @@ import { Module } from '../../core/decorators/module.decorator';
     CircuitBreakerExplorer,
     {
       provide: 'CIRCUIT_BREAKER_INITIALIZER',
-      useFactory: ((explorer: CircuitBreakerExplorer) => () => explorer.explore()) as (...args: unknown[]) => unknown,
+      useFactory: ((explorer: CircuitBreakerExplorer): (() => void) => {
+        return (): void => explorer.explore();
+      }) as (...args: unknown[]) => unknown,
       inject: [CircuitBreakerExplorer]
     }
   ],

@@ -1,6 +1,18 @@
-import { BaseRepository, CircuitBreaker, CrudTable, DatabaseService, Injectable, QueryAllWithPaginationOptions, DatabaseAdapter, ForbiddenException, InternalServerErrorException, StorageService, KafkaService } from '@config/libs';
-import { UserRoles } from '@config/libs';
-import { JwtPayload } from '@config/libs';
+import {
+  BaseRepository,
+  CircuitBreaker,
+  CrudTable,
+  DatabaseService,
+  Injectable,
+  QueryAllWithPaginationOptions,
+  DatabaseAdapter,
+  ForbiddenException,
+  InternalServerErrorException,
+  StorageService,
+  KafkaService,
+  UserRoles,
+  JwtPayload
+} from '@config/libs';
 
 import { FindUsersQueryDto } from '@modules/users/dtos/find-users-query.dto';
 import { UserResponseDto } from '@modules/users/dtos/user-response.dto';
@@ -77,24 +89,33 @@ export class UsersRepository extends BaseRepository<UserResponseDto> {
     return { users: result.data, total: result.total };
   }
 
-  override async update<K extends keyof UserResponseDto> (id: number, data: Partial<UserResponseDto>, returningColumns?: K[], connection?: DatabaseAdapter, currentUser?: JwtPayload): Promise<Pick<UserResponseDto, K> | null> {
+  override async update<K extends keyof UserResponseDto> (
+    id: number,
+    data: Partial<UserResponseDto>,
+    returningColumns?: K[],
+    connection?: DatabaseAdapter,
+    currentUser?: JwtPayload
+  ): Promise<Pick<UserResponseDto, K> | null> {
     if (!currentUser) throw new InternalServerErrorException('Security Context Missing: Unable to verify user permissions');
 
     if (currentUser.sub === id) {
       const restrictedFields = ['isactive', 'is_active', 'isemailverified', 'is_email_verified', 'role'];
-      const hasRestrictedField = Object.keys(data).some((field) => restrictedFields.some((restricted) => field.toLowerCase() === restricted.toLowerCase()));
+      const hasRestrictedField = Object.keys(data).some(field =>
+        restrictedFields.some(restricted => field.toLowerCase() === restricted.toLowerCase())
+      );
 
       if (hasRestrictedField) throw new ForbiddenException('You are not allowed to update sensitive fields on your own account');
     }
 
     const sensitiveFields = ['isActive', 'isEmailVerified'];
-    const hasSensitiveField = Object.keys(data).some((field) => sensitiveFields.some((sensitive) => field.toLowerCase() === sensitive.toLowerCase()));
+    const hasSensitiveField = Object.keys(data).some(field => sensitiveFields.some(sensitive => field.toLowerCase() === sensitive.toLowerCase()));
 
     if (hasSensitiveField && currentUser.role !== UserRoles.GLOBAL_ADMIN) {
       throw new ForbiddenException('Only Global Administrators can modify user activation and email verification status');
     }
 
-    if (data.role !== undefined && currentUser.role !== UserRoles.GLOBAL_ADMIN) throw new ForbiddenException('Only Global Administrators can update user roles');
+    if (data.role !== undefined && currentUser.role !== UserRoles.GLOBAL_ADMIN)
+      throw new ForbiddenException('Only Global Administrators can update user roles');
 
     const updatedUser = await super.update(id, data, returningColumns, connection);
     if (!updatedUser) return null;
@@ -129,12 +150,12 @@ export class UsersRepository extends BaseRepository<UserResponseDto> {
   }
 
   override async applyPostProcessing (data: unknown[]): Promise<void> {
-    await this.signProfileImages(data.filter((item) => this.hasProfileImageUrl(item)));
+    await this.signProfileImages(data.filter(item => this.hasProfileImageUrl(item)));
   }
 
   private async signProfileImages (data: Array<{ profileImageUrl?: string }>): Promise<void> {
     await Promise.all(
-      data.map(async (item) => {
+      data.map(async item => {
         if (!item.profileImageUrl) return;
         item.profileImageUrl = await this.storageService.getDownloadUrl(item.profileImageUrl);
       })

@@ -22,6 +22,11 @@ export interface AuthResponse {
   };
 }
 
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -32,7 +37,7 @@ export class AuthService {
 
   currentUser = signal<User | null>(this.getCurrentUserFromStorage());
 
-  login (credentials: any): Observable<AuthResponse> {
+  login (credentials: LoginCredentials): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(API_ENDPOINTS.AUTH.LOGIN, credentials).pipe(
       tap((response) => {
         if (response.success && response.data.accessToken) {

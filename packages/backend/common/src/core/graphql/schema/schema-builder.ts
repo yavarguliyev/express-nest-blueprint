@@ -13,20 +13,19 @@ import {
   GraphQLInputObjectType,
   GraphQLFieldConfigArgumentMap
 } from 'graphql';
-import { Request, Response } from 'express';
 
 import { Container } from '../../container/container';
-import { QUERY_METADATA, MUTATION_METADATA, ARG_METADATA } from '../decorators/field.decorators';
-import { RESOLVER_METADATA, RESOLVER_REGISTRY } from '../decorators/resolver.decorator';
-import { OBJECT_TYPE_METADATA, FIELD_METADATA, INPUT_TYPE_METADATA, TypeFuncValue } from '../interfaces/graphql.interface';
-import { QueryMetadata, MutationMetadata, ArgMetadata, TypeFunc, FieldMetadata } from '../interfaces/graphql.interface';
-import { Constructor } from '../../../domain/types/common.type';
+import { QUERY_METADATA, MUTATION_METADATA, ARG_METADATA } from '../../decorators/field.decorators';
 import { GUARDS_METADATA } from '../../decorators/middleware.decorators';
-import { CanActivate } from '../../../domain/interfaces/guard.interface';
+import { RESOLVER_METADATA, RESOLVER_REGISTRY } from '../../decorators/resolver.decorator';
 import { AuthGuard } from '../../guards/auth.guard';
 import { RolesGuard } from '../../guards/roles.guard';
+import { OBJECT_TYPE_METADATA, INPUT_TYPE_METADATA, FIELD_METADATA } from '../../../domain/constants/graphql.const';
 import { getErrorMessage } from '../../../domain/helpers/utility-functions.helper';
 import { AuthenticatedRequest } from '../../../domain/interfaces/common.interface';
+import { QueryMetadata, MutationMetadata, ArgMetadata, FieldMetadata } from '../../../domain/interfaces/graphql.interface';
+import { CanActivate } from '../../../domain/interfaces/guard.interface';
+import { TypeFunc, TypeFuncValue, Constructor, GraphQLContext } from '../../../domain/types/common.type';
 
 export class SchemaBuilder {
   private container: Container;
@@ -45,7 +44,7 @@ export class SchemaBuilder {
       if (!resolverMetadata) continue;
 
       const resolverInstance = this.container.resolve({ provide: ResolverClass });
-      const methodNames = Object.getOwnPropertyNames(ResolverClass.prototype).filter((name) => name !== 'constructor');
+      const methodNames = Object.getOwnPropertyNames(ResolverClass.prototype).filter(name => name !== 'constructor');
 
       for (const methodName of methodNames) {
         const queries = (Reflect.getMetadata(QUERY_METADATA, ResolverClass.prototype as object, methodName) || []) as QueryMetadata[];
@@ -72,7 +71,7 @@ export class SchemaBuilder {
     if (!schema.query) {
       schema.query = new GraphQLObjectType({
         name: 'Query',
-        fields: { _empty: { type: GraphQLString, resolve: () => 'GraphQL API' } }
+        fields: { _empty: { type: GraphQLString, resolve: (): string => 'GraphQL API' } }
       });
     }
 
@@ -112,7 +111,7 @@ export class SchemaBuilder {
   private buildObjectType (constructor: Constructor, metadata: { name: string }): GraphQLObjectType {
     const gqlType = new GraphQLObjectType({
       name: metadata.name,
-      fields: () => {
+      fields: (): GraphQLFieldConfigMap<unknown, unknown> => {
         const fields: GraphQLFieldConfigMap<unknown, unknown> = {};
         const fieldMetadata = (Reflect.getMetadata(FIELD_METADATA, constructor) || []) as FieldMetadata[];
 
@@ -132,7 +131,7 @@ export class SchemaBuilder {
   private buildInputType (constructor: Constructor, metadata: { name: string }): GraphQLInputObjectType {
     const gqlType = new GraphQLInputObjectType({
       name: metadata.name,
-      fields: () => {
+      fields: (): Record<string, { type: GraphQLInputType }> => {
         const fields: Record<string, { type: GraphQLInputType }> = {};
         const fieldMetadata = (Reflect.getMetadata(FIELD_METADATA, constructor) || []) as FieldMetadata[];
 
@@ -149,32 +148,47 @@ export class SchemaBuilder {
     return gqlType;
   }
 
-  private createFieldConfig (ResolverClass: Constructor, resolverInstance: object, methodName: string, args: ArgMetadata[], returnType: GraphQLOutputType): GraphQLFieldConfig<unknown, unknown> {
+  private createFieldConfig (
+    ResolverClass: Constructor,
+    resolverInstance: object,
+    methodName: string,
+    args: ArgMetadata[],
+    returnType: GraphQLOutputType
+  ): GraphQLFieldConfig<unknown, unknown> {
     const method = Reflect.get(resolverInstance, methodName) as (...methodArgs: unknown[]) => Promise<unknown>;
 
     return {
       type: returnType,
       args: this.buildArgs(args),
-      resolve: async (_source: unknown, resolverArgs: Record<string, unknown>, context: any) => {
-        const { req, res } = context as { req: Request; res: Response };
+      resolve: async (_source: unknown, resolverArgs: Record<string, unknown>, context: unknown): Promise<unknown> => {
+        const { req, res } = context as GraphQLContext;
 
         const classGuards = (Reflect.getMetadata(GUARDS_METADATA, ResolverClass) || []) as Constructor<CanActivate>[];
-        const methodGuards = (Reflect.getMetadata(GUARDS_METADATA, ResolverClass.prototype as object, methodName) || []) as Constructor<CanActivate>[];
+        const methodGuards = (Reflect.getMetadata(GUARDS_METADATA, ResolverClass.prototype as object, methodName) ||
+          []) as Constructor<CanActivate>[];
         const guardsToRun: Constructor<CanActivate>[] = [AuthGuard, RolesGuard, ...classGuards, ...methodGuards];
 
         for (const GuardClass of guardsToRun) {
           const guardInstance = this.container.resolve<CanActivate>({ provide: GuardClass });
+
           await new Promise<void>((resolve, reject) => {
-            void guardInstance.canActivate(req, res, (err: unknown) => (err ? reject(new Error(getErrorMessage(err))) : resolve()), method, ResolverClass);
+            void guardInstance.canActivate(
+              req,
+              res,
+              (err: unknown) => (err ? reject(new Error(getErrorMessage(err))) : resolve()),
+              method,
+              ResolverClass
+            );
           });
         }
 
         const methodArgs = args
-          .sort((a, b) => a.index - b.index)
-          .map((arg) => {
+          .sort((a, b): number => a.index - b.index)
+          .map((arg): unknown => {
             if (arg.isArgs && arg.typeFunc) {
               const argsType = arg.typeFunc();
               const fieldMetadata = (Reflect.getMetadata(FIELD_METADATA, argsType as object) || []) as FieldMetadata[];
+
               const argsObj: Record<string, unknown> = {};
               for (const field of fieldMetadata) {
                 argsObj[field.name] = resolverArgs[field.name];
@@ -183,7 +197,10 @@ export class SchemaBuilder {
               return argsObj;
             }
 
-            if (arg.isCurrentUser) return (req as unknown as AuthenticatedRequest).user;
+            if (arg.isCurrentUser) {
+              return (req as AuthenticatedRequest).user;
+            }
+
             return arg.name ? resolverArgs[arg.name] : undefined;
           });
 

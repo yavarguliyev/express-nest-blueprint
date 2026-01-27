@@ -1,4 +1,4 @@
-import { ApiController, BaseController, Get, HealthService, Roles, UserRoles } from '@config/libs';
+import { ApiController, BaseController, Get, HealthCheckResult, HealthService, Roles, UserRoles } from '@config/libs';
 
 import { HealthComponentStatus } from '@modules/admin/interfaces/admin.interface';
 
@@ -10,14 +10,18 @@ export class AdminHealthController extends BaseController {
   }
 
   @Get()
-  async getHealthStatus () {
-    const health = await this.healthService.checkHealth();
+  async getHealthStatus (): Promise<{
+    overallStatus: 'up' | 'down';
+    timestamp: string;
+    components: HealthComponentStatus[];
+  }> {
+    const health: HealthCheckResult = await this.healthService.checkHealth();
     const components: HealthComponentStatus[] = [];
 
     if (health.components.database) {
       components.push({
         name: 'Database',
-        status: health.components.database.status as 'up' | 'down',
+        status: health.components.database.status,
         details: health.components.database
       });
     }
@@ -25,15 +29,15 @@ export class AdminHealthController extends BaseController {
     if (health.components.redis) {
       components.push({
         name: 'Redis',
-        status: health.components.redis.status as 'up' | 'down',
+        status: health.components.redis.status,
         details: health.components.redis
       });
     }
 
-    if (health.components.queues) {
+    if (health.components?.queues) {
       components.push({
         name: 'Queues',
-        status: health.components.queues.status as 'up' | 'down',
+        status: health.components.queues.status,
         details: health.components.queues
       });
     }
@@ -41,7 +45,7 @@ export class AdminHealthController extends BaseController {
     if (health.components.compute) {
       components.push({
         name: 'Compute Workers',
-        status: health.components.compute.status as 'up' | 'down',
+        status: health.components.compute.status,
         details: health.components.compute
       });
     }

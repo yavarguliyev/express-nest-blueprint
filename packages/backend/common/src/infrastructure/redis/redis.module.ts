@@ -1,9 +1,9 @@
 import { ConfigService } from '../config/config.service';
+import { RedisService } from '../redis/redis.service';
+import { LifecycleService } from '../../application/lifecycle/lifecycle.service';
 import { BULLMQ_OPTIONS } from '../../core/decorators/bullmq.decorators';
 import { Module } from '../../core/decorators/module.decorator';
 import { DynamicModule } from '../../domain/interfaces/common.interface';
-import { RedisService } from '../redis/redis.service';
-import { LifecycleService } from '../../application/lifecycle/lifecycle.service';
 
 @Module({
   providers: [RedisService],
@@ -40,7 +40,8 @@ export class RedisModule {
         {
           provide: 'REDIS_INITIALIZER',
           useFactory: ((redisService: RedisService, lifecycleService: LifecycleService) => {
-            return (): void => lifecycleService && lifecycleService.registerShutdownHandler({ name: 'Redis Service', disconnect: () => redisService.disconnect() });
+            return (): void =>
+              lifecycleService && lifecycleService.registerShutdownHandler({ name: 'Redis Service', disconnect: () => redisService.disconnect() });
           }) as (...args: unknown[]) => unknown,
           inject: [RedisService, LifecycleService]
         }

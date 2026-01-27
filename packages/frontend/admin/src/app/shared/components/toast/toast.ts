@@ -158,12 +158,12 @@ import { Toast as ToastInterface, ToastService } from '../../../core/services/to
 export class Toast {
   toastService = inject(ToastService);
 
-  handleConfirm (toast: ToastInterface) {
+  handleConfirm (toast: ToastInterface): void {
     if (toast.onConfirm) toast.onConfirm();
     this.toastService.remove(toast.id);
   }
 
-  handleCancel (toast: ToastInterface) {
+  handleCancel (toast: ToastInterface): void {
     if (toast.onCancel) toast.onCancel();
     this.toastService.remove(toast.id);
   }

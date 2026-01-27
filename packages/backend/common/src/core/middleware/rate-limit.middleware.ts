@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 
 import { Injectable } from '../decorators/injectable.decorator';
-import { NestMiddleware } from '../../domain/interfaces/middleware.interface';
 import { getErrorMessage } from '../../domain/helpers/utility-functions.helper';
-import { Logger } from '../../infrastructure/logger/logger.service';
+import { NestMiddleware } from '../../domain/interfaces/middleware.interface';
 import { ThrottlerService } from '../../infrastructure/throttler/throttler.service';
+import { Logger } from '../../infrastructure/logger/logger.service';
 
 @Injectable()
 export class RateLimitMiddleware implements NestMiddleware {
@@ -22,7 +22,7 @@ export class RateLimitMiddleware implements NestMiddleware {
 
     this.throttlerService
       .checkRateLimit(String(key), currentLimit, this.ttl)
-      .then((result) => {
+      .then(result => {
         res.setHeader('X-RateLimit-Limit', currentLimit);
         res.setHeader('X-RateLimit-Remaining', result.remaining);
         res.setHeader('X-RateLimit-Reset', result.reset);
@@ -40,7 +40,7 @@ export class RateLimitMiddleware implements NestMiddleware {
 
         next();
       })
-      .catch((error) => {
+      .catch(error => {
         this.logger.error(`Rate Limit Error: ${getErrorMessage(error)}`);
         next();
       });

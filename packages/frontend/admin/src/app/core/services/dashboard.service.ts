@@ -36,7 +36,7 @@ export interface HealthStatus {
   components: Array<{
     name: string;
     status: 'up' | 'down';
-    details?: any;
+    details?: Record<string, unknown>;
   }>;
 }
 

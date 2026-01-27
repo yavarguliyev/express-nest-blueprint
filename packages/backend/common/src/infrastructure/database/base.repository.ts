@@ -1,11 +1,16 @@
 import { DatabaseService } from './database.service';
 import { QueryBuilder } from './query-builder';
 import { Injectable } from '../../core/decorators/injectable.decorator';
+import {
+  ColumnMapping,
+  QueryAllWithPaginationOptions,
+  QueryPaginationOptionsResults,
+  QueryWithPaginationOptions
+} from '../../domain/interfaces/query-builder.interface';
 import { NotFoundException } from '../../domain/exceptions/http-exceptions';
-import { convertValueToSearchableString } from '../../domain/helpers/utility-functions.helper';
 import { DatabaseAdapter } from '../../domain/interfaces/database.interface';
-import { ColumnMapping, QueryAllWithPaginationOptions, QueryWithPaginationOptions, QueryPaginationOptionsResults } from '../../domain/interfaces/query-builder.interface';
 import { JwtPayload } from '../../domain/interfaces/common.interface';
+import { convertValueToSearchableString } from '../../domain/helpers/utility-functions.helper';
 
 @Injectable()
 export abstract class BaseRepository<T> {
@@ -29,12 +34,12 @@ export abstract class BaseRepository<T> {
   getSearchableFields (): string[] {
     const allFields = this.getSelectColumns();
     const excludeFields = ['id', 'password', 'passwordHash', 'password_hash', 'createdAt', 'updatedAt', 'created_at', 'updated_at'];
-    return allFields.filter((field) => !excludeFields.includes(field));
+    return allFields.filter(field => !excludeFields.includes(field));
   }
 
   getColumnMetadata (): Array<{ name: string; type: string; required: boolean; editable: boolean }> {
     const columns = this.getSelectColumns();
-    return columns.map((columnName) => ({
+    return columns.map(columnName => ({
       name: columnName,
       type: this.inferColumnType(columnName),
       required: this.isColumnRequired(columnName),
@@ -130,7 +135,13 @@ export abstract class BaseRepository<T> {
     return (result.rows[0] as T) ?? null;
   }
 
-  async update<K extends keyof T> (id: string | number, data: Partial<T>, returningColumns?: K[], connection?: DatabaseAdapter, _currentUser?: JwtPayload): Promise<Pick<T, K> | null> {
+  async update<K extends keyof T> (
+    id: string | number,
+    data: Partial<T>,
+    returningColumns?: K[],
+    connection?: DatabaseAdapter,
+    _currentUser?: JwtPayload
+  ): Promise<Pick<T, K> | null> {
     const columnsToReturn = returningColumns ?? (this.getSelectColumns() as K[]);
     const { query, params } = this.queryBuilder.buildUpdateQuery(id, data as Record<string, unknown>, columnsToReturn.map(String));
 
@@ -162,7 +173,10 @@ export abstract class BaseRepository<T> {
     return parseInt(result.rows[0]?.count as string, 10);
   }
 
-  async findWithPagination (options: QueryWithPaginationOptions & { page: number; limit: number }, connection?: DatabaseAdapter): Promise<QueryPaginationOptionsResults<T>> {
+  async findWithPagination (
+    options: QueryWithPaginationOptions & { page: number; limit: number },
+    connection?: DatabaseAdapter
+  ): Promise<QueryPaginationOptionsResults<T>> {
     const { page, limit, ...queryOptions } = options;
 
     const offset = (page - 1) * limit;
@@ -176,7 +190,10 @@ export abstract class BaseRepository<T> {
   async findAllWithPagination (options: QueryAllWithPaginationOptions, connection?: DatabaseAdapter): Promise<QueryPaginationOptionsResults<T>> {
     const { page, limit, search, searchFields, where, orderBy, orderDirection } = options;
 
-    const queryOptions: QueryWithPaginationOptions = { orderBy: orderBy || 'id', orderDirection: orderDirection || 'ASC' };
+    const queryOptions: QueryWithPaginationOptions = {
+      orderBy: orderBy || 'id',
+      orderDirection: orderDirection || 'ASC'
+    };
 
     if (where) queryOptions.where = where;
     if (search && searchFields && searchFields.length > 0) queryOptions.search = { fields: searchFields, term: search };
@@ -190,10 +207,10 @@ export abstract class BaseRepository<T> {
     const lowerSearchTerm = searchTerm.toLowerCase();
     const searchableFields = this.getSearchableFields();
 
-    return data.filter((record) => {
+    return data.filter(record => {
       if (!record || typeof record !== 'object') return false;
 
-      return searchableFields.some((field) => {
+      return searchableFields.some(field => {
         const value = (record as Record<string, unknown>)[field];
         if (value === null || value === undefined) return false;
         return convertValueToSearchableString(value).toLowerCase().includes(lowerSearchTerm);

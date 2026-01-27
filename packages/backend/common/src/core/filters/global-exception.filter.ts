@@ -1,11 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 
-import { HttpException } from '../../domain/exceptions/http-exception';
 import { ArgumentsHostFilter } from './argument-host.filter';
-import { hasGetResponse, hasGetStatus } from '../../domain/helpers/utility-functions.helper';
-import { ArgumentsHost, ExceptionFilter } from '../../domain/interfaces/common.interface';
-import { Logger } from '../../infrastructure/logger/logger.service';
+import { HttpException } from '../../domain/exceptions/http-exception';
+import { hasGetStatus, hasGetResponse } from '../../domain/helpers/utility-functions.helper';
+import { ExceptionFilter, ArgumentsHost } from '../../domain/interfaces/common.interface';
 import { ConfigService } from '../../infrastructure/config/config.service';
+import { Logger } from '../../infrastructure/logger/logger.service';
 
 export class GlobalExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(GlobalExceptionFilter.name);

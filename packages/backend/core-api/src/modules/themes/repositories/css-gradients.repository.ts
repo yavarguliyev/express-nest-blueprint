@@ -4,7 +4,12 @@ import { FindCssQueryDto } from '@modules/themes/dtos/find-css-audit-log.dto';
 import { CssGradientEntity } from '@modules/themes/interfaces/theme.interface';
 import { CssGradientType } from '@modules/themes/types/theme.type';
 
-@CrudTable({ category: 'Database Management', name: 'css_gradients', displayName: 'CSS Gradients', actions: { create: false, update: false, delete: false } })
+@CrudTable({
+  category: 'Database Management',
+  name: 'css_gradients',
+  displayName: 'CSS Gradients',
+  actions: { create: false, update: false, delete: false }
+})
 @Injectable()
 export class CssGradientsRepository extends BaseRepository<CssGradientEntity> {
   constructor (databaseService: DatabaseService) {

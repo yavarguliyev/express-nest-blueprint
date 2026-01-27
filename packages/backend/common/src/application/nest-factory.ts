@@ -6,8 +6,9 @@ import { MODULE_METADATA } from '../core/decorators/module.decorator';
 import { MiddlewareConsumerImpl } from '../core/middleware/middleware-consumer';
 import { AppName } from '../domain/enums/common.enum';
 import { BadRequestException } from '../domain/exceptions/http-exceptions';
-import { DynamicModule, ModuleMetadata, RegisterModuleOptions, NestModule, RegisterOptions } from '../domain/interfaces/common.interface';
-import { Constructor, InitializerToken, ObjectProvider } from '../domain/types/common.type';
+import { RegisterModuleOptions, ModuleMetadata, DynamicModule, NestModule, RegisterOptions } from '../domain/interfaces/common.interface';
+import { NestMiddleware, MiddlewareConfigProxy } from '../domain/interfaces/middleware.interface';
+import { Constructor, ObjectProvider, InitializerToken, MiddlewareFunction } from '../domain/types/common.type';
 
 export class NestFactory {
   private static readonly apps = new Map<AppName, NestApplication>();
@@ -75,7 +76,7 @@ export class NestFactory {
     }
 
     if (moduleMetadata.providers) {
-      moduleMetadata.providers.forEach((provider) => {
+      moduleMetadata.providers.forEach(provider => {
         if (this.isObjectProvider(provider)) {
           const registerOptions: ObjectProvider = { provide: provider.provide as InitializerToken | symbol | Constructor<object> };
 
@@ -89,7 +90,7 @@ export class NestFactory {
       });
     }
 
-    if (moduleMetadata.controllers) moduleMetadata.controllers.forEach((controller) => container.register({ provide: controller }));
+    if (moduleMetadata.controllers) moduleMetadata.controllers.forEach(controller => container.register({ provide: controller }));
 
     if (moduleMetadata.imports) {
       for (const importedModule of moduleMetadata.imports) {
@@ -109,20 +110,26 @@ export class NestFactory {
     if (this.isNestModule(moduleInstance)) {
       const middlewareConsumer = new MiddlewareConsumerImpl(app.getExpressApp(), container);
       const originalApply = middlewareConsumer.apply.bind(middlewareConsumer);
-      middlewareConsumer.apply = (...middleware) => originalApply(...middleware);
+      middlewareConsumer.apply = (...middleware: (MiddlewareFunction | NestMiddleware)[]): MiddlewareConfigProxy => originalApply(...middleware);
       moduleInstance.configure(middlewareConsumer);
     }
 
     if (moduleMetadata.imports) {
       for (const importedModule of moduleMetadata.imports) {
-        if (this.isDynamicModule(importedModule as Constructor | DynamicModule)) await this.configureModuleMiddleware((importedModule as DynamicModule).module, app, container);
+        if (this.isDynamicModule(importedModule as Constructor | DynamicModule))
+          await this.configureModuleMiddleware((importedModule as DynamicModule).module, app, container);
         else await this.configureModuleMiddleware(importedModule as Constructor, app, container);
       }
     }
   }
 
   private isNestModule (instance: unknown): instance is NestModule {
-    return typeof instance === 'object' && instance !== null && 'configure' in instance && typeof (instance as Record<string, unknown>)['configure'] === 'function';
+    return (
+      typeof instance === 'object' &&
+      instance !== null &&
+      'configure' in instance &&
+      typeof (instance as Record<string, unknown>)['configure'] === 'function'
+    );
   }
 
   private isDynamicModule (moduleOrConfig: Constructor | DynamicModule): moduleOrConfig is DynamicModule {

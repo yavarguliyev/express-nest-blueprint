@@ -1,8 +1,8 @@
+import { INJECTABLE_METADATA } from '../decorators/injectable.decorator';
 import { providerResolvers } from '../../domain/constants/provider-resolvers.const';
 import { BadRequestException } from '../../domain/exceptions/http-exceptions';
 import { RegisterOptions } from '../../domain/interfaces/common.interface';
 import { Constructor, Provider } from '../../domain/types/common.type';
-import { INJECTABLE_METADATA } from '../decorators/injectable.decorator';
 
 export class Container {
   private static instance: Container;

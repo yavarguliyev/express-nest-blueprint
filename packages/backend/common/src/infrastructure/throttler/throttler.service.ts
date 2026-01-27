@@ -1,12 +1,13 @@
+import { RedisService } from '../redis/redis.service';
 import { Injectable } from '../../core/decorators/injectable.decorator';
 import { BadRequestException } from '../../domain/exceptions/http-exceptions';
-import { RedisService } from '../redis/redis.service';
+import { RateLimitStatus } from '../../domain/interfaces/common.interface';
 
 @Injectable()
 export class ThrottlerService {
   constructor (private readonly redisService: RedisService) {}
 
-  async checkRateLimit (key: string, limit: number, ttl: number) {
+  async checkRateLimit (key: string, limit: number, ttl: number): Promise<RateLimitStatus> {
     const redis = this.redisService.getClient();
     const fullKey = `throttle:${key}`;
 

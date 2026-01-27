@@ -1,9 +1,9 @@
 import { Response, NextFunction } from 'express';
 
-import { Injectable } from '../decorators/injectable.decorator';
 import { IS_PUBLIC_KEY, ROLES_KEY } from '../decorators/auth.decorator';
+import { Injectable } from '../decorators/injectable.decorator';
 import { UserRoles } from '../../domain/enums/common.enum';
-import { ForbiddenException, UnauthorizedException } from '../../domain/exceptions/http-exceptions';
+import { UnauthorizedException, ForbiddenException } from '../../domain/exceptions/http-exceptions';
 import { AuthenticatedRequest } from '../../domain/interfaces/common.interface';
 import { CanActivate } from '../../domain/interfaces/guard.interface';
 import { Constructor } from '../../domain/types/common.type';

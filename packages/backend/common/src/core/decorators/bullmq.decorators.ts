@@ -12,26 +12,28 @@ export const BULLMQ_SERVICE_TOKEN = Symbol('BULLMQ_SERVICE');
 export const STORAGE_OPTIONS = Symbol('STORAGE_OPTIONS');
 export const COMPUTE_MODULE_OPTIONS = Symbol('COMPUTE_MODULE_OPTIONS');
 
-export const Processor = (queueName: string) => {
-  return (target: object) => Reflect.defineMetadata(PROCESSOR_METADATA, queueName, target);
+export const Processor = (queueName: string): ClassDecorator => {
+  return (target: object): void => Reflect.defineMetadata(PROCESSOR_METADATA, queueName, target);
 };
 
-export const OnJob = (jobName: string, options?: JobHandlerOptions) => {
-  return (target: object, propertyKey: string) => {
+export const OnJob = (jobName: string, options?: JobHandlerOptions): MethodDecorator => {
+  return (target: object, propertyKey: string | symbol): void => {
     const existingHandlers = (Reflect.getMetadata(JOB_HANDLER_METADATA, target.constructor) || []) as unknown[];
     existingHandlers.push({ methodName: propertyKey, jobName, options });
     Reflect.defineMetadata(JOB_HANDLER_METADATA, existingHandlers, target.constructor);
   };
 };
 
-export const InjectQueue = (queueName: string) => {
-  return (target: object, _: string | symbol | undefined, parameterIndex: number) => {
-    const existingQueues = (Reflect.getMetadata(INJECT_QUEUE_METADATA, target) || []) as unknown[];
+export const InjectQueue = (queueName: string): ParameterDecorator => {
+  return (target: object, _propertyKey: string | symbol | undefined, parameterIndex: number): void => {
+    const existingQueues = (Reflect.getMetadata(INJECT_QUEUE_METADATA, target) ?? []) as unknown[];
+
     existingQueues[parameterIndex] = queueName;
+
     Reflect.defineMetadata(INJECT_QUEUE_METADATA, existingQueues, target);
   };
 };
 
-export const QueueProcessor = (metadata: QueueMetadata) => {
-  return (target: object) => Reflect.defineMetadata(QUEUE_METADATA, metadata, target);
+export const QueueProcessor = (metadata: QueueMetadata): ClassDecorator => {
+  return (target: object): void => Reflect.defineMetadata(QUEUE_METADATA, metadata, target);
 };

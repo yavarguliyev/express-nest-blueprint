@@ -1,12 +1,24 @@
 import { extname } from 'path';
 
-import { Injectable, Cache, Compute, DatabaseService, PaginatedResponseDto, BadRequestException, NotFoundException, ValidationService, StorageService, ForbiddenException, JwtPayload } from '@config/libs';
+import {
+  Injectable,
+  Cache,
+  Compute,
+  DatabaseService,
+  PaginatedResponseDto,
+  BadRequestException,
+  NotFoundException,
+  ValidationService,
+  StorageService,
+  ForbiddenException,
+  JwtPayload
+} from '@config/libs';
 
-import { CreateUserDto } from '@/modules/users/dtos/create-user.dto';
-import { FindUsersQueryDto } from '@/modules/users/dtos/find-users-query.dto';
-import { UpdateUserDto } from '@/modules/users/dtos/update-user.dto';
-import { UserResponseDto } from '@/modules/users/dtos/user-response.dto';
-import { UsersRepository } from '@/modules/users/users.repository';
+import { CreateUserDto } from '@modules/users/dtos/create-user.dto';
+import { FindUsersQueryDto } from '@modules/users/dtos/find-users-query.dto';
+import { UpdateUserDto } from '@modules/users/dtos/update-user.dto';
+import { UserResponseDto } from '@modules/users/dtos/user-response.dto';
+import { UsersRepository } from '@modules/users/users.repository';
 
 @Injectable()
 export class UsersService {
@@ -19,9 +31,19 @@ export class UsersService {
   @Cache({ ttl: 60 })
   @Compute({ timeout: 10000 })
   async findAll (queryParams: FindUsersQueryDto): Promise<PaginatedResponseDto<UserResponseDto>> {
-    const { page = 1, limit = 10, search, email, firstName, lastName, isActive, sortBy = 'id', sortOrder = 'DESC' } = await ValidationService.validateQuery(FindUsersQueryDto, queryParams);
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      email,
+      firstName,
+      lastName,
+      isActive,
+      sortBy = 'id',
+      sortOrder = 'DESC'
+    } = await ValidationService.validateQuery(FindUsersQueryDto, queryParams);
 
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise(resolve => setTimeout(resolve, 0));
 
     const { users, total } = await this.usersRepository.findUsersWithPagination({
       page,
@@ -38,7 +60,7 @@ export class UsersService {
     const totalPages = Math.ceil(total / limit);
 
     await Promise.all(
-      users.map(async (user) => {
+      users.map(async user => {
         if (user.profileImageUrl) user.profileImageUrl = await this.storageService.getDownloadUrl(user.profileImageUrl);
       })
     );
@@ -57,11 +79,15 @@ export class UsersService {
   }
 
   async create (createUserDto: CreateUserDto): Promise<UserResponseDto> {
-    return this.databaseService.getWriteConnection().transactionWithRetry(async (transaction) => {
+    return this.databaseService.getWriteConnection().transactionWithRetry(async transaction => {
       const existingUser = await this.usersRepository.findByEmail(createUserDto.email, transaction);
       if (existingUser) throw new BadRequestException(`User with email ${createUserDto.email} already exists`);
 
-      const createdUser = await this.usersRepository.create(createUserDto, ['id', 'email', 'firstName', 'lastName', 'role', 'isActive', 'createdAt', 'updatedAt'], transaction);
+      const createdUser = await this.usersRepository.create(
+        createUserDto,
+        ['id', 'email', 'firstName', 'lastName', 'role', 'isActive', 'createdAt', 'updatedAt'],
+        transaction
+      );
       return ValidationService.transformResponse(UserResponseDto, createdUser!);
     });
   }
@@ -75,7 +101,7 @@ export class UsersService {
       }
     }
 
-    return this.databaseService.getWriteConnection().transactionWithRetry(async (transaction) => {
+    return this.databaseService.getWriteConnection().transactionWithRetry(async transaction => {
       const existingUser = await this.usersRepository.findById(userId, transaction);
       if (!existingUser) throw new NotFoundException(`User with ID ${userId} not found`);
 
@@ -84,7 +110,13 @@ export class UsersService {
         if (userWithEmail) throw new BadRequestException(`User with email ${updateUserDto.email} already exists`);
       }
 
-      const updatedUser = await this.usersRepository.update(userId, updateUserDto, ['id', 'email', 'firstName', 'lastName', 'role', 'isActive', 'createdAt', 'updatedAt'], transaction, currentUser);
+      const updatedUser = await this.usersRepository.update(
+        userId,
+        updateUserDto,
+        ['id', 'email', 'firstName', 'lastName', 'role', 'isActive', 'createdAt', 'updatedAt'],
+        transaction,
+        currentUser
+      );
       if (!updatedUser) throw new BadRequestException(`Failed to update user with ID ${userId}`);
 
       return ValidationService.transformResponse(UserResponseDto, updatedUser);
@@ -112,7 +144,7 @@ export class UsersService {
 
     const userId = this.parseAndValidateId(id);
 
-    return this.databaseService.getWriteConnection().transactionWithRetry(async (transaction) => {
+    return this.databaseService.getWriteConnection().transactionWithRetry(async transaction => {
       const user = await this.usersRepository.findById(userId, transaction);
       if (!user) throw new NotFoundException(`User with ID ${userId} not found`);
 
@@ -124,7 +156,13 @@ export class UsersService {
       await this.storageService.upload(key, file.buffer, file.mimetype);
       const imageUrl = await this.storageService.getDownloadUrl(key);
 
-      const updatedUser = await this.usersRepository.update(userId, { profileImageUrl: key }, ['id', 'email', 'firstName', 'lastName', 'role', 'isActive', 'profileImageUrl'], transaction, currentUser);
+      const updatedUser = await this.usersRepository.update(
+        userId,
+        { profileImageUrl: key },
+        ['id', 'email', 'firstName', 'lastName', 'role', 'isActive', 'profileImageUrl'],
+        transaction,
+        currentUser
+      );
 
       const response = ValidationService.transformResponse(UserResponseDto, updatedUser!);
       response.profileImageUrl = imageUrl;
@@ -136,14 +174,20 @@ export class UsersService {
   async removeProfileImage (id: string, currentUser?: JwtPayload): Promise<UserResponseDto> {
     const userId = this.parseAndValidateId(id);
 
-    return this.databaseService.getWriteConnection().transactionWithRetry(async (transaction) => {
+    return this.databaseService.getWriteConnection().transactionWithRetry(async transaction => {
       const user = await this.usersRepository.findById(userId, transaction);
       if (!user) throw new NotFoundException(`User with ID ${userId} not found`);
 
       if (user.profileImageUrl) {
         await this.storageService.delete(user.profileImageUrl);
 
-        const updatedUser = await this.usersRepository.update(userId, { profileImageUrl: null }, ['id', 'email', 'firstName', 'lastName', 'role', 'isActive', 'profileImageUrl'], transaction, currentUser);
+        const updatedUser = await this.usersRepository.update(
+          userId,
+          { profileImageUrl: null },
+          ['id', 'email', 'firstName', 'lastName', 'role', 'isActive', 'profileImageUrl'],
+          transaction,
+          currentUser
+        );
 
         return ValidationService.transformResponse(UserResponseDto, updatedUser!);
       }

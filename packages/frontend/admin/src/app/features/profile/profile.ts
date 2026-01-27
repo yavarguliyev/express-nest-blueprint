@@ -63,7 +63,7 @@ export class Profile implements OnInit, OnDestroy {
     });
   }
 
-  ngOnInit () {
+  ngOnInit (): void {
     const hasValidProfile = this.authService.getCurrentUser();
     if (!hasValidProfile) {
       const cachedProfile = localStorage.getItem('admin_user');
@@ -75,14 +75,14 @@ export class Profile implements OnInit, OnDestroy {
     this.setupVisibilityListener();
   }
 
-  ngOnDestroy () {
+  ngOnDestroy (): void {
     if (this.visibilityListener) {
       document.removeEventListener('visibilitychange', this.visibilityListener);
     }
   }
 
-  private setupVisibilityListener () {
-    this.visibilityListener = () => {
+  private setupVisibilityListener (): void {
+    this.visibilityListener = (): void => {
       if (!document.hidden) {
         const lastSync = localStorage.getItem('profile-last-sync');
         const now = Date.now();
@@ -97,7 +97,7 @@ export class Profile implements OnInit, OnDestroy {
     document.addEventListener('visibilitychange', this.visibilityListener);
   }
 
-  private updateFormFromUser (user: { firstName?: string; lastName?: string }) {
+  private updateFormFromUser (user: { firstName?: string; lastName?: string }): void {
     this.profileForm = {
       firstName: user.firstName || '',
       lastName: user.lastName || '',
@@ -105,7 +105,7 @@ export class Profile implements OnInit, OnDestroy {
     this.originalForm = { ...this.profileForm };
   }
 
-  private initializeForm () {
+  private initializeForm (): void {
     const currentUser = this.user();
     if (currentUser) {
       this.updateFormFromUser(currentUser);
@@ -119,11 +119,11 @@ export class Profile implements OnInit, OnDestroy {
     );
   }
 
-  resetForm () {
+  resetForm (): void {
     this.profileForm = { ...this.originalForm };
   }
 
-  async saveProfile () {
+  async saveProfile (): Promise<void> {
     if (!this.hasChanges()) return;
 
     const currentUser = this.user();
@@ -160,7 +160,7 @@ export class Profile implements OnInit, OnDestroy {
     }
   }
 
-  async onFileSelected (event: Event) {
+  async onFileSelected (event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
 
@@ -217,9 +217,9 @@ export class Profile implements OnInit, OnDestroy {
     return 'U';
   }
 
-  deleteAvatar () {
-    this.toastService.confirm('Are you sure you want to remove your profile photo?', () => {
-      void (async () => {
+  deleteAvatar (): void {
+    this.toastService.confirm('Are you sure you want to remove your profile photo?', (): void => {
+      void (async (): Promise<void> => {
         try {
           await this.authService.deleteAvatar();
           this.toastService.success('Profile photo removed');

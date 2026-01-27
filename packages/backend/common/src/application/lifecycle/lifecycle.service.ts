@@ -49,6 +49,7 @@ export class LifecycleService {
       maxRetries: this.configService.get<number>('SHUTDOWN_RETRIES', 3),
       retryDelay: this.configService.get<number>('SHUTDOWN_RETRY_DELAY', 1000)
     });
+
     await gracefulShutdown.shutDown(this.httpServer || undefined);
   }
 

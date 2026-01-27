@@ -1,6 +1,6 @@
-import { INJECTABLE_METADATA } from '../../decorators/injectable.decorator';
-import { Constructor } from '../../../domain/types/common.type';
-import { TypeFunc, RESOLVER_METADATA } from '../interfaces/graphql.interface';
+import { INJECTABLE_METADATA } from './injectable.decorator';
+import { RESOLVER_METADATA } from '../../domain/constants/graphql.const';
+import { Constructor, TypeFunc } from '../../domain/types/common.type';
 
 export { RESOLVER_METADATA };
 export const RESOLVER_REGISTRY: Constructor[] = [];

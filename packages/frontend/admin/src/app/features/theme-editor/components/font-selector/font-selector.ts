@@ -239,7 +239,7 @@ export class FontSelector {
     },
   ];
 
-  ngOnInit () {
+  ngOnInit (): void {
     this.checkIfCustomFont();
   }
 

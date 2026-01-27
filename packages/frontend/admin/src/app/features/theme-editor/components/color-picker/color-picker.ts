@@ -239,7 +239,7 @@ export class ColorPicker {
     '#800000',
   ];
 
-  ngOnInit () {
+  ngOnInit (): void {
     this.selectedMode.set(this.currentMode === 'light' ? 'light' : 'dark');
   }
 

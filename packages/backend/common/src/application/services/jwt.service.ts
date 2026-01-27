@@ -2,7 +2,6 @@ import * as jwt from 'jsonwebtoken';
 
 import { Injectable } from '../../core/decorators/injectable.decorator';
 import { BadRequestException, UnauthorizedException } from '../../domain/exceptions/http-exceptions';
-import { JwtPayload } from '../../domain/interfaces/common.interface';
 import { JwtRegisteredClaim, TimeUnit } from '../../domain/types/common.type';
 import { ConfigService } from '../../infrastructure/config/config.service';
 
@@ -19,19 +18,19 @@ export class JwtService {
     this.expiresIn = this.configService.get<string>('JWT_EXPIRES_IN', '24h');
   }
 
-  sign (payload: Omit<JwtPayload, JwtRegisteredClaim>): string {
+  sign (payload: Omit<jwt.JwtPayload, JwtRegisteredClaim>): string {
     return jwt.sign(payload, this.secret, {
       expiresIn: this.expiresIn,
       algorithm: 'HS256'
     } as jwt.SignOptions);
   }
 
-  verify (token: string): JwtPayload {
+  verify (token: string): jwt.JwtPayload {
     try {
       const decoded = jwt.verify(token, this.secret, { algorithms: ['HS256'] });
       if (typeof decoded === 'string') throw new UnauthorizedException('Invalid token payload');
 
-      return decoded as unknown as JwtPayload;
+      return decoded as unknown as jwt.JwtPayload;
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) throw new UnauthorizedException('Token has expired');
       if (error instanceof jwt.JsonWebTokenError) throw new UnauthorizedException('Invalid token');

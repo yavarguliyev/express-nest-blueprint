@@ -1,15 +1,15 @@
-import { INJECT_METADATA } from '../../core/decorators/injectable.decorator';
 import { BadRequestException } from '../exceptions/http-exceptions';
 import type { Constructor, ProviderResolver, ProviderType } from '../types/common.type';
+import { INJECT_METADATA } from '../../core/decorators/injectable.decorator';
 
 export const providerResolvers: Record<ProviderType, ProviderResolver> = {
-  value: (entry) => {
+  value: entry => {
     if (entry.type !== 'value') throw new BadRequestException('Invalid provider type');
     return entry.value;
   },
   factory: (entry, container) => {
     if (entry.type !== 'factory') throw new BadRequestException('Invalid provider type');
-    const deps = entry.inject.map((dep) => container.resolve({ provide: dep }));
+    const deps = entry.inject.map(dep => container.resolve({ provide: dep }));
     return entry.factory(...deps);
   },
   class: (entry, container) => {

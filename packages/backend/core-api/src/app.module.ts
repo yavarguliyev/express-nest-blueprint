@@ -1,4 +1,16 @@
-import { Module, MiddlewareConsumer, NestModule, LoggerMiddleware, HeaderAuthMiddleware, MetricsMiddleware, RateLimitMiddleware, ConfigModule, SharedModule, DatabaseModule, GraphQLModule } from '@config/libs';
+import {
+  Module,
+  MiddlewareConsumer,
+  NestModule,
+  LoggerMiddleware,
+  HeaderAuthMiddleware,
+  MetricsMiddleware,
+  RateLimitMiddleware,
+  ConfigModule,
+  SharedModule,
+  DatabaseModule,
+  GraphQLModule
+} from '@config/libs';
 
 import { AuthModule } from '@modules/auth/auth.module';
 import { UsersModule } from '@modules/users/users.module';

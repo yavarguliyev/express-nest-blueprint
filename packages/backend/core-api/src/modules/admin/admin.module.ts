@@ -15,7 +15,7 @@ import { AdminMetricsService } from '@modules/admin/services/admin-metrics.servi
   exports: [AdminMetricsService, AdminCrudService, AdminBulkOperationsService]
 })
 export class AdminModule implements NestModule {
-  configure (consumer: MiddlewareConsumer) {
+  configure (consumer: MiddlewareConsumer): void {
     consumer.apply(AvatarUploadMiddleware).forRoutes({ path: 'api/v1/admin/profile/upload', method: RequestMethod.POST });
   }
 

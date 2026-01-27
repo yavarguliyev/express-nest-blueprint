@@ -3,10 +3,10 @@ import { Express, Request, Response, NextFunction, RequestHandler } from 'expres
 import { Container } from '../container/container';
 import { CONTROLLER_METADATA } from '../decorators/controller.decorator';
 import { RequestMethod } from '../../domain/enums/common.enum';
-import { ControllerOptions } from '../../domain/interfaces/common.interface';
-import { MiddlewareConsumer, MiddlewareConfigProxy, NestMiddleware, RouteInfo, MiddlewareConfig } from '../../domain/interfaces/middleware.interface';
 import { createMethodMap, isMiddlewareConstructor, isNestMiddleware } from '../../domain/helpers/utility-functions.helper';
-import { Constructor, MiddlewareFunction, MiddlewareNewConstructor } from '../../domain/types/common.type';
+import { ControllerOptions } from '../../domain/interfaces/common.interface';
+import { MiddlewareConsumer, MiddlewareConfig, NestMiddleware, MiddlewareConfigProxy, RouteInfo } from '../../domain/interfaces/middleware.interface';
+import { MiddlewareFunction, MiddlewareNewConstructor, Constructor } from '../../domain/types/common.type';
 
 export class MiddlewareConsumerImpl implements MiddlewareConsumer {
   private middlewareConfigs: MiddlewareConfig[] = [];
@@ -46,13 +46,13 @@ export class MiddlewareConsumerImpl implements MiddlewareConsumer {
   private applyMiddleware (config: MiddlewareConfig): void {
     const methodMap = createMethodMap(this.app);
 
-    config.middleware.forEach((mw) => {
-      const wrappedMiddleware = this.wrapMiddlewareWithExclusions(mw, config.excludeRoutes) as RequestHandler;
+    config.middleware.forEach(mw => {
+      const wrappedMiddleware = this.wrapMiddlewareWithExclusions(mw, config.excludeRoutes);
 
       if (config.routes.length === 0) {
         this.app.use(wrappedMiddleware);
       } else {
-        config.routes.forEach((route) => {
+        config.routes.forEach(route => {
           const routePath = this.getRoutePath(route);
           const method = this.getRouteMethod(route);
 
@@ -64,24 +64,31 @@ export class MiddlewareConsumerImpl implements MiddlewareConsumer {
   }
 
   private wrapMiddleware (middleware: MiddlewareFunction | NestMiddleware | MiddlewareNewConstructor) {
-    return (req: Request, res: Response, next: NextFunction) => {
+    return (req: Request, res: Response, next: NextFunction): void => {
       try {
-        if (isMiddlewareConstructor(middleware)) return this.container.resolve({ provide: middleware as Constructor<NestMiddleware> }).use(req, res, next);
-        else if (isNestMiddleware(middleware)) return middleware.use(req, res, next);
-        else next();
+        if (isMiddlewareConstructor(middleware)) {
+          return this.container.resolve({ provide: middleware as Constructor<NestMiddleware> }).use(req, res, next);
+        } else if (isNestMiddleware(middleware)) {
+          return middleware.use(req, res, next);
+        } else {
+          next();
+        }
       } catch (error) {
         next(error);
       }
     };
   }
 
-  private wrapMiddlewareWithExclusions (middleware: MiddlewareFunction | NestMiddleware | MiddlewareNewConstructor, excludeRoutes: (string | RouteInfo)[]) {
+  private wrapMiddlewareWithExclusions (
+    middleware: MiddlewareFunction | NestMiddleware | MiddlewareNewConstructor,
+    excludeRoutes: (string | RouteInfo)[]
+  ): RequestHandler {
     const wrappedMiddleware = this.wrapMiddleware(middleware);
 
     if (excludeRoutes.length === 0) return wrappedMiddleware;
 
     return (req: Request, res: Response, next: NextFunction) => {
-      const shouldExclude = excludeRoutes.some((excludeRoute) => {
+      const shouldExclude = excludeRoutes.some(excludeRoute => {
         const excludePath = typeof excludeRoute === 'string' ? excludeRoute : excludeRoute.path;
         const excludeMethod = typeof excludeRoute === 'object' ? excludeRoute.method : undefined;
         const pathMatches = this.matchPath(req.path, excludePath);

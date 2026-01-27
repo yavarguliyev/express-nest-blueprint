@@ -51,6 +51,6 @@ export class ValidationService {
   }
 
   static transformResponseArray<T extends object> (dtoClass: ClassConstructor<T>, dataArray: unknown[]): T[] {
-    return dataArray.map((item) => this.transformResponse(dtoClass, item));
+    return dataArray.map(item => this.transformResponse(dtoClass, item));
   }
 }

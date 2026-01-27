@@ -7,16 +7,23 @@ import { Container } from '../core/container/container';
 import { CONTROLLER_METADATA } from '../core/decorators/controller.decorator';
 import { GUARDS_METADATA } from '../core/decorators/middleware.decorators';
 import { PARAM_METADATA } from '../core/decorators/param.decorators';
-import { CONTROLLER_REGISTRY } from '../core/decorators/register-controller-class.helper';
+import { CONTROLLER_REGISTRY } from '../core/decorators/register-controller-class.decorator';
 import { ROUTE_METADATA } from '../core/decorators/route.decorators';
 import { GlobalExceptionFilter } from '../core/filters/global-exception.filter';
 import { AuthGuard } from '../core/guards/auth.guard';
 import { RolesGuard } from '../core/guards/roles.guard';
 import { paramHandlers } from '../domain/constants/common.const';
 import { METHODS } from '../domain/constants/system.const';
-import { BadRequestException, InternalServerErrorException, UnauthorizedException } from '../domain/exceptions/http-exceptions';
+import { BadRequestException, UnauthorizedException, InternalServerErrorException } from '../domain/exceptions/http-exceptions';
 import { getErrorMessage } from '../domain/helpers/utility-functions.helper';
-import { ControllerOptions, CorsOptions, ExtractMethodOptions, HasMethodOptions, ParamMetadata, RouteMetadata } from '../domain/interfaces/common.interface';
+import {
+  ControllerOptions,
+  RouteMetadata,
+  ParamMetadata,
+  HasMethodOptions,
+  ExtractMethodOptions,
+  CorsOptions
+} from '../domain/interfaces/common.interface';
 import { CanActivate } from '../domain/interfaces/guard.interface';
 import { Constructor, ExpressHttpMethods, HttpMethod } from '../domain/types/common.type';
 import { ConfigService } from '../infrastructure/config/config.service';
@@ -46,7 +53,7 @@ export class NestApplication {
 
     const basePath = controllerMetadata.path || '';
     const controllerInstance = this.container.resolve({ provide: controllerClass });
-    const methodNames = Object.getOwnPropertyNames(controllerClass.prototype).filter((name) => name !== 'constructor');
+    const methodNames = Object.getOwnPropertyNames(controllerClass.prototype).filter(name => name !== 'constructor');
 
     const methodMap: Record<string, (path: string, handler: (req: Request, res: Response, next: NextFunction) => void) => void> = {
       get: this.app.get.bind(this.app),
@@ -56,22 +63,26 @@ export class NestApplication {
       patch: this.app.patch.bind(this.app)
     };
 
-    methodNames.forEach((methodName) => {
+    methodNames.forEach(methodName => {
       const routeMetadata = (Reflect.getMetadata(ROUTE_METADATA as symbol, controllerClass.prototype as object, methodName) || []) as RouteMetadata[];
 
-      routeMetadata.forEach((route) => {
+      routeMetadata.forEach(route => {
         const fullPath = this.normalizePath(this.globalPrefix, basePath, route.path);
 
         if (!this.isValidRoutePath(fullPath) || this.hasInvalidPathSyntax(fullPath)) return;
         if (!this.hasMethod({ instance: controllerInstance, methodName })) return;
 
-        const originalMethod = this.extractMethod({ instance: controllerInstance, methodName: methodName as keyof typeof controllerInstance }) as (...args: unknown[]) => Promise<unknown>;
-        const paramMetadata = (Reflect.getMetadata(PARAM_METADATA as symbol, controllerClass.prototype as object, methodName) || []) as ParamMetadata[];
+        const originalMethod = this.extractMethod({ instance: controllerInstance, methodName: methodName as keyof typeof controllerInstance }) as (
+          ...args: unknown[]
+        ) => Promise<unknown>;
+        const paramMetadata = (Reflect.getMetadata(PARAM_METADATA as symbol, controllerClass.prototype as object, methodName) ||
+          []) as ParamMetadata[];
 
-        const handler = async (req: Request, res: Response, next: NextFunction) => {
+        const handler: (req: Request, res: Response, next: NextFunction) => Promise<void> = async (req, res, next): Promise<void> => {
           try {
             const classGuards = (Reflect.getMetadata(GUARDS_METADATA, controllerClass) || []) as Constructor<CanActivate>[];
-            const methodGuards = (Reflect.getMetadata(GUARDS_METADATA, controllerClass.prototype as object, methodName) || []) as Constructor<CanActivate>[];
+            const methodGuards = (Reflect.getMetadata(GUARDS_METADATA, controllerClass.prototype as object, methodName) ||
+              []) as Constructor<CanActivate>[];
 
             const guardsToRun: Constructor<CanActivate>[] = [AuthGuard, RolesGuard, ...classGuards, ...methodGuards];
 
@@ -79,12 +90,19 @@ export class NestApplication {
               const guardInstance = this.container.resolve<CanActivate>({ provide: GuardClass });
 
               await new Promise<void>((resolve, reject) => {
-                void guardInstance.canActivate(req, res, (err?: Error | string) => (err ? reject(new UnauthorizedException(String(getErrorMessage(err)))) : resolve()), originalMethod, controllerClass);
+                void guardInstance.canActivate(
+                  req,
+                  res,
+                  (err?: Error | string) => (err ? reject(new UnauthorizedException(String(getErrorMessage(err)))) : resolve()),
+                  originalMethod,
+                  controllerClass
+                );
               });
             }
 
             const args: unknown[] = [];
-            const paramTypes = (Reflect.getMetadata('design:paramtypes', controllerClass.prototype as object, methodName) || []) as ClassConstructor<object>[];
+            const paramTypes = (Reflect.getMetadata('design:paramtypes', controllerClass.prototype as object, methodName) ||
+              []) as ClassConstructor<object>[];
 
             for (const param of paramMetadata.sort((a, b) => a.index - b.index)) {
               const fn = paramHandlers[param.type];
@@ -95,7 +113,13 @@ export class NestApplication {
 
             if (res.headersSent) return;
 
-            const hasPassthrough = paramMetadata.some((param) => param.type === 'response' && typeof param.data === 'object' && param.data !== null && (param.data as { passthrough?: boolean }).passthrough);
+            const hasPassthrough = paramMetadata.some(
+              param =>
+                param.type === 'response' &&
+                typeof param.data === 'object' &&
+                param.data !== null &&
+                (param.data as { passthrough?: boolean }).passthrough
+            );
 
             if (hasPassthrough) {
               if (result !== undefined) res.send(result);
@@ -146,11 +170,11 @@ export class NestApplication {
         });
 
         server.once('error', (err: unknown) => {
-          void (async () => {
+          void (async (): Promise<void> => {
             const error = err as Error & { code?: string };
             if (error.code === 'EADDRINUSE' && retries < maxRetries) {
               retries++;
-              await new Promise<void>((closeResolve) => server.close(() => closeResolve()));
+              await new Promise<void>(closeResolve => server.close(() => closeResolve()));
               setTimeout(() => void attemptListen().then(resolve).catch(reject), 500);
             } else {
               reject(new InternalServerErrorException(getErrorMessage(error)));
@@ -197,12 +221,13 @@ export class NestApplication {
     if (normalizedPrefix && !normalizedPrefix.startsWith('/')) this.globalPrefix = '/' + normalizedPrefix;
     else this.globalPrefix = normalizedPrefix;
 
-    if (this.globalPrefix.length > 1 && this.globalPrefix.endsWith('/')) this.globalPrefix = this.globalPrefix.substring(0, this.globalPrefix.length - 1);
+    if (this.globalPrefix.length > 1 && this.globalPrefix.endsWith('/'))
+      this.globalPrefix = this.globalPrefix.substring(0, this.globalPrefix.length - 1);
   }
 
   async close (): Promise<void> {
     if (this.server && this.server.listening) {
-      await new Promise<void>((resolve, reject) => this.server!.close((error) => (error ? reject(error) : resolve())));
+      await new Promise<void>((resolve, reject) => this.server!.close(error => (error ? reject(error) : resolve())));
     }
 
     this.container.clear();
@@ -236,7 +261,7 @@ export class NestApplication {
   private normalizePath (...segments: string[]): string {
     const cleanSegments = segments
       .filter((segment): segment is string => Boolean(segment && segment.trim() !== ''))
-      .map((segment) => {
+      .map(segment => {
         let cleaned = segment.trim();
 
         if (cleaned.includes('://')) return '';
@@ -262,13 +287,13 @@ export class NestApplication {
     return true;
   }
 
-  private initialize = (): void => CONTROLLER_REGISTRY.forEach((controller) => this.registerController(controller));
+  private initialize = (): void => CONTROLLER_REGISTRY.forEach(controller => this.registerController(controller));
 
   private setupPathValidation (): void {
     const methods: HttpMethod[] = [...METHODS];
     const app = this.app as unknown as Application & ExpressHttpMethods;
 
-    methods.forEach((method) => {
+    methods.forEach(method => {
       const originalMethod = app[method]?.bind(app);
 
       if (!originalMethod) return;

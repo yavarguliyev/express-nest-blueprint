@@ -1,5 +1,5 @@
-import { Injectable } from '../../core/decorators/injectable.decorator';
 import { RedisService } from '../redis/redis.service';
+import { Injectable } from '../../core/decorators/injectable.decorator';
 
 @Injectable()
 export class CacheService {

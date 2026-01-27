@@ -1,11 +1,11 @@
 import { ConfigService } from '../config/config.service';
 import { getDatabaseConfig } from '../config/database.config';
 import { DatabaseService } from '../database/database.service';
+import { Logger } from '../logger/logger.service';
+import { LifecycleService } from '../../application/lifecycle/lifecycle.service';
 import { Module } from '../../core/decorators/module.decorator';
 import { DynamicModule } from '../../domain/interfaces/common.interface';
 import { DatabaseModuleOptions } from '../../domain/interfaces/database.interface';
-import { LifecycleService } from '../../application/lifecycle/lifecycle.service';
-import { Logger } from '../logger/logger.service';
 
 @Module({
   providers: [DatabaseService],
@@ -24,7 +24,11 @@ export class DatabaseModule {
         DatabaseService,
         {
           provide: 'DATABASE_INITIALIZER',
-          useFactory: ((databaseService: DatabaseService, lifecycleService: LifecycleService, configService: ConfigService): (() => Promise<void>) => {
+          useFactory: ((
+            databaseService: DatabaseService,
+            lifecycleService: LifecycleService,
+            configService: ConfigService
+          ): (() => Promise<void>) => {
             return async () => {
               const dbConfig = config || getDatabaseConfig();
 
@@ -46,7 +50,7 @@ export class DatabaseModule {
               }
 
               if (lifecycleService) {
-                const disconnect = async () => await databaseService.closeAllConnections();
+                const disconnect = async (): Promise<void> => await databaseService.closeAllConnections();
                 lifecycleService.registerShutdownHandler({ name: 'Database service', disconnect });
               }
             };
