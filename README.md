@@ -78,7 +78,7 @@ graph TD
         UI["Admin UI"]
     end
 
-    subgraph Backend["Backend (Express/Nest-style)"]
+    subgraph Backend["Backend"]
         API["API Gateway (Role: API)"]
         Worker["Background Worker (Role: WORKER)"]
         
