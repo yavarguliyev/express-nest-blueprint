@@ -45,11 +45,11 @@
 - **Intelligent Worker Spawning**
   - The API process automatically spawns and manages a pool of child worker processes.
 
-## Event-Driven Notifications (Kafka)
+## Event-Driven Architecture (Kafka)
 
 - **Decoupled Messaging**: Service-to-service communication via Kafka events.
-- **Scalable Processing**: High-throughput notification delivery handled by background consumers.
-- **Real-time Streaming**: Instant UI updates via Server-Sent Events (SSE) powered by Redis Pub/Sub.
+- **Scalable Processing**: High-throughput event consumption handled by background workers.
+- **Future-Ready**: Extensible event bus for cross-service synchronization and data streaming.
 
 ## System Resilience
 
@@ -76,7 +76,6 @@ graph TD
     
     subgraph Frontend["Frontend (Angular)"]
         UI["Admin UI"]
-        SSE["SSE Listener"]
     end
 
     subgraph Backend["Backend (Express/Nest-style)"]
@@ -100,9 +99,6 @@ graph TD
     API -- "Produces Events" --> Kafka
     Kafka -- "Consumes Events" --> Worker
     Worker -- "Persists / Updates" --> Postgres
-    Worker -- "Publishes updates" --> Redis
-    Redis -- "Broadcasting" --> API
-    API -- "SSE Stream" --> SSE
 ```
 
 ---
@@ -128,7 +124,7 @@ graph LR
     end
 
     subgraph InfraLayer["4. Infrastructure"]
-        Handler["Event Handler"]
+        Handler["EventHandler / Worker"]
         Repo["Repository"]
     end
 
@@ -159,7 +155,7 @@ graph LR
 
 - **DatabaseService**: Manages PostgreSQL connections.
 - **Redis/BullMQ**: Handles the transport layer for offloaded jobs.
-- **Kafka**: Manages event-driven communication (e.g., notification triggers).
+- **Kafka**: Manages event-driven communication (e.g., cross-service events).
 - **LifecycleModule**: Coordinates system-wide startup and shutdown.
 
 ---
@@ -420,14 +416,13 @@ npm run start -w @app/core-api
 
 # 📨 Event-Driven Messaging (Kafka)
 
-The system uses **Apache Kafka** for asynchronous, event-driven communication. This ensures that the primary API remains responsive while complex side effects (like multi-channel notifications) are handled in the background.
+The system uses **Apache Kafka** for asynchronous, event-driven communication. This ensures that the primary API remains responsive while complex side effects or cross-service synchronizations are handled in the background.
 
 ### Workflow:
-1.  **Event Production**: The API emits a `NotificationEvent` (e.g., `user.created`).
+1.  **Event Production**: The API emits an event (e.g., `user.created`).
 2.  **Message Brokering**: Kafka persists the event and distributes it to the consumer group.
 3.  **Consumption**: Dedicated **Worker** processes consume the message.
-4.  **Action**: The `NotificationEventHandler` creates database records.
-5.  **Streaming**: Redis Pub/Sub broadcasts the new notification to active SSE connections.
+4.  **Action**: Event Handlers process the message, performing tasks like updating auxiliary databases or triggering external services.
 
 ---
 
