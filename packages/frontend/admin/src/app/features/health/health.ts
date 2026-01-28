@@ -24,7 +24,22 @@ export class Health implements OnInit {
   refresh (): void {
     this.loading.set(true);
     this.error.set('');
-    this.dashboardService.getHealth().subscribe({
+    this.dashboardService.getHealth(true).subscribe({
+      next: (data) => {
+        this.healthStatus.set(data);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.error.set('Failed to load system health diagnostics.');
+        this.loading.set(false);
+      },
+    });
+  }
+
+  forceRefresh (): void {
+    this.loading.set(true);
+    this.error.set('');
+    this.dashboardService.refreshHealth().subscribe({
       next: (data) => {
         this.healthStatus.set(data);
         this.loading.set(false);

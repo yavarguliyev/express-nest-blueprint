@@ -39,6 +39,12 @@
   font-weight: 500;
 }
 
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
 /* Schema Tree Styling */
 .schema-tree {
   display: flex;
@@ -197,6 +203,12 @@
   align-items: center;
   margin-bottom: 1.5rem;
   gap: 2rem;
+}
+
+.crud-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .search-box {

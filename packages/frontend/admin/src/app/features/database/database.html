@@ -4,10 +4,16 @@
       <h2>Architectural Explorer</h2>
       <p class="text-muted">Direct oversight and manipulation of relational entity matrices</p>
     </div>
-    <button class="btn btn-primary" (click)="loadSchema()" [disabled]="loadingSchema()">
-      <span class="material-icons" [class.spin]="loadingSchema()">hub</span>
-      Re-scan Infrastructure
-    </button>
+    <div class="header-actions">
+      <button class="btn btn-secondary" (click)="loadSchema()" [disabled]="loadingSchema()" title="Use cached schema">
+        <span class="material-icons" [class.spin]="loadingSchema()">cached</span>
+        Load Schema
+      </button>
+      <button class="btn btn-primary" (click)="refreshSchema()" [disabled]="loadingSchema()" title="Force fresh schema">
+        <span class="material-icons" [class.spin]="loadingSchema()">hub</span>
+        Re-scan Infrastructure
+      </button>
+    </div>
   </div>
 
   <div *ngIf="loadingSchema()" class="schema-skeleton">
@@ -39,8 +45,13 @@
                 <span class="material-icons search-icon">search</span>
                 <input type="text" [placeholder]="'Search ' + table.displayName + '...'" (input)="onSearch($event)">
               </div>
-              <div class="crud-stats text-muted">
-                {{ total() }} records discovered
+              <div class="crud-actions">
+                <button class="btn btn-sm btn-secondary" (click)="refreshTableData()" [disabled]="loadingData()" title="Refresh table data">
+                  <span class="material-icons" [class.spin]="loadingData()">refresh</span>
+                </button>
+                <div class="crud-stats text-muted">
+                  {{ total() }} records discovered
+                </div>
               </div>
             </div>
 

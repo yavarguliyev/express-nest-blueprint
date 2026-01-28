@@ -1,7 +1,6 @@
 import { Component, OnInit, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 
 import { ToggleSwitch } from '../../shared/components/toggle-switch/toggle-switch';
@@ -10,30 +9,11 @@ import {
   DraftStatusConfig,
 } from '../../shared/components/draft-status-bar/draft-status-bar';
 import { ToastService } from '../../core/services/toast.service';
-import { API_ENDPOINTS } from '../../core/constants/api-endpoints';
-
-interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message: string;
-}
-
-interface SettingItem {
-  id: string;
-  label: string;
-  description: string;
-  value: boolean;
-  isActive: boolean;
-  category: string;
-}
-
-interface SettingsUpdateRequest {
-  settings: Array<{
-    key: string;
-    value: boolean;
-    isActive?: boolean;
-  }>;
-}
+import { 
+  SettingsService, 
+  SettingItem, 
+  SettingsUpdateRequest 
+} from '../../core/services/settings.service';
 
 @Component({
   selector: 'app-settings',
@@ -43,7 +23,7 @@ interface SettingsUpdateRequest {
   styleUrl: './settings.css',
 })
 export class Settings implements OnInit {
-  private readonly http = inject(HttpClient);
+  private readonly settingsService = inject(SettingsService);
   private readonly toastService = inject(ToastService);
 
   settings = signal<SettingItem[]>([]);
@@ -109,11 +89,38 @@ export class Settings implements OnInit {
     void this.loadSettings();
   }
 
-  private async loadSettings (): Promise<void> {
+  async refreshSettings (): Promise<void> {
     try {
       this.loading.set(true);
       const response = await firstValueFrom(
-        this.http.get<ApiResponse<SettingItem[]>>(API_ENDPOINTS.SETTINGS.GET_ALL),
+        this.settingsService.refreshSettings(),
+      );
+
+      const allowedSettings = [
+        'maintenance_mode',
+        'debug_logging',
+        'allow_registration',
+        'enforce_mfa',
+      ];
+      const filteredSettings = (response.data).filter((setting) =>
+        allowedSettings.includes(setting.id),
+      );
+
+      this.settings.set(filteredSettings);
+      this.originalSettings.set(JSON.parse(JSON.stringify(filteredSettings)) as SettingItem[]);
+      void this.toastService.success('Settings refreshed successfully');
+    } catch {
+      void this.toastService.error('Failed to refresh settings');
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  async loadSettings (): Promise<void> {
+    try {
+      this.loading.set(true);
+      const response = await firstValueFrom(
+        this.settingsService.loadSettings(true),
       );
 
       const allowedSettings = [
@@ -169,7 +176,7 @@ export class Settings implements OnInit {
       };
 
       const response = await firstValueFrom(
-        this.http.put<ApiResponse<SettingItem[]>>(API_ENDPOINTS.SETTINGS.UPDATE, updateRequest),
+        this.settingsService.updateSettings(updateRequest),
       );
 
       this.settings.set(response.data);

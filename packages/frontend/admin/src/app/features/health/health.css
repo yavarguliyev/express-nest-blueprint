@@ -164,6 +164,12 @@
   font-weight: 500;
 }
 
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
 .diagnostics-grid {
   display: grid;
   grid-template-columns: 1fr 2fr;

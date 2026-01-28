@@ -14,8 +14,9 @@ import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { ToastService } from '../../core/services/toast.service';
 import { DatabaseDraftService } from '../../core/services/database-draft.service';
+import { DatabaseCacheService } from '../../core/services/database-cache.service';
+import { DatabaseUiService } from '../../core/services/database-ui.service';
 import {
-  DatabaseOperationsService,
   TableMetadata,
   Schema,
   Column,
@@ -42,7 +43,8 @@ import {
 export class Database implements OnInit, AfterViewInit {
   private toastService = inject(ToastService);
   draftService = inject(DatabaseDraftService);
-  private dbOperations = inject(DatabaseOperationsService);
+  private dbCache = inject(DatabaseCacheService);
+  private dbUi = inject(DatabaseUiService);
   private dbValidation = inject(DatabaseValidationService);
   private dbHelper = inject(DatabaseHelperService);
   private dbForm = inject(DatabaseFormService);
@@ -112,14 +114,14 @@ export class Database implements OnInit, AfterViewInit {
 
   ngAfterViewInit (): void {
     if (this.tableScrollContainer) {
-      this.setupScrollIndicators();
+      this.dbUi.setupScrollIndicators(this.tableScrollContainer.nativeElement);
     }
   }
 
   loadSchema (): void {
     if (this.schema()) return;
     this.loadingSchema.set(true);
-    this.dbOperations.loadSchema().subscribe({
+    this.dbCache.loadSchemaWithCache(true).subscribe({
       next: (res) => {
         this.schema.set(res.data);
         this.loadingSchema.set(false);
@@ -128,6 +130,43 @@ export class Database implements OnInit, AfterViewInit {
       error: () => {
         this.toastService.error('Failed to load database schema.');
         this.loadingSchema.set(false);
+      },
+    });
+  }
+
+  refreshSchema (): void {
+    this.loadingSchema.set(true);
+    this.dbCache.refreshSchemaWithToast().subscribe({
+      next: (res) => {
+        this.schema.set(res.data);
+        this.loadingSchema.set(false);
+        this.expandFirstCategory();
+      },
+      error: () => {
+        this.loadingSchema.set(false);
+      },
+    });
+  }
+
+  refreshTableData (): void {
+    const table = this.selectedTable();
+    if (!table) return;
+    this.loadingData.set(true);
+    this.dbCache.refreshTableDataWithToast(table, this.page(), this.limit, this.searchQuery()).subscribe({
+      next: (res) => {
+        const responseData = res.data;
+        if (responseData?.data) {
+          this.tableData.set(responseData.data);
+          this.total.set(responseData.total || responseData.data.length);
+          this.resetTableScroll();
+        } else {
+          this.tableData.set([]);
+          this.total.set(0);
+        }
+        this.loadingData.set(false);
+      },
+      error: () => {
+        this.loadingData.set(false);
       },
     });
   }
@@ -158,7 +197,7 @@ export class Database implements OnInit, AfterViewInit {
     const table = this.selectedTable();
     if (!table) return;
     this.loadingData.set(true);
-    this.dbOperations.loadTableData(table, this.page(), this.limit, this.searchQuery()).subscribe({
+    this.dbCache.loadTableDataWithCache(table, this.page(), this.limit, this.searchQuery(), true).subscribe({
       next: (res) => {
         const responseData = res.data;
         if (responseData?.data) {
@@ -363,44 +402,18 @@ export class Database implements OnInit, AfterViewInit {
   }
 
   publishAllChanges (): void {
-    if (!this.hasDrafts()) {
-      this.toastService.info('No changes to publish');
-      return;
-    }
-    this.isPublishing.set(true);
-    this.draftService.publishDrafts().subscribe({
-      next: (response) => {
-        this.isPublishing.set(false);
-        if (response.success) {
-          this.toastService.success(
-            `Successfully published ${response.summary.successful} changes`,
-          );
-          this.loadTableData(false);
-        } else {
-          this.toastService.error(
-            `Published ${response.summary.successful} changes, ${response.summary.failed} failed`,
-          );
-        }
-      },
-      error: () => {
-        this.isPublishing.set(false);
-        this.toastService.error('Failed to publish changes');
-      },
-    });
+    this.dbUi.publishAllChanges(
+      this.hasDrafts(),
+      (value) => this.isPublishing.set(value),
+      () => this.loadTableData(false)
+    );
   }
 
   resetAllChanges (): void {
-    if (!this.hasDrafts()) {
-      this.toastService.info('No changes to reset');
-      return;
-    }
-    this.toastService.confirm(
-      `Reset all ${this.draftCount()} unsaved changes? This cannot be undone.`,
-      () => {
-        this.draftService.resetDrafts();
-        this.loadTableData(false);
-        this.toastService.success('All changes have been reset');
-      },
+    this.dbUi.resetAllChanges(
+      this.hasDrafts(),
+      this.draftCount(),
+      () => this.loadTableData(false)
     );
   }
 
@@ -413,23 +426,6 @@ export class Database implements OnInit, AfterViewInit {
 
   handleImageClick (row: Record<string, unknown>, columnName: string): void {
     const imageUrl = row[columnName] as string;
-    if (imageUrl?.trim()) {
-      window.open(imageUrl, '_blank');
-    } else {
-      this.toastService.info('No image available.');
-    }
-  }
-
-  private setupScrollIndicators (): void {
-    const container = this.tableScrollContainer.nativeElement;
-    const updateScrollIndicators = (): void => {
-      const { scrollLeft, scrollWidth, clientWidth } = container;
-      container.classList.remove('scrolled-left', 'scrolled-right');
-      if (scrollLeft > 0) container.classList.add('scrolled-left');
-      if (scrollLeft < scrollWidth - clientWidth - 1) container.classList.add('scrolled-right');
-    };
-    setTimeout(updateScrollIndicators, 100);
-    container.addEventListener('scroll', updateScrollIndicators);
-    window.addEventListener('resize', updateScrollIndicators);
+    this.dbUi.handleImageClick(imageUrl);
   }
 }

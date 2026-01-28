@@ -5,6 +5,16 @@
       <h2>System Settings</h2>
       <p class="text-muted">Configure global application behavior and security policies</p>
     </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" (click)="loadSettings()" [disabled]="loading()" title="Use cached settings">
+        <span class="material-icons" [class.spin]="loading()">cached</span>
+        Load Settings
+      </button>
+      <button class="btn btn-primary" (click)="refreshSettings()" [disabled]="loading()" title="Force fresh settings">
+        <span class="material-icons" [class.spin]="loading()">refresh</span>
+        Refresh Settings
+      </button>
+    </div>
   </div>
 
   <app-draft-status-bar
