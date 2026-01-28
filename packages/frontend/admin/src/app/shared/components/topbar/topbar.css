@@ -32,7 +32,6 @@
   z-index: 10000;
 }
 
-
 /* Theme Toggle Styling */
 .theme-toggle {
   display: flex;
@@ -52,16 +51,15 @@
 }
 
 /* Light mode theme toggle styling */
-[data-theme="light"] .theme-toggle {
+[data-theme='light'] .theme-toggle {
   background: rgba(0, 0, 0, 0.05);
   border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-[data-theme="light"] .theme-toggle:hover {
+[data-theme='light'] .theme-toggle:hover {
   background: rgba(0, 0, 0, 0.08);
   border-color: rgba(0, 0, 0, 0.2);
 }
-
 
 .user-profile {
   display: flex;

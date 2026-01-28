@@ -7,11 +7,12 @@ import { SidebarService } from '../../../core/services/sidebar.service';
 import { ToggleSwitch } from '../toggle-switch/toggle-switch';
 import { filter, map } from 'rxjs/operators';
 import { signal } from '@angular/core';
+import { DraggableResizableDirective } from '../../directives/draggable-resizable.directive';
 
 @Component({
   selector: 'app-topbar',
   standalone: true,
-  imports: [CommonModule, RouterLink, ToggleSwitch],
+  imports: [CommonModule, RouterLink, ToggleSwitch, DraggableResizableDirective],
   templateUrl: './topbar.html',
   styleUrl: './topbar.css',
 })

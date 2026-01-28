@@ -124,10 +124,6 @@ export class DatabaseFormService {
 
     this.draftService.updateDraft(draftId, currentData);
 
-    this.toastService.success(
-      `Changes saved as draft for record ${recordId}. Use "Save Changes" to apply all drafts.`,
-    );
-
     return true;
   }
 
@@ -168,10 +164,6 @@ export class DatabaseFormService {
     if (existingDraft) {
       const updatedData = { ...existingDraft.draftData, [column.name]: newValue };
       this.draftService.updateDraft(draftId, updatedData);
-
-      this.toastService.success(
-        `${column.name} change saved as draft. Use "Save Changes" to apply all changes.`,
-      );
     }
   }
 }

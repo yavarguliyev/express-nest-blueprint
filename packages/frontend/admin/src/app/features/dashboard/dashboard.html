@@ -1,5 +1,5 @@
 <div class="dashboard-page animate-fade-in">
-  <div class="page-header">
+  <div class="page-header" appDraggableResizable="dashboard-header">
     <div class="header-content">
       <h2>System Dashboard</h2>
       <p class="text-muted">Real-time monitoring and analytics for infrastructure performance</p>
@@ -8,7 +8,7 @@
 
   <div class="dashboard-container">
     <div class="stats-grid">
-      <div class="stat-card glass animate-slide-up">
+      <div class="stat-card glass animate-slide-up" appDraggableResizable="dashboard-stat-users">
         <div class="stat-icon users-icon"><span class="material-icons">people</span></div>
         <div class="stat-content">
           <span class="stat-label">Total Users</span>
@@ -20,7 +20,7 @@
         </div>
       </div>
 
-      <div class="stat-card glass animate-slide-up" style="animation-delay: 0.1s">
+      <div class="stat-card glass animate-slide-up" style="animation-delay: 0.1s" appDraggableResizable="dashboard-stat-memory">
         <div class="stat-icon memory-icon"><span class="material-icons">memory</span></div>
         <div class="stat-content">
           <span class="stat-label">Memory Usage</span>
@@ -35,7 +35,7 @@
         </div>
       </div>
 
-      <div class="stat-card glass animate-slide-up" style="animation-delay: 0.2s">
+      <div class="stat-card glass animate-slide-up" style="animation-delay: 0.2s" appDraggableResizable="dashboard-stat-requests">
         <div class="stat-icon requests-icon"><span class="material-icons">api</span></div>
         <div class="stat-content">
           <span class="stat-label">API Requests</span>
@@ -47,7 +47,7 @@
         </div>
       </div>
 
-      <div class="stat-card glass animate-slide-up" style="animation-delay: 0.3s">
+      <div class="stat-card glass animate-slide-up" style="animation-delay: 0.3s" appDraggableResizable="dashboard-stat-cpu">
         <div class="stat-icon cpu-icon"><span class="material-icons">developer_board</span></div>
         <div class="stat-content">
           <span class="stat-label">CPU Usage</span>
@@ -65,7 +65,7 @@
     </div>
 
     <div class="charts-section animate-fade-in" *ngIf="data()?.charts?.length">
-      <div *ngFor="let chart of data()?.charts" class="chart-card glass">
+      <div *ngFor="let chart of data()?.charts; let i = index" class="chart-card glass" [appDraggableResizable]="'dashboard-chart-' + i">
         <div class="chart-header">
           <h4>{{ chart.title }}</h4>
           <span class="chart-type-tag">{{ chart.type }}</span>
@@ -87,7 +87,7 @@
     </div>
 
     <div class="dashboard-main-grid">
-      <div class="health-overview glass animate-fade-in">
+      <div class="health-overview glass animate-fade-in" appDraggableResizable="dashboard-health-overview">
         <div class="card-header">
           <div class="header-left">
             <h3>System Health</h3>
@@ -128,7 +128,7 @@
         </div>
       </div>
 
-      <div class="recent-alerts glass animate-fade-in">
+      <div class="recent-alerts glass animate-fade-in" appDraggableResizable="dashboard-alerts">
         <div class="card-header">
           <h3>Recent Alerts</h3>
         </div>

@@ -46,6 +46,21 @@
   --text-primary: #e2e8f0;
   --text-secondary: #94a3b8;
   --text-accent: var(--page-accent, var(--primary));
+
+  /* Toaster/Toast Notification Colors */
+  --toast-success-bg: rgba(16, 185, 129, 0.95);
+  --toast-error-bg: rgba(239, 68, 68, 0.95);
+  --toast-warning-bg: rgba(245, 158, 11, 0.95);
+  --toast-confirm-bg: rgba(157, 80, 187, 0.95);
+  --toast-info-bg: rgba(59, 130, 246, 0.95);
+  --toast-text-color: #ffffff;
+  --toast-icon-color: #ffffff;
+  --toast-border-success: rgba(16, 185, 129, 0.3);
+  --toast-border-error: rgba(239, 68, 68, 0.3);
+  --toast-border-warning: rgba(245, 158, 11, 0.3);
+  --toast-border-confirm: rgba(157, 80, 187, 0.3);
+  --toast-border-info: rgba(59, 130, 246, 0.3);
+  --toast-shadow: rgba(0, 0, 0, 0.25);
 }
 
 /* Light Mode Colors */
@@ -133,10 +148,17 @@ body {
   background-color: var(--bg-deep);
   color: var(--text-main);
   min-height: 100vh;
+  overflow-x: hidden;
   transition:
     background-color 0.3s ease,
     color 0.3s ease;
-  /* Remove overflow-x: hidden to allow horizontal scrolling */
+}
+
+/* GLOBAL BACKGROUND SYSTEM - Ensure all feature pages use the deep background */
+[class$="-page"] {
+  background-color: var(--bg-deep) !important;
+  min-height: 100vh;
+  width: 100%;
 }
 
 /* Dark mode background gradients */
@@ -316,6 +338,42 @@ h4 {
   -webkit-text-fill-color: unset !important;
   background-clip: unset !important;
   color: #000000 !important;
+}
+
+/* GLOBAL PAGE HEADER SYSTEM */
+.page-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 30px !important;
+  padding: 0 4px !important;
+}
+
+.header-content {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+.header-content h2 {
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+}
+
+.header-content .text-muted {
+  margin: 0 !important;
+  font-size: 0.95rem !important;
+  color: var(--text-muted) !important;
+  line-height: 1.4 !important;
+  font-weight: 500 !important;
+}
+
+.header-actions {
+  display: flex !important;
+  gap: 12px !important;
+  align-items: center !important;
 }
 
 /* CATEGORY-NAME STYLING - SAME AS HEADINGS */
@@ -715,6 +773,22 @@ button.btn-primary:hover:not(:disabled),
   box-shadow:
     0 4px 20px rgba(0, 0, 0, 0.06),
     0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* PREMIUM GLASS UTILITY - Use for main containers and sidebars */
+.glass-premium {
+  background: var(--bg-sidebar) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 8px 32px var(--primary-glow) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+[data-theme='light'] .glass-premium {
+  background: rgba(255, 255, 255, 0.95) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08) !important;
 }
 
 .btn {

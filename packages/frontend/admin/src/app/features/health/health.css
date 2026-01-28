@@ -142,34 +142,7 @@
   color: #000000 !important;
 }
 
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 30px;
-  padding: 0 4px;
-}
-
-.header-content {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.header-content .text-muted {
-  margin: 0;
-  font-size: 0.95rem;
-  color: var(--secondary);
-  line-height: 1.4;
-  font-weight: 500;
-}
-
-.header-actions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
+/* Health-specific grid layout */
 .diagnostics-grid {
   display: grid;
   grid-template-columns: 1fr 2fr;

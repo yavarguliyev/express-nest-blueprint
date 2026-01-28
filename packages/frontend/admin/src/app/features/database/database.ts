@@ -33,10 +33,12 @@ import {
   DraftStatusConfig,
 } from '../../shared/components/draft-status-bar/draft-status-bar';
 
+import { DraggableResizableDirective } from '../../shared/directives/draggable-resizable.directive';
+
 @Component({
   selector: 'app-database',
   standalone: true,
-  imports: [CommonModule, FormsModule, ToggleSwitch, ActionButtons, DraftStatusBar],
+  imports: [CommonModule, FormsModule, ToggleSwitch, ActionButtons, DraftStatusBar, DraggableResizableDirective],
   templateUrl: './database.html',
   styleUrl: './database.css',
 })
@@ -119,9 +121,8 @@ export class Database implements OnInit, AfterViewInit {
   }
 
   loadSchema (): void {
-    if (this.schema()) return;
     this.loadingSchema.set(true);
-    this.dbCache.loadSchemaWithCache(true).subscribe({
+    this.dbCache.loadSchemaWithCache().subscribe({
       next: (res) => {
         this.schema.set(res.data);
         this.loadingSchema.set(false);
@@ -197,7 +198,7 @@ export class Database implements OnInit, AfterViewInit {
     const table = this.selectedTable();
     if (!table) return;
     this.loadingData.set(true);
-    this.dbCache.loadTableDataWithCache(table, this.page(), this.limit, this.searchQuery(), true).subscribe({
+    this.dbCache.loadTableDataWithCache(table, this.page(), this.limit, this.searchQuery()).subscribe({
       next: (res) => {
         const responseData = res.data;
         if (responseData?.data) {
@@ -244,91 +245,35 @@ export class Database implements OnInit, AfterViewInit {
     return this.pagination.generatePageNumbers(this.page(), this.totalPages);
   }
 
-  isCurrentUser (id: number): boolean {
-    return this.dbValidation.isCurrentUser(id);
+  isCurrentUser (id: number): boolean { return this.dbValidation.isCurrentUser(id); }
+  isRestrictedTable (): boolean { return this.dbValidation.isRestrictedTable(this.selectedTable()); }
+  isFieldExcludedFromUpdate (col: string): boolean { return this.dbValidation.isFieldExcludedFromUpdate(col, this.selectedRecord()); }
+  isFieldDisabled (col: string): boolean { return this.dbValidation.isFieldDisabled(col); }
+  canDeleteRecord (): boolean { return this.dbHelper.canDeleteRecord(); }
+  formatValue (v: unknown, c: Column): string { return this.dbHelper.formatValue(v, c); }
+  getBooleanValue (row: Record<string, unknown>, col: string): boolean {
+    return this.dbHelper.getBooleanValue(row, col, this.getRecordDraftData(this.dbHelper.getNumberValue(row, 'id')));
   }
-  isRestrictedTable (): boolean {
-    return this.dbValidation.isRestrictedTable(this.selectedTable());
-  }
-  isFieldExcludedFromUpdate (columnName: string): boolean {
-    return this.dbValidation.isFieldExcludedFromUpdate(columnName, this.selectedRecord());
-  }
-  isFieldDisabled (columnName: string): boolean {
-    return this.dbValidation.isFieldDisabled(columnName);
-  }
-  canDeleteRecord (): boolean {
-    return this.dbHelper.canDeleteRecord();
-  }
-
-  formatValue (value: unknown, column: Column): string {
-    return this.dbHelper.formatValue(value, column);
-  }
-  getBooleanValue (row: Record<string, unknown>, columnName: string): boolean {
-    const recordId = this.dbHelper.getNumberValue(row, 'id');
-    const draftData = this.getRecordDraftData(recordId);
-    return this.dbHelper.getBooleanValue(row, columnName, draftData);
-  }
-  getNumberValue (row: Record<string, unknown>, columnName: string): number {
-    return this.dbHelper.getNumberValue(row, columnName);
-  }
-  getFieldDisplayName (fieldName: string): string {
-    return this.dbHelper.getFieldDisplayName(fieldName);
-  }
-  getUserInitials (row: Record<string, unknown>): string {
-    return this.dbHelper.getUserInitials(row);
-  }
-  isImageUrl (colName: string): boolean {
-    return this.dbHelper.isImageUrl(colName);
-  }
-  getAvailableRoles (): { value: string; label: string }[] {
-    return this.dbHelper.getAvailableRoles();
-  }
-  getHeaderClasses (columnName: string, columnType: string): string {
-    return this.dbHelper.getHeaderClasses(columnName, columnType);
-  }
-  getCellClasses (columnName: string, columnType: string): string {
-    return this.dbHelper.getCellClasses(columnName, columnType);
-  }
-  getColumnStyles (columnName: string, columnType: string): Record<string, string> {
-    return this.dbHelper.getColumnStyles(columnName, columnType);
-  }
-  hasAnyActions (): boolean {
-    return this.dbHelper.hasAnyActions(this.selectedTable());
-  }
-  canModifySensitiveFields (): boolean {
-    return this.dbHelper.canModifySensitiveFields();
-  }
-  isSensitiveField (columnName: string): boolean {
-    return this.dbHelper.isSensitiveField(columnName);
-  }
-  formatFieldValue (value: unknown): string {
-    return this.dbHelper.formatFieldValue(value);
-  }
-
-  updateFormField (fieldName: string, value: unknown): void {
-    this.updateFormData.update((current) => ({ ...current, [fieldName]: value }));
-  }
-  hasFormChanges (): boolean {
-    return this.dbForm.hasFormChanges(this.updateFormData(), this.originalFormData());
-  }
-  isFieldChanged (fieldName: string): boolean {
-    return this.dbForm.isFieldChanged(fieldName, this.updateFormData(), this.originalFormData());
-  }
-  getChangedFields (): Array<{ name: string; oldValue: unknown; newValue: unknown }> {
-    return this.dbForm.getChangedFields(this.updateFormData(), this.originalFormData());
-  }
-  isRoleInvalid (): boolean {
-    return this.dbForm.isRoleInvalid(this.updateFormData());
-  }
-  isFormInvalid (): boolean {
-    return this.dbForm.isFormInvalid(this.updateFormData(), this.originalFormData());
-  }
-  getUpdateButtonText (): string {
-    return this.dbForm.getUpdateButtonText(this.updateFormData(), this.originalFormData());
-  }
-  getUpdateButtonTooltip (): string {
-    return this.dbForm.getUpdateButtonTooltip(this.updateFormData(), this.originalFormData());
-  }
+  getNumberValue (row: Record<string, unknown>, col: string): number { return this.dbHelper.getNumberValue(row, col); }
+  getFieldDisplayName (f: string): string { return this.dbHelper.getFieldDisplayName(f); }
+  getUserInitials (row: Record<string, unknown>): string { return this.dbHelper.getUserInitials(row); }
+  isImageUrl (n: string): boolean { return this.dbHelper.isImageUrl(n); }
+  getAvailableRoles (): { value: string; label: string }[] { return this.dbHelper.getAvailableRoles(); }
+  getHeaderClasses (n: string, t: string): string { return this.dbHelper.getHeaderClasses(n, t); }
+  getCellClasses (n: string, t: string): string { return this.dbHelper.getCellClasses(n, t); }
+  getColumnStyles (n: string, t: string): Record<string, string> { return this.dbHelper.getColumnStyles(n, t); }
+  hasAnyActions (): boolean { return this.dbHelper.hasAnyActions(this.selectedTable()); }
+  canModifySensitiveFields (): boolean { return this.dbHelper.canModifySensitiveFields(); }
+  isSensitiveField (n: string): boolean { return this.dbHelper.isSensitiveField(n); }
+  formatFieldValue (v: unknown): string { return this.dbHelper.formatFieldValue(v); }
+  updateFormField (f: string, v: unknown): void { this.updateFormData.update(c => ({ ...c, [f]: v })); }
+  hasFormChanges (): boolean { return this.dbForm.hasFormChanges(this.updateFormData(), this.originalFormData()); }
+  isFieldChanged (f: string): boolean { return this.dbForm.isFieldChanged(f, this.updateFormData(), this.originalFormData()); }
+  getChangedFields (): Array<{ name: string; oldValue: unknown; newValue: unknown }> { return this.dbForm.getChangedFields(this.updateFormData(), this.originalFormData()); }
+  isRoleInvalid (): boolean { return this.dbForm.isRoleInvalid(this.updateFormData()); }
+  isFormInvalid (): boolean { return this.dbForm.isFormInvalid(this.updateFormData(), this.originalFormData()); }
+  getUpdateButtonText (): string { return this.dbForm.getUpdateButtonText(this.updateFormData(), this.originalFormData()); }
+  getUpdateButtonTooltip (): string { return this.dbForm.getUpdateButtonTooltip(this.updateFormData(), this.originalFormData()); }
 
   updateRecord (id: number): void {
     const table = this.selectedTable();

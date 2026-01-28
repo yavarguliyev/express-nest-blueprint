@@ -19,6 +19,7 @@ export const API_ENDPOINTS = {
       `${API_BASE}/admin/crud/${category}/${resource}/${id}`,
     BULK_OPERATIONS: `${API_BASE}/admin/bulk-operations`,
     BULK_OPERATIONS_VALIDATE: `${API_BASE}/admin/bulk-operations/validate`,
+    LAYOUT_CUSTOMIZATION: `${API_BASE}/admin/layout/customization`,
   },
 
   SETTINGS: {

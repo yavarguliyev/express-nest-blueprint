@@ -1,7 +1,7 @@
 const http = require('http');
 
-const makeRequest = (i) => {
-  return new Promise((resolve) => {
+const makeRequest = i => {
+  return new Promise(resolve => {
     const options = {
       hostname: 'localhost',
       port: 3000,
@@ -10,13 +10,15 @@ const makeRequest = (i) => {
         'X-Health-Key': process.env.HEALTH_CHECK_SECRET || 'your_super_secret_jwt_key'
       }
     };
-    http.get(options, (res) => {
-      console.log(`[Request ${i}] Status: ${res.statusCode} | Remaining: ${res.headers['x-ratelimit-remaining'] || 'N/A'}`);
-      resolve(res.statusCode);
-    }).on('error', (err) => {
-      console.error(`Request ${i} failed: ${err.message}`);
-      resolve(null);
-    });
+    http
+      .get(options, res => {
+        console.log(`[Request ${i}] Status: ${res.statusCode} | Remaining: ${res.headers['x-ratelimit-remaining'] || 'N/A'}`);
+        resolve(res.statusCode);
+      })
+      .on('error', err => {
+        console.error(`Request ${i} failed: ${err.message}`);
+        resolve(null);
+      });
   });
 };
 
@@ -28,14 +30,13 @@ const runTest = async () => {
   for (let i = 1; i <= 55; i++) {
     const status = await makeRequest(i);
     if (status === 429) blockedCount++;
-    // Small delay to not overwhelm the local network stack, but fast enough to hit the limit
-    await new Promise(r => setTimeout(r, 10)); 
+    await new Promise(r => setTimeout(r, 10));
   }
 
   console.log('\n📊 Test Result:');
   console.log(`Total Requests: 55`);
   console.log(`429 Responses: ${blockedCount}`);
-  
+
   if (blockedCount > 0) {
     console.log('✅ SUCCESS: Throttler correctly blocked excessive requests.');
   } else {

@@ -293,6 +293,21 @@ VALUES
     ('--draft-count-bg', 'colors', 'color', 'rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.2)', 'Draft count badge background', true),
     ('--draft-count-text', 'colors', 'color', '#ffffff', '#ffffff', '#ffffff', 'Draft count badge text color', true);
 
+-- Toaster/Toast Notification Color Tokens
+INSERT INTO css_tokens (token_name, token_category, token_type, default_value, light_mode_value, dark_mode_value, description, is_customizable)
+VALUES 
+    ('--toast-success-bg', 'colors', 'color', 'rgba(16, 185, 129, 0.95)', 'rgba(16, 185, 129, 0.95)', 'rgba(16, 185, 129, 0.95)', 'Toast success notification background color', true),
+    ('--toast-error-bg', 'colors', 'color', 'rgba(239, 68, 68, 0.95)', 'rgba(239, 68, 68, 0.95)', 'rgba(239, 68, 68, 0.95)', 'Toast error notification background color', true),
+    ('--toast-warning-bg', 'colors', 'color', 'rgba(245, 158, 11, 0.95)', 'rgba(245, 158, 11, 0.95)', 'rgba(245, 158, 11, 0.95)', 'Toast warning notification background color', true),
+    ('--toast-info-bg', 'colors', 'color', 'rgba(59, 130, 246, 0.95)', 'rgba(59, 130, 246, 0.95)', 'rgba(59, 130, 246, 0.95)', 'Toast info notification background color', true),
+    ('--toast-text-color', 'colors', 'color', '#ffffff', '#ffffff', '#ffffff', 'Toast notification text color', true),
+    ('--toast-border-success', 'colors', 'color', 'rgba(16, 185, 129, 0.3)', 'rgba(16, 185, 129, 0.3)', 'rgba(16, 185, 129, 0.3)', 'Toast success notification border color', true),
+    ('--toast-border-error', 'colors', 'color', 'rgba(239, 68, 68, 0.3)', 'rgba(239, 68, 68, 0.3)', 'rgba(239, 68, 68, 0.3)', 'Toast error notification border color', true),
+    ('--toast-border-warning', 'colors', 'color', 'rgba(245, 158, 11, 0.3)', 'rgba(245, 158, 11, 0.3)', 'rgba(245, 158, 11, 0.3)', 'Toast warning notification border color', true),
+    ('--toast-border-info', 'colors', 'color', 'rgba(59, 130, 246, 0.3)', 'rgba(59, 130, 246, 0.3)', 'rgba(59, 130, 246, 0.3)', 'Toast info notification border color', true),
+    ('--toast-icon-color', 'colors', 'color', '#ffffff', '#ffffff', '#ffffff', 'Toast notification icon color', true),
+    ('--toast-shadow', 'colors', 'color', 'rgba(0, 0, 0, 0.25)', 'rgba(0, 0, 0, 0.15)', 'rgba(0, 0, 0, 0.25)', 'Toast notification shadow color', true);
+
 -- ===============================================
 -- SEED DATA: CSS Gradients
 -- ===============================================

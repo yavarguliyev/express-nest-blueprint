@@ -2,48 +2,8 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: var(--bg-deep);
-  color: var(--text-main);
   font-family: var(--font-family);
   padding-bottom: 40px;
-}
-
-/* Header - Consistent with other pages */
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 30px;
-  padding: 0 2rem;
-  padding-top: 1.5rem;
-}
-
-.header-content {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.header-content h2 {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin: 0;
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--text-main);
-}
-
-.title-icon {
-  font-size: 2rem;
-}
-
-.header-content .text-muted {
-  margin: 0;
-  font-size: 0.95rem;
-  color: var(--text-muted);
-  line-height: 1.4;
-  font-weight: 500;
 }
 
 /* Action Buttons - Use consistent btn classes */
@@ -69,71 +29,34 @@
 }
 
 /* Theme Mode Toggle with Text and Icons */
-.theme-mode-toggle {
-  display: flex;
-  align-items: center;
-  padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  transition: all 0.3s ease;
-}
-
-/* Remove hover effects that interfere with text visibility */
-.theme-mode-toggle:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
-  /* transform: translateY(-1px); */
-}
-
-/* Light mode theme toggle styling */
-[data-theme='light'] .theme-mode-toggle {
-  background: rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-[data-theme='light'] .theme-mode-toggle:hover {
-  background: rgba(0, 0, 0, 0.08);
-  border-color: rgba(0, 0, 0, 0.2);
-}
-
-.theme-toggle-wrapper {
+/* Redesigned Minimalist Toggle */
+.theme-mode-toggle.minimalist {
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 6px 14px;
+  background: var(--border);
+  border-radius: 30px;
+  border: 1px solid var(--border);
+  transition: all 0.3s ease;
 }
 
-.theme-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: color 0.2s ease;
-  /* Default colors for dark mode */
-  color: #94a3b8 !important; /* Explicit muted color for dark mode */
+.theme-mode-toggle.minimalist:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0 15px var(--primary-glow);
 }
 
 .theme-icon {
-  font-size: 1rem;
+  font-size: 1.1rem;
+  opacity: 0.4;
+  transition: all 0.3s ease;
+  filter: grayscale(1);
 }
 
-/* Dark mode text colors */
-[data-theme='dark'] .theme-label {
-  color: #94a3b8 !important; /* Muted text in dark mode */
-}
-
-[data-theme='dark'] .theme-label:first-child {
-  color: #e2e8f0 !important; /* Active "Dark" label - bright text */
-}
-
-/* Light mode text colors */
-[data-theme='light'] .theme-label {
-  color: #6b7280 !important; /* Muted text in light mode */
-}
-
-[data-theme='light'] .theme-label:last-child {
-  color: #111827 !important; /* Active "Light" label - dark text */
+.theme-icon.active {
+  opacity: 1;
+  filter: grayscale(0);
+  transform: scale(1.15);
 }
 
 /* Main Content */
@@ -152,15 +75,20 @@
   width: 80px;
 }
 
-/* Sidebar */
+/* Sidebar - Redesigned to match main sidebar */
 .theme-sidebar {
   width: 280px;
   background: var(--bg-sidebar);
-  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   position: relative;
-  transition: width 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-sidebar.glass-premium {
+  /* Class logic is in styles.css, we just apply it here to the element */
+  margin: 1.5rem;
+  height: calc(100% - 3rem);
 }
 
 .theme-sidebar.collapsed {
@@ -170,10 +98,10 @@
 /* Toggle Button - matching main sidebar */
 .sidebar-toggle {
   position: absolute;
-  top: 4px;
-  right: 8px;
-  width: 18px;
-  height: 18px;
+  top: 6px;
+  right: 6px;
+  width: 16px;
+  height: 16px;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 50%;
@@ -183,18 +111,17 @@
   cursor: pointer;
   z-index: 102;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .sidebar-toggle:hover {
   background: var(--primary);
   border-color: var(--primary);
   transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px var(--primary-glow);
 }
 
 .sidebar-toggle .material-icons {
-  font-size: 16px;
+  font-size: 8px;
   color: var(--text-main);
   transition: color 0.2s ease;
 }
@@ -238,16 +165,17 @@
 .category-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
+  gap: 12px;
+  padding: 12px 16px;
   background: none;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   color: var(--text-muted);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   text-align: left;
   position: relative;
+  margin-bottom: 4px;
 }
 
 .theme-sidebar.collapsed .category-item {
@@ -257,16 +185,21 @@
 }
 
 .category-item:hover {
+  color: var(--white);
   background: var(--border);
+}
+
+[data-theme='light'] .category-item:hover {
   color: var(--text-main);
+  background: var(--border);
 }
 
 .category-item.active {
-  background: var(--primary);
-  color: white;
+  color: var(--white);
+  background: var(--primary-glow) !important;
+  box-shadow: inset 0 0 10px var(--primary-glow) !important;
   border-left: 3px solid transparent !important;
-  border-image: linear-gradient(81deg, #ce1bfb 10.86%, #35e6cc 89.96%) 1 !important;
-  background: rgba(206, 27, 251, 0.1) !important;
+  border-image: var(--linear1) 1 !important;
 }
 
 /* Category hover effects - same as sidebar */
@@ -274,7 +207,7 @@
   background: var(--border);
   color: var(--text-main);
   border-left: 2px solid transparent !important;
-  border-image: linear-gradient(81deg, #ce1bfb 10.86%, #35e6cc 89.96%) 1 !important;
+  border-image: var(--linear1) 1 !important;
 }
 
 .category-icon {
@@ -388,12 +321,16 @@
 
 .token-card:hover {
   border-color: var(--primary);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px var(--primary-glow);
 }
 
 .token-card.has-changes {
   border-color: var(--warning);
-  background: linear-gradient(135deg, var(--bg-card), rgba(251, 191, 36, 0.05));
+  background: linear-gradient(
+    135deg,
+    var(--bg-card),
+    var(--warning-glow, rgba(251, 191, 36, 0.05))
+  );
 }
 
 .token-header {
@@ -453,7 +390,7 @@
 .token-input:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 2px rgba(0, 210, 255, 0.2);
+  box-shadow: 0 0 0 2px var(--primary-glow);
 }
 
 .input-hint {

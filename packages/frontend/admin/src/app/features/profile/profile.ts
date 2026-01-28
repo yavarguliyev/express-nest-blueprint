@@ -7,6 +7,7 @@ import { ToastService } from '../../core/services/toast.service';
 import { TextTransformService } from '../../core/services/text-transform.service';
 import { UserRoleHelper } from '../../core/enums/user-roles.enum';
 import { API_ENDPOINTS } from '../../core/constants/api-endpoints';
+import { DraggableResizableDirective } from '../../shared/directives/draggable-resizable.directive';
 
 interface ProfileForm {
   firstName: string;
@@ -29,7 +30,7 @@ interface ErrorResponse {
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DraggableResizableDirective],
   templateUrl: './profile.html',
   styleUrl: './profile.css',
 })

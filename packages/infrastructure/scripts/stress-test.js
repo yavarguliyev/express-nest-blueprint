@@ -18,9 +18,9 @@ const request = (method, path, body, token) => {
       options.headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const req = http.request(options, (res) => {
+    const req = http.request(options, res => {
       let data = '';
-      res.on('data', (chunk) => data += chunk);
+      res.on('data', chunk => (data += chunk));
       res.on('end', () => {
         const duration = (Date.now() - start) / 1000;
         resolve({ status: res.statusCode, data: data, duration });
@@ -36,7 +36,6 @@ const request = (method, path, body, token) => {
 const stressTest = async () => {
   console.log('🏁 Preparing Stress Test...');
 
-  // 1. Register a test ADMIN user
   const email = `test-admin-${Date.now()}@example.com`;
   console.log(`👤 Registering test admin user: ${email}`);
   const regRes = await request('POST', '/api/v1/auth/register', {
@@ -57,21 +56,19 @@ const stressTest = async () => {
   console.log('🔑 Obtained JWT successfully.');
 
   console.log('\n🔥 Starting Stress Test: 5 concurrent heavy requests (Authenticated & Cache-Bypassed)...');
-  
+
   const startTime = Date.now();
-  
-  // 2. Send concurrent requests
+
   const pages = [1, 2, 3, 4, 5];
   const requests = pages.map(page => {
     const uniquePage = page + Math.floor(Math.random() * 100000);
     console.log(`[${new Date().toLocaleTimeString()}] 🚀 Sending request for page ${uniquePage}...`);
     return request('GET', `/api/v1/users?page=${uniquePage}`, null, token).then(res => {
-        console.log(`[${new Date().toLocaleTimeString()}] ✅ Request for page ${uniquePage} completed in ${res.duration}s (Status: ${res.status})`);
-        return res;
+      console.log(`[${new Date().toLocaleTimeString()}] ✅ Request for page ${uniquePage} completed in ${res.duration}s (Status: ${res.status})`);
+      return res;
     });
   });
-  
-  // 3. Wait 8 seconds and check health to prove API responsiveness and see background work
+
   setTimeout(async () => {
     console.log('\n🧐 Checking API responsiveness while workers are busy (at 8s mark)...');
     const health = await request('GET', '/health');
@@ -81,13 +78,12 @@ const stressTest = async () => {
     console.log('');
   }, 8000);
 
-  // 4. Wait for all heavy requests to complete
   const results = await Promise.all(requests);
-  
+
   const totalDuration = (Date.now() - startTime) / 1000;
   console.log(`\n🏆 Stress Test Finished! Total duration: ${totalDuration}s`);
   console.log('NOTE: Since each task has a 15s delay, and we have parallel workers, the total time should be ~15-18s.');
-  
+
   const allSuccess = results.every(r => r.status === 200);
   if (allSuccess) {
     console.log('✨ ALL REQUESTS SUCCESSFUL! Concurrency validated.');

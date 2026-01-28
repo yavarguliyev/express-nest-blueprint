@@ -6,10 +6,12 @@ import {
   HealthStatus,
 } from '../../core/services/dashboard.service';
 
+import { DraggableResizableDirective } from '../../shared/directives/draggable-resizable.directive';
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, DraggableResizableDirective],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })

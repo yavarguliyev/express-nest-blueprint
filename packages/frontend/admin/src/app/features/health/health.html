@@ -1,16 +1,16 @@
 
 <div class="health-page animate-fade-in">
-  <div class="page-header">
+  <div class="page-header" appDraggableResizable="health-header">
     <div class="header-content">
       <h2>System Diagnostics</h2>
       <p class="text-muted">Real-time health status of all infrastructure components</p>
     </div>
-    <div class="header-actions">
+    <div class="header-actions" appDraggableResizable="health-header-actions">
       <button class="btn btn-secondary" (click)="refresh()" [disabled]="loading()" title="Use cached data">
         <span class="material-icons" [class.spin]="loading()">cached</span>
         {{ loading() ? 'Loading...' : 'Refresh' }}
       </button>
-      <button class="btn btn-primary" (click)="forceRefresh()" [disabled]="loading()" title="Force fresh data">
+      <button class="btn btn-primary" (click)="forceRefresh()" [disabled]="loading()" title="Force fresh data" appDraggableResizable="health-scan-btn">
         <span class="material-icons" [class.spin]="loading()">refresh</span>
         {{ loading() ? 'Scanning...' : 'Run Diagnostics' }}
       </button>
@@ -25,7 +25,7 @@
   }
 
   <div class="diagnostics-grid">
-    <div class="overall-status glass" [ngClass]="healthStatus()?.overallStatus === 'up' ? 'status-up' : 'status-down'">
+    <div class="overall-status glass" [ngClass]="healthStatus()?.overallStatus === 'up' ? 'status-up' : 'status-down'" appDraggableResizable="health-overall-status">
       <div class="status-header">
         <span class="status-label">Overall Integrity</span>
         <span class="status-value">{{ healthStatus()?.overallStatus === 'up' ? 'Operational' : 'Critical' }}</span>
@@ -41,7 +41,7 @@
       </div>
     </div>
 
-    <div class="components-card glass">
+    <div class="components-card glass" appDraggableResizable="health-components-card">
       <h3>Infrastructure Layers</h3>
       <div class="components-list">
         @for (comp of healthStatus()?.components; track comp.name) {
@@ -63,7 +63,7 @@
     </div>
   </div>
 
-  <div class="logs-card glass mt-6">
+  <div class="logs-card glass mt-6" appDraggableResizable="health-logs-card">
     <div class="card-header">
       <h3>System Activity Log</h3>
       <span class="badge info">Live</span>

@@ -34,19 +34,18 @@ export interface ApiResponse<T> {
 export class SettingsService {
   private http = inject(HttpClient);
   private cacheService = inject(GlobalCacheService);
-  
+
   private readonly SETTINGS_CACHE_TTL = 5 * 60 * 1000;
 
   loadSettings (useCache: boolean = true): Observable<ApiResponse<SettingItem[]>> {
     const cacheKey = 'system-settings';
-    
+
     if (useCache) {
       const cachedSettings = this.cacheService.get<ApiResponse<SettingItem[]>>(cacheKey);
       if (cachedSettings) {
         return of(cachedSettings);
       }
 
-      // Check localStorage fallback
       const localCached = localStorage.getItem('system-settings-cache');
       const localCacheTime = localStorage.getItem('system-settings-cache-time');
       if (localCached && localCacheTime) {
@@ -64,19 +63,21 @@ export class SettingsService {
         this.cacheService.set(cacheKey, response, this.SETTINGS_CACHE_TTL);
         localStorage.setItem('system-settings-cache', JSON.stringify(response));
         localStorage.setItem('system-settings-cache-time', Date.now().toString());
-      })
+      }),
     );
   }
 
   updateSettings (updateRequest: SettingsUpdateRequest): Observable<ApiResponse<SettingItem[]>> {
-    return this.http.put<ApiResponse<SettingItem[]>>(API_ENDPOINTS.SETTINGS.UPDATE, updateRequest).pipe(
-      tap((response) => {
-        const cacheKey = 'system-settings';
-        this.cacheService.set(cacheKey, response, this.SETTINGS_CACHE_TTL);
-        localStorage.setItem('system-settings-cache', JSON.stringify(response));
-        localStorage.setItem('system-settings-cache-time', Date.now().toString());
-      })
-    );
+    return this.http
+      .put<ApiResponse<SettingItem[]>>(API_ENDPOINTS.SETTINGS.UPDATE, updateRequest)
+      .pipe(
+        tap((response) => {
+          const cacheKey = 'system-settings';
+          this.cacheService.set(cacheKey, response, this.SETTINGS_CACHE_TTL);
+          localStorage.setItem('system-settings-cache', JSON.stringify(response));
+          localStorage.setItem('system-settings-cache-time', Date.now().toString());
+        }),
+      );
   }
 
   refreshSettings (): Observable<ApiResponse<SettingItem[]>> {
@@ -91,10 +92,10 @@ export class SettingsService {
 
   hasValidCache (): boolean {
     const memoryCache = this.cacheService.has('system-settings');
-    
+
     const localCacheTime = localStorage.getItem('system-settings-cache-time');
     const localCache = !!(localCacheTime && Date.now() - parseInt(localCacheTime) < 10 * 60 * 1000);
-    
+
     return memoryCache || localCache;
   }
 }

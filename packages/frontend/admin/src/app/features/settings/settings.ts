@@ -14,11 +14,12 @@ import {
   SettingItem, 
   SettingsUpdateRequest 
 } from '../../core/services/settings.service';
+import { DraggableResizableDirective } from '../../shared/directives/draggable-resizable.directive';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule, ToggleSwitch, DraftStatusBar],
+  imports: [CommonModule, FormsModule, ToggleSwitch, DraftStatusBar, DraggableResizableDirective],
   templateUrl: './settings.html',
   styleUrl: './settings.css',
 })

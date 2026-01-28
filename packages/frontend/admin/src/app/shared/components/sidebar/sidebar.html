@@ -1,11 +1,11 @@
-<div class="sidebar-container glass" [class.collapsed]="isCollapsed()">
+<div class="sidebar-container glass-premium" [class.collapsed]="isCollapsed()" appDraggableResizable>
   <!-- Toggle Button -->
-  <button class="sidebar-toggle" (click)="toggleSidebar()" [title]="isCollapsed() ? 'Expand Sidebar' : 'Collapse Sidebar'">
+  <button class="sidebar-toggle" (click)="toggleSidebar()" [title]="isCollapsed() ? 'Expand Sidebar' : 'Collapse Sidebar'" appDraggableResizable="sidebar-toggle-btn">
     <span class="material-icons">{{ isCollapsed() ? 'menu_open' : 'menu' }}</span>
   </button>
 
   <div class="sidebar-header">
-    <div class="logo-sm glow" (click)="navigateToProfile()">
+    <div class="logo-sm glow" (click)="navigateToProfile()" appDraggableResizable="sidebar-logo">
       @if (user()?.profileImageUrl) {
         <img [src]="user()?.profileImageUrl" alt="Profile">
       } @else {
@@ -13,7 +13,7 @@
       }
     </div>
     @if (!isCollapsed()) {
-      <span class="brand-name clickable" (click)="navigateToProfile()">{{ user()?.firstName }} {{ user()?.lastName }}</span>
+      <span class="brand-name clickable" (click)="navigateToProfile()" appDraggableResizable="sidebar-brand-name">{{ user()?.firstName }} {{ user()?.lastName }}</span>
     }
   </div>
 
@@ -21,7 +21,7 @@
     <ul>
       @for (item of menuItems; track item.route) {
         <li>
-          <a [routerLink]="item.route" routerLinkActive="active" class="nav-item" [title]="isCollapsed() ? item.label : ''">
+          <a [routerLink]="item.route" routerLinkActive="active" class="nav-item" [title]="isCollapsed() ? item.label : ''" [appDraggableResizable]="'sidebar-nav-' + item.label">
             <span class="material-icons">{{ item.icon }}</span>
             @if (!isCollapsed()) {
               <span class="nav-label">{{ item.label }}</span>
@@ -33,7 +33,7 @@
   </nav>
 
   <div class="sidebar-footer">
-    <button (click)="logout()" class="logout-btn" [title]="isCollapsed() ? 'Logout' : ''">
+    <button (click)="logout()" class="logout-btn" [title]="isCollapsed() ? 'Logout' : ''" appDraggableResizable="sidebar-logout-btn">
       <span class="material-icons">logout</span>
       @if (!isCollapsed()) {
         <span>Logout</span>

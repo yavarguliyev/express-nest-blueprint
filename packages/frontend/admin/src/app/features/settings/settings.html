@@ -1,11 +1,11 @@
 
 <div class="settings-page animate-fade-in">
-  <div class="page-header">
+  <div class="page-header" appDraggableResizable="settings-header">
     <div class="header-content">
       <h2>System Settings</h2>
       <p class="text-muted">Configure global application behavior and security policies</p>
     </div>
-    <div class="header-actions">
+    <div class="header-actions" appDraggableResizable="settings-header-actions">
       <button class="btn btn-secondary" (click)="loadSettings()" [disabled]="loading()" title="Use cached settings">
         <span class="material-icons" [class.spin]="loading()">cached</span>
         Load Settings
@@ -23,7 +23,7 @@
     (resetChanges)="resetChanges()">
   </app-draft-status-bar>
 
-  <div class="settings-container glass">
+  <div class="settings-container glass" appDraggableResizable="settings-container">
     <div class="settings-section">
       <h3>General Configuration</h3>
       <div class="settings-list">

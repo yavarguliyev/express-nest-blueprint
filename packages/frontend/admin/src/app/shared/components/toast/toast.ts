@@ -51,7 +51,9 @@ import { Toast as ToastInterface, ToastService } from '../../../core/services/to
         flex-direction: column;
         animation: toast-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         border-left: 4px solid var(--primary);
+        box-shadow: 0 8px 32px var(--toast-shadow);
         overflow: hidden;
+        color: var(--toast-text-color);
       }
 
       .toast-content {
@@ -63,8 +65,8 @@ import { Toast as ToastInterface, ToastService } from '../../../core/services/to
       }
 
       .toast.confirm {
-        border-left-color: #daa520;
-        background: #daa520;
+        border-left-color: var(--toast-border-confirm);
+        background: var(--toast-confirm-bg);
         cursor: default;
       }
 
@@ -81,7 +83,7 @@ import { Toast as ToastInterface, ToastService } from '../../../core/services/to
         letter-spacing: 1px;
         background: transparent;
         border: none;
-        color: #fff;
+        color: var(--toast-text-color);
         cursor: pointer;
         transition: all 0.2s;
       }
@@ -91,7 +93,7 @@ import { Toast as ToastInterface, ToastService } from '../../../core/services/to
       }
 
       .action-btn.confirm {
-        color: #ffffff;
+        color: var(--toast-text-color);
         border-left: 1px solid rgba(255, 255, 255, 0.3);
       }
 
@@ -111,28 +113,25 @@ import { Toast as ToastInterface, ToastService } from '../../../core/services/to
       }
 
       .toast.success {
-        border-left-color: #4b5320;
-        color: #ffffff;
-        background: #4b5320;
+        border-left-color: var(--toast-border-success);
+        background: var(--toast-success-bg);
       }
       .toast.error {
-        border-left-color: #ff0000;
-        color: #ffffff;
-        background: #ff0000;
+        border-left-color: var(--toast-border-error);
+        background: var(--toast-error-bg);
       }
       .toast.info {
-        border-left-color: #708090;
-        color: #ffffff;
-        background: #708090;
+        border-left-color: var(--toast-border-info);
+        background: var(--toast-info-bg);
       }
       .toast.warning {
-        border-left-color: #daa520;
-        color: #ffffff;
-        background: #daa520;
+        border-left-color: var(--toast-border-warning);
+        background: var(--toast-warning-bg);
       }
 
       .toast-icon {
         font-size: 20px;
+        color: var(--toast-icon-color);
       }
       .toast-message {
         flex: 1;

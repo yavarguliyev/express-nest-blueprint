@@ -1,29 +1,16 @@
 <div class="theme-editor-page animate-fade-in">
   <!-- Header -->
-  <div class="page-header">
+  <div class="page-header" appDraggableResizable="theme-editor-header">
     <div class="header-content">
-      <h2>
-        <span class="title-icon">🎨</span>
-        Theme Editor
-      </h2>
+      <h2>Theme Editor</h2>
       <p class="text-muted">Customize your application's visual appearance</p>
     </div>
 
-    <div class="header-actions">
-      <!-- Theme Toggle with Text and Icons -->
-      <div class="theme-mode-toggle">
-        <div class="theme-toggle-wrapper">
-          <span class="theme-label">
-            <span class="theme-icon">🌙</span>
-            Dark
-          </span>
-          <app-toggle-switch [checked]="isDarkMode()" (toggleChange)="toggleTheme()" size="small">
-          </app-toggle-switch>
-          <span class="theme-label">
-            <span class="theme-icon">☀️</span>
-            Light
-          </span>
-        </div>
+    <div class="header-actions" appDraggableResizable="theme-editor-header-actions">
+      <!-- Redesigned Minimalist Theme Toggle -->
+      <div class="theme-mode-toggle minimalist">
+        <app-toggle-switch [checked]="isDarkMode()" (toggleChange)="toggleTheme()" size="small">
+        </app-toggle-switch>
       </div>
 
       <!-- Preview Toggle -->
@@ -32,6 +19,7 @@
         [class.active]="showPreview()"
         (click)="togglePreview()"
         title="Toggle Preview"
+        appDraggableResizable="theme-editor-preview-toggle-btn"
       >
         👁️ Preview
       </button>
@@ -47,15 +35,15 @@
 
   <!-- Main Content -->
   <div class="theme-editor-content" [class.with-preview]="showPreview()">
-    <!-- Sidebar -->
-    <div class="theme-sidebar" [class.collapsed]="themeSidebarService.isCollapsed()">
+    <!-- Sidebar - Now using global glass-premium -->
+    <div class="theme-sidebar glass-premium" [class.collapsed]="themeSidebarService.isCollapsed()" appDraggableResizable="theme-editor-sidebar">
       <!-- Toggle Button -->
       <button class="sidebar-toggle" (click)="themeSidebarService.toggle()" [title]="themeSidebarService.isCollapsed() ? 'Expand Sidebar' : 'Collapse Sidebar'">
         <span class="material-icons">{{ themeSidebarService.isCollapsed() ? 'menu_open' : 'menu' }}</span>
       </button>
 
       <!-- Category Navigation -->
-      <div class="category-nav">
+      <div class="category-nav" appDraggableResizable="theme-editor-category-nav">
         @if (!themeSidebarService.isCollapsed()) {
           <h3 class="nav-title">Categories</h3>
         }
@@ -73,6 +61,7 @@
                 [class.active]="selectedCategory() === category"
                 (click)="selectCategory(category)"
                 [title]="themeSidebarService.isCollapsed() ? getCategoryDisplayName(category) : ''"
+                [appDraggableResizable]="'theme-editor-category-item-' + category"
               >
                 <span class="category-icon">{{ getCategoryIcon(category) }}</span>
                 @if (!themeSidebarService.isCollapsed()) {
@@ -103,7 +92,7 @@
         </div>
       } @else {
         <div class="tokens-container">
-          <div class="category-header">
+          <div class="category-header" appDraggableResizable="theme-editor-category-header">
             <h2 class="category-title">
               {{ getCategoryIcon(selectedCategory()) }}
               {{ getCategoryDisplayName(selectedCategory()) }}
@@ -115,7 +104,7 @@
 
           <div class="tokens-grid">
             @for (token of currentCategoryTokens(); track token.id) {
-              <div class="token-card" [class.has-changes]="hasTokenChanges(token.id)">
+              <div class="token-card" [class.has-changes]="hasTokenChanges(token.id)" [appDraggableResizable]="'theme-editor-token-' + token.id">
                 <div class="token-header">
                   <div class="token-info">
                     <h4 class="token-name">{{ token.tokenName }}</h4>
@@ -216,8 +205,8 @@
 
     <!-- Live Preview Panel -->
     @if (showPreview()) {
-      <div class="preview-panel">
-        <div class="preview-header">
+      <div class="preview-panel" appDraggableResizable="theme-editor-preview-panel">
+        <div class="preview-header" appDraggableResizable="theme-editor-preview-header">
           <h3 class="preview-title">Live Preview</h3>
           <button class="close-preview-btn" (click)="togglePreview()" title="Close Preview">
             ✕
@@ -226,7 +215,7 @@
 
         <div class="preview-content">
           <!-- Sample UI Components for Preview -->
-          <div class="preview-section">
+          <div class="preview-section" appDraggableResizable="theme-editor-preview-sec-colors">
             <h4>Colors</h4>
             <div class="color-samples">
               <div
@@ -242,7 +231,7 @@
             </div>
           </div>
 
-          <div class="preview-section">
+          <div class="preview-section" appDraggableResizable="theme-editor-preview-sec-typo">
             <h4>Typography</h4>
             <div class="typography-samples">
               <h1 style="font-family: var(--font-family); color: var(--text-main)">Heading 1</h1>
@@ -253,7 +242,7 @@
             </div>
           </div>
 
-          <div class="preview-section">
+          <div class="preview-section" appDraggableResizable="theme-editor-preview-sec-status">
             <h4>Status Colors</h4>
             <div class="status-samples">
               <div class="status-item">

@@ -14,8 +14,8 @@ export class DatabaseCacheService {
   private toastService = inject(ToastService);
   private dbOperations = inject(DatabaseOperationsService);
 
-  loadSchemaWithCache (useCache: boolean = true): Observable<{ success: boolean; data: Schema }> {
-    return this.dbOperations.loadSchema(useCache);
+  loadSchemaWithCache (): Observable<{ success: boolean; data: Schema }> {
+    return this.dbOperations.loadSchema();
   }
 
   refreshSchemaWithToast (): Observable<{ success: boolean; data: Schema }> {
@@ -59,9 +59,8 @@ export class DatabaseCacheService {
     table: TableMetadata,
     page: number,
     limit: number,
-    searchQuery: string,
-    useCache: boolean = true
+    searchQuery: string
   ): Observable<{ success: boolean; data: { data: Record<string, unknown>[]; total: number } }> {
-    return this.dbOperations.loadTableData(table, page, limit, searchQuery, useCache);
+    return this.dbOperations.loadTableData(table, page, limit, searchQuery);
   }
 }

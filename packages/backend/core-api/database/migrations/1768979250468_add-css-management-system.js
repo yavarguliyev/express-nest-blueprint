@@ -1,17 +1,6 @@
-/**
- * @type {import('node-pg-migrate').ColumnDefinitions | undefined}
- */
 export const shorthands = undefined;
 
-/**
- * @param pgm {import('node-pg-migrate').MigrationBuilder}
- * @param run {() => void | undefined}
- * @returns {Promise<void> | void}
- */
-export const up = (pgm) => {
-  // ===============================================
-  // 1. CSS FILES METADATA TABLE
-  // ===============================================
+export const up = pgm => {
   pgm.createTable('css_files', {
     id: { type: 'uuid', primaryKey: true, default: pgm.func('gen_random_uuid()') },
     file_name: { type: 'varchar(255)', notNull: true },
@@ -19,24 +8,20 @@ export const up = (pgm) => {
     description: { type: 'text' },
     is_empty: { type: 'boolean', default: false },
     file_size: { type: 'integer', default: 0 },
-    category: { type: 'varchar(100)' }, // e.g., 'features', 'shared', 'components', 'styles'
+    category: { type: 'varchar(100)' },
     created_at: { type: 'timestamp', default: pgm.func('CURRENT_TIMESTAMP') },
     updated_at: { type: 'timestamp', default: pgm.func('CURRENT_TIMESTAMP') }
   });
 
-  // Add unique constraint and indexes
   pgm.addConstraint('css_files', 'unique_file_path', { unique: ['file_path'] });
   pgm.createIndex('css_files', 'category', { name: 'idx_css_files_category' });
   pgm.createIndex('css_files', 'file_name', { name: 'idx_css_files_name' });
 
-  // ===============================================
-  // 2. CSS TOKENS/VARIABLES TABLE (Design System)
-  // ===============================================
   pgm.createTable('css_tokens', {
     id: { type: 'uuid', primaryKey: true, default: pgm.func('gen_random_uuid()') },
-    token_name: { type: 'varchar(255)', notNull: true }, // e.g., '--primary', '--bg-card'
-    token_category: { type: 'varchar(100)', notNull: true }, // e.g., 'colors', 'spacing', 'typography'
-    token_type: { type: 'varchar(50)', notNull: true }, // e.g., 'color', 'size', 'font', 'gradient'
+    token_name: { type: 'varchar(255)', notNull: true },
+    token_category: { type: 'varchar(100)', notNull: true },
+    token_type: { type: 'varchar(50)', notNull: true },
     default_value: { type: 'text', notNull: true },
     light_mode_value: { type: 'text' },
     dark_mode_value: { type: 'text' },
@@ -46,93 +31,73 @@ export const up = (pgm) => {
     updated_at: { type: 'timestamp', default: pgm.func('CURRENT_TIMESTAMP') }
   });
 
-  // Add unique constraint and indexes
   pgm.addConstraint('css_tokens', 'unique_token_name', { unique: ['token_name'] });
   pgm.createIndex('css_tokens', 'token_category', { name: 'idx_css_tokens_category' });
   pgm.createIndex('css_tokens', 'token_type', { name: 'idx_css_tokens_type' });
 
-  // ===============================================
-  // 3. CSS RULES TABLE (Actual CSS Rules)
-  // ===============================================
   pgm.createTable('css_rules', {
     id: { type: 'uuid', primaryKey: true, default: pgm.func('gen_random_uuid()') },
     file_id: { type: 'uuid', notNull: true, references: 'css_files(id)', onDelete: 'CASCADE' },
-    selector: { type: 'text', notNull: true }, // e.g., 'h2', '.nav-label', '.btn-primary'
-    properties: { type: 'jsonb', notNull: true }, // Store CSS properties as JSON
-    rule_order: { type: 'integer', notNull: true }, // Order within the file
-    is_important: { type: 'boolean', default: false }, // Has !important flag
-    applies_to_theme: { type: 'varchar(20)' }, // 'both', 'dark', 'light'
+    selector: { type: 'text', notNull: true },
+    properties: { type: 'jsonb', notNull: true },
+    rule_order: { type: 'integer', notNull: true },
+    is_important: { type: 'boolean', default: false },
+    applies_to_theme: { type: 'varchar(20)' },
     line_number: { type: 'integer' },
     created_at: { type: 'timestamp', default: pgm.func('CURRENT_TIMESTAMP') },
     updated_at: { type: 'timestamp', default: pgm.func('CURRENT_TIMESTAMP') }
   });
 
-  // Add indexes
   pgm.createIndex('css_rules', 'file_id', { name: 'idx_css_rules_file' });
   pgm.createIndex('css_rules', 'selector', { name: 'idx_css_rules_selector' });
   pgm.createIndex('css_rules', 'properties', { name: 'idx_css_rules_properties', method: 'gin' });
 
-  // ===============================================
-  // 4. THEME VERSIONS TABLE (Versioning System)
-  // ===============================================
   pgm.createTable('theme_versions', {
     id: { type: 'uuid', primaryKey: true, default: pgm.func('gen_random_uuid()') },
     version_name: { type: 'varchar(100)', notNull: true },
     version_number: { type: 'integer', notNull: true },
     status: { type: 'varchar(20)', notNull: true, default: "'draft'", check: "status IN ('draft', 'published', 'archived')" },
     is_active: { type: 'boolean', default: false },
-    token_overrides: { type: 'jsonb' }, // Store token overrides for this version
+    token_overrides: { type: 'jsonb' },
     description: { type: 'text' },
-    created_by: { type: 'uuid' }, // Reference to user who created
+    created_by: { type: 'uuid' },
     published_at: { type: 'timestamp' },
     created_at: { type: 'timestamp', default: pgm.func('CURRENT_TIMESTAMP') },
     updated_at: { type: 'timestamp', default: pgm.func('CURRENT_TIMESTAMP') }
   });
 
-  // Add constraints and indexes
   pgm.addConstraint('theme_versions', 'unique_version_number', { unique: ['version_number'] });
   pgm.createIndex('theme_versions', 'is_active', { name: 'idx_theme_active', where: 'is_active = true', unique: true });
   pgm.createIndex('theme_versions', 'status', { name: 'idx_theme_status' });
 
-  // ===============================================
-  // 5. TOKEN USAGE TABLE (Track which tokens are used where)
-  // ===============================================
   pgm.createTable('token_usage', {
     id: { type: 'uuid', primaryKey: true, default: pgm.func('gen_random_uuid()') },
     token_id: { type: 'uuid', notNull: true, references: 'css_tokens(id)', onDelete: 'CASCADE' },
     rule_id: { type: 'uuid', notNull: true, references: 'css_rules(id)', onDelete: 'CASCADE' },
-    property_name: { type: 'varchar(100)', notNull: true }, // e.g., 'background', 'color'
-    usage_context: { type: 'text' }, // Additional context about usage
+    property_name: { type: 'varchar(100)', notNull: true },
+    usage_context: { type: 'text' },
     created_at: { type: 'timestamp', default: pgm.func('CURRENT_TIMESTAMP') },
     updated_at: { type: 'timestamp', default: pgm.func('CURRENT_TIMESTAMP') }
   });
 
-  // Add unique constraint and indexes
   pgm.addConstraint('token_usage', 'unique_token_rule_property', { unique: ['token_id', 'rule_id', 'property_name'] });
   pgm.createIndex('token_usage', 'token_id', { name: 'idx_token_usage_token' });
   pgm.createIndex('token_usage', 'rule_id', { name: 'idx_token_usage_rule' });
 
-  // ===============================================
-  // 6. CSS GRADIENTS TABLE (Special handling for gradients)
-  // ===============================================
   pgm.createTable('css_gradients', {
     id: { type: 'uuid', primaryKey: true, default: pgm.func('gen_random_uuid()') },
-    gradient_name: { type: 'varchar(100)', notNull: true }, // e.g., 'linear1', 'linear2'
+    gradient_name: { type: 'varchar(100)', notNull: true },
     gradient_value: { type: 'text', notNull: true },
-    gradient_type: { type: 'varchar(50)', notNull: true }, // 'linear', 'radial', 'conic'
+    gradient_type: { type: 'varchar(50)', notNull: true },
     description: { type: 'text' },
     is_system_gradient: { type: 'boolean', default: false },
     created_at: { type: 'timestamp', default: pgm.func('CURRENT_TIMESTAMP') },
     updated_at: { type: 'timestamp', default: pgm.func('CURRENT_TIMESTAMP') }
   });
 
-  // Add unique constraint and indexes
   pgm.addConstraint('css_gradients', 'unique_gradient_name', { unique: ['gradient_name'] });
   pgm.createIndex('css_gradients', 'gradient_type', { name: 'idx_gradients_type' });
 
-  // ===============================================
-  // 7. BACKUP METADATA TABLE (Track backups)
-  // ===============================================
   pgm.createTable('css_backups', {
     id: { type: 'uuid', primaryKey: true, default: pgm.func('gen_random_uuid()') },
     backup_name: { type: 'varchar(255)', notNull: true },
@@ -145,35 +110,25 @@ export const up = (pgm) => {
     updated_at: { type: 'timestamp', default: pgm.func('CURRENT_TIMESTAMP') }
   });
 
-  // Add unique constraint
   pgm.addConstraint('css_backups', 'unique_backup_name', { unique: ['backup_name'] });
 
-  // ===============================================
-  // 8. AUDIT LOG TABLE (Track all changes)
-  // ===============================================
   pgm.createTable('css_audit_log', {
     id: { type: 'uuid', primaryKey: true, default: pgm.func('gen_random_uuid()') },
-    entity_type: { type: 'varchar(50)', notNull: true }, // 'token', 'rule', 'theme', 'file'
+    entity_type: { type: 'varchar(50)', notNull: true },
     entity_id: { type: 'uuid', notNull: true },
-    action: { type: 'varchar(50)', notNull: true }, // 'create', 'update', 'delete', 'publish'
+    action: { type: 'varchar(50)', notNull: true },
     old_value: { type: 'jsonb' },
     new_value: { type: 'jsonb' },
-    changed_by: { type: 'uuid' }, // Reference to user
+    changed_by: { type: 'uuid' },
     change_reason: { type: 'text' },
     created_at: { type: 'timestamp', default: pgm.func('CURRENT_TIMESTAMP') },
     updated_at: { type: 'timestamp', default: pgm.func('CURRENT_TIMESTAMP') }
   });
 
-  // Add indexes for audit queries
   pgm.createIndex('css_audit_log', ['entity_type', 'entity_id'], { name: 'idx_audit_entity' });
   pgm.createIndex('css_audit_log', 'created_at', { name: 'idx_audit_date' });
   pgm.createIndex('css_audit_log', 'changed_by', { name: 'idx_audit_user' });
 
-  // ===============================================
-  // TRIGGERS: Auto-update timestamps (reuse existing function)
-  // ===============================================
-  
-  // Apply trigger to all CSS management tables
   pgm.createTrigger('css_files', 'update_css_files_updated_at', {
     when: 'BEFORE',
     operation: 'UPDATE',
@@ -230,11 +185,6 @@ export const up = (pgm) => {
     level: 'ROW'
   });
 
-  // ===============================================
-  // SEED DATA: CSS Files Metadata
-  // ===============================================
-
-  // Insert CSS files metadata
   pgm.sql(`
     INSERT INTO css_files (file_name, file_path, description, is_empty, file_size, category)
     VALUES 
@@ -254,7 +204,6 @@ export const up = (pgm) => {
     ON CONFLICT (file_path) DO NOTHING;
   `);
 
-  // Insert CSS tokens (Design System)
   pgm.sql(`
     INSERT INTO css_tokens (token_name, token_category, token_type, default_value, light_mode_value, dark_mode_value, description, is_customizable)
     VALUES 
@@ -294,11 +243,21 @@ export const up = (pgm) => {
       ('--draft-status-icon', 'colors', 'color', '#ffffff', '#ffffff', '#ffffff', 'Draft status bar icon color', true),
       ('--draft-status-muted', 'colors', 'color', 'rgba(255, 255, 255, 0.9)', 'rgba(255, 255, 255, 0.9)', 'rgba(255, 255, 255, 0.9)', 'Draft status bar muted text color', true),
       ('--draft-count-bg', 'colors', 'color', 'rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.2)', 'rgba(255, 255, 255, 0.2)', 'Draft count badge background', true),
-      ('--draft-count-text', 'colors', 'color', '#ffffff', '#ffffff', '#ffffff', 'Draft count badge text color', true)
+      ('--draft-count-text', 'colors', 'color', '#ffffff', '#ffffff', '#ffffff', 'Draft count badge text color', true),
+      ('--toast-success-bg', 'colors', 'color', 'rgba(16, 185, 129, 0.95)', 'rgba(16, 185, 129, 0.95)', 'rgba(16, 185, 129, 0.95)', 'Toast success notification background color', true),
+      ('--toast-error-bg', 'colors', 'color', 'rgba(239, 68, 68, 0.95)', 'rgba(239, 68, 68, 0.95)', 'rgba(239, 68, 68, 0.95)', 'Toast error notification background color', true),
+      ('--toast-warning-bg', 'colors', 'color', 'rgba(245, 158, 11, 0.95)', 'rgba(245, 158, 11, 0.95)', 'rgba(245, 158, 11, 0.95)', 'Toast warning notification background color', true),
+      ('--toast-info-bg', 'colors', 'color', 'rgba(59, 130, 246, 0.95)', 'rgba(59, 130, 246, 0.95)', 'rgba(59, 130, 246, 0.95)', 'Toast info notification background color', true),
+      ('--toast-text-color', 'colors', 'color', '#ffffff', '#ffffff', '#ffffff', 'Toast notification text color', true),
+      ('--toast-border-success', 'colors', 'color', 'rgba(16, 185, 129, 0.3)', 'rgba(16, 185, 129, 0.3)', 'rgba(16, 185, 129, 0.3)', 'Toast success notification border color', true),
+      ('--toast-border-error', 'colors', 'color', 'rgba(239, 68, 68, 0.3)', 'rgba(239, 68, 68, 0.3)', 'rgba(239, 68, 68, 0.3)', 'Toast error notification border color', true),
+      ('--toast-border-warning', 'colors', 'color', 'rgba(245, 158, 11, 0.3)', 'rgba(245, 158, 11, 0.3)', 'rgba(245, 158, 11, 0.3)', 'Toast warning notification border color', true),
+      ('--toast-border-info', 'colors', 'color', 'rgba(59, 130, 246, 0.3)', 'rgba(59, 130, 246, 0.3)', 'rgba(59, 130, 246, 0.3)', 'Toast info notification border color', true),
+      ('--toast-icon-color', 'colors', 'color', '#ffffff', '#ffffff', '#ffffff', 'Toast notification icon color', true),
+      ('--toast-shadow', 'colors', 'color', 'rgba(0, 0, 0, 0.25)', 'rgba(0, 0, 0, 0.15)', 'rgba(0, 0, 0, 0.25)', 'Toast notification shadow color', true)
     ON CONFLICT (token_name) DO NOTHING;
   `);
 
-  // Insert CSS gradients
   pgm.sql(`
     INSERT INTO css_gradients (gradient_name, gradient_value, gradient_type, description, is_system_gradient)
     VALUES 
@@ -314,7 +273,6 @@ export const up = (pgm) => {
     ON CONFLICT (gradient_name) DO NOTHING;
   `);
 
-  // Insert initial theme version
   pgm.sql(`
     INSERT INTO theme_versions (version_name, version_number, status, is_active, description, published_at)
     VALUES 
@@ -322,7 +280,6 @@ export const up = (pgm) => {
     ON CONFLICT (version_number) DO NOTHING;
   `);
 
-  // Insert CSS backup metadata
   pgm.sql(`
     INSERT INTO css_backups (backup_name, backup_date, total_files, location, purpose, notes)
     VALUES 
@@ -331,13 +288,7 @@ export const up = (pgm) => {
   `);
 };
 
-/**
- * @param pgm {import('node-pg-migrate').MigrationBuilder}
- * @param run {() => void | undefined}
- * @returns {Promise<void> | void}
- */
-export const down = (pgm) => {
-  // Drop triggers first
+export const down = pgm => {
   pgm.dropTrigger('css_audit_log', 'update_css_audit_log_updated_at', { ifExists: true });
   pgm.dropTrigger('css_backups', 'update_css_backups_updated_at', { ifExists: true });
   pgm.dropTrigger('css_gradients', 'update_css_gradients_updated_at', { ifExists: true });
@@ -347,7 +298,6 @@ export const down = (pgm) => {
   pgm.dropTrigger('css_tokens', 'update_css_tokens_updated_at', { ifExists: true });
   pgm.dropTrigger('css_files', 'update_css_files_updated_at', { ifExists: true });
 
-  // Drop tables in reverse order (respecting foreign key dependencies)
   pgm.dropTable('css_audit_log', { ifExists: true });
   pgm.dropTable('css_backups', { ifExists: true });
   pgm.dropTable('css_gradients', { ifExists: true });

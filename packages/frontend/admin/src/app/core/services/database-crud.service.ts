@@ -39,10 +39,6 @@ export class DatabaseCrudService {
       },
       record,
     );
-
-    this.toastService.success(
-      `Record ${recordId} marked for deletion. Use "Save Changes" to apply all changes.`,
-    );
   }
 
   confirmDelete (recordId: number, onConfirm: () => void): void {

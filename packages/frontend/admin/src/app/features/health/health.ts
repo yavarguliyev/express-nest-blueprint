@@ -1,11 +1,12 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DashboardService, HealthStatus } from '../../core/services/dashboard.service';
+import { DraggableResizableDirective } from '../../shared/directives/draggable-resizable.directive';
 
 @Component({
   selector: 'app-health',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, DraggableResizableDirective],
   templateUrl: './health.html',
   styleUrl: './health.css',
 })

@@ -1,15 +1,6 @@
-/**
- * @type {import('node-pg-migrate').ColumnDefinitions | undefined}
- */
 export const shorthands = undefined;
 
-/**
- * @param pgm {import('node-pg-migrate').MigrationBuilder}
- * @param run {() => void | undefined}
- * @returns {Promise<void> | void}
- */
-export const up = (pgm) => {
-  // Create users table
+export const up = pgm => {
   pgm.createTable('users', {
     id: 'id',
     email: { type: 'varchar(255)', notNull: true, unique: true },
@@ -24,13 +15,11 @@ export const up = (pgm) => {
     is_email_verified: { type: 'boolean', default: false }
   });
 
-  // Create indexes
   pgm.createIndex('users', 'email', { name: 'idx_users_email' });
   pgm.createIndex('users', 'is_active', { name: 'idx_users_is_active' });
   pgm.createIndex('users', 'role', { name: 'idx_users_role' });
   pgm.createIndex('users', 'is_email_verified', { name: 'idx_users_email_verified' });
 
-  // Create trigger function
   pgm.createFunction(
     'update_updated_at_column',
     [],
@@ -47,7 +36,6 @@ export const up = (pgm) => {
     `
   );
 
-  // Create trigger
   pgm.createTrigger('users', 'update_users_updated_at', {
     when: 'BEFORE',
     operation: 'UPDATE',
@@ -55,7 +43,6 @@ export const up = (pgm) => {
     level: 'ROW'
   });
 
-  // Insert seed data
   pgm.sql(`
     INSERT INTO users (email, first_name, last_name, is_active, is_email_verified, role, password_hash) VALUES
       ('guliyev.yavar@example.com', 'Yavar', 'Guliyev', true, true, 'global admin', '$2b$12$XfD0o9PAD8ji4foBV2YRy.PR4/s0f0QHRIFUUylndRMHq1bUAhcwG'),
@@ -76,12 +63,7 @@ export const up = (pgm) => {
   `);
 };
 
-/**
- * @param pgm {import('node-pg-migrate').MigrationBuilder}
- * @param run {() => void | undefined}
- * @returns {Promise<void> | void}
- */
-export const down = (pgm) => {
+export const down = pgm => {
   pgm.dropTrigger('users', 'update_users_updated_at', { ifExists: true });
   pgm.dropFunction('update_updated_at_column', [], { ifExists: true });
   pgm.dropTable('users', { ifExists: true });

@@ -1,11 +1,11 @@
-<div class="topbar-container glass" [class.sidebar-collapsed]="isCollapsed()">
+<div class="topbar-container glass" [class.sidebar-collapsed]="isCollapsed()" appDraggableResizable>
   <div class="page-info">
-    <span class="breadcrumb">{{ currentPageName() }}</span>
+    <span class="breadcrumb" appDraggableResizable="topbar-breadcrumb">{{ currentPageName() }}</span>
   </div>
 
   <div class="user-actions">
     <!-- Theme Toggle -->
-    <div class="theme-toggle">
+    <div class="theme-toggle" appDraggableResizable="topbar-theme-toggle">
       <app-toggle-switch 
         [checked]="isDarkMode()"
         (toggleChange)="toggleTheme()"
@@ -13,7 +13,7 @@
       </app-toggle-switch>
     </div>
     
-    <div class="user-profile" routerLink="/profile">
+    <div class="user-profile" routerLink="/profile" appDraggableResizable="topbar-user-profile">
       <div class="user-avatar glow">
         @if (user()?.profileImageUrl) {
           <img [src]="user()?.profileImageUrl" alt="Avatar">

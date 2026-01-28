@@ -13,6 +13,7 @@ import {
   DraftStatusBar,
   DraftStatusConfig,
 } from '../../shared/components/draft-status-bar/draft-status-bar';
+import { DraggableResizableDirective } from '../../shared/directives/draggable-resizable.directive';
 
 @Component({
   selector: 'app-theme-editor',
@@ -25,6 +26,7 @@ import {
     FontSelector,
     SpacingSlider,
     DraftStatusBar,
+    DraggableResizableDirective,
   ],
   templateUrl: './theme-editor.html',
   styleUrl: './theme-editor.css',

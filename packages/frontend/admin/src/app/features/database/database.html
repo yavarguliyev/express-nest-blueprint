@@ -1,15 +1,15 @@
 <div class="database-page animate-fade-in">
-  <div class="page-header">
+  <div class="page-header" appDraggableResizable="database-header">
     <div class="header-content">
       <h2>Architectural Explorer</h2>
       <p class="text-muted">Direct oversight and manipulation of relational entity matrices</p>
     </div>
-    <div class="header-actions">
-      <button class="btn btn-secondary" (click)="loadSchema()" [disabled]="loadingSchema()" title="Use cached schema">
+    <div class="header-actions" appDraggableResizable="database-header-actions">
+      <button class="btn btn-secondary" (click)="loadSchema()" [disabled]="loadingSchema()" title="Use cached schema" appDraggableResizable="database-load-schema-btn">
         <span class="material-icons" [class.spin]="loadingSchema()">cached</span>
         Load Schema
       </button>
-      <button class="btn btn-primary" (click)="refreshSchema()" [disabled]="loadingSchema()" title="Force fresh schema">
+      <button class="btn btn-primary" (click)="refreshSchema()" [disabled]="loadingSchema()" title="Force fresh schema" appDraggableResizable="database-refresh-schema-btn">
         <span class="material-icons" [class.spin]="loadingSchema()">hub</span>
         Re-scan Infrastructure
       </button>
@@ -21,7 +21,7 @@
   </div>
 
   <div class="schema-tree" *ngIf="!loadingSchema() && schema()">
-    <div *ngFor="let category of schema() | keyvalue" class="category-block glass">
+    <div *ngFor="let category of schema() | keyvalue" class="category-block glass" [appDraggableResizable]="'database-category-' + category.key">
       <div class="category-header" (click)="toggleCategory(category.key)">
         <span class="material-icons chevron" [class.expanded]="expandedCategories()[category.key]">expand_more</span>
         <span class="material-icons category-icon">folder_special</span>
@@ -39,7 +39,7 @@
           </div>
 
           <!-- Dynamic CRUD Interface Expanded Inside the Tree -->
-          <div class="crud-expansion glass" *ngIf="selectedTable()?.name === table.name">
+          <div class="crud-expansion glass" *ngIf="selectedTable()?.name === table.name" [appDraggableResizable]="'database-crud-' + table.name">
             <div class="crud-controls">
               <div class="search-box glass">
                 <span class="material-icons search-icon">search</span>
