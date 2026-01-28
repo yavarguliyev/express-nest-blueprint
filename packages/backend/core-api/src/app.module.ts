@@ -6,6 +6,7 @@ import {
   HeaderAuthMiddleware,
   MetricsMiddleware,
   RateLimitMiddleware,
+  MaintenanceMiddleware,
   ConfigModule,
   SharedModule,
   DatabaseModule,
@@ -16,6 +17,7 @@ import { AuthModule } from '@modules/auth/auth.module';
 import { UsersModule } from '@modules/users/users.module';
 import { AdminModule } from '@modules/admin/admin.module';
 import { ThemesModule } from '@modules/themes/themes.module';
+import { SettingsModule } from '@modules/settings/settings.module';
 import { UsersResolver } from '@modules/users/users.resolver';
 
 @Module({
@@ -31,7 +33,8 @@ import { UsersResolver } from '@modules/users/users.resolver';
     UsersModule,
     AuthModule,
     AdminModule,
-    ThemesModule
+    ThemesModule,
+    SettingsModule
   ],
   controllers: [],
   providers: [],
@@ -40,7 +43,8 @@ import { UsersResolver } from '@modules/users/users.resolver';
 export class AppModule implements NestModule {
   configure (consumer: MiddlewareConsumer): void {
     consumer.apply(MetricsMiddleware, LoggerMiddleware).forRoutes('*');
-    consumer.apply(RateLimitMiddleware).exclude('/health*', '/metrics*').forRoutes('*');
+    consumer.apply(MaintenanceMiddleware).forRoutes('*');
+    consumer.apply(RateLimitMiddleware).exclude('/health*', '/metrics*', '/api/v1/settings', '/api/v1/settings/*').forRoutes('*');
     consumer.apply(HeaderAuthMiddleware).forRoutes('*');
   }
 }

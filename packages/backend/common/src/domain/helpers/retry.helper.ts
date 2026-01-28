@@ -15,12 +15,12 @@ export class RetryHelper {
         const finalFailureMessage = `${serviceName} shutdown failed after ${maxRetries} attempts: ${getErrorMessage(error)}`;
         const logMessage = attempt < maxRetries ? retryingMessage : finalFailureMessage;
 
-        this.logger.log(logMessage, 'error');
+        void this.logger.log(logMessage, 'error');
 
         if (attempt === maxRetries) throw error;
         if (onRetry) onRetry(attempt);
 
-        this.logger.log(`Waiting ${retryDelay}ms before retry...`, 'info');
+        void this.logger.log(`Waiting ${retryDelay}ms before retry...`, 'info');
         await this.delay(retryDelay);
       }
     }

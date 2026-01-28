@@ -165,13 +165,6 @@ CREATE INDEX idx_audit_user ON css_audit_log(changed_by);
 -- ===============================================
 -- TRIGGER: Auto-update timestamps
 -- ===============================================
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = CURRENT_TIMESTAMP;
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
 
 -- Apply trigger to all tables with updated_at
 CREATE TRIGGER update_css_files_updated_at BEFORE UPDATE ON css_files
@@ -328,3 +321,8 @@ VALUES
 INSERT INTO css_backups (backup_name, backup_date, total_files, location, purpose, notes)
 VALUES 
     ('complete-css-backup-2026-01-20', '2026-01-20', 13, 'packages/frontend/styles/', 'Backup and reference for all CSS styling in the admin application', 'This is a backup copy - do not modify original CSS files');
+
+-- Mark this migration as completed in pgmigrations table
+INSERT INTO pgmigrations (name, run_on) VALUES 
+    ('1768979250468_add-css-management-system', NOW())
+ON CONFLICT (name) DO NOTHING;

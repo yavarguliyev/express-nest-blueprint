@@ -13,9 +13,12 @@ import {
   LifecycleService,
   SwaggerModule,
   DocumentBuilder,
-  GraphQLApplication
+  GraphQLApplication,
+  MaintenanceMiddleware
 } from '@config/libs';
 import { AppModule } from '@app.module';
+import { SettingsService } from '@modules/settings/settings.service';
+import { AuthService } from '@modules/auth/auth.service';
 
 async function bootstrap (): Promise<void> {
   let lifecycleService: LifecycleService | undefined;
@@ -23,6 +26,14 @@ async function bootstrap (): Promise<void> {
   try {
     const app = await NestFactory.create(AppModule, { appName: AppName.MAIN });
     lifecycleService = app.get(LifecycleService);
+
+    const settingsService = app.get(SettingsService);
+    const authService = app.get(AuthService);
+    const maintenanceMiddleware = app.get(MaintenanceMiddleware);
+
+    Logger.setSettingsService(settingsService);
+    authService.setSettingsService(settingsService);
+    maintenanceMiddleware.setSettingsService(settingsService);
 
     const configService = app.get(ConfigService);
     const port = configService.get<number>('PORT', 3000);

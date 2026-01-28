@@ -60,7 +60,7 @@ UPDATE users SET role = 'user' WHERE role IS NULL;
 -- Create pgmigrations table and mark migrations as done
 CREATE TABLE IF NOT EXISTS pgmigrations (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL UNIQUE,
     run_on TIMESTAMP NOT NULL
 );
 

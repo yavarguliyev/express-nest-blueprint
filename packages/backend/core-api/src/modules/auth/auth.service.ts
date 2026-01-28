@@ -1,6 +1,6 @@
 import * as bcrypt from 'bcrypt';
 
-import { Injectable, UnauthorizedException, ValidationService, JwtService, UserRoles, ForbiddenException } from '@config/libs';
+import { Injectable, UnauthorizedException, ValidationService, JwtService, UserRoles, ForbiddenException, BadRequestException } from '@config/libs';
 import { AuthResponseDto } from '@modules/auth/dtos/auth-response.dto';
 import { LoginDto } from '@modules/auth/dtos/login.dto';
 import { RegisterDto } from '@modules/auth/dtos/register.dto';
@@ -9,12 +9,25 @@ import { AuthRepository } from '@modules/auth/auth.repository';
 
 @Injectable()
 export class AuthService {
+  private settingsService: { isRegistrationAllowed(): Promise<boolean> } | null = null;
+
   constructor (
     private readonly usersService: AuthRepository,
     private readonly jwtService: JwtService
   ) {}
 
+  setSettingsService (settingsService: { isRegistrationAllowed(): Promise<boolean> }): void {
+    this.settingsService = settingsService;
+  }
+
   async register (registerDto: RegisterDto): Promise<AuthResponseDto> {
+    if (this.settingsService) {
+      const isRegistrationAllowed = await this.settingsService.isRegistrationAllowed();
+      if (!isRegistrationAllowed) {
+        throw new BadRequestException('User registration is currently disabled');
+      }
+    }
+
     const passwordHash = await this.hashPassword(registerDto.password);
     const userData = { ...registerDto, passwordHash, isEmailVerified: true };
     const user = await this.usersService.createWithAuth(userData);

@@ -48,6 +48,7 @@ export * from './core/middleware/avatar-upload.middleware';
 export * from './core/middleware/header-auth.middleware';
 export * from './core/middleware/logger.middleware';
 export * from './core/middleware/metrics.middleware';
+export * from './core/middleware/maintenance.middleware';
 export * from './core/middleware/middleware-consumer';
 export * from './core/middleware/rate-limit.middleware';
 export * from './core/swagger/document-builder';

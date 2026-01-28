@@ -7,38 +7,48 @@
     </div>
   </div>
 
-  <div *ngIf="successMessage()" class="success-banner glass">
-    <span class="material-icons">check_circle</span>
-    {{ successMessage() }}
-  </div>
+  <app-draft-status-bar
+    [config]="draftStatusConfig()"
+    (saveChanges)="saveSettings()"
+    (resetChanges)="resetChanges()">
+  </app-draft-status-bar>
 
   <div class="settings-container glass">
     <div class="settings-section">
       <h3>General Configuration</h3>
       <div class="settings-list">
-        <div *ngFor="let setting of settings()" class="setting-item">
-          <div class="setting-info">
-            <span class="setting-category">{{ setting.category }}</span>
-            <span class="setting-label">{{ setting.label }}</span>
-            <p class="setting-desc">{{ setting.description }}</p>
+        @for (setting of settings(); track setting.id) {
+          <div class="setting-item">
+            <div class="setting-info">
+              <span class="setting-category">{{ setting.category }}</span>
+              <span class="setting-label">{{ setting.label }}</span>
+              <p class="setting-desc">{{ setting.description }}</p>
+            </div>
+            <div class="setting-action">
+              <div class="toggle-group">
+                <div class="toggle-item">
+                  <label>Enabled</label>
+                  <app-toggle-switch 
+                    [checked]="setting.isActive" 
+                    [disabled]="loading()"
+                    (toggleChange)="onActiveToggleChange(setting.id, $event)"
+                    size="medium">
+                  </app-toggle-switch>
+                </div>
+                <div class="toggle-item">
+                  <label>Value</label>
+                  <app-toggle-switch 
+                    [checked]="setting.value" 
+                    [disabled]="loading() || !setting.isActive"
+                    (toggleChange)="onToggleChange(setting.id, $event)"
+                    size="medium">
+                  </app-toggle-switch>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="setting-action">
-            <app-toggle-switch 
-              [checked]="setting.value" 
-              [disabled]="loading()"
-              (toggleChange)="onToggleChange(setting.id, $event)"
-              size="medium">
-            </app-toggle-switch>
-          </div>
-        </div>
+        }
       </div>
-    </div>
-
-    <div class="settings-footer">
-      <button class="btn btn-primary" (click)="saveSettings()" [disabled]="loading()">
-        <span *ngIf="!loading()">Save Changes</span>
-        <span *ngIf="loading()">Saving...</span>
-      </button>
     </div>
   </div>
 </div>

@@ -20,4 +20,11 @@ export const API_ENDPOINTS = {
     BULK_OPERATIONS: `${API_BASE}/admin/bulk-operations`,
     BULK_OPERATIONS_VALIDATE: `${API_BASE}/admin/bulk-operations/validate`,
   },
+
+  SETTINGS: {
+    BASE: `${API_BASE}/settings`,
+    GET_ALL: `${API_BASE}/settings`,
+    UPDATE: `${API_BASE}/settings`,
+    GET_BY_KEY: (key: string) => `${API_BASE}/settings/${key}`,
+  },
 } as const;

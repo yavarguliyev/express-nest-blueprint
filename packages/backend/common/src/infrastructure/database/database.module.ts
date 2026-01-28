@@ -46,7 +46,7 @@ export class DatabaseModule {
                   await databaseService.addConnection(connectionName, { ...dbConfig, host: hosts[i] || 'localhost' }, true);
                 }
 
-                DatabaseModule.logger.log(`Initialized ${hosts.length} read replicas for '${connectionName}'`);
+                void DatabaseModule.logger.log(`Initialized ${hosts.length} read replicas for '${connectionName}'`);
               }
 
               if (lifecycleService) {

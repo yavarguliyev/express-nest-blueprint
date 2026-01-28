@@ -29,7 +29,7 @@ export class CircuitBreakerService {
   recordSuccess (key: string): void {
     const state = this.states.get(key);
     if (state === CircuitBreakerState.HALF_OPEN || state === CircuitBreakerState.OPEN) {
-      this.logger.log(`Circuit '${key}' recovered. Closing circuit.`);
+      void this.logger.log(`Circuit '${key}' recovered. Closing circuit.`);
       this.states.set(key, CircuitBreakerState.CLOSED);
       this.failureCounts.set(key, 0);
     }
@@ -41,7 +41,7 @@ export class CircuitBreakerService {
     this.lastFailureTimes.set(key, Date.now());
 
     if (count >= this.failureThreshold) {
-      this.logger.warn(`Circuit '${key}' reached failure threshold (${this.failureThreshold}). Opening circuit.`);
+      void this.logger.warn(`Circuit '${key}' reached failure threshold (${this.failureThreshold}). Opening circuit.`);
       this.states.set(key, CircuitBreakerState.OPEN);
     }
   }

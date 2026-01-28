@@ -41,7 +41,7 @@ export class RateLimitMiddleware implements NestMiddleware {
         next();
       })
       .catch(error => {
-        this.logger.error(`Rate Limit Error: ${getErrorMessage(error)}`);
+        void this.logger.error(`Rate Limit Error: ${getErrorMessage(error)}`);
         next();
       });
   }

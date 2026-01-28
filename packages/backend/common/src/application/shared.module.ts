@@ -7,6 +7,7 @@ import { HeaderAuthGuard } from '../core/guards/header-auth.guard';
 import { RolesGuard } from '../core/guards/roles.guard';
 import { HeaderAuthMiddleware } from '../core/middleware/header-auth.middleware';
 import { LoggerMiddleware } from '../core/middleware/logger.middleware';
+import { MaintenanceMiddleware } from '../core/middleware/maintenance.middleware';
 import { CacheModule } from '../infrastructure/cache/cache.module';
 import { CircuitBreakerModule } from '../infrastructure/circuit-breaker/circuit-breaker.module';
 import { ComputeModule } from '../infrastructure/compute/compute.module';
@@ -42,6 +43,7 @@ import { ThrottlerModule } from '../infrastructure/throttler/throttler.module';
     RolesGuard,
     HeaderAuthGuard,
     HeaderAuthMiddleware,
+    MaintenanceMiddleware,
     {
       provide: 'APP_INITIALIZER',
       useFactory: (async (...initializers: Array<() => Promise<void> | void>): Promise<void> => {

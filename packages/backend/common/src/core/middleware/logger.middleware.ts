@@ -10,7 +10,9 @@ export class LoggerMiddleware implements NestMiddleware {
 
   use (req: Request, res: Response, next: NextFunction): void {
     const { method, originalUrl } = req;
-    res.on('close', () => this.logger.log(`${method} ${originalUrl} ${res.statusCode}`));
+    res.on('close', () => {
+      void this.logger.log(`${method} ${originalUrl} ${res.statusCode}`);
+    });
     next();
   }
 }

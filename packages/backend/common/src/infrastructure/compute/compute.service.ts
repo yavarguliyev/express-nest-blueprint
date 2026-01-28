@@ -70,8 +70,12 @@ export class ComputeService {
       concurrency: 10
     });
 
-    this.worker.on('completed', (job: Job) => this.logger.log(`✅ Job ${job.id} completed successfully`));
-    this.worker.on('failed', (job: Job | undefined, err) => this.logger.error(`❌ Job ${job?.id} failed: ${getErrorMessage(err)}`));
+    this.worker.on('completed', (job: Job) => {
+      void this.logger.log(`✅ Job ${job.id} completed successfully`);
+    });
+    this.worker.on('failed', (job: Job | undefined, err) => {
+      void this.logger.error(`❌ Job ${job?.id} failed: ${getErrorMessage(err)}`);
+    });
   }
 
   public registerHandler (taskName: string, handler: ComputeHandler): void {
@@ -141,6 +145,6 @@ export class ComputeService {
     if (this.queueEvents) await this.queueEvents.close();
 
     await this.queueManager.closeAllQueues();
-    this.logger.log('Compute service closed');
+    void this.logger.log('Compute service closed');
   }
 }

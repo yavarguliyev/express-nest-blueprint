@@ -1,51 +1,139 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
+
 import { ToggleSwitch } from '../../shared/components/toggle-switch/toggle-switch';
+import {
+  DraftStatusBar,
+  DraftStatusConfig,
+} from '../../shared/components/draft-status-bar/draft-status-bar';
+import { ToastService } from '../../core/services/toast.service';
+import { API_ENDPOINTS } from '../../core/constants/api-endpoints';
+
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message: string;
+}
+
+interface SettingItem {
+  id: string;
+  label: string;
+  description: string;
+  value: boolean;
+  isActive: boolean;
+  category: string;
+}
+
+interface SettingsUpdateRequest {
+  settings: Array<{
+    key: string;
+    value: boolean;
+    isActive?: boolean;
+  }>;
+}
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule, ToggleSwitch],
+  imports: [CommonModule, FormsModule, ToggleSwitch, DraftStatusBar],
   templateUrl: './settings.html',
   styleUrl: './settings.css',
 })
 export class Settings implements OnInit {
-  settings = signal([
-    {
-      id: 'maint',
-      label: 'Maintenance Mode',
-      description: 'Disable public access to the API.',
-      value: false,
-      category: 'System',
-    },
-    {
-      id: 'debug',
-      label: 'Debug Logging',
-      description: 'Enable verbose logging for all requests.',
-      value: true,
-      category: 'System',
-    },
-    {
-      id: 'reg',
-      label: 'Allow Registration',
-      description: 'Enable/disable new user signups.',
-      value: true,
-      category: 'Security',
-    },
-    {
-      id: 'mfa',
-      label: 'Enforce MFA',
-      description: 'Require Multi-Factor Authentication for all users.',
-      value: false,
-      category: 'Security',
-    },
-  ]);
+  private readonly http = inject(HttpClient);
+  private readonly toastService = inject(ToastService);
 
+  settings = signal<SettingItem[]>([]);
+  originalSettings = signal<SettingItem[]>([]);
   loading = signal(false);
-  successMessage = signal('');
 
-  ngOnInit (): void {}
+  hasChanges = computed(() => {
+    const current = this.settings();
+    const original = this.originalSettings();
+
+    if (current.length !== original.length) return false;
+
+    return current.some((setting) => {
+      const originalSetting = original.find((orig) => orig.id === setting.id);
+      return (
+        originalSetting &&
+        (originalSetting.value !== setting.value || originalSetting.isActive !== setting.isActive)
+      );
+    });
+  });
+
+  changedCount = computed(() => {
+    const current = this.settings();
+    const original = this.originalSettings();
+
+    return current.filter((setting) => {
+      const originalSetting = original.find((orig) => orig.id === setting.id);
+      return (
+        originalSetting &&
+        (originalSetting.value !== setting.value || originalSetting.isActive !== setting.isActive)
+      );
+    }).length;
+  });
+
+  changedSettings = computed(() => {
+    const current = this.settings();
+    const original = this.originalSettings();
+
+    return current
+      .filter((setting) => {
+        const originalSetting = original.find((orig) => orig.id === setting.id);
+        return (
+          originalSetting &&
+          (originalSetting.value !== setting.value || originalSetting.isActive !== setting.isActive)
+        );
+      })
+      .map((setting) => setting.label);
+  });
+
+  draftStatusConfig = computed<DraftStatusConfig>(() => ({
+    draftCount: this.changedCount(),
+    hasDrafts: this.hasChanges(),
+    affectedItems: this.changedSettings(),
+    isProcessing: this.loading(),
+    itemType: 'item',
+    resetButtonText: 'Reset Changes',
+    saveButtonText: 'Save Changes',
+    resetButtonIcon: 'refresh',
+    saveButtonIcon: 'save',
+  }));
+
+  ngOnInit (): void {
+    void this.loadSettings();
+  }
+
+  private async loadSettings (): Promise<void> {
+    try {
+      this.loading.set(true);
+      const response = await firstValueFrom(
+        this.http.get<ApiResponse<SettingItem[]>>(API_ENDPOINTS.SETTINGS.GET_ALL),
+      );
+
+      const allowedSettings = [
+        'maintenance_mode',
+        'debug_logging',
+        'allow_registration',
+        'enforce_mfa',
+      ];
+      const filteredSettings = (response.data).filter((setting) =>
+        allowedSettings.includes(setting.id),
+      );
+
+      this.settings.set(filteredSettings);
+      this.originalSettings.set(JSON.parse(JSON.stringify(filteredSettings)) as SettingItem[]);
+    } catch {
+      void this.toastService.error('Failed to load settings');
+    } finally {
+      this.loading.set(false);
+    }
+  }
 
   onToggleChange (settingId: string, newValue: boolean): void {
     this.settings.update((currentSettings) =>
@@ -55,12 +143,62 @@ export class Settings implements OnInit {
     );
   }
 
-  saveSettings (): void {
-    this.loading.set(true);
-    setTimeout(() => {
+  onActiveToggleChange (settingId: string, newValue: boolean): void {
+    this.settings.update((currentSettings) =>
+      currentSettings.map((setting) =>
+        setting.id === settingId ? { ...setting, isActive: newValue } : setting,
+      ),
+    );
+  }
+
+  async saveSettings (): Promise<void> {
+    if (!this.hasChanges()) {
+      void this.toastService.info('No changes to save');
+      return;
+    }
+
+    try {
+      this.loading.set(true);
+
+      const updateRequest: SettingsUpdateRequest = {
+        settings: this.settings().map((setting) => ({
+          key: this.mapIdToKey(setting.id),
+          value: setting.value,
+          isActive: setting.isActive,
+        })),
+      };
+
+      const response = await firstValueFrom(
+        this.http.put<ApiResponse<SettingItem[]>>(API_ENDPOINTS.SETTINGS.UPDATE, updateRequest),
+      );
+
+      this.settings.set(response.data);
+      this.originalSettings.set(JSON.parse(JSON.stringify(response.data)) as SettingItem[]);
+
+      void this.toastService.success(`Successfully updated ${this.changedCount()} settings`);
+    } catch {
+      void this.toastService.error('Failed to update settings');
+    } finally {
       this.loading.set(false);
-      this.successMessage.set('Settings updated successfully!');
-      setTimeout(() => this.successMessage.set(''), 3000);
-    }, 800);
+    }
+  }
+
+  resetChanges (): void {
+    if (!this.hasChanges()) {
+      void this.toastService.info('No changes to reset');
+      return;
+    }
+
+    void this.toastService.confirm(
+      `Reset all ${this.changedCount()} unsaved changes? This cannot be undone.`,
+      () => {
+        this.settings.set(JSON.parse(JSON.stringify(this.originalSettings())) as SettingItem[]);
+        void this.toastService.success('All changes have been reset');
+      },
+    );
+  }
+
+  private mapIdToKey (id: string): string {
+    return id;
   }
 }

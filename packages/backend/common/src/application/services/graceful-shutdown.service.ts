@@ -26,7 +26,7 @@ export class GracefulShutdownService {
     }, this.shutdownTimeout);
 
     try {
-      this.logger.log('Graceful shutdown initiated...');
+      void this.logger.log('Graceful shutdown initiated...');
 
       if (httpServer?.listening) {
         if ('closeAllConnections' in httpServer && typeof httpServer.closeAllConnections === 'function') {
@@ -39,17 +39,20 @@ export class GracefulShutdownService {
 
         await new Promise<void>(resolve => {
           httpServer.close(err => {
-            if (err) this.logger.error(`Error closing HTTP server: ${getErrorMessage(err)}`);
-            else this.logger.log('HTTP server closed.');
+            if (err) {
+              void this.logger.error(`Error closing HTTP server: ${getErrorMessage(err)}`);
+            } else {
+              void this.logger.log('HTTP server closed.');
+            }
             resolve();
           });
         });
       }
 
       await this.disconnectServices();
-      this.logger.log('All services disconnected.');
+      void this.logger.log('All services disconnected.');
     } catch (error) {
-      this.logger.error(`Error during shutdown: ${getErrorMessage(error)}`);
+      void this.logger.error(`Error during shutdown: ${getErrorMessage(error)}`);
     } finally {
       clearTimeout(shutdownTimer);
       process.exit(0);
@@ -66,7 +69,7 @@ export class GracefulShutdownService {
       });
 
       return Promise.race([disconnectPromise, timeoutPromise]).catch(error => {
-        this.logger.error(`Failed to disconnect ${service.name}: ${getErrorMessage(error)}`);
+        void this.logger.error(`Failed to disconnect ${service.name}: ${getErrorMessage(error)}`);
       });
     });
 
@@ -78,7 +81,9 @@ export class GracefulShutdownService {
       serviceName: service.name,
       maxRetries: this.maxRetries,
       retryDelay: this.retryDelay,
-      onRetry: attempt => this.logger.log(`Retrying ${service.name} disconnect, attempt ${attempt}`)
+      onRetry: (attempt: number): void => {
+        void this.logger.log(`Retrying ${service.name} disconnect, attempt ${attempt}`);
+      }
     });
   }
 }

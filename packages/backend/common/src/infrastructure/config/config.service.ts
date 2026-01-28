@@ -69,7 +69,9 @@ export class ConfigService {
       if (existsSync(envPath)) {
         const result = config({ path: envPath, override: false } satisfies DotenvConfigOptions);
 
-        if (result.error) this.logger.error('Failed to load environment file', result.error.message);
+        if (result.error) {
+          void this.logger.error('Failed to load environment file', result.error.message);
+        }
       }
     }
 

@@ -25,9 +25,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const errorResponse = this.getErrorResponse(exception, status, message, request);
 
     if (status >= 500) {
-      this.logger.error(`${request.method} ${request.url} - Internal Server Error`, exception instanceof Error ? exception.stack : undefined);
+      void this.logger.error(`${request.method} ${request.url} - Internal Server Error`, exception instanceof Error ? exception.stack : undefined);
     } else {
-      this.logger.warn(`${request.method} ${request.url} - ${status} ${JSON.stringify(errorResponse)}`);
+      void this.logger.warn(`${request.method} ${request.url} - ${status} ${JSON.stringify(errorResponse)}`);
     }
 
     if (!response.headersSent) {

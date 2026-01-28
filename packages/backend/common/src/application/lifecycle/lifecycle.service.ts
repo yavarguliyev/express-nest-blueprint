@@ -42,7 +42,9 @@ export class LifecycleService {
 
     this.isShuttingDown = true;
 
-    this.shutdownHandlers.forEach((handler, index) => this.logger.log(`Handler ${index + 1}: ${handler.name}`));
+    this.shutdownHandlers.forEach((handler, index) => {
+      void this.logger.log(`Handler ${index + 1}: ${handler.name}`);
+    });
 
     const gracefulShutdown = new GracefulShutdownService(this.shutdownHandlers, {
       shutdownTimeout: this.configService.get<number>('SHUT_DOWN_TIMER', 3000),

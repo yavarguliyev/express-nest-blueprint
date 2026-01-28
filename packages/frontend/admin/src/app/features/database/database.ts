@@ -51,7 +51,6 @@ export class Database implements OnInit, AfterViewInit {
 
   @ViewChild('tableScrollContainer') tableScrollContainer!: ElementRef<HTMLDivElement>;
 
-  // Core state
   schema = signal<Schema | null>(null);
   loadingSchema = signal(true);
   loadingData = signal(false);
@@ -64,13 +63,11 @@ export class Database implements OnInit, AfterViewInit {
   searchQuery = signal('');
   private searchSubject = new Subject<string>();
 
-  // Modal state
   selectedRecord = signal<Record<string, unknown> | null>(null);
   showUpdateModal = signal(false);
   updateFormData = signal<Record<string, unknown>>({});
   originalFormData = signal<Record<string, unknown>>({});
 
-  // Draft state
   draftCount = this.draftService.draftCount;
   hasDrafts = this.draftService.hasDrafts;
   affectedTables = this.draftService.affectedTables;
@@ -119,7 +116,6 @@ export class Database implements OnInit, AfterViewInit {
     }
   }
 
-  // Schema operations
   loadSchema (): void {
     if (this.schema()) return;
     this.loadingSchema.set(true);
@@ -209,50 +205,100 @@ export class Database implements OnInit, AfterViewInit {
     return this.pagination.generatePageNumbers(this.page(), this.totalPages);
   }
 
-  // Validation methods
-  isCurrentUser (id: number): boolean { return this.dbValidation.isCurrentUser(id); }
-  isRestrictedTable (): boolean { return this.dbValidation.isRestrictedTable(this.selectedTable()); }
-  isFieldExcludedFromUpdate (columnName: string): boolean { return this.dbValidation.isFieldExcludedFromUpdate(columnName, this.selectedRecord()); }
-  isFieldDisabled (columnName: string): boolean { return this.dbValidation.isFieldDisabled(columnName); }
-  canDeleteRecord (): boolean { return this.dbHelper.canDeleteRecord(); }
+  isCurrentUser (id: number): boolean {
+    return this.dbValidation.isCurrentUser(id);
+  }
+  isRestrictedTable (): boolean {
+    return this.dbValidation.isRestrictedTable(this.selectedTable());
+  }
+  isFieldExcludedFromUpdate (columnName: string): boolean {
+    return this.dbValidation.isFieldExcludedFromUpdate(columnName, this.selectedRecord());
+  }
+  isFieldDisabled (columnName: string): boolean {
+    return this.dbValidation.isFieldDisabled(columnName);
+  }
+  canDeleteRecord (): boolean {
+    return this.dbHelper.canDeleteRecord();
+  }
 
-  // Helper methods
-  formatValue (value: unknown, column: Column): string { return this.dbHelper.formatValue(value, column); }
-  getBooleanValue (row: Record<string, unknown>, columnName: string): boolean { 
+  formatValue (value: unknown, column: Column): string {
+    return this.dbHelper.formatValue(value, column);
+  }
+  getBooleanValue (row: Record<string, unknown>, columnName: string): boolean {
     const recordId = this.dbHelper.getNumberValue(row, 'id');
     const draftData = this.getRecordDraftData(recordId);
     return this.dbHelper.getBooleanValue(row, columnName, draftData);
   }
-  getNumberValue (row: Record<string, unknown>, columnName: string): number { return this.dbHelper.getNumberValue(row, columnName); }
-  getFieldDisplayName (fieldName: string): string { return this.dbHelper.getFieldDisplayName(fieldName); }
-  getUserInitials (row: Record<string, unknown>): string { return this.dbHelper.getUserInitials(row); }
-  isImageUrl (colName: string): boolean { return this.dbHelper.isImageUrl(colName); }
-  getAvailableRoles (): { value: string; label: string }[] { return this.dbHelper.getAvailableRoles(); }
-  getHeaderClasses (columnName: string, columnType: string): string { return this.dbHelper.getHeaderClasses(columnName, columnType); }
-  getCellClasses (columnName: string, columnType: string): string { return this.dbHelper.getCellClasses(columnName, columnType); }
-  getColumnStyles (columnName: string, columnType: string): Record<string, string> { return this.dbHelper.getColumnStyles(columnName, columnType); }
-  hasAnyActions (): boolean { return this.dbHelper.hasAnyActions(this.selectedTable()); }
-  canModifySensitiveFields (): boolean { return this.dbHelper.canModifySensitiveFields(); }
-  isSensitiveField (columnName: string): boolean { return this.dbHelper.isSensitiveField(columnName); }
-  formatFieldValue (value: unknown): string { return this.dbHelper.formatFieldValue(value); }
+  getNumberValue (row: Record<string, unknown>, columnName: string): number {
+    return this.dbHelper.getNumberValue(row, columnName);
+  }
+  getFieldDisplayName (fieldName: string): string {
+    return this.dbHelper.getFieldDisplayName(fieldName);
+  }
+  getUserInitials (row: Record<string, unknown>): string {
+    return this.dbHelper.getUserInitials(row);
+  }
+  isImageUrl (colName: string): boolean {
+    return this.dbHelper.isImageUrl(colName);
+  }
+  getAvailableRoles (): { value: string; label: string }[] {
+    return this.dbHelper.getAvailableRoles();
+  }
+  getHeaderClasses (columnName: string, columnType: string): string {
+    return this.dbHelper.getHeaderClasses(columnName, columnType);
+  }
+  getCellClasses (columnName: string, columnType: string): string {
+    return this.dbHelper.getCellClasses(columnName, columnType);
+  }
+  getColumnStyles (columnName: string, columnType: string): Record<string, string> {
+    return this.dbHelper.getColumnStyles(columnName, columnType);
+  }
+  hasAnyActions (): boolean {
+    return this.dbHelper.hasAnyActions(this.selectedTable());
+  }
+  canModifySensitiveFields (): boolean {
+    return this.dbHelper.canModifySensitiveFields();
+  }
+  isSensitiveField (columnName: string): boolean {
+    return this.dbHelper.isSensitiveField(columnName);
+  }
+  formatFieldValue (value: unknown): string {
+    return this.dbHelper.formatFieldValue(value);
+  }
 
-  // Form methods
-  updateFormField (fieldName: string, value: unknown): void { this.updateFormData.update((current) => ({ ...current, [fieldName]: value })); }
-  hasFormChanges (): boolean { return this.dbForm.hasFormChanges(this.updateFormData(), this.originalFormData()); }
-  isFieldChanged (fieldName: string): boolean { return this.dbForm.isFieldChanged(fieldName, this.updateFormData(), this.originalFormData()); }
-  getChangedFields (): Array<{ name: string; oldValue: unknown; newValue: unknown }> { return this.dbForm.getChangedFields(this.updateFormData(), this.originalFormData()); }
-  isRoleInvalid (): boolean { return this.dbForm.isRoleInvalid(this.updateFormData()); }
-  isFormInvalid (): boolean { return this.dbForm.isFormInvalid(this.updateFormData(), this.originalFormData()); }
-  getUpdateButtonText (): string { return this.dbForm.getUpdateButtonText(this.updateFormData(), this.originalFormData()); }
-  getUpdateButtonTooltip (): string { return this.dbForm.getUpdateButtonTooltip(this.updateFormData(), this.originalFormData()); }
+  updateFormField (fieldName: string, value: unknown): void {
+    this.updateFormData.update((current) => ({ ...current, [fieldName]: value }));
+  }
+  hasFormChanges (): boolean {
+    return this.dbForm.hasFormChanges(this.updateFormData(), this.originalFormData());
+  }
+  isFieldChanged (fieldName: string): boolean {
+    return this.dbForm.isFieldChanged(fieldName, this.updateFormData(), this.originalFormData());
+  }
+  getChangedFields (): Array<{ name: string; oldValue: unknown; newValue: unknown }> {
+    return this.dbForm.getChangedFields(this.updateFormData(), this.originalFormData());
+  }
+  isRoleInvalid (): boolean {
+    return this.dbForm.isRoleInvalid(this.updateFormData());
+  }
+  isFormInvalid (): boolean {
+    return this.dbForm.isFormInvalid(this.updateFormData(), this.originalFormData());
+  }
+  getUpdateButtonText (): string {
+    return this.dbForm.getUpdateButtonText(this.updateFormData(), this.originalFormData());
+  }
+  getUpdateButtonTooltip (): string {
+    return this.dbForm.getUpdateButtonTooltip(this.updateFormData(), this.originalFormData());
+  }
 
-  // CRUD operations
   updateRecord (id: number): void {
     const table = this.selectedTable();
     if (!table || !id) return;
     const record = this.tableData().find((row) => row['id'] === id);
     if (!record) return;
-    const formData = this.dbForm.prepareFormData(table, record, (columnName) => this.isFieldExcludedFromUpdate(columnName));
+    const formData = this.dbForm.prepareFormData(table, record, (columnName) =>
+      this.isFieldExcludedFromUpdate(columnName),
+    );
     this.dbCrud.createUpdateDraft(table, record, formData);
     this.selectedRecord.set(record);
     this.updateFormData.set(formData);
@@ -264,7 +310,12 @@ export class Database implements OnInit, AfterViewInit {
     const table = this.selectedTable();
     const record = this.selectedRecord();
     if (!table || !record) return;
-    const success = this.dbForm.validateAndSubmitUpdate(table, record, this.updateFormData(), this.originalFormData());
+    const success = this.dbForm.validateAndSubmitUpdate(
+      table,
+      record,
+      this.updateFormData(),
+      this.originalFormData(),
+    );
     if (success) this.closeUpdateModal();
   }
 
@@ -280,10 +331,16 @@ export class Database implements OnInit, AfterViewInit {
 
   updateBooleanValue (record: Record<string, unknown>, column: Column, newValue: boolean): void {
     const table = this.selectedTable();
-    this.dbForm.handleBooleanUpdate(table!, record, column, newValue, (columnName) => this.isSensitiveField(columnName), () => this.canModifySensitiveFields());
+    this.dbForm.handleBooleanUpdate(
+      table!,
+      record,
+      column,
+      newValue,
+      (columnName) => this.isSensitiveField(columnName),
+      () => this.canModifySensitiveFields(),
+    );
   }
 
-  // Draft operations
   hasRecordDraft (recordId: number): boolean {
     const table = this.selectedTable();
     if (!table) return false;
@@ -315,10 +372,14 @@ export class Database implements OnInit, AfterViewInit {
       next: (response) => {
         this.isPublishing.set(false);
         if (response.success) {
-          this.toastService.success(`Successfully published ${response.summary.successful} changes`);
+          this.toastService.success(
+            `Successfully published ${response.summary.successful} changes`,
+          );
           this.loadTableData(false);
         } else {
-          this.toastService.error(`Published ${response.summary.successful} changes, ${response.summary.failed} failed`);
+          this.toastService.error(
+            `Published ${response.summary.successful} changes, ${response.summary.failed} failed`,
+          );
         }
       },
       error: () => {
@@ -333,11 +394,14 @@ export class Database implements OnInit, AfterViewInit {
       this.toastService.info('No changes to reset');
       return;
     }
-    this.toastService.confirm(`Reset all ${this.draftCount()} unsaved changes? This cannot be undone.`, () => {
-      this.draftService.resetDrafts();
-      this.loadTableData(false);
-      this.toastService.success('All changes have been reset');
-    });
+    this.toastService.confirm(
+      `Reset all ${this.draftCount()} unsaved changes? This cannot be undone.`,
+      () => {
+        this.draftService.resetDrafts();
+        this.loadTableData(false);
+        this.toastService.success('All changes have been reset');
+      },
+    );
   }
 
   closeUpdateModal (): void {
