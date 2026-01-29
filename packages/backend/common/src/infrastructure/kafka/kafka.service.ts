@@ -19,7 +19,7 @@ export class KafkaService {
 
   private readonly isWorkerRole: boolean;
 
-  constructor(
+  constructor (
     @Inject(KAFKA_OPTIONS) private options: KafkaModuleOptions,
     private readonly configService: ConfigService
   ) {
@@ -56,7 +56,7 @@ export class KafkaService {
   private isRunning = false;
   private connectionPromise: Promise<void> | null = null;
 
-  async connect(): Promise<void> {
+  async connect (): Promise<void> {
     if (this.connectionPromise) return this.connectionPromise;
 
     this.connectionPromise = (async (): Promise<void> => {
@@ -79,7 +79,7 @@ export class KafkaService {
     return this.connectionPromise;
   }
 
-  async disconnect(): Promise<void> {
+  async disconnect (): Promise<void> {
     if (this.isProducerConnected) await this.producer.disconnect();
     if (this.isConsumerConnected && !this.isWorkerRole) await this.consumer.disconnect();
     this.isProducerConnected = false;
@@ -87,7 +87,7 @@ export class KafkaService {
     this.isRunning = false;
   }
 
-  async produce<T = unknown>(payload: KafkaMessagePayload<T>): Promise<void> {
+  async produce<T = unknown> (payload: KafkaMessagePayload<T>): Promise<void> {
     if (!this.isProducerConnected) await this.connect();
 
     await this.producer.send({
@@ -103,14 +103,14 @@ export class KafkaService {
     });
   }
 
-  async subscribe<T = unknown>(options: KafkaSubscribeOptions, handler: KafkaMessageHandler<T>): Promise<void> {
+  async subscribe<T = unknown> (options: KafkaSubscribeOptions, handler: KafkaMessageHandler<T>): Promise<void> {
     if (this.isWorkerRole) return;
     if (!this.isConsumerConnected) await this.connect();
     await this.consumer.subscribe({ topic: options.topic, fromBeginning: options.fromBeginning ?? false });
     this.handlers.push({ topic: options.topic, handler: handler as unknown as KafkaMessageHandler<unknown> });
   }
 
-  async start(): Promise<void> {
+  async start (): Promise<void> {
     if (this.isWorkerRole) return;
     if (this.isRunning) return;
     if (!this.isConsumerConnected) await this.connect();

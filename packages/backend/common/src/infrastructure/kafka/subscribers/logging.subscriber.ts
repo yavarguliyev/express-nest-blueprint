@@ -7,7 +7,7 @@ export class LoggingSubscriber {
   private readonly logger = new Logger(LoggingSubscriber.name);
 
   @OnMessage(/.*/)
-  async handleAllMessages(payload: KafkaMessagePayload<unknown>): Promise<void> {
+  async handleAllMessages (payload: KafkaMessagePayload<unknown>): Promise<void> {
     await this.logger.log(`Received message from topic: ${payload.topic}`);
     await this.logger.log(`Message value: ${JSON.stringify(payload.value)}`);
   }

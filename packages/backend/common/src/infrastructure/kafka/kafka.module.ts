@@ -14,7 +14,7 @@ import { DynamicModule } from '../../domain/interfaces/module/module.interface';
   exports: [KafkaService]
 })
 export class KafkaModule {
-  static forRoot(options?: KafkaModuleOptions): DynamicModule {
+  static forRoot (options?: KafkaModuleOptions): DynamicModule {
     return {
       module: KafkaModule,
       global: true,
