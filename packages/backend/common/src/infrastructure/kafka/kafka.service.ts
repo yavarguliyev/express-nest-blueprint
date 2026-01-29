@@ -2,8 +2,8 @@ import { Kafka, Producer, Consumer, EachMessageHandler, logLevel, LogEntry } fro
 
 import { Logger } from '../logger/logger.service';
 import { Inject, Injectable } from '../../core/decorators/injectable.decorator';
-import { KafkaMessagePayload, KafkaModuleOptions, KafkaSubscribeOptions } from '../../domain/interfaces/kafka.interface';
-import { KafkaMessageHandler } from 'domain/types/common.type';
+import { KafkaMessagePayload, KafkaModuleOptions, KafkaSubscribeOptions } from '../../domain/interfaces/infra/kafka.interface';
+import { KafkaMessageHandler } from 'domain/types/infra/kafka.type';
 
 export const KAFKA_OPTIONS = Symbol('KAFKA_OPTIONS');
 

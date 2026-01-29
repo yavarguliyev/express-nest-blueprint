@@ -16,9 +16,9 @@ import {
   ComputeJobData,
   PatchedMethod,
   ComputeServiceStatus
-} from '../../domain/interfaces/bullmq.interface';
-import { ComputeOptions } from '../../domain/interfaces/common.interface';
-import { Constructor } from '../../domain/types/common.type';
+} from '../../domain/interfaces/infra/bullmq.interface';
+import { ComputeOptions } from '../../domain/interfaces/infra/infra-common.interface';
+import { Constructor } from '../../domain/types/common/util.type';
 
 @Injectable()
 export class ComputeService {

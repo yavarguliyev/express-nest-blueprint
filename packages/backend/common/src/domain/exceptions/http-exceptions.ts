@@ -1,5 +1,5 @@
 import { HttpException } from '../exceptions/http-exception';
-import { HttpExceptionOptions } from '../interfaces/common.interface';
+import { HttpExceptionOptions } from '../interfaces/nest/nest-core.interface';
 
 export class BadRequestException extends HttpException {
   constructor (objectOrError?: string | Record<string, unknown>, descriptionOrOptions?: string | HttpExceptionOptions) {

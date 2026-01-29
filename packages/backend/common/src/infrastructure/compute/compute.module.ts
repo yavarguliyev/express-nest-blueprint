@@ -7,9 +7,9 @@ import { ConfigService } from '../config/config.service';
 import { LifecycleService } from '../../application/lifecycle/lifecycle.service';
 import { Module } from '../../core/decorators/module.decorator';
 import { COMPUTE_MODULE_OPTIONS } from '../../core/decorators/bullmq.decorators';
-import { DynamicModule } from '../../domain/interfaces/common.interface';
-import { AppRoles } from '../../domain/enums/common.enum';
-import { ComputeModuleOptions } from '../../domain/interfaces/bullmq.interface';
+import { DynamicModule } from '../../domain/interfaces/module/module.interface';
+import { AppRoles } from '../../domain/enums/auth/auth.enum';
+import { ComputeModuleOptions } from '../../domain/interfaces/infra/bullmq.interface';
 import { spawnWorker } from '../../domain/helpers/utility-functions.helper';
 
 @Module({

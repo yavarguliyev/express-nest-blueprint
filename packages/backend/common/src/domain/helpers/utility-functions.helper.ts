@@ -1,10 +1,12 @@
 import { ChildProcess, fork } from 'child_process';
 import { Express, RequestHandler } from 'express';
 
-import { AppRoles, RequestMethod } from '../enums/common.enum';
-import { HandleProcessSignalsOptions, HasGetResponse, HasGetStatus } from '../interfaces/common.interface';
-import { NestMiddleware } from '../interfaces/middleware.interface';
-import { MiddlewareNewConstructor } from '../types/common.type';
+import { RequestMethod } from '../enums/api/api.enum';
+import { AppRoles } from '../enums/auth/auth.enum';
+import { HandleProcessSignalsOptions } from '../interfaces/common/util.interface';
+import { HasGetResponse, HasGetStatus } from '../interfaces/nest/nest-core.interface';
+import { NestMiddleware } from '../interfaces/nest/middleware.interface';
+import { MiddlewareNewConstructor } from '../types/nest/nest-core.type';
 import { Logger } from '../../infrastructure/logger/logger.service';
 
 export const createMethodMap = (app: Express): Record<RequestMethod, (path: string, handler: RequestHandler) => void> => {

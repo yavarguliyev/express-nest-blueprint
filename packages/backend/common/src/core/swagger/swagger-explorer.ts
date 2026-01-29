@@ -6,9 +6,9 @@ import { PARAM_METADATA } from '../decorators/param.decorators';
 import { CONTROLLER_REGISTRY } from '../decorators/register-controller-class.decorator';
 import { ROUTE_METADATA } from '../decorators/route.decorators';
 import { API_SECURITY_KEY } from '../decorators/swagger.decorators';
-import { RouteMetadata, ParamMetadata } from '../../domain/interfaces/common.interface';
-import { OpenAPISchema, SwaggerConfig, OpenAPIObject, OpenAPIOperation } from '../../domain/interfaces/swagger-config.interface';
-import { Constructor } from '../../domain/types/common.type';
+import { RouteMetadata, ParamMetadata } from '../../domain/interfaces/nest/nest-core.interface';
+import { OpenAPISchema, SwaggerConfig, OpenAPIObject, OpenAPIOperation } from '../../domain/interfaces/infra/swagger-config.interface';
+import { Constructor } from '../../domain/types/common/util.type';
 
 export class SwaggerExplorer {
   private readonly schemas: Record<string, OpenAPISchema> = {};

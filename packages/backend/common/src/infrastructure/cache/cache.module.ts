@@ -1,7 +1,7 @@
 import { CacheExplorer } from '../cache/cache.explorer';
 import { CacheService } from '../cache/cache.service';
 import { Module } from '../../core/decorators/module.decorator';
-import { DynamicModule } from '../../domain/interfaces/common.interface';
+import { DynamicModule } from '../../domain/interfaces/module/module.interface';
 
 @Module({
   providers: [CacheService, CacheExplorer]

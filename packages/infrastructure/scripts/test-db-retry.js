@@ -1,6 +1,7 @@
 require('reflect-metadata');
-const { PostgreSQLAdapter } = require('../dist/core/database/adapters/postgresql.adapter');
-const { TransactionAdapter } = require('../dist/core/database/adapters/transaction.adapter');
+
+const { PostgreSQLAdapter } = require('../../backend/common/dist/infrastructure/database/adapters/postgresql.adapter');
+const { TransactionAdapter } = require('../../backend/common/dist/infrastructure/database/adapters/transaction.adapter');
 
 class MockClient {
   async query(sql) {

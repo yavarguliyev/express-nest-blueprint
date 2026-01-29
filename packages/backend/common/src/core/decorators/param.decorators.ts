@@ -1,4 +1,4 @@
-import { ParamMetadata } from '../../domain/interfaces/common.interface';
+import { ParamMetadata } from '../../domain/interfaces/nest/nest-core.interface';
 
 export const PARAM_METADATA = Symbol.for('PARAM_METADATA');
 

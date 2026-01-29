@@ -1,21 +1,22 @@
 import { INJECTABLE_METADATA } from '../decorators/injectable.decorator';
-import { providerResolvers } from '../../domain/constants/provider-resolvers.const';
+import { providerResolvers } from '../../domain/constants/module/module.const';
 import { BadRequestException } from '../../domain/exceptions/http-exceptions';
-import { RegisterOptions } from '../../domain/interfaces/common.interface';
-import { Constructor, Provider } from '../../domain/types/common.type';
+import { RegisterOptions } from '../../domain/interfaces/module/module.interface';
+import { Constructor } from '../../domain/types/common/util.type';
+import { Provider, InjectionToken } from '../../domain/types/module/provider.type';
 
 export class Container {
   private static instance: Container;
-  private services = new Map<Constructor | string | symbol, Provider>();
-  private singletons = new Map<Constructor | string | symbol, object>();
+  private services = new Map<InjectionToken, Provider>();
+  private singletons = new Map<InjectionToken, object>();
 
   static getInstance (): Container {
     if (!Container.instance) Container.instance = new Container();
     return Container.instance;
   }
 
-  has = (provide: Constructor | string | symbol): boolean => this.services.has(provide);
-  getServices = (): Map<Constructor | string | symbol, Provider> => this.services;
+  has = (provide: InjectionToken): boolean => this.services.has(provide);
+  getServices = (): Map<InjectionToken, Provider> => this.services;
 
   register<T extends object> (options: RegisterOptions<T>): void {
     const { provide, useClass, useValue, useFactory, inject = [] } = options;
@@ -30,11 +31,11 @@ export class Container {
       this.services.set(provide, { type: 'factory', factory: useFactory, inject });
     } else {
       if (!Reflect.getMetadata(INJECTABLE_METADATA, provide)) throw new BadRequestException(`${String(provide)} is not marked as @Injectable()`);
-      this.services.set(provide, { type: 'class', target: provide as Constructor });
+      this.services.set(provide, { type: 'class', target: provide as Constructor<object> });
     }
   }
 
-  resolve<T extends object> ({ provide }: { provide: Constructor<T> | string | symbol }): T {
+  resolve<T = unknown> ({ provide }: { provide: InjectionToken<T> }): T {
     if (this.singletons.has(provide)) return this.singletons.get(provide) as T;
 
     const entry = this.services.get(provide);

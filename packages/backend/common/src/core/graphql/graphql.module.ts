@@ -1,8 +1,8 @@
 import { GraphQLApplication } from './graphql-application';
 import { LifecycleService } from '../../application/lifecycle/lifecycle.service';
 import { Module } from '../../core/decorators/module.decorator';
-import { DynamicModule } from '../../domain/interfaces/common.interface';
-import { Constructor } from '../../domain/types/common.type';
+import { DynamicModule } from '../../domain/interfaces/module/module.interface';
+import { Constructor } from '../../domain/types/common/util.type';
 
 @Module({
   providers: [],

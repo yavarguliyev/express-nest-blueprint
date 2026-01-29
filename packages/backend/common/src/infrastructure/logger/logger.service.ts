@@ -1,9 +1,9 @@
 import winston from 'winston';
 
 import { Injectable } from '../../core/decorators/injectable.decorator';
-import { LoggerOptions } from '../../domain/interfaces/common.interface';
-import { levelMap } from '../../domain/constants/system.const';
-import { LogLevel } from '../../domain/enums/common.enum';
+import { LoggerOptions } from '../../domain/interfaces/infra/infra-common.interface';
+import { levelMap } from '../../domain/constants/infra/infra.const';
+import { LogLevel } from '../../domain/enums/infra/infra.enum';
 
 @Injectable()
 export class Logger {

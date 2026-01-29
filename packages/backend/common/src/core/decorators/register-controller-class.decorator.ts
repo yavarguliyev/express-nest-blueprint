@@ -1,4 +1,4 @@
-import { Constructor } from '../../domain/types/common.type';
+import { Constructor } from '../../domain/types/common/util.type';
 
 export const CONTROLLER_REGISTRY = new Set<Constructor>();
 

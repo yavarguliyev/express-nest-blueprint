@@ -2,7 +2,7 @@ import { ComputeService } from '../compute/compute.service';
 import { Container } from '../../core/container/container';
 import { COMPUTE_METADATA } from '../../core/decorators/compute.decorator';
 import { Injectable } from '../../core/decorators/injectable.decorator';
-import { ComputeOptions } from '../../domain/interfaces/common.interface';
+import { ComputeOptions } from '../../domain/interfaces/infra/infra-common.interface';
 
 @Injectable()
 export class ComputeExplorer {

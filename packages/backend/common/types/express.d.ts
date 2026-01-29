@@ -1,6 +1,6 @@
 import { Request } from 'express';
 
-import { JwtPayload } from '../src/interfaces/common.interface';
+import { JwtPayload, AuthenticatedRequest } from '../src/domain/interfaces/auth/jwt.interface';
 
 declare global {
   namespace Express {

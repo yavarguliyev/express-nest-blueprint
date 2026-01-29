@@ -17,15 +17,16 @@ import {
 import { Container } from '../../container/container';
 import { QUERY_METADATA, MUTATION_METADATA, ARG_METADATA } from '../../decorators/field.decorators';
 import { GUARDS_METADATA } from '../../decorators/middleware.decorators';
-import { RESOLVER_METADATA, RESOLVER_REGISTRY } from '../../decorators/resolver.decorator';
+import { RESOLVER_REGISTRY } from '../../decorators/resolver.decorator';
 import { AuthGuard } from '../../guards/auth.guard';
 import { RolesGuard } from '../../guards/roles.guard';
-import { OBJECT_TYPE_METADATA, INPUT_TYPE_METADATA, FIELD_METADATA } from '../../../domain/constants/graphql.const';
+import { OBJECT_TYPE_METADATA, INPUT_TYPE_METADATA, FIELD_METADATA, RESOLVER_METADATA } from '../../../domain/constants/web/web.const';
 import { getErrorMessage } from '../../../domain/helpers/utility-functions.helper';
-import { AuthenticatedRequest } from '../../../domain/interfaces/common.interface';
-import { QueryMetadata, MutationMetadata, ArgMetadata, FieldMetadata } from '../../../domain/interfaces/graphql.interface';
-import { CanActivate } from '../../../domain/interfaces/guard.interface';
-import { TypeFunc, TypeFuncValue, Constructor, GraphQLContext } from '../../../domain/types/common.type';
+import { AuthenticatedRequest } from '../../../domain/interfaces/auth/jwt.interface';
+import { QueryMetadata, MutationMetadata, ArgMetadata, FieldMetadata } from '../../../domain/interfaces/web/graphql.interface';
+import { CanActivate } from '../../../domain/interfaces/nest/guard.interface';
+import { TypeFunc, TypeFuncValue, Constructor } from '../../../domain/types/common/util.type';
+import { GraphQLContext } from '../../../domain/types/nest/nest-core.type';
 
 export class SchemaBuilder {
   private container: Container;

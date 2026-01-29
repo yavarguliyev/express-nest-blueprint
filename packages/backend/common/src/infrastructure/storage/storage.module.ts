@@ -3,8 +3,8 @@ import { S3StorageStrategy } from '../storage/strategies/s3-storage.strategy';
 import { StorageService } from '../storage/storage.service';
 import { STORAGE_OPTIONS } from '../../core/decorators/bullmq.decorators';
 import { Module } from '../../core/decorators/module.decorator';
-import { DynamicModule } from '../../domain/interfaces/common.interface';
-import { StorageModuleOptions } from '../../domain/interfaces/storage.interface';
+import { DynamicModule } from '../../domain/interfaces/module/module.interface';
+import { StorageModuleOptions } from '../../domain/interfaces/infra/storage.interface';
 import { BadRequestException } from '../../domain/exceptions/http-exceptions';
 
 @Module({})

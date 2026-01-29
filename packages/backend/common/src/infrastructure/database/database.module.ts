@@ -4,8 +4,8 @@ import { DatabaseService } from '../database/database.service';
 import { Logger } from '../logger/logger.service';
 import { LifecycleService } from '../../application/lifecycle/lifecycle.service';
 import { Module } from '../../core/decorators/module.decorator';
-import { DynamicModule } from '../../domain/interfaces/common.interface';
-import { DatabaseModuleOptions } from '../../domain/interfaces/database.interface';
+import { DynamicModule } from '../../domain/interfaces/module/module.interface';
+import { DatabaseModuleOptions } from '../../domain/interfaces/database/database.interface';
 
 @Module({
   providers: [DatabaseService],

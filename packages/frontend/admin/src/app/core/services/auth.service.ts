@@ -2,6 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
+import axios from 'axios';
 import { GlobalCacheService } from './global-cache.service';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
 
@@ -87,17 +88,15 @@ export class AuthService {
       }
     }
 
-    const response = await fetch(`${API_ENDPOINTS.AUTH.PROFILE}?t=${Date.now()}`, {
+    const response = await axios.get(`${API_ENDPOINTS.AUTH.PROFILE}?t=${Date.now()}`, {
       headers: this.getHeaders(),
     });
 
-    if (response.ok) {
-      const json = (await response.json()) as { data?: User } | User;
-      const userData = this.isUserResponse(json) ? json : (json as { data: User }).data;
+    const json = response.data as { data?: User } | User;
+    const userData = this.isUserResponse(json) ? json : (json as { data: User }).data;
 
-      this.cacheService.set('user-profile', userData, 5 * 60 * 1000);
-      this.updateCurrentUser(userData);
-    }
+    this.cacheService.set('user-profile', userData, 5 * 60 * 1000);
+    this.updateCurrentUser(userData);
   }
 
   private isUserResponse (obj: unknown): obj is User {
@@ -109,36 +108,27 @@ export class AuthService {
     formData.append('file', file);
 
     const token = this.getToken();
-    const response = await fetch(API_ENDPOINTS.AUTH.UPLOAD_AVATAR, {
-      method: 'POST',
+    await axios.post(API_ENDPOINTS.AUTH.UPLOAD_AVATAR, formData, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-      body: formData,
     });
 
-    if (response.ok) {
-      await this.syncProfile(true);
-    } else {
-      throw new Error('Upload failed');
-    }
+    await this.syncProfile(true);
   }
 
   async deleteAvatar (): Promise<void> {
     const token = this.getToken();
-    const response = await fetch(API_ENDPOINTS.AUTH.DELETE_AVATAR, {
-      method: 'DELETE',
+    await axios.delete(API_ENDPOINTS.AUTH.DELETE_AVATAR, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
 
-    if (response.ok) {
-      await this.syncProfile(true);
-    }
+    await this.syncProfile(true);
   }
 
-  private getHeaders (): HeadersInit {
+  private getHeaders (): Record<string, string> {
     const token = this.getToken();
     return {
       Authorization: `Bearer ${token}`,

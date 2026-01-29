@@ -2,9 +2,9 @@ import { CircuitBreakerService } from '../circuit-breaker/circuit-breaker.servic
 import { Container } from '../../core/container/container';
 import { CIRCUIT_BREAKER_METADATA } from '../../core/decorators/circuit-breaker.decorator';
 import { Injectable } from '../../core/decorators/injectable.decorator';
-import { CircuitBreakerState } from '../../domain/enums/common.enum';
+import { CircuitBreakerState } from '../../domain/enums/infra/infra.enum';
 import { ServiceUnavailableException } from '../../domain/exceptions/http-exceptions';
-import { CircuitBreakerOptions } from '../../domain/interfaces/common.interface';
+import { CircuitBreakerOptions } from '../../domain/interfaces/infra/infra-common.interface';
 
 @Injectable()
 export class CircuitBreakerExplorer {

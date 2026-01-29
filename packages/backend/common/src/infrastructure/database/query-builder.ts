@@ -1,4 +1,4 @@
-import { ColumnMapping, QueryWithPaginationOptions } from '../../domain/interfaces/query-builder.interface';
+import { ColumnMapping, QueryWithPaginationOptions } from '../../domain/interfaces/database/query-builder.interface';
 
 export class QueryBuilder<T> {
   private tableName: string;

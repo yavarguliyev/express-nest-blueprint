@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 
 import { Injectable } from '../decorators/injectable.decorator';
 import { UnauthorizedException } from '../../domain/exceptions/http-exceptions';
-import { CanActivate } from '../../domain/interfaces/guard.interface';
+import { CanActivate } from '../../domain/interfaces/nest/guard.interface';
 import { ConfigService } from '../../infrastructure/config/config.service';
 
 @Injectable()

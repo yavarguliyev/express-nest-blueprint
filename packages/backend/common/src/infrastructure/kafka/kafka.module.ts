@@ -4,8 +4,8 @@ import { KafkaService, KAFKA_OPTIONS } from './kafka.service';
 import { ConfigService } from '../config/config.service';
 import { LifecycleService } from '../../application/lifecycle/lifecycle.service';
 import { Module } from '../../core/decorators/module.decorator';
-import { KafkaModuleOptions } from '../../domain/interfaces/kafka.interface';
-import { DynamicModule } from '../../domain/interfaces/common.interface';
+import { KafkaModuleOptions } from '../../domain/interfaces/infra/kafka.interface';
+import { DynamicModule } from '../../domain/interfaces/module/module.interface';
 
 @Module({
   providers: [KafkaService],

@@ -1,4 +1,4 @@
-import { CrudTableOptions } from '../../domain/interfaces/common.interface';
+import { CrudTableOptions } from '../../domain/interfaces/database/database-common.interface';
 
 export const CRUD_TABLE_METADATA_KEY = 'admin:crud_table';
 

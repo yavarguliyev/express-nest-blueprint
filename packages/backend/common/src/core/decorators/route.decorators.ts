@@ -1,4 +1,4 @@
-import { RouteMetadata } from '../../domain/interfaces/common.interface';
+import { RouteMetadata } from '../../domain/interfaces/nest/nest-core.interface';
 
 export const ROUTE_METADATA = Symbol.for('ROUTE_METADATA');
 

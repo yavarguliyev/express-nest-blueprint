@@ -2,7 +2,7 @@ import http from 'http';
 
 import { RetryHelper } from '../../domain/helpers/retry.helper';
 import { getErrorMessage } from '../../domain/helpers/utility-functions.helper';
-import { GracefulShutDownServiceConfig } from '../../domain/interfaces/common.interface';
+import { GracefulShutDownServiceConfig } from '../../domain/interfaces/infra/infra-common.interface';
 import { Logger } from '../../infrastructure/logger/logger.service';
 
 export class GracefulShutdownService {
@@ -21,42 +21,45 @@ export class GracefulShutdownService {
   }
 
   public async shutDown (httpServer?: http.Server): Promise<void> {
-    const shutdownTimer = setTimeout(() => {
-      process.exit(1);
-    }, this.shutdownTimeout);
+    const timer = this.startShutdownTimer();
 
     try {
       void this.logger.log('Graceful shutdown initiated...');
-
-      if (httpServer?.listening) {
-        if ('closeAllConnections' in httpServer && typeof httpServer.closeAllConnections === 'function') {
-          (httpServer.closeAllConnections as () => void)();
-        }
-
-        if ('closeIdleConnections' in httpServer && typeof httpServer.closeIdleConnections === 'function') {
-          (httpServer.closeIdleConnections as () => void)();
-        }
-
-        await new Promise<void>(resolve => {
-          httpServer.close(err => {
-            if (err) {
-              void this.logger.error(`Error closing HTTP server: ${getErrorMessage(err)}`);
-            } else {
-              void this.logger.log('HTTP server closed.');
-            }
-            resolve();
-          });
-        });
-      }
-
+      await this.closeHttpServer(httpServer);
       await this.disconnectServices();
       void this.logger.log('All services disconnected.');
     } catch (error) {
       void this.logger.error(`Error during shutdown: ${getErrorMessage(error)}`);
     } finally {
-      clearTimeout(shutdownTimer);
-      process.exit(0);
+      this.finishShutdown(timer);
     }
+  }
+
+  private startShutdownTimer (): NodeJS.Timeout {
+    return setTimeout(() => process.exit(1), this.shutdownTimeout);
+  }
+
+  private async closeHttpServer (server?: http.Server): Promise<void> {
+    if (!server?.listening) return;
+
+    this.forceCloseConnections(server);
+    await new Promise<void>(resolve => {
+      server.close(err => {
+        if (err) void this.logger.error(`Error closing HTTP server: ${getErrorMessage(err)}`);
+        else void this.logger.log('HTTP server closed.');
+        resolve();
+      });
+    });
+  }
+
+  private forceCloseConnections (server: http.Server): void {
+    if ('closeAllConnections' in server && typeof server.closeAllConnections === 'function') server.closeAllConnections();
+    if ('closeIdleConnections' in server && typeof server.closeIdleConnections === 'function') server.closeIdleConnections();
+  }
+
+  private finishShutdown (timer: NodeJS.Timeout): void {
+    clearTimeout(timer);
+    process.exit(0);
   }
 
   private async disconnectServices (): Promise<void> {

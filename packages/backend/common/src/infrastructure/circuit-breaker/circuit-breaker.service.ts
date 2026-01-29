@@ -1,6 +1,6 @@
 import { Logger } from '../logger/logger.service';
 import { Injectable } from '../../core/decorators/injectable.decorator';
-import { CircuitBreakerState } from '../../domain/enums/common.enum';
+import { CircuitBreakerState } from '../../domain/enums/infra/infra.enum';
 
 @Injectable()
 export class CircuitBreakerService {

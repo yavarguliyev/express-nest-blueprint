@@ -2,7 +2,7 @@ import * as swaggerUi from 'swagger-ui-express';
 
 import { SwaggerExplorer } from './swagger-explorer';
 import { NestApplication } from '../../application/nest-application';
-import { OpenAPIObject, SwaggerConfig } from '../../domain/interfaces/swagger-config.interface';
+import { OpenAPIObject, SwaggerConfig } from '../../domain/interfaces/infra/swagger-config.interface';
 
 export class SwaggerModule {
   static createDocument (app: NestApplication, config: SwaggerConfig): OpenAPIObject {

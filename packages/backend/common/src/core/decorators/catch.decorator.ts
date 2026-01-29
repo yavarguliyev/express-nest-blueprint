@@ -1,4 +1,4 @@
-import { ExceptionClass } from '../../domain/types/common.type';
+import { ExceptionClass } from '../../domain/types/common/util.type';
 
 export const EXCEPTION_FILTERS_METADATA = 'EXCEPTION_FILTERS_METADATA';
 

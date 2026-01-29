@@ -19,3 +19,5 @@ async function runTest() {
       .catch(err => ({ id: i + 1, status: err.response?.status || err.code, time: Date.now() - start, error: err.message }));
   });
 }
+
+runTest();

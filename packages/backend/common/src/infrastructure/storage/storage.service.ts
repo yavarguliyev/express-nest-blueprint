@@ -1,4 +1,4 @@
-import { StorageUrlOptions } from '../../domain/interfaces/storage.interface';
+import { StorageUrlOptions } from '../../domain/interfaces/infra/storage.interface';
 
 export abstract class StorageService {
   abstract upload(key: string, body: Buffer | Uint8Array | string, contentType?: string): Promise<void>;

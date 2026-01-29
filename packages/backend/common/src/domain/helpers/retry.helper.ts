@@ -1,6 +1,6 @@
 import { BadRequestException } from '../exceptions/http-exceptions';
 import { getErrorMessage } from '../helpers/utility-functions.helper';
-import { RetryOptions } from '../interfaces/common.interface';
+import { RetryOptions } from '../interfaces/infra/infra-common.interface';
 import { Logger } from '../../infrastructure/logger/logger.service';
 
 export class RetryHelper {

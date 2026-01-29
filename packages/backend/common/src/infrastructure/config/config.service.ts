@@ -4,10 +4,10 @@ import { resolve } from 'path';
 
 import { Logger } from '../logger/logger.service';
 import { Injectable } from '../../core/decorators/injectable.decorator';
-import { parsers } from '../../domain/constants/system.const';
-import { ConfigModuleOptions } from '../../domain/interfaces/common.interface';
+import { parsers } from '../../domain/constants/common/common.const';
+import { ConfigModuleOptions } from '../../domain/interfaces/module/module.interface';
 import { BadRequestException } from '../../domain/exceptions/http-exceptions';
-import { ParserType } from '../../domain/types/common.type';
+import { ParserType } from '../../domain/types/common/util.type';
 
 @Injectable()
 export class ConfigService {

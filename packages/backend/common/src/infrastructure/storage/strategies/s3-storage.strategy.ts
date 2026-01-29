@@ -14,7 +14,7 @@ import { StorageService } from '../storage.service';
 import { STORAGE_OPTIONS } from '../../../core/decorators/bullmq.decorators';
 import { Injectable, Inject } from '../../../core/decorators/injectable.decorator';
 import { BadRequestException } from '../../../domain/exceptions/http-exceptions';
-import { StorageModuleOptions, StorageUrlOptions } from '../../../domain/interfaces/storage.interface';
+import { StorageModuleOptions, StorageUrlOptions } from '../../../domain/interfaces/infra/storage.interface';
 
 @Injectable()
 export class S3StorageStrategy extends StorageService {

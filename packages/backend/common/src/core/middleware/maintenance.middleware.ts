@@ -1,9 +1,9 @@
 import { Response, NextFunction } from 'express';
 
 import { Injectable } from '../decorators/injectable.decorator';
-import { UserRoles } from '../../domain/enums/common.enum';
+import { UserRoles } from '../../domain/enums/auth/auth.enum';
 import { ServiceUnavailableException } from '../../domain/exceptions/http-exceptions';
-import { AuthenticatedRequest } from '../../domain/interfaces/common.interface';
+import { AuthenticatedRequest } from '../../domain/interfaces/auth/jwt.interface';
 
 @Injectable()
 export class MaintenanceMiddleware {

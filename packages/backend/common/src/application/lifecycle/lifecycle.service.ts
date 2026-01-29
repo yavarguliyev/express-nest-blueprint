@@ -2,7 +2,7 @@ import http from 'http';
 
 import { GracefulShutdownService } from '../services/graceful-shutdown.service';
 import { Injectable } from '../../core/decorators/injectable.decorator';
-import { GracefulShutDownServiceConfig } from '../../domain/interfaces/common.interface';
+import { GracefulShutDownServiceConfig } from '../../domain/interfaces/infra/infra-common.interface';
 import { ConfigService } from '../../infrastructure/config/config.service';
 import { Logger } from '../../infrastructure/logger/logger.service';
 
@@ -26,9 +26,7 @@ export class LifecycleService {
   }
 
   startWorkers (): void {
-    if (this.workerStarter) {
-      this.workerStarter();
-    }
+    if (this.workerStarter) this.workerStarter();
   }
 
   setHttpServer (server: http.Server): void {
@@ -36,23 +34,23 @@ export class LifecycleService {
   }
 
   async executeGracefulShutdown (): Promise<void> {
-    if (this.isShuttingDown) {
-      return;
-    }
-
+    if (this.isShuttingDown) return;
     this.isShuttingDown = true;
+    this.logHandlers();
+    const shutdownService = this.createShutdownService();
+    await shutdownService.shutDown(this.httpServer || undefined);
+  }
 
-    this.shutdownHandlers.forEach((handler, index) => {
-      void this.logger.log(`Handler ${index + 1}: ${handler.name}`);
-    });
+  private logHandlers (): void {
+    this.shutdownHandlers.forEach((h, i) => void this.logger.log(`Handler ${i + 1}: ${h.name}`));
+  }
 
-    const gracefulShutdown = new GracefulShutdownService(this.shutdownHandlers, {
+  private createShutdownService (): GracefulShutdownService {
+    return new GracefulShutdownService(this.shutdownHandlers, {
       shutdownTimeout: this.configService.get<number>('SHUT_DOWN_TIMER', 3000),
       maxRetries: this.configService.get<number>('SHUTDOWN_RETRIES', 3),
       retryDelay: this.configService.get<number>('SHUTDOWN_RETRY_DELAY', 1000)
     });
-
-    await gracefulShutdown.shutDown(this.httpServer || undefined);
   }
 
   getShutdownHandlers (): GracefulShutDownServiceConfig[] {

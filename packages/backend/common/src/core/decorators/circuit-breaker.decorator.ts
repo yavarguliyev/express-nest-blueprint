@@ -1,4 +1,4 @@
-import { CircuitBreakerOptions } from '../../domain/interfaces/common.interface';
+import { CircuitBreakerOptions } from '../../domain/interfaces/infra/infra-common.interface';
 
 export const CIRCUIT_BREAKER_METADATA = 'circuit:breaker';
 

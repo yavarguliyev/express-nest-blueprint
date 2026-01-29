@@ -3,7 +3,7 @@ import multer, { MulterError } from 'multer';
 
 import { Injectable } from '../decorators/injectable.decorator';
 import { BadRequestException } from '../../domain/exceptions/http-exceptions';
-import { NestMiddleware } from '../../domain/interfaces/middleware.interface';
+import { NestMiddleware } from '../../domain/interfaces/nest/middleware.interface';
 import { getErrorMessage } from '../../domain/helpers/utility-functions.helper';
 
 @Injectable()

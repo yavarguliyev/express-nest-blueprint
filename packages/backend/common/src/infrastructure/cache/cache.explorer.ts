@@ -2,7 +2,7 @@ import { CacheService } from '../cache/cache.service';
 import { Container } from '../../core/container/container';
 import { CACHE_METADATA } from '../../core/decorators/cache.decorator';
 import { Injectable } from '../../core/decorators/injectable.decorator';
-import { CacheOptions } from '../../domain/interfaces/common.interface';
+import { CacheOptions } from '../../domain/interfaces/infra/infra-common.interface';
 
 @Injectable()
 export class CacheExplorer {

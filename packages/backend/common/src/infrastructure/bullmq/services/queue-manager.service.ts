@@ -4,7 +4,7 @@ import Redis from 'ioredis';
 import { RedisService } from '../../redis/redis.service';
 import { Injectable } from '../../../core/decorators/injectable.decorator';
 import { BadRequestException } from '../../../domain/exceptions/http-exceptions';
-import { QueueHealth } from '../../../domain/interfaces/bullmq.interface';
+import { QueueHealth } from '../../../domain/interfaces/infra/bullmq.interface';
 
 @Injectable()
 export class QueueManager {

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 
 import { BadRequestException } from '../../domain/exceptions/http-exceptions';
-import { ArgumentsHost, HttpArgumentsHost, RpcArgumentsHost, WsArgumentsHost } from '../../domain/interfaces/common.interface';
+import { ArgumentsHost, HttpArgumentsHost, RpcArgumentsHost, WsArgumentsHost } from '../../domain/interfaces/nest/nest-core.interface';
 
 export class ArgumentsHostFilter implements ArgumentsHost {
   constructor (

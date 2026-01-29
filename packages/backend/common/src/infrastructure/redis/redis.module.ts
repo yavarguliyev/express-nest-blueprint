@@ -3,7 +3,7 @@ import { RedisService } from '../redis/redis.service';
 import { LifecycleService } from '../../application/lifecycle/lifecycle.service';
 import { BULLMQ_OPTIONS } from '../../core/decorators/bullmq.decorators';
 import { Module } from '../../core/decorators/module.decorator';
-import { DynamicModule } from '../../domain/interfaces/common.interface';
+import { DynamicModule } from '../../domain/interfaces/module/module.interface';
 
 @Module({
   providers: [RedisService],

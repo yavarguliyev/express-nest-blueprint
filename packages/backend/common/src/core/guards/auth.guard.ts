@@ -4,8 +4,9 @@ import { IS_PUBLIC_KEY, REQUIRE_AUTH_KEY } from '../decorators/auth.decorator';
 import { Injectable } from '../decorators/injectable.decorator';
 import { JwtService } from '../../application/services/jwt.service';
 import { UnauthorizedException } from '../../domain/exceptions/http-exceptions';
-import { Constructor } from '../../domain/types/common.type';
-import { CanActivate } from '../../domain/interfaces/guard.interface';
+import { Constructor } from '../../domain/types/common/util.type';
+import { JwtPayload } from '../../domain/interfaces/auth/jwt.interface';
+import { CanActivate } from '../../domain/interfaces/nest/guard.interface';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -32,7 +33,7 @@ export class AuthGuard implements CanActivate {
     if (!token) throw new UnauthorizedException('Access token is required');
 
     try {
-      req.user = this.jwtService.verify(token);
+      req.user = this.jwtService.verify(token) as unknown as JwtPayload;
       next();
     } catch {
       return next(new UnauthorizedException('Invalid or expired token'));

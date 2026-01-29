@@ -13,7 +13,7 @@ import {
   DatabaseStatus,
   RedisStatus,
   QueueStatus
-} from '../../domain/interfaces/common.interface';
+} from '../../domain/interfaces/health/health-check.interface';
 
 @Injectable()
 export class HealthService {

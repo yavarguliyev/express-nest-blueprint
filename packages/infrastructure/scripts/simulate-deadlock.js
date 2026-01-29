@@ -3,10 +3,10 @@ const { Pool } = require('pg');
 async function simulateDeadlock() {
   const config = {
     host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT, 10) || 5432,
+    port: parseInt(process.env.DB_PORT, 10) || 54320,
     user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || 'postgres',
-    database: process.env.DB_NAME || 'postgres'
+    password: process.env.DB_PASSWORD || 'password',
+    database: process.env.DB_NAME || 'express_nest_db'
   };
 
   const pool = new Pool(config);

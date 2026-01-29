@@ -1,4 +1,4 @@
-import { ComputeOptions } from '../../domain/interfaces/common.interface';
+import { ComputeOptions } from '../../domain/interfaces/infra/infra-common.interface';
 
 export const COMPUTE_METADATA = Symbol('COMPUTE_METADATA');
 

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 
 import { Injectable } from '../decorators/injectable.decorator';
-import { NestMiddleware } from '../../domain/interfaces/middleware.interface';
+import { NestMiddleware } from '../../domain/interfaces/nest/middleware.interface';
 import { ConfigService } from '../../infrastructure/config/config.service';
 
 @Injectable()

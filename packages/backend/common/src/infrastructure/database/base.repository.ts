@@ -6,10 +6,10 @@ import {
   QueryAllWithPaginationOptions,
   QueryPaginationOptionsResults,
   QueryWithPaginationOptions
-} from '../../domain/interfaces/query-builder.interface';
+} from '../../domain/interfaces/database/query-builder.interface';
 import { NotFoundException } from '../../domain/exceptions/http-exceptions';
-import { DatabaseAdapter } from '../../domain/interfaces/database.interface';
-import { JwtPayload } from '../../domain/interfaces/common.interface';
+import { DatabaseAdapter } from '../../domain/interfaces/database/database.interface';
+import { JwtPayload } from '../../domain/interfaces/auth/jwt.interface';
 import { convertValueToSearchableString } from '../../domain/helpers/utility-functions.helper';
 
 @Injectable()

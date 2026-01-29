@@ -1,5 +1,5 @@
-import { LogLevel } from '../../domain/enums/common.enum';
-import { LoggerOptions } from '../../domain/interfaces/common.interface';
+import { LogLevel } from '../../domain/enums/infra/infra.enum';
+import { LoggerOptions } from '../../domain/interfaces/infra/infra-common.interface';
 
 export const getLoggerConfig = (): LoggerOptions => {
   const env = process.env['NODE_ENV'] || 'development';

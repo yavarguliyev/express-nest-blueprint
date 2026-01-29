@@ -1,4 +1,4 @@
-import { InjectionToken } from '../../domain/types/common.type';
+import { InjectionToken } from '../../domain/types/module/provider.type';
 
 export const INJECTABLE_METADATA = Symbol.for('INJECTABLE_METADATA');
 export const INJECT_METADATA = Symbol.for('INJECT_METADATA');

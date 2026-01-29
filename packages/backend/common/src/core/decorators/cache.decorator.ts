@@ -1,4 +1,4 @@
-import { CacheOptions } from '../../domain/interfaces/common.interface';
+import { CacheOptions } from '../../domain/interfaces/infra/infra-common.interface';
 
 export const CACHE_METADATA = Symbol('CACHE_METADATA');
 

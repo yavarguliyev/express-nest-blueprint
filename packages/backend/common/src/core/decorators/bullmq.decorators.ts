@@ -1,4 +1,4 @@
-import { JobHandlerOptions, QueueMetadata } from '../../domain/interfaces/bullmq.interface';
+import { JobHandlerOptions, QueueMetadata } from '../../domain/interfaces/infra/bullmq.interface';
 
 export const QUEUE_METADATA = 'bullmq:queue';
 export const PROCESSOR_METADATA = 'bullmq:processor';

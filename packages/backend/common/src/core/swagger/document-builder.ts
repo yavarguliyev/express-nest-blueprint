@@ -1,4 +1,4 @@
-import { SwaggerConfig } from '../../domain/interfaces/swagger-config.interface';
+import { SwaggerConfig } from '../../domain/interfaces/infra/swagger-config.interface';
 
 export class DocumentBuilder {
   private config: SwaggerConfig = {

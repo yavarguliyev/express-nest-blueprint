@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { ClassConstructor } from 'class-transformer';
 import express, { Express, Request, Response, NextFunction, RequestHandler, Application } from 'express';
+import { PathParams, RequestHandlerParams } from 'express-serve-static-core';
 import { Server } from 'http';
 
 import { Container } from '../core/container/container';
@@ -12,20 +13,16 @@ import { ROUTE_METADATA } from '../core/decorators/route.decorators';
 import { GlobalExceptionFilter } from '../core/filters/global-exception.filter';
 import { AuthGuard } from '../core/guards/auth.guard';
 import { RolesGuard } from '../core/guards/roles.guard';
-import { paramHandlers } from '../domain/constants/common.const';
-import { METHODS } from '../domain/constants/system.const';
+import { METHODS } from '../domain/constants/api/api.const';
+import { paramHandlers } from '../domain/constants/nest/nest.const';
 import { BadRequestException, UnauthorizedException, InternalServerErrorException } from '../domain/exceptions/http-exceptions';
 import { getErrorMessage } from '../domain/helpers/utility-functions.helper';
-import {
-  ControllerOptions,
-  RouteMetadata,
-  ParamMetadata,
-  HasMethodOptions,
-  ExtractMethodOptions,
-  CorsOptions
-} from '../domain/interfaces/common.interface';
-import { CanActivate } from '../domain/interfaces/guard.interface';
-import { Constructor, ExpressHttpMethods, HttpMethod } from '../domain/types/common.type';
+import { ControllerOptions, CorsOptions } from '../domain/interfaces/api/api.interface';
+import { HasMethodOptions, ExtractMethodOptions } from '../domain/interfaces/common/util.interface';
+import { CanActivate } from '../domain/interfaces/nest/guard.interface';
+import { RouteMetadata, ParamMetadata } from '../domain/interfaces/nest/nest-core.interface';
+import { ExpressHttpMethods, ExpressHttpMethod } from '../domain/types/api/api-http.type';
+import { Constructor } from '../domain/types/common/util.type';
 import { ConfigService } from '../infrastructure/config/config.service';
 
 export class NestApplication {
@@ -47,95 +44,130 @@ export class NestApplication {
   get = <T extends object>(provide: Constructor<T> | string | symbol): T => this.container.resolve({ provide });
 
   registerController<T extends object> (controllerClass: Constructor<T>): void {
-    const controllerMetadata: ControllerOptions = Reflect.getMetadata(CONTROLLER_METADATA, controllerClass) as ControllerOptions;
+    const metadata = this.getControllerMetadata(controllerClass);
+    const instance = this.container.resolve({ provide: controllerClass });
+    const methodNames = this.getControllerMethodNames(controllerClass);
+    const methodMap = this.createMethodMap();
 
-    if (!controllerMetadata) throw new BadRequestException(`${controllerClass.name} is not marked as @Controller()`);
+    methodNames.forEach(name => this.registerRoutes(controllerClass, instance, name, metadata.path || '', methodMap));
+  }
 
-    const basePath = controllerMetadata.path || '';
-    const controllerInstance = this.container.resolve({ provide: controllerClass });
-    const methodNames = Object.getOwnPropertyNames(controllerClass.prototype).filter(name => name !== 'constructor');
+  private getControllerMetadata<T extends object> (controllerClass: Constructor<T>): ControllerOptions {
+    const metadata = Reflect.getMetadata(CONTROLLER_METADATA, controllerClass) as ControllerOptions;
+    if (!metadata) throw new BadRequestException(`${controllerClass.name} is not marked as @Controller()`);
+    return metadata;
+  }
 
-    const methodMap: Record<string, (path: string, handler: (req: Request, res: Response, next: NextFunction) => void) => void> = {
+  private getControllerMethodNames<T extends object> (controllerClass: Constructor<T>): string[] {
+    return Object.getOwnPropertyNames(controllerClass.prototype).filter(name => name !== 'constructor');
+  }
+
+  private createMethodMap (): Record<string, ExpressHttpMethod> {
+    return {
       get: this.app.get.bind(this.app),
       post: this.app.post.bind(this.app),
       put: this.app.put.bind(this.app),
       delete: this.app.delete.bind(this.app),
       patch: this.app.patch.bind(this.app)
     };
+  }
 
-    methodNames.forEach(methodName => {
-      const routeMetadata = (Reflect.getMetadata(ROUTE_METADATA as symbol, controllerClass.prototype as object, methodName) || []) as RouteMetadata[];
+  private registerRoutes<T extends object> (
+    controllerClass: Constructor<T>,
+    instance: T,
+    methodName: string,
+    basePath: string,
+    methodMap: Record<string, ExpressHttpMethod>
+  ): void {
+    const routes = (Reflect.getMetadata(ROUTE_METADATA as symbol, controllerClass.prototype as object, methodName) || []) as RouteMetadata[];
 
-      routeMetadata.forEach(route => {
-        const fullPath = this.normalizePath(this.globalPrefix, basePath, route.path);
+    routes.forEach(route => {
+      const fullPath = this.normalizePath(this.globalPrefix, basePath, route.path);
+      if (!this.isValidRoutePath(fullPath)) return;
+      if (!this.hasMethod({ instance, methodName })) return;
 
-        if (!this.isValidRoutePath(fullPath) || this.hasInvalidPathSyntax(fullPath)) return;
-        if (!this.hasMethod({ instance: controllerInstance, methodName })) return;
-
-        const originalMethod = this.extractMethod({ instance: controllerInstance, methodName: methodName as keyof typeof controllerInstance }) as (
-          ...args: unknown[]
-        ) => Promise<unknown>;
-        const paramMetadata = (Reflect.getMetadata(PARAM_METADATA as symbol, controllerClass.prototype as object, methodName) ||
-          []) as ParamMetadata[];
-
-        const handler: (req: Request, res: Response, next: NextFunction) => Promise<void> = async (req, res, next): Promise<void> => {
-          try {
-            const classGuards = (Reflect.getMetadata(GUARDS_METADATA, controllerClass) || []) as Constructor<CanActivate>[];
-            const methodGuards = (Reflect.getMetadata(GUARDS_METADATA, controllerClass.prototype as object, methodName) ||
-              []) as Constructor<CanActivate>[];
-
-            const guardsToRun: Constructor<CanActivate>[] = [AuthGuard, RolesGuard, ...classGuards, ...methodGuards];
-
-            for (const GuardClass of guardsToRun) {
-              const guardInstance = this.container.resolve<CanActivate>({ provide: GuardClass });
-
-              await new Promise<void>((resolve, reject) => {
-                void guardInstance.canActivate(
-                  req,
-                  res,
-                  (err?: Error | string) => (err ? reject(new UnauthorizedException(String(getErrorMessage(err)))) : resolve()),
-                  originalMethod,
-                  controllerClass
-                );
-              });
-            }
-
-            const args: unknown[] = [];
-            const paramTypes = (Reflect.getMetadata('design:paramtypes', controllerClass.prototype as object, methodName) ||
-              []) as ClassConstructor<object>[];
-
-            for (const param of paramMetadata.sort((a, b) => a.index - b.index)) {
-              const fn = paramHandlers[param.type];
-              if (fn) await fn(param, param.index, args, paramTypes, req, res, next);
-            }
-
-            const result = await originalMethod.apply(controllerInstance, args);
-
-            if (res.headersSent) return;
-
-            const hasPassthrough = paramMetadata.some(
-              param =>
-                param.type === 'response' &&
-                typeof param.data === 'object' &&
-                param.data !== null &&
-                (param.data as { passthrough?: boolean }).passthrough
-            );
-
-            if (hasPassthrough) {
-              if (result !== undefined) res.send(result);
-              return;
-            }
-
-            res.json({ success: true, data: result, message: 'Operation completed successfully' });
-          } catch (err) {
-            next(err);
-          }
-        };
-
-        const registerFn = methodMap[route.method.toLowerCase()];
-        if (registerFn) registerFn(fullPath, (...args) => void handler(...args));
-      });
+      const handler = this.createRequestHandler(controllerClass, instance, methodName);
+      const registerFn = methodMap[route.method.toLowerCase()];
+      if (registerFn) registerFn(fullPath, (req: Request, res: Response, next: NextFunction) => void handler(req, res, next));
     });
+  }
+
+  private createRequestHandler<T extends object> (controllerClass: Constructor<T>, instance: T, methodName: string): RequestHandler {
+    const originalMethod = this.extractMethod({ instance, methodName: methodName as keyof T }) as (...args: unknown[]) => Promise<unknown>;
+    const paramMetadata = (Reflect.getMetadata(PARAM_METADATA as symbol, controllerClass.prototype as object, methodName) || []) as ParamMetadata[];
+
+    return (req: Request, res: Response, next: NextFunction) => {
+      void (async (): Promise<void> => {
+        try {
+          await this.runGuards(req, res, controllerClass, methodName, originalMethod);
+          const args = await this.resolveArguments(req, res, next, controllerClass, methodName, paramMetadata);
+          const result = await originalMethod.apply(instance, args);
+          this.handleResponse(res, result, paramMetadata);
+        } catch (err) {
+          next(err);
+        }
+      })();
+    };
+  }
+
+  private async runGuards<T extends object> (
+    req: Request,
+    res: Response,
+    controllerClass: Constructor<T>,
+    methodName: string,
+    method: (...args: unknown[]) => Promise<unknown>
+  ): Promise<void> {
+    const classGuards = (Reflect.getMetadata(GUARDS_METADATA, controllerClass) || []) as Constructor<CanActivate>[];
+    const methodGuards = (Reflect.getMetadata(GUARDS_METADATA, controllerClass.prototype as object, methodName) || []) as Constructor<CanActivate>[];
+    const guards = [AuthGuard, RolesGuard, ...classGuards, ...methodGuards];
+
+    for (const GuardClass of guards) {
+      const guard = this.container.resolve<CanActivate>({ provide: GuardClass });
+      await new Promise<void>((resolve, reject) => {
+        void guard.canActivate(
+          req,
+          res,
+          (err?: Error | string) => (err ? reject(new UnauthorizedException(String(getErrorMessage(err)))) : resolve()),
+          method,
+          controllerClass
+        );
+      });
+    }
+  }
+
+  private async resolveArguments<T extends object> (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+    controllerClass: Constructor<T>,
+    methodName: string,
+    paramMetadata: ParamMetadata[]
+  ): Promise<unknown[]> {
+    const args: unknown[] = [];
+    const paramTypes = (Reflect.getMetadata('design:paramtypes', controllerClass.prototype as object, methodName) ||
+      []) as ClassConstructor<object>[];
+
+    for (const param of paramMetadata.sort((a, b) => a.index - b.index)) {
+      const handler = paramHandlers[param.type];
+      if (handler) await handler(param, param.index, args, paramTypes, req, res, next);
+    }
+
+    return args;
+  }
+
+  private handleResponse (res: Response, result: unknown, paramMetadata: ParamMetadata[]): void {
+    if (res.headersSent) return;
+
+    const isPassthrough = paramMetadata.some(
+      p => p.type === 'response' && typeof p.data === 'object' && p.data !== null && (p.data as { passthrough?: boolean }).passthrough
+    );
+
+    if (isPassthrough) {
+      if (result !== undefined) res.send(result);
+      return;
+    }
+
+    res.json({ success: true, data: result, message: 'Operation completed successfully' });
   }
 
   setupGlobalErrorHandler (): void {
@@ -158,33 +190,44 @@ export class NestApplication {
 
   async listen (port: number, host?: string): Promise<Server> {
     this.setupGlobalErrorHandler();
+    return this.attemptListenWithRetries(port, host);
+  }
 
-    const maxRetries = 30;
+  private async attemptListenWithRetries (port: number, host?: string, maxRetries = 30): Promise<Server> {
     let retries = 0;
 
-    const attemptListen = (): Promise<Server> => {
+    const attempt = (): Promise<Server> => {
       return new Promise((resolve, reject) => {
         const server = this.app.listen(port, host as string, () => {
           this.server = server;
           resolve(server);
         });
 
-        server.once('error', (err: unknown) => {
-          void (async (): Promise<void> => {
-            const error = err as Error & { code?: string };
-            if (error.code === 'EADDRINUSE' && retries < maxRetries) {
-              retries++;
-              await new Promise<void>(closeResolve => server.close(() => closeResolve()));
-              setTimeout(() => void attemptListen().then(resolve).catch(reject), 500);
-            } else {
-              reject(new InternalServerErrorException(getErrorMessage(error)));
-            }
-          })();
-        });
+        server.once('error', (err: unknown) => this.handleListenError(err, server, retries++, maxRetries, port, host, resolve, reject, attempt));
       });
     };
 
-    return attemptListen();
+    return attempt();
+  }
+
+  private handleListenError (
+    err: unknown,
+    server: Server,
+    retries: number,
+    maxRetries: number,
+    _port: number,
+    _host: string | undefined,
+    resolve: (server: Server) => void,
+    reject: (err: Error) => void,
+    retryFn: () => Promise<Server>
+  ): void {
+    void (async (): Promise<void> => {
+      const error = err as Error & { code?: string };
+      if (error.code === 'EADDRINUSE' && retries < maxRetries) {
+        await new Promise<void>(closeResolve => server.close(() => closeResolve()));
+        setTimeout(() => void retryFn().then(resolve).catch(reject), 500);
+      } else reject(new InternalServerErrorException(getErrorMessage(error)));
+    })();
   }
 
   use(middleware: RequestHandler): this;
@@ -212,24 +255,19 @@ export class NestApplication {
 
   setGlobalPrefix (prefix: string): void {
     const normalizedPrefix = prefix.trim();
-
     if (normalizedPrefix.includes('://')) {
       this.globalPrefix = '';
       return;
     }
 
-    if (normalizedPrefix && !normalizedPrefix.startsWith('/')) this.globalPrefix = '/' + normalizedPrefix;
-    else this.globalPrefix = normalizedPrefix;
-
-    if (this.globalPrefix.length > 1 && this.globalPrefix.endsWith('/'))
+    this.globalPrefix = normalizedPrefix.startsWith('/') ? normalizedPrefix : '/' + normalizedPrefix;
+    if (this.globalPrefix.length > 1 && this.globalPrefix.endsWith('/')) {
       this.globalPrefix = this.globalPrefix.substring(0, this.globalPrefix.length - 1);
+    }
   }
 
   async close (): Promise<void> {
-    if (this.server && this.server.listening) {
-      await new Promise<void>((resolve, reject) => this.server!.close(error => (error ? reject(error) : resolve())));
-    }
-
+    if (this.server?.listening) await new Promise<void>((resolve, reject) => this.server!.close(error => (error ? reject(error) : resolve())));
     this.container.clear();
   }
 
@@ -250,66 +288,53 @@ export class NestApplication {
 
   private hasInvalidPathSyntax (path: string): boolean {
     if (!path || typeof path !== 'string') return false;
-    if (/:[^a-zA-Z0-9]/.test(path)) return true;
-    if (path.includes('::') || path.endsWith(':')) return true;
-    if (/:[^a-zA-Z0-9_]/.test(path)) return true;
-    if (path.includes('://') || path.includes('http:') || path.includes('https:')) return true;
-
-    return false;
+    const invalidPatterns = [/:[^a-zA-Z0-9]/, /::/, /:$/, /:[^a-zA-Z0-9_]/, /:\/\//, /http:/, /https:/];
+    return invalidPatterns.some(pattern => pattern.test(path));
   }
 
   private normalizePath (...segments: string[]): string {
     const cleanSegments = segments
-      .filter((segment): segment is string => Boolean(segment && segment.trim() !== ''))
-      .map(segment => {
-        let cleaned = segment.trim();
-
-        if (cleaned.includes('://')) return '';
-        if (cleaned.startsWith('/')) cleaned = cleaned.substring(1);
-        if (cleaned.endsWith('/')) cleaned = cleaned.substring(0, cleaned.length - 1);
-
-        return cleaned;
+      .filter(s => Boolean(s && s.trim() !== ''))
+      .map(s => {
+        let clean = s.trim();
+        if (clean.includes('://')) return '';
+        if (clean.startsWith('/')) clean = clean.substring(1);
+        if (clean.endsWith('/')) clean = clean.substring(0, clean.length - 1);
+        return clean;
       })
-      .filter((segment): segment is string => segment !== '');
+      .filter(s => s !== '');
 
     const path = '/' + cleanSegments.join('/');
-    return path === '/' || path === '' ? '/' : path;
+    return path === '' ? '/' : path;
   }
 
   private isValidRoutePath (path: string): boolean {
-    if (!path || typeof path !== 'string') return false;
-    if (path.length === 0) return false;
-    if (!path.startsWith('/')) return false;
-    if (path.includes('://')) return false;
-    if (this.hasInvalidPathSyntax(path)) return false;
-    if (path.includes('//')) return false;
-
-    return true;
+    if (!path || typeof path !== 'string' || path.length === 0) return false;
+    return path.startsWith('/') && !path.includes('://') && !this.hasInvalidPathSyntax(path) && !path.includes('//');
   }
 
   private initialize = (): void => CONTROLLER_REGISTRY.forEach(controller => this.registerController(controller));
 
   private setupPathValidation (): void {
-    const methods: HttpMethod[] = [...METHODS];
     const app = this.app as unknown as Application & ExpressHttpMethods;
-
-    methods.forEach(method => {
-      const originalMethod = app[method]?.bind(app);
-
-      if (!originalMethod) return;
-
-      const overriddenMethod = (path: string, ...handlers: RequestHandler[]): Application => {
-        if (typeof path === 'string' && this.hasInvalidPathSyntax(path)) return app;
-
-        try {
-          return originalMethod(path, ...handlers) as Application;
-        } catch (error) {
-          if (error instanceof Error && error.message.includes('Missing parameter name')) return app;
-          throw error;
-        }
-      };
-
-      Object.assign(app, { [method]: overriddenMethod });
+    METHODS.forEach(method => {
+      const original = (app[method] as (...args: unknown[]) => unknown).bind(app);
+      if (original) {
+        const target = app as unknown as Record<string, ExpressHttpMethod>;
+        target[method] = this.createValidatedMethod(original, app);
+      }
     });
+  }
+
+  private createValidatedMethod (original: (...args: unknown[]) => unknown, app: Application): ExpressHttpMethod {
+    return (path: PathParams, ...handlers: RequestHandlerParams[]) => {
+      if (typeof path === 'string' && this.hasInvalidPathSyntax(path)) return app;
+      try {
+        return original(path, ...handlers) as Application;
+      } catch (error) {
+        if (error instanceof Error && error.message.includes('Missing parameter name')) return app;
+        throw error;
+      }
+    };
   }
 }

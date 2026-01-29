@@ -1,4 +1,4 @@
-import { ExtractedDescriptionAndOptions, HttpExceptionOptions } from '../interfaces/common.interface';
+import { ExtractedDescriptionAndOptions, HttpExceptionOptions } from '../interfaces/nest/nest-core.interface';
 
 export class HttpException extends Error {
   constructor (

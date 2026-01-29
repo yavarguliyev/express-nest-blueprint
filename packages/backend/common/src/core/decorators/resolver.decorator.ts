@@ -1,8 +1,7 @@
 import { INJECTABLE_METADATA } from './injectable.decorator';
-import { RESOLVER_METADATA } from '../../domain/constants/graphql.const';
-import { Constructor, TypeFunc } from '../../domain/types/common.type';
+import { RESOLVER_METADATA } from '../../domain/constants/web/web.const';
+import { Constructor, TypeFunc } from '../../domain/types/common/util.type';
 
-export { RESOLVER_METADATA };
 export const RESOLVER_REGISTRY: Constructor[] = [];
 
 export const Resolver = (typeFunc?: TypeFunc): ClassDecorator => {

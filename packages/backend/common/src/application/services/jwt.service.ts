@@ -2,7 +2,7 @@ import * as jwt from 'jsonwebtoken';
 
 import { Injectable } from '../../core/decorators/injectable.decorator';
 import { BadRequestException, UnauthorizedException } from '../../domain/exceptions/http-exceptions';
-import { JwtRegisteredClaim, TimeUnit } from '../../domain/types/common.type';
+import { JwtRegisteredClaim, TimeUnit } from '../../domain/types/common/util.type';
 import { ConfigService } from '../../infrastructure/config/config.service';
 
 @Injectable()
@@ -13,7 +13,6 @@ export class JwtService {
   constructor (private readonly configService: ConfigService) {
     const secret = this.configService.get<string>('JWT_SECRET');
     if (!secret) throw new BadRequestException('JWT_SECRET must be defined in environment variables');
-
     this.secret = secret;
     this.expiresIn = this.configService.get<string>('JWT_EXPIRES_IN', '24h');
   }
@@ -29,30 +28,26 @@ export class JwtService {
     try {
       const decoded = jwt.verify(token, this.secret, { algorithms: ['HS256'] });
       if (typeof decoded === 'string') throw new UnauthorizedException('Invalid token payload');
-
-      return decoded as unknown as jwt.JwtPayload;
+      return decoded;
     } catch (error) {
-      if (error instanceof jwt.TokenExpiredError) throw new UnauthorizedException('Token has expired');
-      if (error instanceof jwt.JsonWebTokenError) throw new UnauthorizedException('Invalid token');
-      throw new UnauthorizedException('Token verification failed');
+      throw this.handleVerifyError(error);
     }
+  }
+
+  private handleVerifyError (error: unknown): UnauthorizedException {
+    if (error instanceof jwt.TokenExpiredError) return new UnauthorizedException('Token has expired');
+    if (error instanceof jwt.JsonWebTokenError) return new UnauthorizedException('Invalid token');
+    return new UnauthorizedException('Token verification failed');
   }
 
   getExpiresInSeconds (): number {
     const match = this.expiresIn.match(/^(\d+)([smhd])$/);
-    if (!match) return 24 * 60 * 60;
+    if (!match) return 86400;
+    return this.calculateSeconds(Number(match[1]), match[2] as TimeUnit);
+  }
 
-    const value = match[1];
-    const unit = match[2] as TimeUnit;
-    const num = Number(value);
-
-    const UNIT_TO_SECONDS: Record<TimeUnit, number> = {
-      s: 1,
-      m: 60,
-      h: 3600,
-      d: 86400
-    };
-
-    return num * UNIT_TO_SECONDS[unit];
+  private calculateSeconds (value: number, unit: TimeUnit): number {
+    const UNIT_TO_SECONDS: Record<TimeUnit, number> = { s: 1, m: 60, h: 3600, d: 86400 };
+    return value * UNIT_TO_SECONDS[unit];
   }
 }

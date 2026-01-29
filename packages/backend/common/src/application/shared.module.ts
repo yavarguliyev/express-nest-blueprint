@@ -1,7 +1,7 @@
 import { LifecycleModule } from './lifecycle/lifecycle.module';
 import { JwtService } from './services/jwt.service';
-import { Module } from '../core/decorators/module.decorator';
 import { Inject } from '../core/decorators/injectable.decorator';
+import { Module } from '../core/decorators/module.decorator';
 import { AuthGuard } from '../core/guards/auth.guard';
 import { HeaderAuthGuard } from '../core/guards/header-auth.guard';
 import { RolesGuard } from '../core/guards/roles.guard';

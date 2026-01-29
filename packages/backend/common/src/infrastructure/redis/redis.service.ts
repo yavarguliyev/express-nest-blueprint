@@ -2,7 +2,7 @@ import Redis from 'ioredis';
 
 import { BULLMQ_OPTIONS } from '../../core/decorators/bullmq.decorators';
 import { Inject, Injectable } from '../../core/decorators/injectable.decorator';
-import { BullMQModuleOptions } from '../../domain/interfaces/bullmq.interface';
+import { BullMQModuleOptions } from '../../domain/interfaces/infra/bullmq.interface';
 
 @Injectable()
 export class RedisService {

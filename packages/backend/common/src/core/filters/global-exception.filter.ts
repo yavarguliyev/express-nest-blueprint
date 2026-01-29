@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 import { ArgumentsHostFilter } from './argument-host.filter';
 import { HttpException } from '../../domain/exceptions/http-exception';
 import { hasGetStatus, hasGetResponse } from '../../domain/helpers/utility-functions.helper';
-import { ExceptionFilter, ArgumentsHost } from '../../domain/interfaces/common.interface';
+import { ExceptionFilter, ArgumentsHost } from '../../domain/interfaces/nest/nest-core.interface';
 import { ConfigService } from '../../infrastructure/config/config.service';
 import { Logger } from '../../infrastructure/logger/logger.service';
 
@@ -54,7 +54,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     if (exception instanceof Error) {
       const isProduction = this.configService ? this.configService.get('NODE_ENV') === 'production' : process.env['NODE_ENV'] === 'production';
-
       return isProduction ? 'Internal Server Error' : exception.message;
     }
 

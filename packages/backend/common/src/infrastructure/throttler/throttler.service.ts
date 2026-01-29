@@ -1,7 +1,7 @@
 import { RedisService } from '../redis/redis.service';
 import { Injectable } from '../../core/decorators/injectable.decorator';
 import { BadRequestException } from '../../domain/exceptions/http-exceptions';
-import { RateLimitStatus } from '../../domain/interfaces/common.interface';
+import { RateLimitStatus } from '../../domain/interfaces/infra/infra-common.interface';
 
 @Injectable()
 export class ThrottlerService {

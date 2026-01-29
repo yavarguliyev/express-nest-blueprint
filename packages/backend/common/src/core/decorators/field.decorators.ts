@@ -1,5 +1,5 @@
-import { QueryMetadata, MutationMetadata, ArgMetadata } from '../../domain/interfaces/graphql.interface';
-import { TypeFunc } from '../../domain/types/common.type';
+import { QueryMetadata, MutationMetadata, ArgMetadata } from '../../domain/interfaces/web/graphql.interface';
+import { TypeFunc } from '../../domain/types/common/util.type';
 
 export const QUERY_METADATA = Symbol.for('GQL_QUERY_METADATA');
 export const MUTATION_METADATA = Symbol.for('GQL_MUTATION_METADATA');

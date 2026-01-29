@@ -4,7 +4,7 @@ import { Controller } from '../../core/decorators/controller.decorator';
 import { UseGuards } from '../../core/decorators/middleware.decorators';
 import { HeaderAuthGuard } from '../../core/guards/header-auth.guard';
 import { Get } from '../../core/decorators/route.decorators';
-import { HealthCheckResult, LiveCheckResult, ReadyCheckResult } from '../../domain/interfaces/common.interface';
+import { HealthCheckResult, LiveCheckResult, ReadyCheckResult } from '../../domain/interfaces/health/health-check.interface';
 
 @ApiSecurity('health-key')
 @Controller('health')

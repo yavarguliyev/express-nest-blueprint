@@ -1,6 +1,6 @@
-import { FieldMetadata } from '../../domain/interfaces/graphql.interface';
-import { OBJECT_TYPE_METADATA, INPUT_TYPE_METADATA, FIELD_METADATA } from '../../domain/constants/graphql.const';
-import { TypeFunc } from '../../domain/types/common.type';
+import { OBJECT_TYPE_METADATA, INPUT_TYPE_METADATA, FIELD_METADATA } from '../../domain/constants/web/web.const';
+import { FieldMetadata } from '../../domain/interfaces/web/graphql.interface';
+import { TypeFunc } from '../../domain/types/common/util.type';
 
 export const ObjectType = (name?: string): ClassDecorator => {
   return (target: object): void => {
