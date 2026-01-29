@@ -28,6 +28,7 @@ export {
   ARG_METADATA
 } from './core/decorators/field.decorators';
 export * from './core/decorators/injectable.decorator';
+export * from './core/decorators/kafka.decorators';
 export * from './core/decorators/middleware.decorators';
 export * from './core/decorators/module.decorator';
 export * from './core/decorators/object-type.decorator';
@@ -59,6 +60,7 @@ export * from './domain/constants/api/api.const';
 export * from './domain/constants/common/common.const';
 export * from './domain/constants/database/database.const';
 export * from './domain/constants/infra/infra.const';
+export * from './domain/constants/infra/kafka.const';
 export * from './domain/constants/module/module.const';
 export * from './domain/constants/module/initializer-tokens.const';
 export * from './domain/constants/nest/nest.const';
@@ -139,6 +141,8 @@ export * from './infrastructure/health/health.module';
 export * from './infrastructure/health/health.service';
 export * from './infrastructure/kafka/kafka.module';
 export * from './infrastructure/kafka/kafka.service';
+export * from './infrastructure/kafka/kafka-explorer';
+export * from './infrastructure/kafka/subscribers/logging.subscriber';
 export * from './infrastructure/logger/logger.module';
 export * from './infrastructure/logger/logger.service';
 export * from './infrastructure/metrics/metrics.controller';

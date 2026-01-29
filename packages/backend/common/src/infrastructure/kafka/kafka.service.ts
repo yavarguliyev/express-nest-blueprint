@@ -1,21 +1,30 @@
-import { Kafka, Producer, Consumer, EachMessageHandler, logLevel, LogEntry } from 'kafkajs';
+import { Kafka, Producer, Consumer, logLevel, LogEntry } from 'kafkajs';
 
 import { Logger } from '../logger/logger.service';
+import { ConfigService } from '../config/config.service';
 import { Inject, Injectable } from '../../core/decorators/injectable.decorator';
+import { KAFKA_OPTIONS } from '../../core/decorators/kafka.decorators';
 import { KafkaMessagePayload, KafkaModuleOptions, KafkaSubscribeOptions } from '../../domain/interfaces/infra/kafka.interface';
-import { KafkaMessageHandler } from 'domain/types/infra/kafka.type';
-
-export const KAFKA_OPTIONS = Symbol('KAFKA_OPTIONS');
+import { getErrorMessage } from '../../domain/helpers/utility-functions.helper';
+import { KafkaMessageHandler } from '../../domain/types/infra/kafka.type';
 
 @Injectable()
 export class KafkaService {
   private kafka: Kafka;
   private producer: Producer;
   private consumer: Consumer;
+
   private isProducerConnected = false;
   private isConsumerConnected = false;
 
-  constructor (@Inject(KAFKA_OPTIONS) private options: KafkaModuleOptions) {
+  private readonly isWorkerRole: boolean;
+
+  constructor(
+    @Inject(KAFKA_OPTIONS) private options: KafkaModuleOptions,
+    private readonly configService: ConfigService
+  ) {
+    this.isWorkerRole = this.configService.get<string>('APP_ROLE', 'api').toLowerCase() === 'worker';
+
     const kafkaLogger = (): ((entry: LogEntry) => void) => {
       return (entry: LogEntry): void => {
         const { label, level, log } = entry;
@@ -29,39 +38,57 @@ export class KafkaService {
       };
     };
 
-    this.kafka = new Kafka({
-      ...this.options.config,
-      logCreator: kafkaLogger
-    });
+    const role = this.configService.get<string>('APP_ROLE', 'api');
+    const uniqueClientId = `${this.options.config.clientId || 'express-nest-blueprint'}-${role}-${process.pid}`;
+
+    this.kafka = new Kafka({ ...this.options.config, clientId: uniqueClientId, logCreator: kafkaLogger });
     this.producer = this.kafka.producer(this.options.producerConfig);
     this.consumer = this.kafka.consumer({
       groupId: this.options.consumerConfig?.groupId || 'default-group',
+      sessionTimeout: this.configService.get<number>('KAFKA_SESSION_TIMEOUT', 45000),
+      rebalanceTimeout: this.configService.get<number>('KAFKA_REBALANCE_TIMEOUT', 90000),
+      heartbeatInterval: this.configService.get<number>('KAFKA_HEARBEAT_INTERVAL', 3000),
       ...this.options.consumerConfig
     });
   }
 
-  async connect (): Promise<void> {
-    if (!this.isProducerConnected) {
-      await this.producer.connect();
-      this.isProducerConnected = true;
-    }
-    if (!this.isConsumerConnected) {
-      await this.consumer.connect();
-      this.isConsumerConnected = true;
-    }
+  private handlers: Array<{ topic: string | RegExp; handler: KafkaMessageHandler<unknown> }> = [];
+  private isRunning = false;
+  private connectionPromise: Promise<void> | null = null;
+
+  async connect(): Promise<void> {
+    if (this.connectionPromise) return this.connectionPromise;
+
+    this.connectionPromise = (async (): Promise<void> => {
+      try {
+        if (!this.isProducerConnected) {
+          await this.producer.connect();
+          this.isProducerConnected = true;
+        }
+
+        if (!this.isConsumerConnected && !this.isWorkerRole) {
+          await this.consumer.connect();
+          this.isConsumerConnected = true;
+        }
+      } catch (error) {
+        this.connectionPromise = null;
+        throw error;
+      }
+    })();
+
+    return this.connectionPromise;
   }
 
-  async disconnect (): Promise<void> {
-    await this.producer.disconnect();
-    await this.consumer.disconnect();
+  async disconnect(): Promise<void> {
+    if (this.isProducerConnected) await this.producer.disconnect();
+    if (this.isConsumerConnected && !this.isWorkerRole) await this.consumer.disconnect();
     this.isProducerConnected = false;
     this.isConsumerConnected = false;
+    this.isRunning = false;
   }
 
-  async produce<T = unknown> (payload: KafkaMessagePayload<T>): Promise<void> {
-    if (!this.isProducerConnected) {
-      await this.connect();
-    }
+  async produce<T = unknown>(payload: KafkaMessagePayload<T>): Promise<void> {
+    if (!this.isProducerConnected) await this.connect();
 
     await this.producer.send({
       topic: payload.topic,
@@ -76,28 +103,69 @@ export class KafkaService {
     });
   }
 
-  async subscribe<T = unknown> (options: KafkaSubscribeOptions, handler: KafkaMessageHandler<T>): Promise<void> {
-    if (!this.isConsumerConnected) {
-      await this.connect();
-    }
+  async subscribe<T = unknown>(options: KafkaSubscribeOptions, handler: KafkaMessageHandler<T>): Promise<void> {
+    if (this.isWorkerRole) return;
+    if (!this.isConsumerConnected) await this.connect();
+    await this.consumer.subscribe({ topic: options.topic, fromBeginning: options.fromBeginning ?? false });
+    this.handlers.push({ topic: options.topic, handler: handler as unknown as KafkaMessageHandler<unknown> });
+  }
 
-    await this.consumer.subscribe({
-      topic: options.topic,
-      fromBeginning: options.fromBeginning ?? false
-    });
+  async start(): Promise<void> {
+    if (this.isWorkerRole) return;
+    if (this.isRunning) return;
+    if (!this.isConsumerConnected) await this.connect();
+    this.isRunning = true;
 
-    const eachMessageHandler: EachMessageHandler = async ({ topic, partition, message }) => {
-      const value = message.value ? (JSON.parse(message.value.toString()) as T) : (null as unknown as T);
-      await handler({
-        topic,
-        partition,
-        value,
-        key: message.key,
-        headers: message.headers as Record<string, string | Buffer | (string | Buffer)[]>,
-        timestamp: message.timestamp
+    void this.consumer
+      .run({
+        eachMessage: async ({ topic, partition, message }) => {
+          const isInternalTopic = topic.startsWith('__');
+
+          const matchingHandlers = this.handlers.filter(h => {
+            if (typeof h.topic === 'string') return h.topic === topic;
+            if (h.topic instanceof RegExp) {
+              const isGenericRegex = h.topic.toString() === '/.*/';
+              if (isInternalTopic && isGenericRegex) return false;
+              return h.topic.test(topic);
+            }
+
+            return false;
+          });
+
+          if (matchingHandlers.length === 0) return;
+
+          let value: unknown = null;
+          if (message.value) {
+            try {
+              value = JSON.parse(message.value.toString());
+            } catch {
+              value = message.value.toString();
+            }
+          }
+
+          const payload = {
+            topic,
+            partition,
+            value,
+            key: message.key,
+            headers: message.headers as Record<string, string | Buffer | (string | Buffer)[]>,
+            timestamp: message.timestamp
+          };
+
+          await Promise.all(
+            matchingHandlers.map(async h => {
+              try {
+                await h.handler(payload);
+              } catch {
+                Logger.error(`Error in Kafka handler for topic ${topic}`, 'An unknown error occurred', 'KafkaService');
+              }
+            })
+          );
+        }
+      })
+      .catch(error => {
+        this.isRunning = false;
+        Logger.error('Kafka Consumer run error', getErrorMessage(error), 'KafkaService');
       });
-    };
-
-    await this.consumer.run({ eachMessage: eachMessageHandler });
   }
 }

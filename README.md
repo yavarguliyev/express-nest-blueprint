@@ -73,7 +73,7 @@ We have transitioned to a **Monorepo** structure to ensure independent scalabili
 ```mermaid
 graph TD
     User["User (Admin Panel)"]
-    
+
     subgraph Frontend["Frontend (Angular)"]
         UI["Admin UI"]
     end
@@ -81,7 +81,7 @@ graph TD
     subgraph Backend["Backend"]
         API["API Gateway (Role: API)"]
         Worker["Background Worker (Role: WORKER)"]
-        
+
         API -- "@Compute" --> Redis
         Worker -- "Pulls Jobs" --> Redis
     end
@@ -95,7 +95,7 @@ graph TD
     User <--> UI
     UI <--> API
     API <--> Postgres
-    
+
     API -- "Produces Events" --> Kafka
     Kafka -- "Consumes Events" --> Worker
     Worker -- "Persists / Updates" --> Postgres
@@ -419,6 +419,7 @@ npm run start -w @app/core-api
 The system uses **Apache Kafka** for asynchronous, event-driven communication. This ensures that the primary API remains responsive while complex side effects or cross-service synchronizations are handled in the background.
 
 ### Workflow:
+
 1.  **Event Production**: The API emits an event (e.g., `user.created`).
 2.  **Message Brokering**: Kafka persists the event and distributes it to the consumer group.
 3.  **Consumption**: Dedicated **Worker** processes consume the message.
@@ -467,8 +468,8 @@ The application includes a built-in health check system.
 
 ### Endpoints
 
-- **Liveness (`/health/live`)**: Process responsiveness.
-- **Readiness (`/health/ready`)**: DB/Redis connectivity.
+- **Liveness (`/api/v1/health/live`)**: Process responsiveness.
+- **Readiness (`/api/v1/health/ready`)**: DB/Redis connectivity.
 
 ### Monitored Components:
 

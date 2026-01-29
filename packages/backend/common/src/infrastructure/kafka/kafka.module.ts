@@ -1,9 +1,11 @@
 import { logLevel } from 'kafkajs';
 
-import { KafkaService, KAFKA_OPTIONS } from './kafka.service';
+import { KafkaService } from './kafka.service';
+import { KafkaExplorer } from './kafka-explorer';
 import { ConfigService } from '../config/config.service';
 import { LifecycleService } from '../../application/lifecycle/lifecycle.service';
 import { Module } from '../../core/decorators/module.decorator';
+import { KAFKA_OPTIONS } from '../../core/decorators/kafka.decorators';
 import { KafkaModuleOptions } from '../../domain/interfaces/infra/kafka.interface';
 import { DynamicModule } from '../../domain/interfaces/module/module.interface';
 
@@ -12,7 +14,7 @@ import { DynamicModule } from '../../domain/interfaces/module/module.interface';
   exports: [KafkaService]
 })
 export class KafkaModule {
-  static forRoot (options?: KafkaModuleOptions): DynamicModule {
+  static forRoot(options?: KafkaModuleOptions): DynamicModule {
     return {
       module: KafkaModule,
       global: true,
@@ -40,20 +42,31 @@ export class KafkaModule {
           inject: [ConfigService]
         },
         KafkaService,
+        KafkaExplorer,
         {
           provide: 'KAFKA_INITIALIZER',
           useFactory: ((kafkaService: KafkaService, lifecycleService: LifecycleService) => {
-            return (): void =>
-              lifecycleService &&
-              lifecycleService.registerShutdownHandler({
-                name: 'Kafka Service',
-                disconnect: () => kafkaService.disconnect()
-              });
+            return (): Promise<void> => {
+              if (lifecycleService) {
+                lifecycleService.registerShutdownHandler({
+                  name: 'Kafka Service',
+                  disconnect: () => kafkaService.disconnect()
+                });
+              }
+              return kafkaService.connect();
+            };
           }) as (...args: unknown[]) => unknown,
           inject: [KafkaService, LifecycleService]
+        },
+        {
+          provide: 'KAFKA_SUBSCRIBER_INITIALIZER',
+          useFactory: ((kafkaExplorer: KafkaExplorer) => {
+            return (): Promise<void> => kafkaExplorer.explore();
+          }) as (...args: unknown[]) => unknown,
+          inject: [KafkaExplorer]
         }
       ],
-      exports: [KafkaService, KAFKA_OPTIONS as symbol, 'KAFKA_INITIALIZER']
+      exports: [KafkaService, KAFKA_OPTIONS as symbol, 'KAFKA_INITIALIZER', 'KAFKA_SUBSCRIBER_INITIALIZER']
     };
   }
 }

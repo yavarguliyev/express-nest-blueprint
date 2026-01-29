@@ -71,7 +71,7 @@ const stressTest = async () => {
 
   setTimeout(async () => {
     console.log('\n🧐 Checking API responsiveness while workers are busy (at 8s mark)...');
-    const health = await request('GET', '/health');
+    const health = await request('GET', '/api/v1/health');
     const hData = JSON.parse(health.data);
     console.log(`🏥 Health Check Status: ${health.status}`);
     console.log('📊 Current Queue Status (expect active jobs):', JSON.stringify(hData.data.components.queues.items, null, 2));

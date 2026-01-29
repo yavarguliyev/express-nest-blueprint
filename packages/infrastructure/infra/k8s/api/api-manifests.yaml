@@ -21,46 +21,46 @@ spec:
       dnsConfig:
         options:
           - name: ndots
-            value: "1"
+            value: '1'
       containers:
-      - name: api
-        image: express-nest-blueprint:latest
-        imagePullPolicy: IfNotPresent
-        ports:
-        - containerPort: 3000
-        envFrom:
-        - configMapRef:
-            name: app-config
-        - secretRef:
-            name: app-secrets
-        env:
-        - name: APP_ROLE
-          value: "API"
-        resources:
-          limits:
-            cpu: "1000m"
-            memory: "512Mi"
-          requests:
-            cpu: "200m"
-            memory: "128Mi"
-        livenessProbe:
-          httpGet:
-            path: /health/live
-            port: 3000
-            httpHeaders:
-            - name: X-Health-Key
-              value: "your_super_secret_jwt_key"
-          initialDelaySeconds: 15
-          periodSeconds: 20
-        readinessProbe:
-          httpGet:
-            path: /health/ready
-            port: 3000
-            httpHeaders:
-            - name: X-Health-Key
-              value: "your_super_secret_jwt_key"
-          initialDelaySeconds: 5
-          periodSeconds: 10
+        - name: api
+          image: express-nest-blueprint:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: app-secrets
+          env:
+            - name: APP_ROLE
+              value: 'API'
+          resources:
+            limits:
+              cpu: '1000m'
+              memory: '512Mi'
+            requests:
+              cpu: '200m'
+              memory: '128Mi'
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health/live
+              port: 3000
+              httpHeaders:
+                - name: X-Health-Key
+                  value: 'your_super_secret_jwt_key'
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health/ready
+              port: 3000
+              httpHeaders:
+                - name: X-Health-Key
+                  value: 'your_super_secret_jwt_key'
+            initialDelaySeconds: 5
+            periodSeconds: 10
 ---
 apiVersion: v1
 kind: Service

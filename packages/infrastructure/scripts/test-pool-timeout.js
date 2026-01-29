@@ -10,7 +10,7 @@ async function runTest() {
   const start = Date.now();
   const requests = Array.from({ length: CONCURRENT_REQUESTS }).map((_, i) => {
     return axios
-      .get(`${API_URL}/health`, {
+      .get(`${API_URL}/api/v1/health`, {
         headers: {
           'X-Health-Key': process.env.HEALTH_CHECK_SECRET || 'your_super_secret_jwt_key'
         }

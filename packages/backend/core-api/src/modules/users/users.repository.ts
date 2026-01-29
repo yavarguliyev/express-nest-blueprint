@@ -124,7 +124,8 @@ export class UsersRepository extends BaseRepository<UserResponseDto> {
       const fullUser = updatedUser as unknown as UserResponseDto;
 
       await this.kafkaService.produce({
-        topic: 'notification.events',
+        topic: 'user.update.events',
+        key: `${fullUser.id || id}_${currentUser.sub}`,
         value: {
           type: 'USER_UPDATED',
           title: 'Profile Update',

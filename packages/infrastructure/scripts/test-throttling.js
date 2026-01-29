@@ -5,7 +5,7 @@ const makeRequest = i => {
     const options = {
       hostname: 'localhost',
       port: 3000,
-      path: '/health',
+      path: '/api/v1/health',
       headers: {
         'X-Health-Key': process.env.HEALTH_CHECK_SECRET || 'your_super_secret_jwt_key'
       }

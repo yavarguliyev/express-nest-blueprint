@@ -44,7 +44,7 @@ export class AppModule implements NestModule {
   configure (consumer: MiddlewareConsumer): void {
     consumer.apply(MetricsMiddleware, LoggerMiddleware).forRoutes('*');
     consumer.apply(MaintenanceMiddleware).forRoutes('*');
-    consumer.apply(RateLimitMiddleware).exclude('/health*', '/metrics*', '/api/v1/settings', '/api/v1/settings/*').forRoutes('*');
+    consumer.apply(RateLimitMiddleware).exclude('/api/v1/health*', '/api/v1/metrics*', '/api/v1/settings', '/api/v1/settings/*').forRoutes('*');
     consumer.apply(HeaderAuthMiddleware).forRoutes('*');
   }
 }

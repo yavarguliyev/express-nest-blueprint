@@ -4,53 +4,53 @@ metadata:
   name: app-ingress
   namespace: express-nest-app
   annotations:
-    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/use-regex: 'true'
     nginx.ingress.kubernetes.io/configuration-snippet: |
       # Rewrite /admin/file.js to /file.js for static assets
       rewrite ^/admin/(.*\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot))$ /$1 break;
 spec:
   ingressClassName: nginx
   rules:
-  - host: api.local
-    http:
-      paths:
-      # API routes - no rewrite, pass as-is
-      - path: /api
-        pathType: Prefix
-        backend:
-          service:
-            name: api-service
-            port:
-              number: 80
-      # Health checks - no rewrite
-      - path: /health
-        pathType: Prefix
-        backend:
-          service:
-            name: api-service
-            port:
-              number: 80
-      # Storage/MinIO - proxy directly without rewrite
-      - path: /express-nest-blueprint
-        pathType: Prefix
-        backend:
-          service:
-            name: minio
-            port:
-              number: 9000
-      # Admin UI - with rewrite for static files
-      - path: /admin
-        pathType: Prefix
-        backend:
-          service:
-            name: api-service
-            port:
-              number: 80
-      # Root - serves admin
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: api-service
-            port:
-              number: 80
+    - host: api.local
+      http:
+        paths:
+          # API routes - no rewrite, pass as-is
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: api-service
+                port:
+                  number: 80
+          # Health checks - no rewrite
+          - path: /api/v1/health
+            pathType: Prefix
+            backend:
+              service:
+                name: api-service
+                port:
+                  number: 80
+          # Storage/MinIO - proxy directly without rewrite
+          - path: /express-nest-blueprint
+            pathType: Prefix
+            backend:
+              service:
+                name: minio
+                port:
+                  number: 9000
+          # Admin UI - with rewrite for static files
+          - path: /admin
+            pathType: Prefix
+            backend:
+              service:
+                name: api-service
+                port:
+                  number: 80
+          # Root - serves admin
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: api-service
+                port:
+                  number: 80

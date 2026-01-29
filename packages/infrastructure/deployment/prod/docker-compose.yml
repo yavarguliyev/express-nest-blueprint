@@ -47,7 +47,7 @@ services:
           cpus: '1.0'
           memory: 512M
     healthcheck:
-      test: ["CMD", "wget", "--header", "X-Health-Key: prod_health_secret_2024", "--spider", "-q", "http://127.0.0.1:3000/health/live"]
+      test: ["CMD", "wget", "--header", "X-Health-Key: prod_health_secret_2024", "--spider", "-q", "http://127.0.0.1:3000/api/v1/health/live"]
       interval: 30s
       timeout: 10s
       retries: 3

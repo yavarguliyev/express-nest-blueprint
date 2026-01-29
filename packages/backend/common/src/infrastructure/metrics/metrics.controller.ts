@@ -1,18 +1,19 @@
 import { Response } from 'express';
 
 import { MetricsService } from '../metrics/metrics.service';
-import { Controller } from '../../core/decorators/controller.decorator';
+import { BaseController } from '../../core/controllers/base.controller';
 import { UseGuards } from '../../core/decorators/middleware.decorators';
 import { Res } from '../../core/decorators/param.decorators';
 import { Get } from '../../core/decorators/route.decorators';
-import { ApiSecurity } from '../../core/decorators/swagger.decorators';
 import { HeaderAuthGuard } from '../../core/guards/header-auth.guard';
+import { ApiController } from '../../domain/constants/api/api.const';
 
-@ApiSecurity('health-key')
-@Controller('metrics')
+@ApiController({ path: '/metrics' })
 @UseGuards(HeaderAuthGuard)
-export class MetricsController {
-  constructor (private readonly metricsService: MetricsService) {}
+export class MetricsController extends BaseController {
+  constructor (private readonly metricsService: MetricsService) {
+    super({ path: 'metrics' });
+  }
 
   @Get()
   async getMetrics (@Res({ passthrough: true }) res: Response): Promise<string> {

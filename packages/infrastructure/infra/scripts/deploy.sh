@@ -151,10 +151,10 @@ if [ "$SKIP_VERIFY" = false ]; then
     HEALTH_KEY=$(kubectl get secret app-secrets -n $NAMESPACE -o jsonpath='{.data.HEALTH_CHECK_SECRET}' | base64 -d)
     
     for i in {1..5}; do
-        HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "X-Health-Key: $HEALTH_KEY" http://localhost:8080/health/ready || echo "failed")
+        HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "X-Health-Key: $HEALTH_KEY" http://localhost:8080/api/v1/health/ready || echo "failed")
         
         if [ "$HEALTH_STATUS" = "200" ]; then
-            print_info "✅ API is Healthy and Ready at http://localhost:8080/health/ready"
+            print_info "✅ API is Healthy and Ready at http://localhost:8080/api/v1/health/ready"
             break
         else
             print_warn "Waiting for API readiness... ($i/5) status: $HEALTH_STATUS"
@@ -182,7 +182,7 @@ print_info "📡 API Endpoints (via Ingress):"
 print_info "   • Login:    http://api.local/api/v1/auth/login"
 print_info "   • Register: http://api.local/api/v1/auth/register"
 print_info "   • Users:    http://api.local/api/v1/users"
-print_info "   • Health:   http://api.local/health/live"
+print_info "   • Health:   http://api.local/api/v1/health/live"
 print_info ""
 print_info "🎨 Admin UI:"
 print_info "   • Dashboard: http://api.local/admin/"
@@ -208,5 +208,5 @@ fi
 
 print_info ""
 print_info "💡 Quick Test:"
-print_info "   curl http://api.local/health/live -H 'X-Health-Key: your_super_secret_jwt_key'"
+print_info "   curl http://api.local/api/v1/health/live -H 'X-Health-Key: your_super_secret_jwt_key'"
 print_info ""
