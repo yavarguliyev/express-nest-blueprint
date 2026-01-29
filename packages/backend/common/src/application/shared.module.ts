@@ -19,7 +19,6 @@ import { MetricsModule } from '../infrastructure/metrics/metrics.module';
 import { RedisModule } from '../infrastructure/redis/redis.module';
 import { StorageModule } from '../infrastructure/storage/storage.module';
 import { ThrottlerModule } from '../infrastructure/throttler/throttler.module';
-import { LoggingSubscriber } from '../infrastructure/kafka/subscribers/logging.subscriber';
 
 @Module({
   imports: [
@@ -45,7 +44,6 @@ import { LoggingSubscriber } from '../infrastructure/kafka/subscribers/logging.s
     HeaderAuthGuard,
     HeaderAuthMiddleware,
     MaintenanceMiddleware,
-    LoggingSubscriber,
     {
       provide: 'APP_INITIALIZER',
       useFactory: (async (...initializers: Array<() => Promise<void> | void>): Promise<void> => {

@@ -11,7 +11,8 @@ import {
   StorageService,
   KafkaService,
   UserRoles,
-  JwtPayload
+  JwtPayload,
+  KAFKA_TOPICS
 } from '@config/libs';
 
 import { FindUsersQueryDto } from '@modules/users/dtos/find-users-query.dto';
@@ -124,11 +125,11 @@ export class UsersRepository extends BaseRepository<UserResponseDto> {
       const fullUser = updatedUser as unknown as UserResponseDto;
 
       await this.kafkaService.produce({
-        topic: 'user.update.events',
+        topic: KAFKA_TOPICS.USER.topic,
         key: `${fullUser.id || id}_${currentUser.sub}`,
         value: {
-          type: 'USER_UPDATED',
-          title: 'Profile Update',
+          type: KAFKA_TOPICS.USER.type,
+          title: KAFKA_TOPICS.USER.title,
           message: `${fullUser.email || 'User'} updated`,
           metadata: { changes: data, updatedBy: currentUser?.email },
           entityId: fullUser.id || id,

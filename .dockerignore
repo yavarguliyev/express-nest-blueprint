@@ -1,0 +1,11 @@
+node_modules
+dist
+coverage
+.git
+.DS_Store
+tmp
+npm-debug.log
+yarn-error.log
+packages/*/node_modules
+packages/*/dist
+packages/*/coverage

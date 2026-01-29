@@ -37,7 +37,7 @@ export class SettingsService {
 
   private readonly SETTINGS_CACHE_TTL = 5 * 60 * 1000;
 
-  loadSettings (useCache: boolean = true): Observable<ApiResponse<SettingItem[]>> {
+  loadSettings (useCache: boolean = false): Observable<ApiResponse<SettingItem[]>> {
     const cacheKey = 'system-settings';
 
     if (useCache) {
@@ -45,24 +45,11 @@ export class SettingsService {
       if (cachedSettings) {
         return of(cachedSettings);
       }
-
-      const localCached = localStorage.getItem('system-settings-cache');
-      const localCacheTime = localStorage.getItem('system-settings-cache-time');
-      if (localCached && localCacheTime) {
-        const age = Date.now() - parseInt(localCacheTime);
-        if (age < 10 * 60 * 1000) {
-          const data = JSON.parse(localCached) as ApiResponse<SettingItem[]>;
-          this.cacheService.set(cacheKey, data, this.SETTINGS_CACHE_TTL);
-          return of(data);
-        }
-      }
     }
 
     return this.http.get<ApiResponse<SettingItem[]>>(API_ENDPOINTS.SETTINGS.GET_ALL).pipe(
       tap((response) => {
         this.cacheService.set(cacheKey, response, this.SETTINGS_CACHE_TTL);
-        localStorage.setItem('system-settings-cache', JSON.stringify(response));
-        localStorage.setItem('system-settings-cache-time', Date.now().toString());
       }),
     );
   }
@@ -74,8 +61,6 @@ export class SettingsService {
         tap((response) => {
           const cacheKey = 'system-settings';
           this.cacheService.set(cacheKey, response, this.SETTINGS_CACHE_TTL);
-          localStorage.setItem('system-settings-cache', JSON.stringify(response));
-          localStorage.setItem('system-settings-cache-time', Date.now().toString());
         }),
       );
   }
@@ -86,16 +71,9 @@ export class SettingsService {
 
   invalidateCache (): void {
     this.cacheService.delete('system-settings');
-    localStorage.removeItem('system-settings-cache');
-    localStorage.removeItem('system-settings-cache-time');
   }
 
   hasValidCache (): boolean {
-    const memoryCache = this.cacheService.has('system-settings');
-
-    const localCacheTime = localStorage.getItem('system-settings-cache-time');
-    const localCache = !!(localCacheTime && Date.now() - parseInt(localCacheTime) < 10 * 60 * 1000);
-
-    return memoryCache || localCache;
+    return this.cacheService.has('system-settings');
   }
 }

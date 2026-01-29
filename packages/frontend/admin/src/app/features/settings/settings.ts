@@ -121,7 +121,7 @@ export class Settings implements OnInit {
     try {
       this.loading.set(true);
       const response = await firstValueFrom(
-        this.settingsService.loadSettings(true),
+        this.settingsService.loadSettings(false),
       );
 
       const allowedSettings = [

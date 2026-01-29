@@ -47,7 +47,7 @@ export class LifecycleService {
 
   private createShutdownService (): GracefulShutdownService {
     return new GracefulShutdownService(this.shutdownHandlers, {
-      shutdownTimeout: this.configService.get<number>('SHUT_DOWN_TIMER', 3000),
+      shutdownTimeout: this.configService.get<number>('SHUT_DOWN_TIMER', 15000),
       maxRetries: this.configService.get<number>('SHUTDOWN_RETRIES', 3),
       retryDelay: this.configService.get<number>('SHUTDOWN_RETRY_DELAY', 1000)
     });

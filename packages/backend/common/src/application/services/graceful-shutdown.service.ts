@@ -63,7 +63,7 @@ export class GracefulShutdownService {
   }
 
   private async disconnectServices (): Promise<void> {
-    const serviceTimeout = 2000;
+    const serviceTimeout = 10000;
 
     const disconnectPromises = this.services.map(async service => {
       const disconnectPromise = this.retryDisconnect(service);

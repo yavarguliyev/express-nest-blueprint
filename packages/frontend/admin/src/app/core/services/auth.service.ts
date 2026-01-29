@@ -1,8 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
-import axios from 'axios';
+import { Observable, tap, firstValueFrom } from 'rxjs';
 import { GlobalCacheService } from './global-cache.service';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
 
@@ -88,12 +87,11 @@ export class AuthService {
       }
     }
 
-    const response = await axios.get(`${API_ENDPOINTS.AUTH.PROFILE}?t=${Date.now()}`, {
-      headers: this.getHeaders(),
-    });
+    const response = await firstValueFrom(
+      this.http.get<{ data?: User } | User>(`${API_ENDPOINTS.AUTH.PROFILE}?t=${Date.now()}`)
+    );
 
-    const json = response.data as { data?: User } | User;
-    const userData = this.isUserResponse(json) ? json : (json as { data: User }).data;
+    const userData = this.isUserResponse(response) ? response : (response as { data: User }).data;
 
     this.cacheService.set('user-profile', userData, 5 * 60 * 1000);
     this.updateCurrentUser(userData);
@@ -107,32 +105,12 @@ export class AuthService {
     const formData = new FormData();
     formData.append('file', file);
 
-    const token = this.getToken();
-    await axios.post(API_ENDPOINTS.AUTH.UPLOAD_AVATAR, formData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
+    await firstValueFrom(this.http.post(API_ENDPOINTS.AUTH.UPLOAD_AVATAR, formData));
     await this.syncProfile(true);
   }
 
   async deleteAvatar (): Promise<void> {
-    const token = this.getToken();
-    await axios.delete(API_ENDPOINTS.AUTH.DELETE_AVATAR, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
+    await firstValueFrom(this.http.delete(API_ENDPOINTS.AUTH.DELETE_AVATAR));
     await this.syncProfile(true);
-  }
-
-  private getHeaders (): Record<string, string> {
-    const token = this.getToken();
-    return {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    };
   }
 }

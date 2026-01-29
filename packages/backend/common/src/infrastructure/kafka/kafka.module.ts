@@ -53,6 +53,7 @@ export class KafkaModule {
                   disconnect: () => kafkaService.disconnect()
                 });
               }
+
               return kafkaService.connect();
             };
           }) as (...args: unknown[]) => unknown,

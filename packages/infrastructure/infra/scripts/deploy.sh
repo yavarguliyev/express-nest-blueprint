@@ -88,12 +88,15 @@ kubectl apply -f ../k8s/minio/minio-manifests.yaml
 kubectl apply -f ../k8s/kafka/zookeeper.yaml
 kubectl apply -f ../k8s/kafka/kafka.yaml
 
+print_info "Waiting for Infrastructure to settle..."
+sleep 10
+
 print_info "Waiting for Infrastructure to be ready..."
-kubectl wait --for=condition=ready pod -l service=postgres -n $NAMESPACE --timeout=60s || print_warn "Postgres still starting..."
-kubectl wait --for=condition=ready pod -l service=redis -n $NAMESPACE --timeout=60s || print_warn "Redis still starting..."
-kubectl wait --for=condition=ready pod -l app=minio -n $NAMESPACE --timeout=60s || print_warn "MinIO still starting..."
-kubectl wait --for=condition=ready pod -l app=zookeeper -n $NAMESPACE --timeout=60s || print_warn "Zookeeper still starting..."
-kubectl wait --for=condition=ready pod -l app=kafka -n $NAMESPACE --timeout=60s || print_warn "Kafka still starting..."
+kubectl wait --for=condition=ready pod -l service=postgres -n $NAMESPACE --timeout=300s || print_warn "Postgres still starting..."
+kubectl wait --for=condition=ready pod -l service=redis -n $NAMESPACE --timeout=300s || print_warn "Redis still starting..."
+kubectl wait --for=condition=ready pod -l app=minio -n $NAMESPACE --timeout=300s || print_warn "MinIO still starting..."
+kubectl wait --for=condition=ready pod -l app=zookeeper -n $NAMESPACE --timeout=300s || print_warn "Zookeeper still starting..."
+kubectl wait --for=condition=ready pod -l app=kafka -n $NAMESPACE --timeout=300s || print_warn "Kafka still starting..."
 
 # 5. Run Database Migrations (before deploying API)
 print_info "Running database migrations..."
@@ -102,7 +105,7 @@ kubectl delete job db-migration -n $NAMESPACE --ignore-not-found
 # Create and run migration job
 kubectl apply -f ../k8s/base/migration-job.yaml
 print_info "Waiting for migrations to complete..."
-kubectl wait --for=condition=complete job/db-migration -n $NAMESPACE --timeout=120s || print_warn "Migration job still running..."
+kubectl wait --for=condition=complete job/db-migration -n $NAMESPACE --timeout=300s || print_warn "Migration job still running..."
 
 # 6. Apply App Services (API, Worker, HPA) - Use Service DNS names from ConfigMap
 print_info "Deploying Application Services..."
@@ -120,8 +123,8 @@ else
 fi
 
 print_info "Waiting for Deployments to be available..."
-kubectl rollout status deployment/api-deployment -n $NAMESPACE --timeout=120s
-kubectl rollout status deployment/worker-deployment -n $NAMESPACE --timeout=120s
+kubectl rollout status deployment/api-deployment -n $NAMESPACE --timeout=300s
+kubectl rollout status deployment/worker-deployment -n $NAMESPACE --timeout=300s
 
 # 8. Setup Port-Forwarding (Automated & Verified)
 print_info "Setting up local tunnel (localhost:8080 -> api-service:80)..."

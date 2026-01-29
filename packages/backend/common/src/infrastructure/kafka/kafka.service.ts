@@ -16,7 +16,6 @@ export class KafkaService {
 
   private isProducerConnected = false;
   private isConsumerConnected = false;
-
   private readonly isWorkerRole: boolean;
 
   constructor (
@@ -41,13 +40,23 @@ export class KafkaService {
     const role = this.configService.get<string>('APP_ROLE', 'api');
     const uniqueClientId = `${this.options.config.clientId || 'express-nest-blueprint'}-${role}-${process.pid}`;
 
-    this.kafka = new Kafka({ ...this.options.config, clientId: uniqueClientId, logCreator: kafkaLogger });
-    this.producer = this.kafka.producer(this.options.producerConfig);
+    this.kafka = new Kafka({
+      ...this.options.config,
+      clientId: uniqueClientId,
+      logCreator: kafkaLogger
+    });
+
+    this.producer = this.kafka.producer({
+      ...this.options.producerConfig,
+      metadataMaxAge: this.configService.get<number>('KAFKA_METADATA_MAX_AGE', 30000)
+    });
+
     this.consumer = this.kafka.consumer({
       groupId: this.options.consumerConfig?.groupId || 'default-group',
       sessionTimeout: this.configService.get<number>('KAFKA_SESSION_TIMEOUT', 45000),
       rebalanceTimeout: this.configService.get<number>('KAFKA_REBALANCE_TIMEOUT', 90000),
       heartbeatInterval: this.configService.get<number>('KAFKA_HEARBEAT_INTERVAL', 3000),
+      metadataMaxAge: this.configService.get<number>('KAFKA_METADATA_MAX_AGE', 30000),
       ...this.options.consumerConfig
     });
   }
@@ -66,7 +75,7 @@ export class KafkaService {
           this.isProducerConnected = true;
         }
 
-        if (!this.isConsumerConnected && !this.isWorkerRole) {
+        if (!this.isConsumerConnected && this.isWorkerRole) {
           await this.consumer.connect();
           this.isConsumerConnected = true;
         }
@@ -81,7 +90,7 @@ export class KafkaService {
 
   async disconnect (): Promise<void> {
     if (this.isProducerConnected) await this.producer.disconnect();
-    if (this.isConsumerConnected && !this.isWorkerRole) await this.consumer.disconnect();
+    if (this.isConsumerConnected && this.isWorkerRole) await this.consumer.disconnect();
     this.isProducerConnected = false;
     this.isConsumerConnected = false;
     this.isRunning = false;
@@ -103,16 +112,15 @@ export class KafkaService {
     });
   }
 
-  async subscribe<T = unknown> (options: KafkaSubscribeOptions, handler: KafkaMessageHandler<T>): Promise<void> {
-    if (this.isWorkerRole) return;
+  async subscribe (options: KafkaSubscribeOptions, handler: KafkaMessageHandler<unknown>): Promise<void> {
+    if (!this.isWorkerRole) return;
     if (!this.isConsumerConnected) await this.connect();
     await this.consumer.subscribe({ topic: options.topic, fromBeginning: options.fromBeginning ?? false });
     this.handlers.push({ topic: options.topic, handler: handler as unknown as KafkaMessageHandler<unknown> });
   }
 
   async start (): Promise<void> {
-    if (this.isWorkerRole) return;
-    if (this.isRunning) return;
+    if (!this.isWorkerRole || this.isRunning) return;
     if (!this.isConsumerConnected) await this.connect();
     this.isRunning = true;
 

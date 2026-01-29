@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: zookeeper
-  namespace: default
+  namespace: express-nest-app
   labels:
     app: zookeeper
 spec:
@@ -20,12 +20,22 @@ spec:
           image: confluentinc/cp-zookeeper:7.5.0
           env:
             - name: ZOOKEEPER_CLIENT_PORT
-              value: "2181"
+              value: '2181'
             - name: ZOOKEEPER_TICK_TIME
-              value: "2000"
+              value: '2000'
           ports:
             - containerPort: 2181
               name: client
+          livenessProbe:
+            tcpSocket:
+              port: 2181
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: 2181
+            initialDelaySeconds: 15
+            periodSeconds: 10
           resources:
             requests:
               cpu: 100m
@@ -38,7 +48,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: zookeeper
-  namespace: default
+  namespace: express-nest-app
 spec:
   ports:
     - port: 2181

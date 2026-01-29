@@ -25,7 +25,7 @@ export class StorageModule {
               secretAccessKey: configService.get<string>('STORAGE_SECRET_KEY', ''),
               region: configService.get<string>('STORAGE_REGION', 'us-east-1'),
               bucketName: configService.get<string>('STORAGE_BUCKET_NAME', 'express-nest-blueprint'),
-              forcePathStyle: configService.get<string>('STORAGE_FORCE_PATH_STYLE') === 'true'
+              forcePathStyle: configService.get<boolean>('STORAGE_FORCE_PATH_STYLE')
             }
           })) as (...args: unknown[]) => unknown,
           inject: [ConfigService]
