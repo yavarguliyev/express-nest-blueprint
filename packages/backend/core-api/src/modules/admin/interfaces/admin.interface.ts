@@ -1,16 +1,4 @@
-export interface DashboardAlert {
-  title: string;
-  message: string;
-  type: 'info' | 'warning' | 'error';
-  timestamp: string;
-}
-
-export interface DashboardMetric {
-  name: string;
-  value: number;
-  unit?: string;
-  timestamp: string;
-}
+import { ChartType, DashboardAlertType, TableAction } from '@config/libs';
 
 export interface ChartDataPoint {
   label: string;
@@ -19,9 +7,31 @@ export interface ChartDataPoint {
 
 export interface ChartData {
   title: string;
-  type: 'line' | 'bar' | 'pie' | 'gauge';
+  type: ChartType;
   data: ChartDataPoint[];
   metadata?: Record<string, unknown>;
+}
+
+export interface DashboardAlert {
+  header: string;
+  title: string;
+  message: string;
+  type: DashboardAlertType;
+  timestamp: string;
+}
+
+export interface ColumnMetadata {
+  name: string;
+  type: string;
+  required: boolean;
+  editable: boolean;
+}
+
+export interface DashboardMetric {
+  name: string;
+  value: number;
+  unit?: string;
+  timestamp: string;
 }
 export interface TableMetadata {
   category: string;
@@ -36,14 +46,7 @@ export interface TableMetadata {
     bulkOperations?: {
       enabled: boolean;
       maxBatchSize: number;
-      supportedOperations: ('create' | 'update' | 'delete')[];
+      supportedOperations: TableAction[];
     };
   };
-}
-
-export interface ColumnMetadata {
-  name: string;
-  type: string;
-  required: boolean;
-  editable: boolean;
 }

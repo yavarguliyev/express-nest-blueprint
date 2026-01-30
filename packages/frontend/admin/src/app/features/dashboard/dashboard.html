@@ -71,12 +71,12 @@
 
       @if (data()?.alerts?.length) {
         <div class="alerts-section animate-fade-in">
-          <div class="alerts-card glass">
-            <div class="alerts-header">
-              <h3>Recent Alerts</h3>
-            </div>
-            <div class="alerts-list">
-              @for (alert of data()?.alerts; track alert.timestamp) {
+          @for (alert of data()?.alerts; track alert.timestamp) {
+            <div class="alerts-card glass">
+              <div class="alerts-header">
+                <h3>{{ alert.header }}</h3>
+              </div>
+              <div class="alerts-list">
                 <div class="alert-item" [ngClass]="'alert-' + alert.type">
                   <div class="alert-icon">
                     <span class="material-icons">{{ getAlertIcon(alert.type) }}</span>
@@ -87,9 +87,9 @@
                     <span class="alert-time">{{ alert.timestamp | date: 'short' }}</span>
                   </div>
                 </div>
-              }
+              </div>
             </div>
-          </div>
+          }
         </div>
       }
     </div>

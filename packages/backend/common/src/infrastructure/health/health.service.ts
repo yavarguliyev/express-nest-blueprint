@@ -68,7 +68,7 @@ export class HealthService {
         database: dbStatus,
         redis: redisStatus,
         queues: queueStatus,
-        compute: computeStatus,
+        'compute workers': computeStatus,
         kafka: kafkaStatus,
         storage: storageStatus
       }

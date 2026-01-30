@@ -18,6 +18,7 @@ export interface ChartData {
 }
 
 export interface DashboardAlert {
+  header?: string;
   title: string;
   message: string;
   type: 'info' | 'warning' | 'error';

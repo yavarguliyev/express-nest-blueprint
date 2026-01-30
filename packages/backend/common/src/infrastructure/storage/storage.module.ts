@@ -6,6 +6,7 @@ import { Module } from '../../core/decorators/module.decorator';
 import { DynamicModule } from '../../domain/interfaces/module/module.interface';
 import { StorageModuleOptions } from '../../domain/interfaces/infra/storage.interface';
 import { BadRequestException } from '../../domain/exceptions/http-exceptions';
+import { StorageStrategy } from '../../domain/types/infra/storage.type';
 
 @Module({})
 export class StorageModule {
@@ -17,7 +18,7 @@ export class StorageModule {
         {
           provide: STORAGE_OPTIONS,
           useFactory: ((configService: ConfigService) => ({
-            strategy: configService.get<string>('STORAGE_STRATEGY', 's3') as 's3' | 'local',
+            strategy: configService.get<string>('STORAGE_STRATEGY', 's3') as StorageStrategy,
             s3: {
               endpoint: configService.get<string>('STORAGE_ENDPOINT'),
               publicEndpoint: configService.get<string>('STORAGE_PUBLIC_ENDPOINT'),

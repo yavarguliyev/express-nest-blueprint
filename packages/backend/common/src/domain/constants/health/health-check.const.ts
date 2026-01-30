@@ -2,7 +2,14 @@ export const HEALTH_CHECKS = {
   DATABASE: { key: 'database', label: 'Database', usage: 'Database Usage', unit: 'MB', critical: true, alertThreshold: 5000 },
   REDIS: { key: 'redis', label: 'Redis', usage: 'Redis Usage', unit: 'MB', critical: true, alertThreshold: 1024 },
   QUEUES: { key: 'queues', label: 'Queues', usage: 'Queues Usage', unit: 'MB', critical: false, alertThreshold: 1000 },
-  COMPUTE_WORKERS: { key: 'compute', label: 'Compute Workers', usage: 'Compute Workers Usage', unit: 'MB', critical: true, alertThreshold: 80 },
+  COMPUTE_WORKERS: {
+    key: 'compute workers',
+    label: 'Compute Workers',
+    usage: 'Compute Workers Usage',
+    unit: 'MB',
+    critical: true,
+    alertThreshold: 80
+  },
   KAFKA_MESSA_PER_SEC: {
     key: 'kafka',
     label: 'Kafka Message Per Second',
@@ -19,7 +26,7 @@ export const HEALTH_CHECKS = {
     critical: true,
     alertThreshold: 0.8
   },
-  STORAGE: { key: 'storage', label: 'Storage', usage: 'Storage Usage', unit: 'MB', critical: true, alertThreshold: 50000 },
+  S3_BUCKET_STORAGE: { key: 'storage', label: 'Storage', usage: 'S3 Bucket Usage', unit: 'MB', critical: true, alertThreshold: 50000 },
   CPU: { key: 'CPU', usage: 'CPU Usage', unit: 'seconds', critical: true, alertThreshold: 5 },
   MEMORY: { key: 'Memory', usage: 'Memory Usage', unit: 'MB', critical: true, alertThreshold: 500 }
 } as const;
@@ -32,11 +39,13 @@ export const DASHBOARD_METRICS = {
 
 export const ALERT_TEMPLATES = {
   THRESHOLD_EXCEEDED: {
+    header: 'Recent Alerts',
     title: (metricName: string) => `${metricName} High`,
     message: (metricName: string, value: number, unit: string) => `${metricName} has exceeded its safe threshold (${value}${unit}).`,
     type: 'warning' as const
   },
   SYSTEM_STABLE: {
+    header: 'Recent Alerts',
     title: 'System Stable',
     message: 'All core services are performing within normal parameters.',
     type: 'info' as const

@@ -3,7 +3,7 @@ import { IsOptional, IsBoolean } from 'class-validator';
 
 import { QueryResultsDto } from '@config/libs';
 
-import { CssGradientType, CssStatusType } from '@modules/themes/types/theme.type';
+import { CssActionType, CssEntityType, CssGradientType, CssStatusType } from '@modules/themes/types/theme.type';
 
 export class FindCssQueryDto extends QueryResultsDto {
   @IsOptional()
@@ -13,7 +13,7 @@ export class FindCssQueryDto extends QueryResultsDto {
 
   @IsOptional()
   @Expose()
-  entityType?: 'token' | 'rule' | 'theme' | 'file';
+  entityType?: CssEntityType;
 
   @IsOptional()
   @Expose()
@@ -21,7 +21,7 @@ export class FindCssQueryDto extends QueryResultsDto {
 
   @IsOptional()
   @Expose()
-  action?: 'create' | 'update' | 'delete' | 'publish';
+  action?: CssActionType;
 
   @IsOptional()
   @Expose()

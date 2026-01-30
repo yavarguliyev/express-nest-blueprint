@@ -9,15 +9,20 @@ import {
 } from '../../interfaces/database/database-common.interface';
 import { DatabaseAdapter, DatabaseConfig } from '../../interfaces/database/database.interface';
 
+export type AdapterConstructor = new (config: DatabaseConfig) => DatabaseAdapter;
+
+export type BulkOperationLogType = 'bulk_create' | 'bulk_delete' | 'bulk_mixed' | 'bulk_update';
+
 export type BulkOperationType = (typeof BULK_OPERATION_TYPES)[keyof typeof BULK_OPERATION_TYPES];
 
-export type BulkOperationLogType = 'bulk_create' | 'bulk_update' | 'bulk_delete' | 'bulk_mixed';
+export type BulkOperationStatusType = 'completed' | 'failed' | 'pending' | 'processing';
+
+export type ChangeIndicatorSeverity = 'high' | 'low' | 'medium';
+export type ChangeIndicatorType = 'created' | 'deleted' | 'modified';
 
 export type ConflictType = (typeof CONFLICT_TYPES)[keyof typeof CONFLICT_TYPES];
 
 export type ConflictResolutionStrategy = (typeof CONFLICT_RESOLUTION_STRATEGIES)[keyof typeof CONFLICT_RESOLUTION_STRATEGIES];
-
-export type AdapterConstructor = new (config: DatabaseConfig) => DatabaseAdapter;
 
 export type CrudRepository = Partial<
   SupportsFindWithPagination &

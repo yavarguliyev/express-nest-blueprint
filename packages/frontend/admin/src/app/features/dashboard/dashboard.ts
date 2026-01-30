@@ -1,6 +1,11 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DashboardService, DashboardResponse, DashboardMetric, HealthStatus } from '../../core/services/dashboard.service';
+import {
+  DashboardService,
+  DashboardResponse,
+  DashboardMetric,
+  HealthStatus,
+} from '../../core/services/dashboard.service';
 import { DraggableResizableDirective } from '../../shared/directives/draggable-resizable.directive';
 
 interface MetricConfig {
@@ -34,26 +39,26 @@ export class Dashboard implements OnInit {
       icon: 'storage',
       iconClass: 'users-icon',
       iconStyle: 'background: rgba(var(--primary-rgb), 0.1); color: var(--primary-color)',
-      format: '1.0-2'
+      format: '1.0-2',
     },
     'Redis Usage': {
       icon: 'cached',
       iconClass: 'requests-icon',
       iconStyle: 'background: rgba(239, 68, 68, 0.1); color: #ef4444',
-      format: '1.0-2'
+      format: '1.0-2',
     },
     'Kafka Usage': {
       icon: 'hub',
       iconClass: 'memory-icon',
       iconStyle: 'background: rgba(16, 185, 129, 0.1); color: #10b981',
-      format: '1.0-0'
+      format: '1.0-0',
     },
-    'Storage Usage': {
+    'S3 Bucket Usage': {
       icon: 'cloud_queue',
       iconClass: 'cpu-icon',
       iconStyle: 'background: rgba(245, 158, 11, 0.1); color: #f59e0b',
-      format: '1.0-2'
-    }
+      format: '1.0-2',
+    },
   };
 
   ngOnInit (): void {
@@ -106,7 +111,8 @@ export class Dashboard implements OnInit {
   getMetricTrendIcon (name: string): string {
     if (name === 'Total Users') return 'trending_up';
     if (name === 'Total HTTP Requests') return '';
-    if (name === 'Database Usage' || name === 'Redis Usage' || name === 'Storage Usage') return 'check_circle';
+    if (name === 'Database Usage' || name === 'Redis Usage' || name === 'Storage Usage')
+      return 'check_circle';
     return '';
   }
 
@@ -115,20 +121,21 @@ export class Dashboard implements OnInit {
     if (name === 'Memory Usage') return `${((value / 1024) * 100).toFixed(1)}% of 1GB`;
     if (name === 'Total HTTP Requests') return `${Math.floor(value / 60)}/min`;
     if (name === 'CPU Usage') return value > 80 ? 'High load' : 'Optimal';
-    if (name === 'Database Usage' || name === 'Redis Usage' || name === 'Storage Usage') return 'Optimized';
+    if (name === 'Database Usage' || name === 'Redis Usage' || name === 'Storage Usage')
+      return 'Optimized';
     return '';
   }
 
   getChartBarWidth (value: number, data: Array<{ label: string; value: number }>): number {
-    const maxValue = Math.max(...data.map(d => d.value));
+    const maxValue = Math.max(...data.map((d) => d.value));
     return maxValue > 0 ? (value / maxValue) * 100 : 0;
   }
 
   getAlertIcon (type: string): string {
     const icons: Record<string, string> = {
-      'info': 'info',
-      'warning': 'warning',
-      'error': 'error'
+      info: 'info',
+      warning: 'warning',
+      error: 'error',
     };
     return icons[type] || 'info';
   }
