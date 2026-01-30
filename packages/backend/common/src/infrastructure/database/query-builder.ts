@@ -40,6 +40,10 @@ export class QueryBuilder<T> {
     return { query, params };
   }
 
+  static buildDatabaseSizeQuery (): string {
+    return 'SELECT pg_database_size(current_database()) as size';
+  }
+
   buildInsertQuery<K extends keyof T> (data: Record<string, unknown>, returningColumns?: K[]): { query: string; params: unknown[] } {
     const columnsKeys = Object.keys(data);
     const dbColumns = columnsKeys.map(col => this.columnMappings[col] || col);

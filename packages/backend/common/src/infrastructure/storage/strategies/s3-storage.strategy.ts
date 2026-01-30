@@ -6,7 +6,8 @@ import {
   GetObjectCommand,
   S3ClientConfig,
   CreateBucketCommand,
-  HeadBucketCommand
+  HeadBucketCommand,
+  ListObjectsV2Command
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
@@ -37,13 +38,12 @@ export class S3StorageStrategy extends StorageService {
     };
 
     if (options.s3.endpoint) config.endpoint = options.s3.endpoint;
-
     this.client = new S3Client(config);
 
     const urlConfig: S3ClientConfig = { ...config };
     if (options.s3.publicEndpoint) urlConfig.endpoint = options.s3.publicEndpoint;
-    this.urlClient = new S3Client(urlConfig);
 
+    this.urlClient = new S3Client(urlConfig);
     this.bucketName = options.s3.bucketName;
   }
 
@@ -101,6 +101,32 @@ export class S3StorageStrategy extends StorageService {
       const err = error as { name: string };
       if (err.name === 'NotFound' || err.name === 'NoSuchKey') return false;
       throw error;
+    }
+  }
+
+  override async getTotalUsage (): Promise<number> {
+    try {
+      let totalSize = 0;
+      let continuationToken: string | undefined;
+
+      do {
+        const command = new ListObjectsV2Command({
+          Bucket: this.bucketName,
+          ContinuationToken: continuationToken
+        });
+
+        const response = await this.client.send(command);
+
+        if (response.Contents) {
+          totalSize += response.Contents.reduce((sum, obj) => sum + (obj.Size || 0), 0);
+        }
+
+        continuationToken = response.NextContinuationToken;
+      } while (continuationToken);
+
+      return totalSize;
+    } catch {
+      return 0;
     }
   }
 }

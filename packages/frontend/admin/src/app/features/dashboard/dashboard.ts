@@ -1,12 +1,14 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  DashboardService,
-  DashboardResponse,
-  HealthStatus,
-} from '../../core/services/dashboard.service';
-
+import { DashboardService, DashboardResponse, DashboardMetric, HealthStatus } from '../../core/services/dashboard.service';
 import { DraggableResizableDirective } from '../../shared/directives/draggable-resizable.directive';
+
+interface MetricConfig {
+  icon: string;
+  iconClass: string;
+  iconStyle?: string;
+  format: string;
+}
 
 @Component({
   selector: 'app-dashboard',
@@ -23,23 +25,48 @@ export class Dashboard implements OnInit {
   loading = signal(true);
   error = signal('');
 
-  Math = Math;
+  private readonly metricConfigs: Record<string, MetricConfig> = {
+    'Total Users': { icon: 'people', iconClass: 'users-icon', format: '1.0-0' },
+    'Memory Usage': { icon: 'memory', iconClass: 'memory-icon', format: '1.0-2' },
+    'Total HTTP Requests': { icon: 'api', iconClass: 'requests-icon', format: '1.0-0' },
+    'CPU Usage': { icon: 'developer_board', iconClass: 'cpu-icon', format: '1.1-1' },
+    'Database Usage': {
+      icon: 'storage',
+      iconClass: 'users-icon',
+      iconStyle: 'background: rgba(var(--primary-rgb), 0.1); color: var(--primary-color)',
+      format: '1.0-2'
+    },
+    'Redis Usage': {
+      icon: 'cached',
+      iconClass: 'requests-icon',
+      iconStyle: 'background: rgba(239, 68, 68, 0.1); color: #ef4444',
+      format: '1.0-2'
+    },
+    'Kafka Usage': {
+      icon: 'hub',
+      iconClass: 'memory-icon',
+      iconStyle: 'background: rgba(16, 185, 129, 0.1); color: #10b981',
+      format: '1.0-0'
+    },
+    'Storage Usage': {
+      icon: 'cloud_queue',
+      iconClass: 'cpu-icon',
+      iconStyle: 'background: rgba(245, 158, 11, 0.1); color: #f59e0b',
+      format: '1.0-2'
+    }
+  };
 
   ngOnInit (): void {
-    if (!window.location.pathname.includes('/dashboard')) {
-      return;
-    }
+    if (!window.location.pathname.includes('/dashboard')) return;
 
     const cacheStatus = this.dashboardService.hasValidCache();
 
     if (cacheStatus.metrics && cacheStatus.health) {
       this.loading.set(false);
-
       this.dashboardService.getMetrics(true).subscribe({
         next: (data) => this.data.set(data),
         error: () => {},
       });
-
       this.dashboardService.getHealth(true).subscribe({
         next: (data) => this.health.set(data),
         error: () => {},
@@ -50,9 +77,60 @@ export class Dashboard implements OnInit {
     this.refreshData();
   }
 
-  getMetricValue (name: string): number {
-    const metric = this.data()?.metrics.find((m) => m.name === name);
-    return metric ? metric.value : 0;
+  getDisplayMetrics (): DashboardMetric[] {
+    return this.data()?.metrics || [];
+  }
+
+  getMetricIcon (name: string): string {
+    return this.metricConfigs[name]?.icon || 'info';
+  }
+
+  getMetricIconClass (name: string): string {
+    return this.metricConfigs[name]?.iconClass || 'users-icon';
+  }
+
+  getMetricIconStyle (name: string): string {
+    return this.metricConfigs[name]?.iconStyle || '';
+  }
+
+  getMetricFormat (name: string): string {
+    return this.metricConfigs[name]?.format || '1.0-0';
+  }
+
+  getMetricTrendClass (name: string, value: number): string {
+    if (name === 'CPU Usage' && value > 80) return 'warning';
+    if (name === 'Memory Usage' && value > 500) return 'warning';
+    return 'positive';
+  }
+
+  getMetricTrendIcon (name: string): string {
+    if (name === 'Total Users') return 'trending_up';
+    if (name === 'Total HTTP Requests') return '';
+    if (name === 'Database Usage' || name === 'Redis Usage' || name === 'Storage Usage') return 'check_circle';
+    return '';
+  }
+
+  getMetricTrendText (name: string, value: number): string {
+    if (name === 'Total Users') return '+12% vs last month';
+    if (name === 'Memory Usage') return `${((value / 1024) * 100).toFixed(1)}% of 1GB`;
+    if (name === 'Total HTTP Requests') return `${Math.floor(value / 60)}/min`;
+    if (name === 'CPU Usage') return value > 80 ? 'High load' : 'Optimal';
+    if (name === 'Database Usage' || name === 'Redis Usage' || name === 'Storage Usage') return 'Optimized';
+    return '';
+  }
+
+  getChartBarWidth (value: number, data: Array<{ label: string; value: number }>): number {
+    const maxValue = Math.max(...data.map(d => d.value));
+    return maxValue > 0 ? (value / maxValue) * 100 : 0;
+  }
+
+  getAlertIcon (type: string): string {
+    const icons: Record<string, string> = {
+      'info': 'info',
+      'warning': 'warning',
+      'error': 'error'
+    };
+    return icons[type] || 'info';
   }
 
   refreshData (): void {

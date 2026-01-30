@@ -5,15 +5,17 @@ import { RedisService } from '../redis/redis.service';
 import { Injectable } from '../../core/decorators/injectable.decorator';
 import { ServiceUnavailableException } from '../../domain/exceptions/http-exceptions';
 import { getErrorMessage } from '../../domain/helpers/utility-functions.helper';
+import { KafkaService } from '../kafka/kafka.service';
+import { StorageService } from '../storage/storage.service';
 import {
   LiveCheckResult,
   ReadyCheckResult,
   HealthCheckResult,
   ComputeStatus,
-  DatabaseStatus,
   RedisStatus,
   QueueStatus
 } from '../../domain/interfaces/health/health-check.interface';
+import { DatabaseStatus, KafkaStatus, StorageStatus } from '../../domain/types/health/health-status.type';
 
 @Injectable()
 export class HealthService {
@@ -21,32 +23,30 @@ export class HealthService {
     private readonly databaseService: DatabaseService,
     private readonly redisService: RedisService,
     private readonly queueManager: QueueManager,
-    private readonly computeService: ComputeService
+    private readonly computeService: ComputeService,
+    private readonly kafkaService: KafkaService,
+    private readonly storageService: StorageService
   ) {}
 
   checkLive (): LiveCheckResult {
-    return {
-      status: 'up',
-      timestamp: new Date().toISOString()
-    };
+    return { status: 'up', timestamp: new Date().toISOString() };
   }
 
   async checkReady (): Promise<ReadyCheckResult> {
     const dbStatus = this.checkDatabase();
     const redisStatus = await this.checkRedis();
+    const kafkaStatus = await this.checkKafka();
 
-    const isHealthy = dbStatus.status === 'up' && redisStatus.status === 'up';
-
-    if (!isHealthy) {
-      throw new ServiceUnavailableException('Service not ready: Database or Redis is down');
-    }
+    const isHealthy = dbStatus.status === 'up' && redisStatus.status === 'up' && kafkaStatus.status === 'up';
+    if (!isHealthy) throw new ServiceUnavailableException('Service not ready: Database, Redis or Kafka is down');
 
     return {
       status: 'up',
       timestamp: new Date().toISOString(),
       components: {
         database: dbStatus,
-        redis: redisStatus
+        redis: redisStatus,
+        kafka: kafkaStatus
       }
     };
   }
@@ -56,8 +56,10 @@ export class HealthService {
     const redisStatus = await this.checkRedis();
     const queueStatus = await this.checkQueues();
     const computeStatus = this.checkCompute();
+    const kafkaStatus = await this.checkKafka();
+    const storageStatus = await this.checkStorage();
 
-    const isHealthy = dbStatus.status === 'up' && redisStatus.status === 'up';
+    const isHealthy = dbStatus.status === 'up' && redisStatus.status === 'up' && kafkaStatus.status === 'up' && storageStatus.status === 'up';
 
     return {
       status: isHealthy ? 'up' : 'down',
@@ -66,7 +68,9 @@ export class HealthService {
         database: dbStatus,
         redis: redisStatus,
         queues: queueStatus,
-        compute: computeStatus
+        compute: computeStatus,
+        kafka: kafkaStatus,
+        storage: storageStatus
       }
     };
   }
@@ -110,6 +114,24 @@ export class HealthService {
       }
 
       return { status: 'up', items: health };
+    } catch (error) {
+      return { status: 'down', error: getErrorMessage(error) };
+    }
+  }
+
+  private async checkKafka (): Promise<KafkaStatus> {
+    try {
+      await this.kafkaService.connect();
+      return { status: 'up' };
+    } catch (error) {
+      return { status: 'down', error: getErrorMessage(error) };
+    }
+  }
+
+  private async checkStorage (): Promise<StorageStatus> {
+    try {
+      await this.storageService.exists('.health-check');
+      return { status: 'up' };
     } catch (error) {
       return { status: 'down', error: getErrorMessage(error) };
     }

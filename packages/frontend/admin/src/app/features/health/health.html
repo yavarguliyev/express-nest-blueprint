@@ -47,7 +47,13 @@
         @for (comp of healthStatus()?.components; track comp.name) {
           <div class="comp-item">
             <div class="comp-icon">
-              <span class="material-icons">{{ comp.name === 'database' ? 'storage' : (comp.name === 'redis' ? 'memory' : 'hub') }}</span>
+              <span class="material-icons">{{ 
+                comp.name === 'database' ? 'storage' : 
+                (comp.name === 'redis' ? 'memory' : 
+                (comp.name === 'kafka' ? 'hub' : 
+                (comp.name === 'storage' ? 'cloud_queue' : 
+                (comp.name === 'compute' ? 'developer_board' : 'hub'))))
+              }}</span>
             </div>
             <div class="comp-info">
               <span class="comp-name">{{ comp.name }}</span>

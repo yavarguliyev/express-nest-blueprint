@@ -5,4 +5,5 @@ export abstract class StorageService {
   abstract getDownloadUrl(key: string, options?: StorageUrlOptions): Promise<string>;
   abstract delete(key: string): Promise<void>;
   abstract exists(key: string): Promise<boolean>;
+  abstract getTotalUsage(): Promise<number>;
 }

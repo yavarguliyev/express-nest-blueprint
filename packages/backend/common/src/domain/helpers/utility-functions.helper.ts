@@ -7,6 +7,7 @@ import { HandleProcessSignalsOptions } from '../interfaces/common/util.interface
 import { HasGetResponse, HasGetStatus } from '../interfaces/nest/nest-core.interface';
 import { NestMiddleware } from '../interfaces/nest/middleware.interface';
 import { MiddlewareNewConstructor } from '../types/nest/nest-core.type';
+import { HealthStatus, OverallStatus } from '../../domain/types/common/status.type';
 import { Logger } from '../../infrastructure/logger/logger.service';
 
 export const createMethodMap = (app: Express): Record<RequestMethod, (path: string, handler: RequestHandler) => void> => {
@@ -118,3 +119,9 @@ export const parseId = (id: string | number): string | number => {
 
   return id;
 };
+
+export const bytesToMB = (bytes: number): number => Math.round((bytes / 1024 / 1024) * 100) / 100;
+
+export const nowISO = (): string => new Date().toISOString();
+
+export const mapOverall = (status: HealthStatus): OverallStatus => (status === 'degraded' ? 'down' : status);

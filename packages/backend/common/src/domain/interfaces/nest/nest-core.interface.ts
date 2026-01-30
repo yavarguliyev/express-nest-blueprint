@@ -1,4 +1,5 @@
 import { MiddlewareConsumer } from './middleware.interface';
+import { ParamSource } from '../../types/nest/nest-core.type';
 
 export interface ArgumentsHost {
   getArgByIndex<T = unknown>(index: number): T;
@@ -50,8 +51,6 @@ export interface HasGetResponse {
 export interface NestModule {
   configure(consumer: MiddlewareConsumer): void;
 }
-
-import { ParamSource } from '../../types/nest/nest-core.type';
 
 export interface ParamMetadata {
   data?: unknown;

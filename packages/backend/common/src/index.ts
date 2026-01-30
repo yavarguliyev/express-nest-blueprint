@@ -59,6 +59,7 @@ export * from './core/swagger/swagger-module';
 export * from './domain/constants/api/api.const';
 export * from './domain/constants/common/common.const';
 export * from './domain/constants/database/database.const';
+export * from './domain/constants/health/health-check.const';
 export * from './domain/constants/infra/infra.const';
 export * from './domain/constants/infra/kafka-topics.const';
 export * from './domain/constants/infra/kafka.const';
@@ -111,6 +112,7 @@ export * from './domain/types/infra/bullmq.type';
 export * from './domain/types/infra/kafka.type';
 export * from './domain/types/infra/swagger.type';
 export * from './domain/types/infra/storage.type';
+export * from './domain/types/health/health-status.type';
 export * from './domain/types/module/provider.type';
 export * from './domain/types/nest/nest-core.type';
 

@@ -176,4 +176,36 @@ export class KafkaService {
         Logger.error('Kafka Consumer run error', getErrorMessage(error), 'KafkaService');
       });
   }
+
+  async getKafkaMetrics (): Promise<{ messagesInPerSec: number; underReplicatedPartitions: number }> {
+    const admin = this.kafka.admin();
+    await admin.connect();
+
+    const topicMetadata = await admin.fetchTopicMetadata();
+    let underReplicatedPartitions = 0;
+
+    topicMetadata.topics.forEach(topic => {
+      topic.partitions.forEach(partition => {
+        if (partition.replicas.length !== partition.isr.length) {
+          underReplicatedPartitions++;
+        }
+      });
+    });
+
+    let totalMessages = 0;
+
+    for (const topic of topicMetadata.topics) {
+      const offsets = await admin.fetchTopicOffsets(topic.name);
+
+      offsets.forEach(partitionOffset => {
+        const highOffset = parseInt(partitionOffset.high ?? '0', 10);
+        totalMessages += highOffset;
+      });
+    }
+
+    await admin.disconnect();
+    const messagesInPerSec = totalMessages / 60;
+
+    return { messagesInPerSec, underReplicatedPartitions };
+  }
 }

@@ -114,7 +114,7 @@ export class ThemeEditorService {
       return of(cachedTokens);
     }
 
-    this._loading.set(true);
+    if (this._tokens().length === 0) { this._loading.set(true); }
 
     const url = API_ENDPOINTS.ADMIN.CRUD('Database Management', 'css_tokens');
 
@@ -125,7 +125,8 @@ export class ThemeEditorService {
           return response.data.data;
         }),
         tap((tokens) => {
-          this._tokens.set(tokens);
+          const sortedTokens = [...tokens].sort((a, b) => (a.tokenName > b.tokenName ? 1 : -1));
+          this._tokens.set(sortedTokens);
           this._loading.set(false);
           this.applyCurrentTokens();
 
@@ -342,7 +343,7 @@ export class ThemeEditorService {
       });
     }
 
-    this._loading.set(true);
+    if (this._tokens().length === 0) { this._loading.set(true); }
 
     const updateRequests = drafts.map((draft) =>
       this.http.patch<ApiResponse<CssToken>>(
@@ -358,9 +359,9 @@ export class ThemeEditorService {
     return new Observable((observer) => {
       Promise.all(updateRequests.map((req) => req.toPromise()))
         .then(() => {
-          this.clearDrafts();
           this.cacheService.delete('css-tokens');
           this.loadTokens().subscribe(() => {
+            this.clearDrafts();
             this._loading.set(false);
 
             const updatedTokenIds = drafts.map((draft) => draft.id);

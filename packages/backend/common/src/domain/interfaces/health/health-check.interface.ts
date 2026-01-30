@@ -1,7 +1,6 @@
 import { BaseHealthComponent, Timestamped } from '../common/base.interface';
-import { WorkerStatus } from '../../types/common/status.type';
-
-export type DatabaseStatus = BaseHealthComponent;
+import { HealthComponentName, HealthStatus, OverallStatus, ReadyStatus, WorkerStatus } from '../../types/common/status.type';
+import { DatabaseStatus } from '../../types/health/health-status.type';
 
 export interface RedisStatus extends BaseHealthComponent {
   info?: {
@@ -21,23 +20,28 @@ export interface ComputeStatus extends BaseHealthComponent {
 }
 
 export interface HealthCheckResult extends Timestamped {
-  status: BaseHealthComponent['status'];
-  components: {
-    database?: DatabaseStatus;
-    redis?: RedisStatus;
-    queues?: QueueStatus;
-    compute?: ComputeStatus;
-  };
+  status: HealthStatus;
+  components: Partial<Record<HealthComponentName, BaseHealthComponent>>;
 }
 
 export interface LiveCheckResult extends Timestamped {
-  status: 'up';
+  status: ReadyStatus;
 }
 
 export interface ReadyCheckResult extends Timestamped {
-  status: BaseHealthComponent['status'];
-  components: {
-    database: DatabaseStatus;
-    redis: RedisStatus;
-  };
+  status: HealthStatus;
+  components: Pick<HealthCheckResult['components'], 'database' | 'redis' | 'kafka'>;
+}
+
+export interface HealthComponentStatus {
+  name: HealthComponentName;
+  status: HealthStatus;
+  message?: string;
+  details?: DatabaseStatus | RedisStatus | QueueStatus | ComputeStatus;
+}
+
+export interface HealthCheckStatus {
+  overallStatus: OverallStatus;
+  timestamp: string;
+  components: HealthComponentStatus[];
 }

@@ -8,149 +8,90 @@
 
   <div class="dashboard-container">
     <div class="stats-grid">
-      <div class="stat-card glass animate-slide-up" appDraggableResizable="dashboard-stat-users">
-        <div class="stat-icon users-icon"><span class="material-icons">people</span></div>
-        <div class="stat-content">
-          <span class="stat-label">Total Users</span>
-          <h2 class="stat-value">{{ getMetricValue('Total Users') }}</h2>
-          <div class="stat-trend positive">
-            <span class="material-icons">trending_up</span>
-            <span>+12% vs last month</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="stat-card glass animate-slide-up" style="animation-delay: 0.1s" appDraggableResizable="dashboard-stat-memory">
-        <div class="stat-icon memory-icon"><span class="material-icons">memory</span></div>
-        <div class="stat-content">
-          <span class="stat-label">Memory Usage</span>
-          <h2 class="stat-value">
-            {{ getMetricValue('Memory Usage') }} <span class="unit">MB</span>
-          </h2>
-          <div class="stat-trend neutral">
-            <span
-              >{{ (getMetricValue('Memory Usage') / 1024) * 100 | number: '1.1-1' }}% of 1GB</span
-            >
-          </div>
-        </div>
-      </div>
-
-      <div class="stat-card glass animate-slide-up" style="animation-delay: 0.2s" appDraggableResizable="dashboard-stat-requests">
-        <div class="stat-icon requests-icon"><span class="material-icons">api</span></div>
-        <div class="stat-content">
-          <span class="stat-label">API Requests</span>
-          <h2 class="stat-value">{{ getMetricValue('Total HTTP Requests') | number }}</h2>
-          <div class="stat-trend positive">
-            <span class="live-indicator"></span>
-            <span>{{ getMetricValue('Total HTTP Requests') / 60 | number: '1.0-0' }}/min</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="stat-card glass animate-slide-up" style="animation-delay: 0.3s" appDraggableResizable="dashboard-stat-cpu">
-        <div class="stat-icon cpu-icon"><span class="material-icons">developer_board</span></div>
-        <div class="stat-content">
-          <span class="stat-label">CPU Usage</span>
-          <h2 class="stat-value">
-            {{ getMetricValue('CPU Usage') | number: '1.1-1' }}<span class="unit">%</span>
-          </h2>
+      @for (metric of getDisplayMetrics(); track metric.name; let i = $index) {
+        <div
+          class="stat-card glass animate-slide-up"
+          [style.animation-delay.s]="i * 0.1"
+          [appDraggableResizable]="'dashboard-stat-' + i"
+        >
           <div
-            class="stat-trend"
-            [ngClass]="getMetricValue('CPU Usage') > 80 ? 'warning' : 'positive'"
+            class="stat-icon"
+            [ngClass]="getMetricIconClass(metric.name)"
+            [style]="getMetricIconStyle(metric.name)"
           >
-            <span>{{ getMetricValue('CPU Usage') > 80 ? 'High load' : 'Optimal' }}</span>
+            <span class="material-icons">{{ getMetricIcon(metric.name) }}</span>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="charts-section animate-fade-in" *ngIf="data()?.charts?.length">
-      <div *ngFor="let chart of data()?.charts; let i = index" class="chart-card glass" [appDraggableResizable]="'dashboard-chart-' + i">
-        <div class="chart-header">
-          <h4>{{ chart.title }}</h4>
-          <span class="chart-type-tag">{{ chart.type }}</span>
-        </div>
-        <div class="chart-data-list">
-          <div *ngFor="let entry of chart.data" class="chart-row">
-            <span class="chart-label">{{ entry.label }}</span>
-            <div class="chart-bar-container">
-              <div
-                class="chart-bar"
-                [style.width.%]="entry.value / 10"
-                [ngClass]="chart.type"
-              ></div>
+          <div class="stat-content">
+            <span class="stat-label">{{ metric.name }}</span>
+            <h2 class="stat-value">
+              {{ metric.value | number: getMetricFormat(metric.name) }}
+              @if (metric.unit) {
+                <span class="unit">{{ metric.unit }}</span>
+              }
+            </h2>
+            <div class="stat-trend" [ngClass]="getMetricTrendClass(metric.name, metric.value)">
+              @if (getMetricTrendIcon(metric.name)) {
+                <span class="material-icons">{{ getMetricTrendIcon(metric.name) }}</span>
+              }
+              <span>{{ getMetricTrendText(metric.name, metric.value) }}</span>
             </div>
-            <span class="chart-value">{{ entry.value }}</span>
           </div>
         </div>
-      </div>
+      }
     </div>
 
-    <div class="dashboard-main-grid">
-      <div class="health-overview glass animate-fade-in" appDraggableResizable="dashboard-health-overview">
-        <div class="card-header">
-          <div class="header-left">
-            <h3>System Health</h3>
-            <span class="last-check"
-              >Last check: {{ health()?.timestamp | date: 'shortTime' }}</span
-            >
-          </div>
-          <div class="header-right">
-            <span class="status-pill" [ngClass]="health()?.overallStatus === 'up' ? 'up' : 'down'">
-              <span class="status-dot"></span>
-              {{ health()?.overallStatus === 'up' ? 'All Systems Operational' : 'Issues Detected' }}
-            </span>
-            <button class="refresh-btn" (click)="refreshData()" [disabled]="loading()">
-              <span class="material-icons" [class.spin]="loading()">refresh</span>
-            </button>
-          </div>
-        </div>
-        <div class="health-list">
-          <div
-            *ngFor="let component of health()?.components"
-            class="health-item"
-            [ngClass]="component.status"
-          >
-            <div class="comp-status-indicator">
-              <div class="status-ring" [ngClass]="component.status">
-                <span class="material-icons">{{
-                  component.status === 'up' ? 'check' : 'close'
-                }}</span>
+    <div class="dashboard-grid">
+      @if (data()?.charts?.length) {
+        <div class="charts-section animate-fade-in">
+          @for (chart of data()?.charts; track chart.title; let i = $index) {
+            <div class="chart-card glass" [appDraggableResizable]="'dashboard-chart-' + i">
+              <div class="chart-header">
+                <h4>{{ chart.title }}</h4>
+                <span class="chart-type-tag">{{ chart.type }}</span>
+              </div>
+              <div class="chart-data-list">
+                @for (entry of chart.data; track entry.label) {
+                  <div class="chart-row">
+                    <span class="chart-label">{{ entry.label }}</span>
+                    <div class="chart-bar-container">
+                      <div
+                        class="chart-bar"
+                        [style.width.%]="getChartBarWidth(entry.value, chart.data)"
+                        [ngClass]="chart.type"
+                      ></div>
+                    </div>
+                    <span class="chart-value">{{ entry.value }}</span>
+                  </div>
+                }
               </div>
             </div>
-            <div class="comp-info">
-              <span class="comp-name">{{ component.name | titlecase }}</span>
-              <span class="comp-details" *ngIf="component.details?.['latency']">
-                {{ component.details?.['latency'] }}ms response
-              </span>
-            </div>
-          </div>
+          }
         </div>
-      </div>
+      }
 
-      <div class="recent-alerts glass animate-fade-in" appDraggableResizable="dashboard-alerts">
-        <div class="card-header">
-          <h3>Recent Alerts</h3>
-        </div>
-        <div class="alerts-list">
-          <div *ngFor="let alert of data()?.alerts" class="alert-item" [ngClass]="alert.type">
-            <span class="material-icons">{{
-              alert.type === 'warning' ? 'warning' : alert.type === 'error' ? 'error' : 'info'
-            }}</span>
-            <div class="alert-content">
-              <span class="alert-title">{{ alert.title }}</span>
-              <p>{{ alert.message }}</p>
+      @if (data()?.alerts?.length) {
+        <div class="alerts-section animate-fade-in">
+          <div class="alerts-card glass">
+            <div class="alerts-header">
+              <h3>Recent Alerts</h3>
+            </div>
+            <div class="alerts-list">
+              @for (alert of data()?.alerts; track alert.timestamp) {
+                <div class="alert-item" [ngClass]="'alert-' + alert.type">
+                  <div class="alert-icon">
+                    <span class="material-icons">{{ getAlertIcon(alert.type) }}</span>
+                  </div>
+                  <div class="alert-content">
+                    <h4>{{ alert.title }}</h4>
+                    <p>{{ alert.message }}</p>
+                    <span class="alert-time">{{ alert.timestamp | date: 'short' }}</span>
+                  </div>
+                </div>
+              }
             </div>
           </div>
-          <div *ngIf="!data()?.alerts?.length" class="alert-item info">
-            <span class="material-icons">info</span>
-            <div class="alert-content">
-              <span class="alert-title">No Recent Alerts</span>
-              <p>Your system is performing optimally.</p>
-            </div>
-          </div>
         </div>
-      </div>
+      }
     </div>
   </div>
 </div>
