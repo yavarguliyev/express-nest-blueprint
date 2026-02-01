@@ -71,6 +71,7 @@
 .badge {
   background: rgba(5, 150, 105, 0.15);
   color: var(--page-accent);
+  -webkit-text-fill-color: currentColor !important;
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 0.75rem;

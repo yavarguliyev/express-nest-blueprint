@@ -151,10 +151,10 @@ services:
           memory: 512M
     healthcheck:
       test: ["CMD", "wget", "--header", "X-Health-Key: prod_health_secret_2024", "--spider", "-q", "http://127.0.0.1:3000/api/v1/health/live"]
-      interval: 30s
+      interval: 60s
       timeout: 10s
       retries: 3
-      start_period: 30s
+      start_period: 60s
 
   worker:
     build:

@@ -3,6 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { GlobalCacheService } from './global-cache.service';
+import { ToastService } from './toast.service';
+import { DatabaseDraftService } from './database-draft.service';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
 
 export interface Column {
@@ -49,6 +51,8 @@ export interface PaginatedResponse<T> {
 export class DatabaseOperationsService {
   private http = inject(HttpClient);
   private cacheService = inject(GlobalCacheService);
+  private toastService = inject(ToastService);
+  private draftService = inject(DatabaseDraftService);
 
   private readonly SCHEMA_CACHE_TTL = 10 * 60 * 1000;
   private readonly TABLE_DATA_CACHE_TTL = 2 * 60 * 1000;
@@ -159,5 +163,91 @@ export class DatabaseOperationsService {
           this.invalidateTableCache(table);
         }),
       );
+  }
+
+  // Merged from database-crud.service.ts
+  createUpdateDraft (table: TableMetadata, record: Record<string, unknown>, formData: Record<string, unknown>): void {
+    const recordId = record['id'] as number;
+
+    this.draftService.createDraft(
+      {
+        type: 'update',
+        table: table.name,
+        category: table.category,
+        recordId: recordId,
+        data: formData,
+      },
+      record,
+    );
+  }
+
+  createDeleteDraft (table: TableMetadata, recordId: number, record: Record<string, unknown>): void {
+    this.draftService.createDraft(
+      {
+        type: 'delete',
+        table: table.name,
+        category: table.category,
+        recordId: recordId,
+      },
+      record,
+    );
+  }
+
+  confirmDelete (recordId: number, onConfirm: () => void): void {
+    this.toastService.confirm(
+      `Mark record ${recordId} for deletion? You can review and apply all changes with "Save Changes".`,
+      onConfirm,
+    );
+  }
+
+  // Merged from database-cache.service.ts
+  loadSchemaWithCache (): Observable<{ success: boolean; data: Schema }> {
+    return this.loadSchema();
+  }
+
+  refreshSchemaWithToast (): Observable<{ success: boolean; data: Schema }> {
+    return new Observable((observer) => {
+      this.refreshSchema().subscribe({
+        next: (res) => {
+          this.toastService.success('Schema refreshed successfully');
+          observer.next(res);
+          observer.complete();
+        },
+        error: (error) => {
+          this.toastService.error('Failed to refresh database schema.');
+          observer.error(error);
+        },
+      });
+    });
+  }
+
+  refreshTableDataWithToast (
+    table: TableMetadata,
+    page: number,
+    limit: number,
+    searchQuery: string
+  ): Observable<{ success: boolean; data: { data: Record<string, unknown>[]; total: number } }> {
+    return new Observable((observer) => {
+      this.refreshTableData(table, page, limit, searchQuery).subscribe({
+        next: (res) => {
+          this.toastService.success('Table data refreshed successfully');
+          observer.next(res);
+          observer.complete();
+        },
+        error: (error) => {
+          this.toastService.error(`Failed to refresh ${table.name} data.`);
+          observer.error(error);
+        },
+      });
+    });
+  }
+
+  loadTableDataWithCache (
+    table: TableMetadata,
+    page: number,
+    limit: number,
+    searchQuery: string
+  ): Observable<{ success: boolean; data: { data: Record<string, unknown>[]; total: number } }> {
+    return this.loadTableData(table, page, limit, searchQuery);
   }
 }

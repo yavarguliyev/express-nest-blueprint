@@ -258,11 +258,13 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  -webkit-text-fill-color: currentColor !important;
 }
 
 .badge.info {
   background: linear-gradient(135deg, var(--page-accent), var(--secondary));
   color: white;
+  -webkit-text-fill-color: white !important;
   border: 1px solid var(--page-accent);
 }
 

@@ -10,7 +10,9 @@ import {
   ConfigModule,
   SharedModule,
   DatabaseModule,
-  GraphQLModule
+  GraphQLModule,
+  MIDDLEWARE_EXCLUDE_ROUTES,
+  ALL_ROUTES
 } from '@config/libs';
 
 import { AuthModule } from '@modules/auth/auth.module';
@@ -41,10 +43,11 @@ import { UsersResolver } from '@modules/users/users.resolver';
   exports: []
 })
 export class AppModule implements NestModule {
-  configure (consumer: MiddlewareConsumer): void {
-    consumer.apply(MetricsMiddleware, LoggerMiddleware).forRoutes('*');
-    consumer.apply(MaintenanceMiddleware).forRoutes('*');
-    consumer.apply(RateLimitMiddleware).exclude('/api/v1/health*', '/api/v1/metrics*', '/api/v1/settings', '/api/v1/settings/*').forRoutes('*');
-    consumer.apply(HeaderAuthMiddleware).forRoutes('*');
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(MetricsMiddleware, HeaderAuthMiddleware).forRoutes(ALL_ROUTES);
+    consumer
+      .apply(LoggerMiddleware, MaintenanceMiddleware, RateLimitMiddleware)
+      .exclude(...MIDDLEWARE_EXCLUDE_ROUTES)
+      .forRoutes(ALL_ROUTES);
   }
 }

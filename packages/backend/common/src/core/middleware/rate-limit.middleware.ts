@@ -12,11 +12,16 @@ export class RateLimitMiddleware implements NestMiddleware {
   private readonly limit = 50;
   private readonly ttl = 60;
 
-  constructor (private readonly throttlerService: ThrottlerService) {}
+  constructor(private readonly throttlerService: ThrottlerService) {}
 
-  use (req: Request, res: Response, next: NextFunction): void {
+  use(req: Request, res: Response, next: NextFunction): void {
     const key = String(req.headers['x-forwarded-for'] || req.ip || 'unknown');
     const path = (req.originalUrl || req.path || '').toLowerCase();
+
+    if (path.includes('health')) {
+      return next();
+    }
+
     const isAdminPath = path.includes('admin');
     const currentLimit = isAdminPath ? 5000 : this.limit;
 

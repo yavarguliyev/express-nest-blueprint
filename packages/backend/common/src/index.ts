@@ -66,6 +66,7 @@ export * from './domain/constants/infra/kafka.const';
 export * from './domain/constants/module/module.const';
 export * from './domain/constants/module/initializer-tokens.const';
 export * from './domain/constants/nest/nest.const';
+export * from './domain/constants/nest/middleware.const';
 export * from './domain/constants/web/web.const';
 
 export * from './domain/dtos/database/pagination.dto';

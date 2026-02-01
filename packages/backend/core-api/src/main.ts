@@ -1,6 +1,5 @@
-import { existsSync } from 'fs';
-import { join } from 'path';
 import 'reflect-metadata';
+import { join } from 'path';
 import express, { Request, Response } from 'express';
 
 import {
@@ -20,7 +19,7 @@ import { AppModule } from '@app.module';
 import { SettingsService } from '@modules/settings/settings.service';
 import { AuthService } from '@modules/auth/auth.service';
 
-async function bootstrap (): Promise<void> {
+async function bootstrap(): Promise<void> {
   let lifecycleService: LifecycleService | undefined;
 
   try {
@@ -30,6 +29,7 @@ async function bootstrap (): Promise<void> {
     const settingsService = app.get(SettingsService);
     const authService = app.get(AuthService);
     const maintenanceMiddleware = app.get(MaintenanceMiddleware);
+    const graphqlApp = app.get(GraphQLApplication);
 
     Logger.setSettingsService(settingsService);
     authService.setSettingsService(settingsService);
@@ -40,6 +40,10 @@ async function bootstrap (): Promise<void> {
     const host = configService.get<string>('HOST', '0.0.0.0');
     const isProduction = configService.get<string>('NODE_ENV') === 'production';
     const role = (configService.get<string>('APP_ROLE', AppRoles.API) || '') as AppRoles;
+    const adminPath = join(__dirname, `${configService.get<string>('ADMIN_STATIC_PATH')}`);
+    const adminBaseUrl = configService.get<string>('ADMIN_BASE_URL', '');
+    const uploadsPath = join(__dirname, `${configService.get<string>('UPLOADS_STATIC_PATH')}`);
+    const uploadsBaseUrl = join(__dirname, `${configService.get<string>('UPLOADS_BASE_URL')}`);
 
     if (role === AppRoles.API) {
       if (!isProduction) {
@@ -55,25 +59,17 @@ async function bootstrap (): Promise<void> {
         Logger.log('📖 Swagger documentation enabled at /api', 'Bootstrap');
       }
 
-      const graphqlApp = app.get(GraphQLApplication);
       graphqlApp.applyMiddleware(app.getExpressApp(), '/graphql');
+
       if (!isProduction) {
         graphqlApp.applyGraphiQL(app.getExpressApp(), '/graphiql');
         Logger.log('🔮 GraphQL endpoint enabled at /graphql', 'Bootstrap');
         Logger.log('🎮 GraphiQL playground enabled at /graphiql', 'Bootstrap');
       }
 
-      const dockerAdminPath = join(__dirname, '../../../../public/admin');
-      const localAdminPath = join(__dirname, '../../../../packages/frontend/admin/dist/admin/browser');
-      const adminPath = existsSync(dockerAdminPath) ? dockerAdminPath : localAdminPath;
-
-      if (existsSync(adminPath)) {
-        const baseUrl = isProduction ? '' : '/admin';
-        app.use(baseUrl || '/', express.static(adminPath));
-        app.use(`${baseUrl}/*`, (_req: Request, res: Response) => res.sendFile(join(adminPath, 'index.html')));
-      }
-
-      app.use('/uploads', express.static(join(__dirname, '..', 'public', 'uploads')));
+      app.use(adminBaseUrl!, express.static(adminPath));
+      app.use(`${adminBaseUrl}/*`, (_req: Request, res: Response) => res.sendFile(join(adminPath, 'index.html')));
+      app.use(uploadsBaseUrl, express.static(uploadsPath));
 
       const server = await app.listen(port, host);
 
@@ -89,7 +85,6 @@ async function bootstrap (): Promise<void> {
     }
   } catch (error) {
     Logger.error(`Failed to start application: ${getErrorMessage(error)}`, 'Bootstrap');
-
     if (lifecycleService) await lifecycleService.executeGracefulShutdown();
     else process.exit(1);
   }

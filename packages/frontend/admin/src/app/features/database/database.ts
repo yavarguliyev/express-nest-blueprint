@@ -14,17 +14,14 @@ import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { ToastService } from '../../core/services/toast.service';
 import { DatabaseDraftService } from '../../core/services/database-draft.service';
-import { DatabaseCacheService } from '../../core/services/database-cache.service';
-import { DatabaseUiService } from '../../core/services/database-ui.service';
+import { DatabaseOperationsService } from '../../core/services/database-operations.service';
 import {
   TableMetadata,
   Schema,
   Column,
 } from '../../core/services/database-operations.service';
-import { DatabaseValidationService } from '../../core/services/database-validation.service';
 import { DatabaseHelperService } from '../../core/services/database-helper.service';
 import { DatabaseFormService } from '../../core/services/database-form.service';
-import { DatabaseCrudService } from '../../core/services/database-crud.service';
 import { PaginationService } from '../../core/services/pagination.service';
 import { ToggleSwitch } from '../../shared/components/toggle-switch/toggle-switch';
 import { ActionButtons } from '../../shared/components/action-buttons/action-buttons';
@@ -45,12 +42,9 @@ import { DraggableResizableDirective } from '../../shared/directives/draggable-r
 export class Database implements OnInit, AfterViewInit {
   private toastService = inject(ToastService);
   draftService = inject(DatabaseDraftService);
-  private dbCache = inject(DatabaseCacheService);
-  private dbUi = inject(DatabaseUiService);
-  private dbValidation = inject(DatabaseValidationService);
+  private dbOperations = inject(DatabaseOperationsService);
   private dbHelper = inject(DatabaseHelperService);
   private dbForm = inject(DatabaseFormService);
-  private dbCrud = inject(DatabaseCrudService);
   private pagination = inject(PaginationService);
 
   @ViewChild('tableScrollContainer') tableScrollContainer!: ElementRef<HTMLDivElement>;
@@ -116,13 +110,13 @@ export class Database implements OnInit, AfterViewInit {
 
   ngAfterViewInit (): void {
     if (this.tableScrollContainer) {
-      this.dbUi.setupScrollIndicators(this.tableScrollContainer.nativeElement);
+      this.dbHelper.setupScrollIndicators(this.tableScrollContainer.nativeElement);
     }
   }
 
   loadSchema (): void {
     this.loadingSchema.set(true);
-    this.dbCache.loadSchemaWithCache().subscribe({
+    this.dbOperations.loadSchemaWithCache().subscribe({
       next: (res) => {
         this.schema.set(res.data);
         this.loadingSchema.set(false);
@@ -137,7 +131,7 @@ export class Database implements OnInit, AfterViewInit {
 
   refreshSchema (): void {
     this.loadingSchema.set(true);
-    this.dbCache.refreshSchemaWithToast().subscribe({
+    this.dbOperations.refreshSchemaWithToast().subscribe({
       next: (res) => {
         this.schema.set(res.data);
         this.loadingSchema.set(false);
@@ -153,7 +147,7 @@ export class Database implements OnInit, AfterViewInit {
     const table = this.selectedTable();
     if (!table) return;
     this.loadingData.set(true);
-    this.dbCache.refreshTableDataWithToast(table, this.page(), this.limit, this.searchQuery()).subscribe({
+    this.dbOperations.refreshTableDataWithToast(table, this.page(), this.limit, this.searchQuery()).subscribe({
       next: (res) => {
         const responseData = res.data;
         if (responseData?.data) {
@@ -198,7 +192,7 @@ export class Database implements OnInit, AfterViewInit {
     const table = this.selectedTable();
     if (!table) return;
     this.loadingData.set(true);
-    this.dbCache.loadTableDataWithCache(table, this.page(), this.limit, this.searchQuery()).subscribe({
+    this.dbOperations.loadTableDataWithCache(table, this.page(), this.limit, this.searchQuery()).subscribe({
       next: (res) => {
         const responseData = res.data;
         if (responseData?.data) {
@@ -245,10 +239,10 @@ export class Database implements OnInit, AfterViewInit {
     return this.pagination.generatePageNumbers(this.page(), this.totalPages);
   }
 
-  isCurrentUser (id: number): boolean { return this.dbValidation.isCurrentUser(id); }
-  isRestrictedTable (): boolean { return this.dbValidation.isRestrictedTable(this.selectedTable()); }
-  isFieldExcludedFromUpdate (col: string): boolean { return this.dbValidation.isFieldExcludedFromUpdate(col, this.selectedRecord()); }
-  isFieldDisabled (col: string): boolean { return this.dbValidation.isFieldDisabled(col); }
+  isCurrentUser (id: number): boolean { return this.dbForm.isCurrentUser(id); }
+  isRestrictedTable (): boolean { return this.dbForm.isRestrictedTable(this.selectedTable()); }
+  isFieldExcludedFromUpdate (col: string): boolean { return this.dbForm.isFieldExcludedFromUpdate(col, this.selectedRecord()); }
+  isFieldDisabled (col: string): boolean { return this.dbForm.isFieldDisabled(col); }
   canDeleteRecord (): boolean { return this.dbHelper.canDeleteRecord(); }
   formatValue (v: unknown, c: Column): string { return this.dbHelper.formatValue(v, c); }
   getBooleanValue (row: Record<string, unknown>, col: string): boolean {
@@ -283,7 +277,7 @@ export class Database implements OnInit, AfterViewInit {
     const formData = this.dbForm.prepareFormData(table, record, (columnName) =>
       this.isFieldExcludedFromUpdate(columnName),
     );
-    this.dbCrud.createUpdateDraft(table, record, formData);
+    this.dbOperations.createUpdateDraft(table, record, formData);
     this.selectedRecord.set(record);
     this.updateFormData.set(formData);
     this.originalFormData.set({ ...formData });
@@ -306,10 +300,10 @@ export class Database implements OnInit, AfterViewInit {
   deleteRecord (id: number): void {
     const table = this.selectedTable();
     if (!table || !id) return;
-    this.dbCrud.confirmDelete(id, () => {
+    this.dbOperations.confirmDelete(id, () => {
       const record = this.tableData().find((row) => row['id'] === id);
       if (!record) return;
-      this.dbCrud.createDeleteDraft(table, id, record);
+      this.dbOperations.createDeleteDraft(table, id, record);
     });
   }
 
@@ -347,7 +341,7 @@ export class Database implements OnInit, AfterViewInit {
   }
 
   publishAllChanges (): void {
-    this.dbUi.publishAllChanges(
+    this.dbHelper.publishAllChanges(
       this.hasDrafts(),
       (value) => this.isPublishing.set(value),
       () => this.loadTableData(false)
@@ -355,7 +349,7 @@ export class Database implements OnInit, AfterViewInit {
   }
 
   resetAllChanges (): void {
-    this.dbUi.resetAllChanges(
+    this.dbHelper.resetAllChanges(
       this.hasDrafts(),
       this.draftCount(),
       () => this.loadTableData(false)
@@ -371,6 +365,6 @@ export class Database implements OnInit, AfterViewInit {
 
   handleImageClick (row: Record<string, unknown>, columnName: string): void {
     const imageUrl = row[columnName] as string;
-    this.dbUi.handleImageClick(imageUrl);
+    this.dbHelper.handleImageClick(imageUrl);
   }
 }
