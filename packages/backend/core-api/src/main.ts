@@ -19,7 +19,7 @@ import { AppModule } from '@app.module';
 import { SettingsService } from '@modules/settings/settings.service';
 import { AuthService } from '@modules/auth/auth.service';
 
-async function bootstrap(): Promise<void> {
+async function bootstrap (): Promise<void> {
   let lifecycleService: LifecycleService | undefined;
 
   try {
@@ -67,7 +67,7 @@ async function bootstrap(): Promise<void> {
         Logger.log('🎮 GraphiQL playground enabled at /graphiql', 'Bootstrap');
       }
 
-      app.use(adminBaseUrl!, express.static(adminPath));
+      app.use(adminBaseUrl, express.static(adminPath));
       app.use(`${adminBaseUrl}/*`, (_req: Request, res: Response) => res.sendFile(join(adminPath, 'index.html')));
       app.use(uploadsBaseUrl, express.static(uploadsPath));
 
