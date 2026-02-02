@@ -23,6 +23,12 @@ export class ConfigService {
     ConfigService.options = options;
   }
 
+  static isProduction (): boolean {
+    const envFileIgnore = ConfigService.options.ignoreEnvFile;
+    const nodeEnv = process.env['NODE_ENV']?.toLowerCase();
+    return envFileIgnore === true || nodeEnv === 'production';
+  }
+
   get<T = string>(key: string): T | undefined;
   get<T = string>(key: string, defaultValue: T): T;
   get<T = string> (key: string, defaultValue?: T): T | undefined {

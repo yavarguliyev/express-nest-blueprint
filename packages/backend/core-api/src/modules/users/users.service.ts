@@ -11,7 +11,9 @@ import {
   ValidationService,
   StorageService,
   ForbiddenException,
-  JwtPayload
+  JwtPayload,
+  CACHE_TTL_1_MIN,
+  COMPUTE_TIMEOUT_DEFAULT
 } from '@config/libs';
 
 import { CreateUserDto } from '@modules/users/dtos/create-user.dto';
@@ -28,8 +30,8 @@ export class UsersService {
     private readonly storageService: StorageService
   ) {}
 
-  @Cache({ ttl: 60 })
-  @Compute({ timeout: 10000 })
+  @Cache({ ttl: CACHE_TTL_1_MIN })
+  @Compute({ timeout: COMPUTE_TIMEOUT_DEFAULT })
   async findAll (queryParams: FindUsersQueryDto): Promise<PaginatedResponseDto<UserResponseDto>> {
     const {
       page = 1,
@@ -88,6 +90,7 @@ export class UsersService {
         ['id', 'email', 'firstName', 'lastName', 'role', 'isActive', 'createdAt', 'updatedAt'],
         transaction
       );
+
       return ValidationService.transformResponse(UserResponseDto, createdUser!);
     });
   }

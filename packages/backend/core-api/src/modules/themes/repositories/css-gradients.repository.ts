@@ -1,4 +1,4 @@
-import { BaseRepository, CircuitBreaker, CrudTable, DatabaseService, Injectable, QueryAllWithPaginationOptions, DatabaseAdapter } from '@config/libs';
+import { BaseRepository, CircuitBreaker, CrudTable, DatabaseService, Injectable, QueryAllWithPaginationOptions, DatabaseAdapter, CIRCUIT_BREAKER_KEYS } from '@config/libs';
 
 import { FindCssQueryDto } from '@modules/themes/dtos/find-css-audit-log.dto';
 import { CssGradientEntity } from '@modules/themes/interfaces/theme.interface';
@@ -31,7 +31,7 @@ export class CssGradientsRepository extends BaseRepository<CssGradientEntity> {
     return ['gradientName', 'gradientType', 'description'];
   }
 
-  @CircuitBreaker({ key: 'db_postgresql' })
+  @CircuitBreaker({ key: CIRCUIT_BREAKER_KEYS.POSTGRES })
   async findCssGradientsWithPagination (opts: FindCssQueryDto): Promise<{ cssGradients: CssGradientEntity[]; total: number }> {
     const { page, limit, search, gradientType, isSystemGradient, sortBy, sortOrder } = opts;
 

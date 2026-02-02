@@ -1,4 +1,4 @@
-import { BaseRepository, CircuitBreaker, CrudTable, DatabaseService, Injectable, QueryAllWithPaginationOptions, DatabaseAdapter } from '@config/libs';
+import { BaseRepository, CircuitBreaker, CrudTable, DatabaseService, Injectable, QueryAllWithPaginationOptions, DatabaseAdapter, CIRCUIT_BREAKER_KEYS } from '@config/libs';
 
 import { TokenUsageEntity } from '@modules/themes/interfaces/theme.interface';
 import { FindCssQueryDto } from '@modules/themes/dtos/find-css-audit-log.dto';
@@ -30,7 +30,7 @@ export class TokenUsageRepository extends BaseRepository<TokenUsageEntity> {
     return ['propertyName', 'usageContext'];
   }
 
-  @CircuitBreaker({ key: 'db_postgresql' })
+  @CircuitBreaker({ key: CIRCUIT_BREAKER_KEYS.POSTGRES })
   async findTokenUsageWithPagination (opts: FindCssQueryDto): Promise<{ tokenUsage: TokenUsageEntity[]; total: number }> {
     const { page, limit, search, tokenId, ruleId, propertyName, sortBy, sortOrder } = opts;
 

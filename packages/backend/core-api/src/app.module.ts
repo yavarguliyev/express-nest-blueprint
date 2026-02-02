@@ -8,6 +8,7 @@ import {
   RateLimitMiddleware,
   MaintenanceMiddleware,
   ConfigModule,
+  ConfigService,
   SharedModule,
   DatabaseModule,
   GraphQLModule,
@@ -27,7 +28,7 @@ import { UsersResolver } from '@modules/users/users.resolver';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
-      ignoreEnvFile: process.env['NODE_ENV']?.toLowerCase().startsWith('prod') || false
+      ignoreEnvFile: ConfigService.isProduction()
     }),
     DatabaseModule.forRoot(),
     SharedModule,

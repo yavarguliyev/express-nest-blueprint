@@ -30,7 +30,7 @@ export class DatabaseModule {
             configService: ConfigService
           ): (() => Promise<void>) => {
             return async () => {
-              const dbConfig = config || getDatabaseConfig();
+              const dbConfig = config || getDatabaseConfig(configService);
 
               dbConfig.host = configService.get<string>('DB_HOST', dbConfig.host);
               dbConfig.port = configService.get<number>('DB_PORT', dbConfig.port);

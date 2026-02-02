@@ -1,4 +1,4 @@
-import { BaseRepository, CircuitBreaker, CrudTable, DatabaseService, Injectable, QueryAllWithPaginationOptions, DatabaseAdapter } from '@config/libs';
+import { BaseRepository, CircuitBreaker, CrudTable, DatabaseService, Injectable, QueryAllWithPaginationOptions, DatabaseAdapter, CIRCUIT_BREAKER_KEYS } from '@config/libs';
 
 import { FindCssQueryDto } from '@modules/themes/dtos/find-css-audit-log.dto';
 import { CssTokenEntity } from '@modules/themes/interfaces/theme.interface';
@@ -45,7 +45,7 @@ export class CssTokensRepository extends BaseRepository<CssTokenEntity> {
     return ['tokenName', 'tokenCategory', 'tokenType', 'description'];
   }
 
-  @CircuitBreaker({ key: 'db_postgresql' })
+  @CircuitBreaker({ key: CIRCUIT_BREAKER_KEYS.POSTGRES })
   async findCssTokensWithPagination (opts: FindCssQueryDto): Promise<{ cssTokens: CssTokenEntity[]; total: number }> {
     const { page, limit, search, tokenCategory, tokenType, isCustomizable, sortBy, sortOrder } = opts;
 

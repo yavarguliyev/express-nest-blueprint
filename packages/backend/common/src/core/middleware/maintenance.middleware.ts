@@ -15,12 +15,19 @@ export class MaintenanceMiddleware {
   }
 
   async use (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    const path = req.path || req.url || '';
+    const isExcludedPath = path.includes('/settings') || path.includes('/health');
+
+    if (isExcludedPath) {
+      return next();
+    }
+
     try {
       if (this.settingsService) {
         this.isMaintenanceMode = await this.settingsService.isMaintenanceModeEnabled();
       }
 
-      if (req.user && req.user.role !== UserRoles.GLOBAL_ADMIN && this.isMaintenanceMode) {
+      if (this.isMaintenanceMode && req.user && req.user.role !== UserRoles.GLOBAL_ADMIN) {
         throw new ServiceUnavailableException('System is currently under maintenance. Please try again later.');
       }
 

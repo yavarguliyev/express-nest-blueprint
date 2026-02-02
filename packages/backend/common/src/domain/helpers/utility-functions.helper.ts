@@ -29,8 +29,11 @@ export const getErrorMessage = (error: unknown): string => {
   return 'Unknown error occurred';
 };
 
-export const handleProcessSignals = <Args extends unknown[]>({ shutdownCallback, callbackArgs }: HandleProcessSignalsOptions<Args>): void => {
-  const role = process.env['APP_ROLE'] as AppRoles;
+export const handleProcessSignals = <Args extends unknown[]>({
+  shutdownCallback,
+  callbackArgs,
+  role
+}: HandleProcessSignalsOptions<Args> & { role?: AppRoles }): void => {
   const isWorker = role === AppRoles.WORKER;
   const signals = isWorker ? ['SIGINT', 'SIGTERM'] : ['SIGINT', 'SIGTERM', 'SIGUSR2'];
 
@@ -53,12 +56,10 @@ export const isMiddlewareConstructor = (value: unknown): value is MiddlewareNewC
   return isNestMiddleware(value.prototype as Partial<NestMiddleware>);
 };
 
-export const spawnWorker = (modulePath: string): ChildProcess | undefined => {
-  const role = process.env['APP_ROLE'] as AppRoles;
-
+export const spawnWorker = (modulePath: string, role?: AppRoles, baseEnv?: NodeJS.ProcessEnv): ChildProcess | undefined => {
   if (!role || role === AppRoles.API) {
     const execArgv = process.execArgv.filter(arg => !arg.includes('--inspect') && !arg.includes('--debug'));
-    const env: NodeJS.ProcessEnv = { ...process.env, APP_ROLE: AppRoles.WORKER };
+    const env: NodeJS.ProcessEnv = { ...(baseEnv ?? process.env), APP_ROLE: AppRoles.WORKER };
     delete env['NODE_OPTIONS'];
     const workerProcess = fork(modulePath, [], { env, execArgv });
 

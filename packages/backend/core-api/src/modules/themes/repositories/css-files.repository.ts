@@ -1,4 +1,4 @@
-import { BaseRepository, CircuitBreaker, CrudTable, DatabaseService, Injectable, QueryAllWithPaginationOptions, DatabaseAdapter } from '@config/libs';
+import { BaseRepository, CircuitBreaker, CrudTable, DatabaseService, Injectable, QueryAllWithPaginationOptions, DatabaseAdapter, CIRCUIT_BREAKER_KEYS } from '@config/libs';
 
 import { FindCssQueryDto } from '@modules/themes/dtos/find-css-audit-log.dto';
 import { CssFileEntity } from '@modules/themes/interfaces/theme.interface';
@@ -25,7 +25,7 @@ export class CssFilesRepository extends BaseRepository<CssFileEntity> {
     return ['fileName', 'filePath', 'description', 'category'];
   }
 
-  @CircuitBreaker({ key: 'db_postgresql' })
+  @CircuitBreaker({ key: CIRCUIT_BREAKER_KEYS.POSTGRES })
   async findCssFilesWithPagination (opts: FindCssQueryDto): Promise<{ cssFiles: CssFileEntity[]; total: number }> {
     const { page, limit, search, category, isEmpty, sortBy, sortOrder } = opts;
 

@@ -12,7 +12,8 @@ import {
   KafkaService,
   UserRoles,
   JwtPayload,
-  KAFKA_TOPICS
+  KAFKA_TOPICS,
+  CIRCUIT_BREAKER_KEYS
 } from '@config/libs';
 
 import { FindUsersQueryDto } from '@modules/users/dtos/find-users-query.dto';
@@ -64,7 +65,7 @@ export class UsersRepository extends BaseRepository<UserResponseDto> {
     return this.findOne({ email }, connection);
   }
 
-  @CircuitBreaker({ key: 'db_postgresql' })
+  @CircuitBreaker({ key: CIRCUIT_BREAKER_KEYS.POSTGRES })
   async findUsersWithPagination (opts: FindUsersQueryDto): Promise<{ users: UserResponseDto[]; total: number }> {
     const { page, limit, search, email, firstName, lastName, isActive, sortBy, sortOrder } = opts;
 

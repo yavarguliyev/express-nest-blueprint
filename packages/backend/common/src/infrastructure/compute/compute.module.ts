@@ -76,7 +76,7 @@ export class ComputeModule {
                     const count = Math.min(Math.max(computedOptions.workerMinCount ?? 3, 1), Math.max(computedOptions.workerMaxCount ?? 10, 1));
 
                     for (let i = 0; i < count; i++) {
-                      const workerProcess = spawnWorker(entryPoint);
+                      const workerProcess = spawnWorker(entryPoint, role);
 
                       if (workerProcess instanceof ChildProcess) {
                         lifecycleService.registerShutdownHandler({

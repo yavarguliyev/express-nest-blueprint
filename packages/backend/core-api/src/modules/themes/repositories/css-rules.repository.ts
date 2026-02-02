@@ -1,4 +1,4 @@
-import { BaseRepository, CircuitBreaker, CrudTable, DatabaseService, Injectable, QueryAllWithPaginationOptions, DatabaseAdapter } from '@config/libs';
+import { BaseRepository, CircuitBreaker, CrudTable, DatabaseService, Injectable, QueryAllWithPaginationOptions, DatabaseAdapter, CIRCUIT_BREAKER_KEYS } from '@config/libs';
 
 import { FindCssQueryDto } from '@modules/themes/dtos/find-css-audit-log.dto';
 import { CssRuleEntity } from '@modules/themes/interfaces/theme.interface';
@@ -32,7 +32,7 @@ export class CssRulesRepository extends BaseRepository<CssRuleEntity> {
     return super.inferColumnType(columnName);
   }
 
-  @CircuitBreaker({ key: 'db_postgresql' })
+  @CircuitBreaker({ key: CIRCUIT_BREAKER_KEYS.POSTGRES })
   async findCssRulesWithPagination (opts: FindCssQueryDto): Promise<{ cssRules: CssRuleEntity[]; total: number }> {
     const { page, limit, search, fileId, appliesToTheme, isImportant, sortBy, sortOrder } = opts;
 

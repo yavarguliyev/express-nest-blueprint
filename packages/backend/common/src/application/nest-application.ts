@@ -23,7 +23,6 @@ import { CanActivate } from '../domain/interfaces/nest/guard.interface';
 import { RouteMetadata, ParamMetadata } from '../domain/interfaces/nest/nest-core.interface';
 import { ExpressHttpMethods, ExpressHttpMethod } from '../domain/types/api/api-http.type';
 import { Constructor } from '../domain/types/common/util.type';
-import { ConfigService } from '../infrastructure/config/config.service';
 
 export class NestApplication {
   private app: Express;
@@ -171,9 +170,7 @@ export class NestApplication {
   }
 
   setupGlobalErrorHandler (): void {
-    const configService = this.container.has(ConfigService) ? this.container.resolve<ConfigService>({ provide: ConfigService }) : undefined;
-
-    this.app.use(GlobalExceptionFilter.create(configService));
+    this.app.use(GlobalExceptionFilter.create());
     this.app.use((req: Request, res: Response) => {
       res.status(404).json({
         success: false,

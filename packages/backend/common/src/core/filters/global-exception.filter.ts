@@ -9,11 +9,8 @@ import { Logger } from '../../infrastructure/logger/logger.service';
 
 export class GlobalExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(GlobalExceptionFilter.name);
-  private readonly configService: ConfigService | undefined;
 
-  constructor (configService?: ConfigService) {
-    this.configService = configService;
-  }
+  constructor () {}
 
   catch (exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
@@ -35,8 +32,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     }
   }
 
-  static create (configService?: ConfigService): (error: unknown, req: Request, res: Response, next: NextFunction) => void {
-    const filter = new GlobalExceptionFilter(configService);
+  static create (): (error: unknown, req: Request, res: Response, next: NextFunction) => void {
+    const filter = new GlobalExceptionFilter();
     return (error: unknown, req: Request, res: Response, next: NextFunction) => {
       filter.catch(error, new ArgumentsHostFilter(req, res, next));
     };
@@ -53,7 +50,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     if (hasGetResponse(exception)) return exception.getResponse();
 
     if (exception instanceof Error) {
-      const isProduction = this.configService ? this.configService.get('NODE_ENV') === 'production' : process.env['NODE_ENV'] === 'production';
+      const isProduction = ConfigService.isProduction();
       return isProduction ? 'Internal Server Error' : exception.message;
     }
 

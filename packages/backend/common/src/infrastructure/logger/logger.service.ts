@@ -1,5 +1,6 @@
 import winston from 'winston';
 
+import { ConfigService } from '../config/config.service';
 import { Injectable } from '../../core/decorators/injectable.decorator';
 import { LoggerOptions } from '../../domain/interfaces/infra/infra-common.interface';
 import { levelMap } from '../../domain/constants/infra/infra.const';
@@ -26,7 +27,7 @@ export class Logger {
   }
 
   private static getFormat (): winston.Logform.Format {
-    if (process.env.NODE_ENV === 'production') {
+    if (ConfigService.isProduction()) {
       return winston.format.combine(winston.format.timestamp(), winston.format.json());
     }
 

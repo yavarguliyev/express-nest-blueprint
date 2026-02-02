@@ -8,7 +8,8 @@ import {
   DatabaseAdapter,
   JwtPayload,
   ForbiddenException,
-  UserRoles
+  UserRoles,
+  CIRCUIT_BREAKER_KEYS
 } from '@config/libs';
 
 import { FindCssQueryDto } from '@modules/themes/dtos/find-css-audit-log.dto';
@@ -67,7 +68,7 @@ export class ThemeVersionsRepository extends BaseRepository<ThemeVersionEntity> 
     return !nonEditableFields.includes(columnName);
   }
 
-  @CircuitBreaker({ key: 'db_postgresql' })
+  @CircuitBreaker({ key: CIRCUIT_BREAKER_KEYS.POSTGRES })
   async findThemeVersionsWithPagination (opts: FindCssQueryDto): Promise<{ themeVersions: ThemeVersionEntity[]; total: number }> {
     const { page, limit, search, status, isActive, sortBy, sortOrder } = opts;
 

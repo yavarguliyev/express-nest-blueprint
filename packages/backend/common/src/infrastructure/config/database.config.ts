@@ -1,19 +1,20 @@
+import { ConfigService } from './config.service';
 import { DatabaseType } from '../../domain/enums/database/database.enum';
 import { DatabaseConfig } from '../../domain/interfaces/database/database.interface';
 
-export const getDatabaseConfig = (): DatabaseConfig => {
+export const getDatabaseConfig = (configService?: ConfigService): DatabaseConfig => {
   return {
     type: DatabaseType.POSTGRESQL,
-    host: process.env['DB_HOST'] || 'localhost',
-    port: parseInt(process.env['DB_PORT'] || '5432', 10),
-    username: process.env['DB_USERNAME'] || 'postgres',
-    password: process.env['DB_PASSWORD'] || 'postgres',
-    database: process.env['DB_NAME'] || 'express_nest_blueprint',
-    replicaHosts: process.env['DB_REPLICA_HOSTS'] ? process.env['DB_REPLICA_HOSTS'].split(',') : [],
-    ssl: process.env['DB_SSL'] === 'true',
-    connectionLimit: parseInt(process.env['DB_CONNECTION_LIMIT'] || '10', 10),
-    minLimit: parseInt(process.env['DB_MIN_LIMIT'] || '2', 10),
-    idleTimeoutMillis: parseInt(process.env['DB_IDLE_TIMEOUT'] || '30000', 10),
-    connectionTimeoutMillis: parseInt(process.env['DB_CONNECTION_TIMEOUT'] || '2000', 10)
+    host: configService?.get<string>('DB_HOST') || 'localhost',
+    port: configService?.get<number>('DB_PORT') || 5432,
+    username: configService?.get<string>('DB_USERNAME') || 'postgres',
+    password: configService?.get<string>('DB_PASSWORD') || 'postgres',
+    database: configService?.get<string>('DB_NAME') || 'express_nest_blueprint',
+    replicaHosts: configService?.get<string>('DB_REPLICA_HOSTS')?.split(',') || [],
+    ssl: configService?.get<boolean>('DB_SSL') || false,
+    connectionLimit: configService?.get<number>('DB_CONNECTION_LIMIT') || 10,
+    minLimit: configService?.get<number>('DB_MIN_LIMIT') || 2,
+    idleTimeoutMillis: configService?.get<number>('DB_IDLE_TIMEOUT') || 30000,
+    connectionTimeoutMillis: configService?.get<number>('DB_CONNECTION_TIMEOUT') || 2000
   };
 };

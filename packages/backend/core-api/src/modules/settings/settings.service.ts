@@ -1,4 +1,4 @@
-import { Injectable, ValidationService, BadRequestException } from '@config/libs';
+import { Injectable, ValidationService, BadRequestException, Cache, CacheService, CACHE_TTL_1_MIN, CACHE_KEYS } from '@config/libs';
 
 import { SettingsRepository } from '@modules/settings/settings.repository';
 import { SystemSetting } from '@modules/settings/interfaces/settings.interface';
@@ -7,15 +7,24 @@ import { UpdateSettingsDto } from '@modules/settings/dtos/update-settings.dto';
 
 @Injectable()
 export class SettingsService {
-  constructor (private readonly settingsRepository: SettingsRepository) {}
+  constructor (
+    private readonly settingsRepository: SettingsRepository,
+    private readonly cacheService: CacheService
+  ) {}
 
   async getAllSettings (): Promise<SettingsResponseDto[]> {
-    const settings = await this.settingsRepository.findAll();
+    const settings = await this.getAllSettingsRaw();
     return this.transformToResponse(settings);
   }
 
+  @Cache({ ttl: CACHE_TTL_1_MIN, key: CACHE_KEYS.SETTINGS })
+  async getAllSettingsRaw (): Promise<SystemSetting[]> {
+    return this.settingsRepository.findAll();
+  }
+
   async getSettingByKey (key: string): Promise<SystemSetting | null> {
-    return this.settingsRepository.findByKey(key);
+    const settings = await this.getAllSettingsRaw();
+    return settings.find(s => s.key === key) || null;
   }
 
   async getSettingValue<T = boolean> (key: string, defaultValue?: T): Promise<T> {
@@ -42,10 +51,9 @@ export class SettingsService {
       }
     }
 
-    const allSettings = await this.settingsRepository.findAll();
-    const responseSettings = this.transformToResponse(allSettings);
+    await this.cacheService.delete(CACHE_KEYS.SETTINGS);
 
-    return responseSettings;
+    return this.getAllSettings();
   }
 
   async isMaintenanceModeEnabled (): Promise<boolean> {
