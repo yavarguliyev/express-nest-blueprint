@@ -17,7 +17,7 @@ export class RateLimitMiddleware implements NestMiddleware {
   private readonly errorMessage: string;
   private readonly errorTitle: string;
 
-  constructor(
+  constructor (
     private readonly throttlerService: ThrottlerService,
     private readonly configService: ConfigService
   ) {
@@ -28,7 +28,7 @@ export class RateLimitMiddleware implements NestMiddleware {
     this.errorTitle = this.configService.get<string>('RATE_LIMIT_ERROR_TITLE')!;
   }
 
-  use(req: Request, res: Response, next: NextFunction): void {
+  use (req: Request, res: Response, next: NextFunction): void {
     const path = (req.originalUrl || req.path || '').toLowerCase();
 
     if (EXCLUDED_PATHS.some(excluded => path.includes(excluded))) return next();

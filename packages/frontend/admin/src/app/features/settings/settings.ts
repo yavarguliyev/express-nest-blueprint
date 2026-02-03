@@ -86,11 +86,11 @@ export class Settings implements OnInit {
     saveButtonIcon: 'save',
   }));
 
-  ngOnInit(): void {
+  ngOnInit (): void {
     void this.loadSettings();
   }
 
-  async refreshSettings(): Promise<void> {
+  async refreshSettings (): Promise<void> {
     try {
       this.loading.set(true);
       const response = await firstValueFrom(this.settingsService.refreshSettings());
@@ -115,7 +115,7 @@ export class Settings implements OnInit {
     }
   }
 
-  async loadSettings(): Promise<void> {
+  async loadSettings (): Promise<void> {
     try {
       this.loading.set(true);
       const response = await firstValueFrom(this.settingsService.loadSettings(false));
@@ -139,7 +139,7 @@ export class Settings implements OnInit {
     }
   }
 
-  onToggleChange(settingId: string, newValue: boolean): void {
+  onToggleChange (settingId: string, newValue: boolean): void {
     this.settings.update((currentSettings) =>
       currentSettings.map((setting) =>
         setting.id === settingId ? { ...setting, value: newValue } : setting,
@@ -147,7 +147,7 @@ export class Settings implements OnInit {
     );
   }
 
-  onActiveToggleChange(settingId: string, newValue: boolean): void {
+  onActiveToggleChange (settingId: string, newValue: boolean): void {
     this.settings.update((currentSettings) =>
       currentSettings.map((setting) =>
         setting.id === settingId ? { ...setting, isActive: newValue } : setting,
@@ -155,7 +155,7 @@ export class Settings implements OnInit {
     );
   }
 
-  async saveSettings(): Promise<void> {
+  async saveSettings (): Promise<void> {
     if (!this.hasChanges()) {
       void this.toastService.info('No changes to save');
       return;
@@ -185,7 +185,7 @@ export class Settings implements OnInit {
     }
   }
 
-  resetChanges(): void {
+  resetChanges (): void {
     if (!this.hasChanges()) {
       void this.toastService.info('No changes to reset');
       return;
@@ -200,7 +200,7 @@ export class Settings implements OnInit {
     );
   }
 
-  private mapIdToKey(id: string): string {
+  private mapIdToKey (id: string): string {
     return id;
   }
 }
