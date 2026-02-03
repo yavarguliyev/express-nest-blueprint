@@ -10,6 +10,7 @@ export interface StorageModuleOptions {
     region: string;
     bucketName: string;
     forcePathStyle?: boolean | undefined;
+    ensureBucket?: boolean | undefined;
   };
 }
 

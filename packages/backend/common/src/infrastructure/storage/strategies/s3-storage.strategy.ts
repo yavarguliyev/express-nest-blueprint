@@ -5,8 +5,8 @@ import {
   HeadObjectCommand,
   GetObjectCommand,
   S3ClientConfig,
-  CreateBucketCommand,
   HeadBucketCommand,
+  CreateBucketCommand,
   ListObjectsV2Command
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -22,6 +22,7 @@ export class S3StorageStrategy extends StorageService {
   private readonly client: S3Client;
   private readonly urlClient: S3Client;
   private readonly bucketName: string;
+  private readonly ensureBucketEnabled: boolean;
   private bucketEnsured = false;
 
   constructor (@Inject(STORAGE_OPTIONS) options: StorageModuleOptions) {
@@ -34,7 +35,7 @@ export class S3StorageStrategy extends StorageService {
         accessKeyId: options.s3.accessKeyId,
         secretAccessKey: options.s3.secretAccessKey
       },
-      forcePathStyle: options.s3.forcePathStyle ?? true
+      forcePathStyle: options.s3.forcePathStyle ?? false
     };
 
     if (options.s3.endpoint) config.endpoint = options.s3.endpoint;
@@ -42,27 +43,19 @@ export class S3StorageStrategy extends StorageService {
 
     const urlConfig: S3ClientConfig = { ...config };
     if (options.s3.publicEndpoint) urlConfig.endpoint = options.s3.publicEndpoint;
-
     this.urlClient = new S3Client(urlConfig);
+
     this.bucketName = options.s3.bucketName;
+    this.ensureBucketEnabled = options.s3.ensureBucket ?? true;
   }
 
   private async ensureBucket (): Promise<void> {
-    if (this.bucketEnsured) return;
+    if (this.bucketEnsured || !this.ensureBucketEnabled) return;
 
     try {
       await this.client.send(new HeadBucketCommand({ Bucket: this.bucketName }));
-    } catch (error: unknown) {
-      const awsError = error as { name?: string; $metadata?: { httpStatusCode?: number } };
-
-      if (awsError?.name === 'NotFound' || awsError?.$metadata?.httpStatusCode === 404) {
-        try {
-          await this.client.send(new CreateBucketCommand({ Bucket: this.bucketName }));
-        } catch (createError: unknown) {
-          const cError = createError as { name?: string };
-          if (cError?.name !== 'BucketAlreadyOwnedByYou' && cError?.name !== 'BucketAlreadyExists') throw createError;
-        }
-      } else throw error;
+    } catch {
+      await this.client.send(new CreateBucketCommand({ Bucket: this.bucketName })).catch(() => {});
     }
 
     this.bucketEnsured = true;

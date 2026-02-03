@@ -18,15 +18,16 @@ export class StorageModule {
         {
           provide: STORAGE_OPTIONS,
           useFactory: ((configService: ConfigService) => ({
-            strategy: configService.get<string>('STORAGE_STRATEGY', 's3') as StorageStrategy,
+            strategy: configService.get<string>('STORAGE_STRATEGY') as StorageStrategy,
             s3: {
               endpoint: configService.get<string>('STORAGE_ENDPOINT'),
               publicEndpoint: configService.get<string>('STORAGE_PUBLIC_ENDPOINT'),
-              accessKeyId: configService.get<string>('STORAGE_ACCESS_KEY', ''),
-              secretAccessKey: configService.get<string>('STORAGE_SECRET_KEY', ''),
-              region: configService.get<string>('STORAGE_REGION', 'us-east-1'),
-              bucketName: configService.get<string>('STORAGE_BUCKET_NAME', 'express-nest-blueprint'),
-              forcePathStyle: configService.get<boolean>('STORAGE_FORCE_PATH_STYLE')
+              accessKeyId: configService.get<string>('STORAGE_ACCESS_KEY'),
+              secretAccessKey: configService.get<string>('STORAGE_SECRET_KEY'),
+              region: configService.get<string>('STORAGE_REGION'),
+              bucketName: configService.get<string>('STORAGE_BUCKET_NAME'),
+              forcePathStyle: configService.get<boolean>('STORAGE_FORCE_PATH_STYLE'),
+              ensureBucket: configService.get<boolean>('STORAGE_ENSURE_BUCKET')
             }
           })) as (...args: unknown[]) => unknown,
           inject: [ConfigService]
