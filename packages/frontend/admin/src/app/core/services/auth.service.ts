@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap, firstValueFrom } from 'rxjs';
 import { GlobalCacheService } from './global-cache.service';
+import { LoadingService } from './loading.service';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
 
 export interface User {
@@ -34,6 +35,7 @@ export class AuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
   private cacheService = inject(GlobalCacheService);
+  private loadingService = inject(LoadingService);
 
   currentUser = signal<User | null>(this.getCurrentUserFromStorage());
 
@@ -105,12 +107,22 @@ export class AuthService {
     const formData = new FormData();
     formData.append('file', file);
 
-    await firstValueFrom(this.http.post(API_ENDPOINTS.AUTH.UPLOAD_AVATAR, formData));
-    await this.syncProfile(true);
+    this.loadingService.show('Uploading avatar...');
+    try {
+      await firstValueFrom(this.http.post(API_ENDPOINTS.AUTH.UPLOAD_AVATAR, formData));
+      await this.syncProfile(true);
+    } finally {
+      this.loadingService.hide();
+    }
   }
 
   async deleteAvatar (): Promise<void> {
-    await firstValueFrom(this.http.delete(API_ENDPOINTS.AUTH.DELETE_AVATAR));
-    await this.syncProfile(true);
+    this.loadingService.show('Removing avatar...');
+    try {
+      await firstValueFrom(this.http.delete(API_ENDPOINTS.AUTH.DELETE_AVATAR));
+      await this.syncProfile(true);
+    } finally {
+      this.loadingService.hide();
+    }
   }
 }
