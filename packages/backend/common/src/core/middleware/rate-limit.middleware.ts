@@ -1,27 +1,41 @@
 import { Request, Response, NextFunction } from 'express';
 
 import { Injectable } from '../decorators/injectable.decorator';
+import { EXCLUDED_PATHS } from '../../domain/constants/nest/middleware.const';
 import { getErrorMessage } from '../../domain/helpers/utility-functions.helper';
 import { NestMiddleware } from '../../domain/interfaces/nest/middleware.interface';
+import { ConfigService } from '../../infrastructure/config/config.service';
 import { ThrottlerService } from '../../infrastructure/throttler/throttler.service';
 import { Logger } from '../../infrastructure/logger/logger.service';
 
 @Injectable()
 export class RateLimitMiddleware implements NestMiddleware {
   private readonly logger = new Logger(RateLimitMiddleware.name);
-  private readonly limit = 50;
-  private readonly ttl = 60;
+  private readonly ttl: number;
+  private readonly defaultLimit: number;
+  private readonly adminLimit: number;
+  private readonly errorMessage: string;
+  private readonly errorTitle: string;
 
-  constructor (private readonly throttlerService: ThrottlerService) {}
+  constructor(
+    private readonly throttlerService: ThrottlerService,
+    private readonly configService: ConfigService
+  ) {
+    this.adminLimit = 5000;
+    this.ttl = this.configService.get<number>('RATE_LIMIT_WINDOW_MS')! / 1000;
+    this.defaultLimit = this.configService.get<number>('RATE_LIMIT_MAX_REQUESTS')!;
+    this.errorMessage = this.configService.get<string>('RATE_LIMIT_ERROR_MESSAGE')!;
+    this.errorTitle = this.configService.get<string>('RATE_LIMIT_ERROR_TITLE')!;
+  }
 
-  use (req: Request, res: Response, next: NextFunction): void {
-    const key = String(req.headers['x-forwarded-for'] || req.ip || 'unknown');
+  use(req: Request, res: Response, next: NextFunction): void {
     const path = (req.originalUrl || req.path || '').toLowerCase();
 
-    if (path.includes('health') || path.includes('settings')) return next();
+    if (EXCLUDED_PATHS.some(excluded => path.includes(excluded))) return next();
 
-    const isAdminPath = path.includes('admin');
-    const currentLimit = isAdminPath ? 5000 : this.limit;
+    const key = String(req.headers['x-forwarded-for'] || req.ip || 'unknown');
+    const isAdminPath = path.includes('/admin');
+    const currentLimit = isAdminPath ? this.adminLimit : this.defaultLimit;
 
     this.throttlerService
       .checkRateLimit(String(key), currentLimit, this.ttl)
@@ -31,13 +45,7 @@ export class RateLimitMiddleware implements NestMiddleware {
         res.setHeader('X-RateLimit-Reset', result.reset);
 
         if (result.isBlocked) {
-          res.status(429).json({
-            statusCode: 429,
-            message: 'Too Many Requests',
-            error: 'Rate limit exceeded',
-            retryAfter: result.reset
-          });
-
+          res.status(429).json({ statusCode: 429, message: this.errorTitle, error: this.errorMessage, retryAfter: result.reset });
           return;
         }
 

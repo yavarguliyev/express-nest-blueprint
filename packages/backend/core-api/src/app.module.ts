@@ -12,7 +12,6 @@ import {
   SharedModule,
   DatabaseModule,
   GraphQLModule,
-  MIDDLEWARE_EXCLUDE_ROUTES,
   ALL_ROUTES
 } from '@config/libs';
 
@@ -44,11 +43,8 @@ import { UsersResolver } from '@modules/users/users.resolver';
   exports: []
 })
 export class AppModule implements NestModule {
-  configure (consumer: MiddlewareConsumer): void {
+  configure(consumer: MiddlewareConsumer): void {
     consumer.apply(MetricsMiddleware, HeaderAuthMiddleware).forRoutes(ALL_ROUTES);
-    consumer
-      .apply(LoggerMiddleware, MaintenanceMiddleware, RateLimitMiddleware)
-      .exclude(...MIDDLEWARE_EXCLUDE_ROUTES)
-      .forRoutes(ALL_ROUTES);
+    consumer.apply(LoggerMiddleware, MaintenanceMiddleware, RateLimitMiddleware).forRoutes(ALL_ROUTES);
   }
 }
