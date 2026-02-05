@@ -468,8 +468,8 @@ The application includes a built-in health check system.
 
 ### Endpoints
 
-- **Liveness (`/api/v1/health/live`)**: Process responsiveness.
-- **Readiness (`/api/v1/health/ready`)**: DB/Redis connectivity.
+- **Liveness (`/api/v1/health/live`)**: Process responsiveness (or `http://api.local/api/v1/health/live` in K8s).
+- **Readiness (`/api/v1/health/ready`)**: DB/Redis connectivity (or `http://api.local/api/v1/health/ready` in K8s).
 
 ### Monitored Components:
 
@@ -539,21 +539,38 @@ We provide a professional K8s suite in `packages/infrastructure/infra`.
 - **Worker Pods**: Headless background processors.
 - **NetworkPolicies**: Zero-trust internal traffic.
 
+### Local Domain Access (Ingress)
+The Kubernetes deployment uses an Ingress-first model for maximum stability. Access your services via:
+- **API & Admin Panel**: [http://api.local](http://api.local)
+- **Grafana Dashboards**: [http://grafana.local](http://grafana.local)
+- **Prometheus UI**: [http://prometheus.local](http://prometheus.local)
+
+> [!NOTE]
+> The `deploy.sh` script automatically configures your `/etc/hosts` file for these domains.
+
 ---
 
-# 📊 Observability (Prometheus)
+# 📊 Observability (Prometheus & Grafana)
 
-Prometheus metrics are exposed at:
+Professional monitoring is integrated via Prometheus for data collection and Grafana for visualization.
 
+### Grafana Dashboards
+- **URL**: [http://grafana.local](http://grafana.local)
+- **Credentials**: `admin` / `admin`
+- **Key Metrics**: Request Rate, p95 Latency, Error rates, and Cache performance.
+
+### Prometheus Query Engine
+- **URL**: [http://prometheus.local](http://prometheus.local)
+
+### Service Metrics (Raw Data)
+Exposed at the `/metrics` endpoint (requires `HEALTH_CHECK_SECRET` if accessed via API):
 ```bash
+# In Kubernetes
+curl http://api.local/api/v1/metrics
+
+# Local Development
 curl http://localhost:3000/metrics
 ```
-
-**Metrics Collected**:
-
-- HTTP Latency & Status Codes
-- Node.js Event Loop Lag
-- Memory & CPU Usage
 
 ---
 

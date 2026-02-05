@@ -118,7 +118,7 @@ export class Settings implements OnInit {
   async loadSettings (): Promise<void> {
     try {
       this.loading.set(true);
-      const response = await firstValueFrom(this.settingsService.loadSettings(false));
+      const response = await firstValueFrom(this.settingsService.loadSettings());
 
       const allowedSettings = [
         'maintenance_mode',

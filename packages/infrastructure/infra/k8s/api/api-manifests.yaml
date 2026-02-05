@@ -7,7 +7,7 @@ metadata:
     app: express-nest-blueprint
     component: api
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: express-nest-blueprint
@@ -39,7 +39,7 @@ spec:
           resources:
             limits:
               cpu: '1000m'
-              memory: '512Mi'
+              memory: '384Mi'
             requests:
               cpu: '200m'
               memory: '128Mi'
@@ -60,6 +60,39 @@ spec:
                 - name: X-Health-Key
                   value: 'your_super_secret_jwt_key'
             initialDelaySeconds: 15
+            periodSeconds: 30
+        - name: metrics-proxy
+          image: node:20-alpine
+          command: ["node", "-e"]
+          args:
+            - |
+              const http = require('http');
+              const secret = process.env.HEALTH_CHECK_SECRET;
+              http.createServer((req, res) => {
+                const options = { hostname: 'localhost', port: 3000, path: '/api/v1/metrics', method: 'GET', headers: { 'X-Health-Key': secret } };
+                http.request(options, (p) => { res.writeHead(p.statusCode, p.headers); p.pipe(res); }).on('error', () => { res.writeHead(503); res.end(); }).end();
+              }).listen(9100);
+          env:
+            - name: HEALTH_CHECK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: HEALTH_CHECK_SECRET
+          resources:
+            limits:
+              cpu: '100m'
+              memory: '64Mi'
+            requests:
+              cpu: '50m'
+              memory: '32Mi'
+          ports:
+            - containerPort: 9100
+              name: metrics
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 9100
+            initialDelaySeconds: 5
             periodSeconds: 30
 ---
 apiVersion: v1

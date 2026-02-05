@@ -2,7 +2,6 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap, firstValueFrom } from 'rxjs';
-import { GlobalCacheService } from './global-cache.service';
 import { LoadingService } from './loading.service';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
 
@@ -34,7 +33,6 @@ export interface LoginCredentials {
 export class AuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
-  private cacheService = inject(GlobalCacheService);
   private loadingService = inject(LoadingService);
 
   currentUser = signal<User | null>(this.getCurrentUserFromStorage());
@@ -80,22 +78,13 @@ export class AuthService {
     this.currentUser.set(user);
   }
 
-  async syncProfile (forceRefresh: boolean = false): Promise<void> {
-    if (!forceRefresh) {
-      const cachedProfile = this.cacheService.get<User>('user-profile');
-      if (cachedProfile) {
-        this.updateCurrentUser(cachedProfile);
-        return;
-      }
-    }
-
+  async syncProfile (): Promise<void> {
     const response = await firstValueFrom(
-      this.http.get<{ data?: User } | User>(`${API_ENDPOINTS.AUTH.PROFILE}?t=${Date.now()}`)
+      this.http.get<{ data?: User } | User>(`${API_ENDPOINTS.AUTH.PROFILE}?t=${Date.now()}`),
     );
 
     const userData = this.isUserResponse(response) ? response : (response as { data: User }).data;
 
-    this.cacheService.set('user-profile', userData, 5 * 60 * 1000);
     this.updateCurrentUser(userData);
   }
 
@@ -110,7 +99,7 @@ export class AuthService {
     this.loadingService.show('Uploading avatar...');
     try {
       await firstValueFrom(this.http.post(API_ENDPOINTS.AUTH.UPLOAD_AVATAR, formData));
-      await this.syncProfile(true);
+      await this.syncProfile();
     } finally {
       this.loadingService.hide();
     }
@@ -120,7 +109,7 @@ export class AuthService {
     this.loadingService.show('Removing avatar...');
     try {
       await firstValueFrom(this.http.delete(API_ENDPOINTS.AUTH.DELETE_AVATAR));
-      await this.syncProfile(true);
+      await this.syncProfile();
     } finally {
       this.loadingService.hide();
     }

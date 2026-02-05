@@ -8,8 +8,9 @@ import {
   SupportsUpdate
 } from '../../interfaces/database/database-common.interface';
 import { DatabaseAdapter, DatabaseConfig } from '../../interfaces/database/database.interface';
+import { MetricsService } from '../../../infrastructure/metrics/metrics.service';
 
-export type AdapterConstructor = new (config: DatabaseConfig) => DatabaseAdapter;
+export type AdapterConstructor = new (config: DatabaseConfig, metricsService: MetricsService) => DatabaseAdapter;
 
 export type BulkOperationLogType = 'bulk_create' | 'bulk_delete' | 'bulk_mixed' | 'bulk_update';
 

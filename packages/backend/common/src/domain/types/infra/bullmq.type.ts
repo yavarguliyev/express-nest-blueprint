@@ -1,4 +1,5 @@
 import { Job } from 'bullmq';
+
 import { DataProcessingJobData, ReportJobData } from '../../interfaces/infra/bullmq.interface';
 
 export type DataProcessingOperation = 'analyze' | 'export' | 'transform';

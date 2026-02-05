@@ -227,14 +227,14 @@ export const up = pgm => {
       ('--health-accent', 'colors', 'color', '#d97706', '#d97706', '#d97706', 'Health page accent color', true),
       ('--settings-accent', 'colors', 'color', '#7c3aed', '#7c3aed', '#7c3aed', 'Settings accent color', true),
       ('--profile-accent', 'colors', 'color', '#0d9488', '#0d9488', '#0d9488', 'Profile accent color', true),
-      ('--btn-primary-start', 'colors', 'color', '#ce1bfb', '#1d4ed8', '#ce1bfb', 'Primary button gradient start color', true),
-      ('--btn-primary-end', 'colors', 'color', '#35e6cc', '#3b82f6', '#35e6cc', 'Primary button gradient end color', true),
+      ('--btn-primary-start', 'colors', 'color', 'rgb(11, 92, 255)', '#1d4ed8', 'rgb(11, 92, 255)', 'Primary button gradient start color', true),
+      ('--btn-primary-end', 'colors', 'color', 'rgb(255, 45, 139)', '#3b82f6', 'rgb(255, 45, 139)', 'Primary button gradient end color', true),
       ('--btn-primary-hover-start', 'colors', 'color', '#d63dfc', '#2563eb', '#d63dfc', 'Primary button hover gradient start color', true),
       ('--btn-primary-hover-end', 'colors', 'color', '#4ae9d1', '#60a5fa', '#4ae9d1', 'Primary button hover gradient end color', true),
       ('--btn-secondary-bg', 'colors', 'color', 'rgba(255, 255, 255, 0.08)', 'rgba(0, 0, 0, 0.05)', 'rgba(255, 255, 255, 0.08)', 'Secondary button background', true),
       ('--btn-secondary-hover', 'colors', 'color', 'rgba(255, 255, 255, 0.15)', 'rgba(0, 0, 0, 0.1)', 'rgba(255, 255, 255, 0.15)', 'Secondary button hover background', true),
       ('--toggle-bg-off', 'colors', 'color', 'rgba(255, 255, 255, 0.1)', 'rgba(0, 0, 0, 0.1)', 'rgba(255, 255, 255, 0.1)', 'Toggle switch background when off', true),
-      ('--toggle-bg-on', 'colors', 'color', 'linear-gradient(81deg, #ce1bfb 10.86%, #35e6cc 89.96%)', 'linear-gradient(81deg, #1d4ed8 10.86%, #3b82f6 89.96%)', 'linear-gradient(81deg, #ce1bfb 10.86%, #35e6cc 89.96%)', 'Toggle switch background when on', true),
+      ('--toggle-bg-on', 'colors', 'color', 'linear-gradient(81deg, rgb(11, 92, 255) 10.86%, rgb(255, 45, 139) 89.96%)', 'linear-gradient(81deg, #1d4ed8 10.86%, #3b82f6 89.96%)', 'linear-gradient(81deg, rgb(11, 92, 255) 10.86%, rgb(255, 45, 139) 89.96%)', 'Toggle switch background when on', true),
       ('--toggle-handle', 'colors', 'color', '#ffffff', '#ffffff', '#ffffff', 'Toggle switch handle color', true),
       ('--sidebar-width', 'spacing', 'size', '260px', '260px', '260px', 'Sidebar width', true),
       ('--font-family', 'typography', 'font', '''Inter'', -apple-system, BlinkMacSystemFont, ''Segoe UI'', Roboto, sans-serif', '''Inter'', -apple-system, BlinkMacSystemFont, ''Segoe UI'', Roboto, sans-serif', '''Inter'', -apple-system, BlinkMacSystemFont, ''Segoe UI'', Roboto, sans-serif', 'Primary font family', true),
@@ -261,7 +261,7 @@ export const up = pgm => {
   pgm.sql(`
     INSERT INTO css_gradients (gradient_name, gradient_value, gradient_type, description, is_system_gradient)
     VALUES 
-      ('linear1', 'linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%)', 'linear', 'Primary gradient - Pink to Cyan', true),
+      ('linear1', 'linear-gradient(81deg, rgb(11, 92, 255) 10.86%, rgb(255, 45, 139) 89.96%)', 'linear', 'Primary gradient - Blue to Pink', true),
       ('linear2', 'linear-gradient(81deg, #F253BA -2%, #FF6C80 29.96%, #FFF94F 63.99%)', 'linear', 'Vibrant gradient - Pink to Yellow', true),
       ('linear3', 'linear-gradient(100deg, #00BAD4 7.72%, #2194FF 118.76%)', 'linear', 'Blue gradient - Cyan to Blue', true),
       ('linear4', 'linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(255, 255, 255, 0.03) 100%)', 'linear', 'White fade gradient', true),

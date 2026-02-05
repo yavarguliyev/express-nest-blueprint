@@ -14,7 +14,7 @@
     "@aws-sdk/s3-request-presigner": "^3.726.1",
     "@types/multer": "^2.0.0",
     "bcrypt": "^6.0.0",
-    "bullmq": "^5.41.0",
+    "bullmq": "^5.67.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "cors": "^2.8.5",

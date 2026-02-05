@@ -46,6 +46,10 @@ export class QueueManager {
     return new Map(this.queues);
   }
 
+  getQueues (): Map<string, Queue> {
+    return this.queues;
+  }
+
   async closeAllQueues (): Promise<void> {
     const closePromises = Array.from(this.queues.values()).map(queue => queue.close());
     await Promise.all(closePromises);

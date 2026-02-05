@@ -15,11 +15,13 @@ export class HeaderAuthGuard implements CanActivate {
     if (methodIsPublic) return next();
 
     const healthKey = req.headers['x-health-key'];
+    const authHeader = req.headers.authorization;
+    const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
     const secretKey = this.configService.get<string>('HEALTH_CHECK_SECRET');
 
     if (!secretKey) return next();
-    if (healthKey !== secretKey) throw new UnauthorizedException('Invalid health check key');
+    if (healthKey === secretKey || bearerToken === secretKey) return next();
 
-    next();
+    throw new UnauthorizedException('Invalid health check key');
   }
 }

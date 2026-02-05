@@ -7,6 +7,7 @@ import { KAFKA_OPTIONS } from '../../core/decorators/kafka.decorators';
 import { KafkaMessagePayload, KafkaModuleOptions, KafkaSubscribeOptions } from '../../domain/interfaces/infra/kafka.interface';
 import { getErrorMessage } from '../../domain/helpers/utility-functions.helper';
 import { KafkaMessageHandler } from '../../domain/types/infra/kafka.type';
+import { MetricsService } from '../metrics/metrics.service';
 
 @Injectable()
 export class KafkaService {
@@ -17,10 +18,14 @@ export class KafkaService {
   private isProducerConnected = false;
   private isConsumerConnected = false;
   private readonly isWorkerRole: boolean;
+  private lastTotalMessages = 0;
+  private lastMetricsTimestamp = Date.now();
+
 
   constructor (
     @Inject(KAFKA_OPTIONS) private options: KafkaModuleOptions,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    private readonly metricsService: MetricsService
   ) {
     this.isWorkerRole = this.configService.get<string>('APP_ROLE', 'api').toLowerCase() === 'worker';
 
@@ -99,17 +104,23 @@ export class KafkaService {
   async produce<T = unknown> (payload: KafkaMessagePayload<T>): Promise<void> {
     if (!this.isProducerConnected) await this.connect();
 
-    await this.producer.send({
-      topic: payload.topic,
-      messages: [
-        {
-          key: payload.key ?? null,
-          value: JSON.stringify(payload.value),
-          headers: payload.headers ?? {},
-          ...(payload.timestamp ? { timestamp: payload.timestamp } : {})
-        }
-      ]
-    });
+    try {
+      await this.producer.send({
+        topic: payload.topic,
+        messages: [
+          {
+            key: payload.key ?? null,
+            value: JSON.stringify(payload.value),
+            headers: payload.headers ?? {},
+            ...(payload.timestamp ? { timestamp: payload.timestamp } : {})
+          }
+        ]
+      });
+      this.metricsService.recordKafkaMessage(payload.topic, 'producer', 'success');
+    } catch (error) {
+      this.metricsService.recordKafkaMessage(payload.topic, 'producer', 'error');
+      throw error;
+    }
   }
 
   async subscribe (options: KafkaSubscribeOptions, handler: KafkaMessageHandler<unknown>): Promise<void> {
@@ -127,6 +138,7 @@ export class KafkaService {
     void this.consumer
       .run({
         eachMessage: async ({ topic, partition, message }) => {
+          const start = Date.now();
           const isInternalTopic = topic.startsWith('__');
 
           const matchingHandlers = this.handlers.filter(h => {
@@ -160,15 +172,26 @@ export class KafkaService {
             timestamp: message.timestamp
           };
 
-          await Promise.all(
-            matchingHandlers.map(async h => {
-              try {
-                await h.handler(payload);
-              } catch {
-                Logger.error(`Error in Kafka handler for topic ${topic}`, 'An unknown error occurred', 'KafkaService');
-              }
-            })
-          );
+          try {
+            await Promise.all(
+              matchingHandlers.map(async h => {
+                try {
+                  await h.handler(payload);
+                } catch {
+                  Logger.error(`Error in Kafka handler for topic ${topic}`, 'An unknown error occurred', 'KafkaService');
+                }
+              })
+            );
+            const duration = (Date.now() - start) / 1000;
+            const groupId = this.options.consumerConfig?.groupId || 'default-group';
+
+            this.metricsService.recordKafkaMessage(topic, groupId, 'success');
+            this.metricsService.observeKafkaProcessing(topic, groupId, duration);
+          } catch (error) {
+            const groupId = this.options.consumerConfig?.groupId || 'default-group';
+            this.metricsService.recordKafkaMessage(topic, groupId, 'error');
+            throw error;
+          }
         }
       })
       .catch(error => {
@@ -192,20 +215,32 @@ export class KafkaService {
       });
     });
 
-    let totalMessages = 0;
+    let currentTotalMessages = 0;
 
     for (const topic of topicMetadata.topics) {
+      if (topic.name.startsWith('__')) continue;
+
       const offsets = await admin.fetchTopicOffsets(topic.name);
 
       offsets.forEach(partitionOffset => {
         const highOffset = parseInt(partitionOffset.high ?? '0', 10);
-        totalMessages += highOffset;
+        currentTotalMessages += highOffset;
       });
     }
 
     await admin.disconnect();
-    const messagesInPerSec = totalMessages / 60;
 
-    return { messagesInPerSec, underReplicatedPartitions };
+    const now = Date.now();
+    const elapsedSeconds = (now - this.lastMetricsTimestamp) / 1000;
+    const delta = currentTotalMessages - this.lastTotalMessages;
+    const messagesInPerSec = elapsedSeconds > 0 ? Math.max(0, delta / elapsedSeconds) : 0;
+
+    this.lastTotalMessages = currentTotalMessages;
+    this.lastMetricsTimestamp = now;
+
+    return {
+      messagesInPerSec: parseFloat(messagesInPerSec.toFixed(2)),
+      underReplicatedPartitions
+    };
   }
 }

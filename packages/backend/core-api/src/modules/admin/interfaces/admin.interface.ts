@@ -33,6 +33,13 @@ export interface DashboardMetric {
   unit?: string;
   timestamp: string;
 }
+
+export interface DashboardMetricsResponse {
+  metrics: DashboardMetric[];
+  charts: ChartData[];
+  alerts: DashboardAlert[];
+}
+
 export interface TableMetadata {
   category: string;
   name: string;

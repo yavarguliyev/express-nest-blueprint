@@ -1,8 +1,7 @@
 import { Injectable, inject, signal, computed, effect } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map, tap, of } from 'rxjs';
+import { Observable, map, tap } from 'rxjs';
 import { ThemeService } from './theme.service';
-import { GlobalCacheService } from './global-cache.service';
 import { TokenNotificationService } from './token-notification.service';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
 
@@ -49,7 +48,6 @@ export interface PaginatedResponse<T> {
 export class ThemeEditorService {
   private http = inject(HttpClient);
   private themeService = inject(ThemeService);
-  private cacheService = inject(GlobalCacheService);
   private tokenNotificationService = inject(TokenNotificationService);
   private readonly DRAFT_STORAGE_KEY = 'theme-editor-drafts';
 
@@ -91,7 +89,6 @@ export class ThemeEditorService {
 
     this.tokenNotificationService.tokenUpdated$.subscribe((event) => {
       if (event.source !== 'theme-editor') {
-        this.cacheService.delete('css-tokens');
         this.loadTokens().subscribe();
       }
     });
@@ -103,16 +100,10 @@ export class ThemeEditorService {
   }
 
   hasTokens (): boolean {
-    return this._tokens().length > 0 || this.cacheService.has('css-tokens');
+    return this._tokens().length > 0;
   }
 
   loadTokens (): Observable<CssToken[]> {
-    const cachedTokens = this.cacheService.get<CssToken[]>('css-tokens');
-    if (cachedTokens) {
-      this._tokens.set(cachedTokens);
-      this.applyCurrentTokens();
-      return of(cachedTokens);
-    }
 
     if (this._tokens().length === 0) { this._loading.set(true); }
 
@@ -129,8 +120,6 @@ export class ThemeEditorService {
           this._tokens.set(sortedTokens);
           this._loading.set(false);
           this.applyCurrentTokens();
-
-          this.cacheService.set('css-tokens', tokens, 10 * 60 * 1000);
         }),
       );
   }
@@ -359,7 +348,6 @@ export class ThemeEditorService {
     return new Observable((observer) => {
       Promise.all(updateRequests.map((req) => req.toPromise()))
         .then(() => {
-          this.cacheService.delete('css-tokens');
           this.loadTokens().subscribe(() => {
             this.clearDrafts();
             this._loading.set(false);
@@ -428,7 +416,6 @@ export class ThemeEditorService {
   }
 
   refreshTokens (): Observable<CssToken[]> {
-    this.cacheService.delete('css-tokens');
     return this.loadTokens();
   }
 

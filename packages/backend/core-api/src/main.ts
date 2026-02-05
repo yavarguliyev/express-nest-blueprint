@@ -39,7 +39,8 @@ async function bootstrap (): Promise<void> {
     const port = configService.get<number>('PORT', 3000);
     const host = configService.get<string>('HOST', '0.0.0.0');
     const isProduction = configService.get<string>('NODE_ENV') === 'production';
-    const role = (configService.get<string>('APP_ROLE', AppRoles.API) || '') as AppRoles;
+    const roleEnv = configService.get<string>('APP_ROLE', AppRoles.API) || '';
+    const role = roleEnv.trim().toUpperCase() as AppRoles;
     const adminPath = join(__dirname, `${configService.get<string>('ADMIN_STATIC_PATH')}`);
     const adminBaseUrl = configService.get<string>('ADMIN_BASE_URL', '');
     const uploadsPath = join(__dirname, `${configService.get<string>('UPLOADS_STATIC_PATH')}`);
@@ -78,8 +79,10 @@ async function bootstrap (): Promise<void> {
 
       Logger.log(`🚀 API Server running on http://${host}:${port}`, 'Bootstrap');
     } else if (role === AppRoles.WORKER) {
+      const server = await app.listen(port, host);
+      lifecycleService.setHttpServer(server);
       lifecycleService.startWorkers();
-      Logger.log('💪 Background Worker started', 'Bootstrap');
+      Logger.log(`💪 Background Worker started and listening on http://${host}:${port}`, 'Bootstrap');
     } else {
       await app.listen(port, host);
     }

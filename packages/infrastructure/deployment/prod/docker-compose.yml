@@ -186,6 +186,113 @@ services:
       timeout: 10s
       retries: 3
 
+
+  metrics-proxy-api:
+    build:
+      context: ../config
+      dockerfile: Dockerfile.metrics-proxy
+    container_name: metrics_proxy_api_prod
+    env_file:
+      - ./.env
+    environment:
+      - HEALTH_CHECK_SECRET=${HEALTH_CHECK_SECRET}
+      - TARGET_HOST=api
+      - TARGET_PORT=3000
+      - PROXY_PORT=9100
+    depends_on:
+      - api
+    restart: unless-stopped
+    networks:
+      - common
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 64M
+
+  metrics-proxy-worker:
+    build:
+      context: ../config
+      dockerfile: Dockerfile.metrics-proxy
+    container_name: metrics_proxy_worker_prod
+    env_file:
+      - ./.env
+    environment:
+      - HEALTH_CHECK_SECRET=${HEALTH_CHECK_SECRET}
+      - TARGET_HOST=worker
+      - TARGET_PORT=3000
+      - PROXY_PORT=9100
+    depends_on:
+      - worker
+    restart: unless-stopped
+    networks:
+      - common
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 64M
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus_prod
+    ports:
+      - "9090:9090"
+    volumes:
+      - ../config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../config/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    depends_on:
+      - metrics-proxy-api
+      - metrics-proxy-worker
+    restart: unless-stopped
+    networks:
+      - common
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana_prod
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ../config/grafana/provisioning/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+      - ../config/grafana/provisioning/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml:ro
+      - ../config/grafana/dashboards:/etc/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - common
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
 networks:
   common:
     driver: bridge
@@ -193,3 +300,5 @@ networks:
 volumes:
   postgres_data:
   minio_data:
+  prometheus_data:
+  grafana_data:

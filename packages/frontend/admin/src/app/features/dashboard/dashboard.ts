@@ -51,6 +51,12 @@ export class Dashboard implements OnInit {
       icon: 'hub',
       iconClass: 'memory-icon',
       iconStyle: 'background: rgba(16, 185, 129, 0.1); color: #10b981',
+      format: '1.0-2',
+    },
+    'Kafka Under Replication Usage': {
+      icon: 'sync_problem',
+      iconClass: 'requests-icon',
+      iconStyle: 'background: rgba(239, 68, 68, 0.1); color: #ef4444',
       format: '1.0-0',
     },
     'S3 Bucket Usage': {
@@ -63,21 +69,6 @@ export class Dashboard implements OnInit {
 
   ngOnInit (): void {
     if (!window.location.pathname.includes('/dashboard')) return;
-
-    const cacheStatus = this.dashboardService.hasValidCache();
-
-    if (cacheStatus.metrics && cacheStatus.health) {
-      this.loading.set(false);
-      this.dashboardService.getMetrics(true).subscribe({
-        next: (data) => this.data.set(data),
-        error: () => {},
-      });
-      this.dashboardService.getHealth(true).subscribe({
-        next: (data) => this.health.set(data),
-        error: () => {},
-      });
-      return;
-    }
 
     this.refreshData();
   }
@@ -105,6 +96,7 @@ export class Dashboard implements OnInit {
   getMetricTrendClass (name: string, value: number): string {
     if (name === 'CPU Usage' && value > 80) return 'warning';
     if (name === 'Memory Usage' && value > 500) return 'warning';
+    if (name === 'Kafka Under Replication Usage' && value > 0) return 'negative';
     return 'positive';
   }
 

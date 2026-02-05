@@ -11,7 +11,6 @@ export class BullMQService {
   async addJob<T = unknown> (queueName: string, data: T, options?: JobsOptions): Promise<Job> {
     const queue = this.queueManager.getQueue(queueName);
     if (!queue) throw new BadRequestException(`Queue ${queueName} not found`);
-
     return await queue.add('job', data, options);
   }
 
@@ -22,11 +21,12 @@ export class BullMQService {
   async getJobCounts (queueName: string): Promise<{ [index: string]: number }> {
     const queue = this.queueManager.getQueue(queueName);
     if (!queue) throw new BadRequestException(`Queue ${queueName} not found`);
-
     return await queue.getJobCounts();
   }
 
-  async closeAll (): Promise<void> {
-    await this.queueManager.closeAllQueues();
+  async closeAllQueues (): Promise<void> {
+    const queueMap = this.queueManager.getQueues();
+    const closePromises = Array.from(queueMap.values()).map(queue => queue.close());
+    await Promise.all(closePromises);
   }
 }

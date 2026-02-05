@@ -4,6 +4,7 @@ import { TransactionAdapter } from '../adapters/transaction.adapter';
 import { Injectable } from '../../../core/decorators/injectable.decorator';
 import { DatabaseAdapter, DatabaseConfig, QueryResult } from '../../../domain/interfaces/database/database.interface';
 import { InternalServerErrorException, ServiceUnavailableException } from '../../../domain/exceptions/http-exceptions';
+import { MetricsService } from '../../metrics/metrics.service';
 
 @Injectable()
 export class PostgreSQLAdapter implements DatabaseAdapter {
@@ -11,7 +12,10 @@ export class PostgreSQLAdapter implements DatabaseAdapter {
   private config: DatabaseConfig;
   private isDisconnecting = false;
 
-  constructor (config: DatabaseConfig) {
+  constructor (
+    config: DatabaseConfig,
+    private readonly metricsService: MetricsService
+  ) {
     this.config = config;
   }
 
@@ -36,9 +40,7 @@ export class PostgreSQLAdapter implements DatabaseAdapter {
   }
 
   async disconnect (): Promise<void> {
-    if (!this.pool || this.isDisconnecting) {
-      return;
-    }
+    if (!this.pool || this.isDisconnecting) return;
 
     this.isDisconnecting = true;
 
@@ -64,8 +66,22 @@ export class PostgreSQLAdapter implements DatabaseAdapter {
 
   async query<T = unknown> (sql: string, params: unknown[] = []): Promise<QueryResult<T>> {
     if (!this.pool) throw new InternalServerErrorException('Database not connected');
-    const result = await this.pool.query(sql, params);
-    return { rows: this.validateQueryResult<T>(result.rows), rowCount: result.rowCount || 0 };
+
+    const start = Date.now();
+    const queryType = sql.trim().split(/\s+/)[0]?.toUpperCase() || 'UNKNOWN';
+
+    try {
+      const result = await this.pool.query(sql, params);
+      const duration = (Date.now() - start) / 1000;
+
+      this.metricsService.observeDatabaseQuery(queryType, this.config.database, duration);
+      this.metricsService.setDatabaseConnections(this.pool.totalCount - this.pool.idleCount);
+
+      return { rows: this.validateQueryResult<T>(result.rows), rowCount: result.rowCount || 0 };
+    } catch (error) {
+      this.metricsService.setDatabaseConnections(this.pool.totalCount - this.pool.idleCount);
+      throw error;
+    }
   }
 
   private validateQueryResult<T> (rows: unknown[]): T[] {
@@ -101,7 +117,6 @@ export class PostgreSQLAdapter implements DatabaseAdapter {
             continue;
           }
         }
-
         throw error;
       } finally {
         client.release();

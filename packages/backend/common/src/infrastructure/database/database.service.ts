@@ -2,6 +2,7 @@ import { Injectable } from '../../core/decorators/injectable.decorator';
 import { DATABASE_ADAPTER_MAP } from '../../domain/constants/database/database.const';
 import { InternalServerErrorException } from '../../domain/exceptions/http-exceptions';
 import { DatabaseAdapter, DatabaseConfig } from '../../domain/interfaces/database/database.interface';
+import { MetricsService } from '../metrics/metrics.service';
 
 @Injectable()
 export class DatabaseService {
@@ -10,11 +11,13 @@ export class DatabaseService {
   private isClosing = false;
   private isClosed = false;
 
+  constructor (private readonly metricsService: MetricsService) {}
+
   async addConnection (name: string, config: DatabaseConfig, isReadOnly = false): Promise<void> {
     const AdapterClass = DATABASE_ADAPTER_MAP[config.type];
     if (!AdapterClass) return;
 
-    const adapter = new AdapterClass(config);
+    const adapter = new AdapterClass(config, this.metricsService);
     await adapter.connect();
 
     const connectionKey = isReadOnly ? `${name}_read` : name;

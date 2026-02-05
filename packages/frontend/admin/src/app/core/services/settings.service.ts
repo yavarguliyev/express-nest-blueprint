@@ -1,8 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-import { tap } from 'rxjs/operators';
-import { GlobalCacheService } from './global-cache.service';
+import { Observable } from 'rxjs';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
 
 export interface SettingItem {
@@ -33,47 +31,16 @@ export interface ApiResponse<T> {
 })
 export class SettingsService {
   private http = inject(HttpClient);
-  private cacheService = inject(GlobalCacheService);
 
-  private readonly SETTINGS_CACHE_TTL = 5 * 60 * 1000;
-
-  loadSettings (useCache: boolean = false): Observable<ApiResponse<SettingItem[]>> {
-    const cacheKey = 'system-settings';
-
-    if (useCache) {
-      const cachedSettings = this.cacheService.get<ApiResponse<SettingItem[]>>(cacheKey);
-      if (cachedSettings) {
-        return of(cachedSettings);
-      }
-    }
-
-    return this.http.get<ApiResponse<SettingItem[]>>(API_ENDPOINTS.SETTINGS.GET_ALL).pipe(
-      tap((response) => {
-        this.cacheService.set(cacheKey, response, this.SETTINGS_CACHE_TTL);
-      }),
-    );
+  loadSettings (): Observable<ApiResponse<SettingItem[]>> {
+    return this.http.get<ApiResponse<SettingItem[]>>(API_ENDPOINTS.SETTINGS.GET_ALL);
   }
 
   updateSettings (updateRequest: SettingsUpdateRequest): Observable<ApiResponse<SettingItem[]>> {
-    return this.http
-      .put<ApiResponse<SettingItem[]>>(API_ENDPOINTS.SETTINGS.UPDATE, updateRequest)
-      .pipe(
-        tap((response) => {
-          const cacheKey = 'system-settings';
-          this.cacheService.set(cacheKey, response, this.SETTINGS_CACHE_TTL);
-        }),
-      );
+    return this.http.put<ApiResponse<SettingItem[]>>(API_ENDPOINTS.SETTINGS.UPDATE, updateRequest);
   }
 
   refreshSettings (): Observable<ApiResponse<SettingItem[]>> {
-    return this.loadSettings(false);
-  }
-
-  invalidateCache (): void {
-    this.cacheService.delete('system-settings');
-  }
-
-  hasValidCache (): boolean {
-    return this.cacheService.has('system-settings');
+    return this.loadSettings();
   }
 }

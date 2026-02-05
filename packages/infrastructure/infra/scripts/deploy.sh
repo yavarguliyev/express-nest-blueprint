@@ -41,13 +41,35 @@ done
 if ! command -v kubectl &> /dev/null; then print_error "kubectl not found"; exit 1; fi
 if ! command -v docker &> /dev/null; then print_error "docker not found"; exit 1; fi
 
-# Terminate existing port-forwarding
+# Helper: Wait for cluster connectivity (Resiliennt)
+wait_for_cluster_ready() {
+    local retries=5
+    local count=0
+    local wait_sec=2
+    
+    while [ $count -lt $retries ]; do
+        if kubectl version --client=true &> /dev/null && kubectl get nodes &> /dev/null; then
+            return 0
+        fi
+        count=$((count + 1))
+        print_warn "Cluster not responding (connection blip?). Retrying in ${wait_sec}s... ($count/$retries)"
+        sleep $wait_sec
+        wait_sec=$((wait_sec * 2))
+    done
+    return 1
+}
+
+# Terminate existing port-forwarding (Safer)
 if [ -f "$PORT_FORWARD_PID_FILE" ]; then
-    PID=$(cat "$PORT_FORWARD_PID_FILE")
-    if ps -p "$PID" > /dev/null; then
-        print_info "Terminating existing port-forward (PID: $PID)..."
-        kill "$PID" 2>/dev/null || true
-    fi
+    PIDS=$(cat "$PORT_FORWARD_PID_FILE")
+    print_info "Cleaning up existing tunnels: $PIDS"
+    for PID in $PIDS; do
+        if ps -p "$PID" > /dev/null; then
+            kill "$PID" 2>/dev/null || true
+            sleep 0.5
+            kill -9 "$PID" 2>/dev/null || true
+        fi
+    done
     rm -f "$PORT_FORWARD_PID_FILE"
 fi
 
@@ -80,38 +102,58 @@ kubectl apply -f ../k8s/base/network-policy.yaml
 # Attempt to apply Ingress (may fail if controller is not ready)
 kubectl apply -f ../k8s/base/ingress.yaml || print_warn "Ingress apply failed (likely webhook issue). Retrying later..."
 
-# 4. Apply Infrastructure (Postgres, Redis, MinIO)
-print_info "Deploying Infrastructure (Postgres, Redis & MinIO)..."
+# 4. Phase A: Deploying Infrastructure (Postgres, Redis, MinIO, Kafka)
+print_info "Phase A: Deploying Infrastructure..."
 kubectl apply -f ../k8s/postgres/postgres-manifests.yaml
 kubectl apply -f ../k8s/redis/redis-manifests.yaml
 kubectl apply -f ../k8s/minio/minio-manifests.yaml
 kubectl apply -f ../k8s/kafka/zookeeper.yaml
 kubectl apply -f ../k8s/kafka/kafka.yaml
 
-print_info "Waiting for Infrastructure to settle..."
-sleep 10
+print_info "Waiting for Infrastructure to settle (60s Nuclear Pause)..."
+sleep 60
+
+# Diagnostic Check
+kubectl get nodes &> /dev/null || { print_error "Cluster died during Wave A!"; exit 1; }
 
 print_info "Waiting for Infrastructure to be ready..."
-kubectl wait --for=condition=ready pod -l service=postgres -n $NAMESPACE --timeout=300s || print_warn "Postgres still starting..."
-kubectl wait --for=condition=ready pod -l service=redis -n $NAMESPACE --timeout=300s || print_warn "Redis still starting..."
-kubectl wait --for=condition=ready pod -l app=minio -n $NAMESPACE --timeout=300s || print_warn "MinIO still starting..."
-kubectl wait --for=condition=ready pod -l app=zookeeper -n $NAMESPACE --timeout=300s || print_warn "Zookeeper still starting..."
-kubectl wait --for=condition=ready pod -l app=kafka -n $NAMESPACE --timeout=300s || print_warn "Kafka still starting..."
+kubectl wait --for=condition=ready pod -l service=postgres -n $NAMESPACE --timeout=120s || print_warn "Postgres still starting..."
+kubectl wait --for=condition=ready pod -l service=redis -n $NAMESPACE --timeout=120s || print_warn "Redis still starting..."
+kubectl wait --for=condition=ready pod -l app=minio -n $NAMESPACE --timeout=120s || print_warn "MinIO still starting..."
+kubectl wait --for=condition=ready pod -l app=zookeeper -n $NAMESPACE --timeout=120s || print_warn "Zookeeper still starting..."
+kubectl wait --for=condition=ready pod -l app=kafka -n $NAMESPACE --timeout=120s || print_warn "Kafka still starting..."
 
-# 5. Run Database Migrations (before deploying API)
+# 4.5. Phase B: Deploying Monitoring Stack (Prometheus & Grafana)
+print_info "Phase B: Deploying Monitoring Stack..."
+kubectl apply -f ../k8s/monitoring/grafana-dashboards.yaml
+kubectl apply -f ../k8s/monitoring/prometheus-manifests.yaml
+kubectl apply -f ../k8s/monitoring/grafana-manifests.yaml
+
+print_info "Waiting for Monitoring to settle (60s Nuclear Pause)..."
+sleep 60
+
+# Diagnostic Check
+kubectl get nodes &> /dev/null || { print_error "Cluster died during Wave B!"; exit 1; }
+
+print_info "Waiting for Monitoring Stack to be ready..."
+kubectl wait --for=condition=ready pod -l app=prometheus -n $NAMESPACE --timeout=120s || print_warn "Prometheus still starting..."
+kubectl wait --for=condition=ready pod -l app=grafana -n $NAMESPACE --timeout=120s || print_warn "Grafana still starting..."
+
+# 5. Phase C: Deploying Application (Migrations, API, Worker)
+print_info "Phase C: Deploying Application..."
 print_info "Running database migrations..."
 # Delete old migration job if exists
 kubectl delete job db-migration -n $NAMESPACE --ignore-not-found
 # Create and run migration job
 kubectl apply -f ../k8s/base/migration-job.yaml
 print_info "Waiting for migrations to complete..."
-kubectl wait --for=condition=complete job/db-migration -n $NAMESPACE --timeout=300s || print_warn "Migration job still running..."
+kubectl wait --for=condition=complete job/db-migration -n $NAMESPACE --timeout=120s || print_warn "Migration job still running..."
 
-# 6. Apply App Services (API, Worker, HPA) - Use Service DNS names from ConfigMap
+# 6. Apply App Services (API, Worker) - Use Service DNS names from ConfigMap
 print_info "Deploying Application Services..."
 
 kubectl apply -f ../k8s/api/api-manifests.yaml
-kubectl apply -f ../k8s/api/api-hpa.yaml
+# kubectl apply -f ../k8s/api/api-hpa.yaml (Skipped for local stability)
 kubectl apply -f ../k8s/worker/worker-manifests.yaml
 
 # 7. Optional KEDA Scaling
@@ -126,55 +168,43 @@ print_info "Waiting for Deployments to be available..."
 kubectl rollout status deployment/api-deployment -n $NAMESPACE --timeout=300s
 kubectl rollout status deployment/worker-deployment -n $NAMESPACE --timeout=300s
 
-# 8. Setup Port-Forwarding (Automated & Verified)
-print_info "Setting up local tunnel (localhost:8080 -> api-service:80)..."
-# Kill any stray port-forwarding on 8080 just in case PID file was missing
-lsof -i :8080 -t | xargs kill -9 2>/dev/null || true
-
-kubectl port-forward svc/api-service 8080:80 -n $NAMESPACE > /dev/null 2>&1 &
-PF_PID=$!
-echo $PF_PID > "$PORT_FORWARD_PID_FILE"
-
-# Wait for tunnel to be active
-MAX_RETRIES=10
-for i in $(seq 1 $MAX_RETRIES); do
-    if lsof -i :8080 > /dev/null 2>&1 || nc -z localhost 8080 > /dev/null 2>&1; then
-        print_info "Port-forwarding successfully established (PID: $PF_PID)"
-        break
-    fi
-    if [ $i -eq $MAX_RETRIES ]; then
-        print_error "Failed to establish port-forwarding tunnel."
-    fi
-    sleep 1
-done
+# 8. Skip Port-Forwarding (Struck down in favor of robust Ingress)
+print_info "Skipping unstable port-forwarding. Using Ingress-only model for stability."
 
 # 9. Health Verification
 if [ "$SKIP_VERIFY" = false ]; then
-    print_info "Verifying deployment health..."
+    print_info "Verifying cluster connectivity..."
+    if ! wait_for_cluster_ready; then
+        print_error "Cluster unreachable! (connection refused after retries). Please check Docker Desktop health."
+        exit 1
+    fi
+
+    print_info "Verifying deployment health at http://api.local..."
     HEALTH_KEY=$(kubectl get secret app-secrets -n $NAMESPACE -o jsonpath='{.data.HEALTH_CHECK_SECRET}' | base64 -d)
     
     for i in {1..5}; do
-        HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "X-Health-Key: $HEALTH_KEY" http://localhost:8080/api/v1/health/ready || echo "failed")
+        HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "X-Health-Key: $HEALTH_KEY" http://api.local/api/v1/health/ready || echo "failed")
         
         if [ "$HEALTH_STATUS" = "200" ]; then
-            print_info "✅ API is Healthy and Ready at http://localhost:8080/api/v1/health/ready"
+            print_info "✅ API is Healthy and Ready (via Ingress)"
             break
         else
-            print_warn "Waiting for API readiness... ($i/5) status: $HEALTH_STATUS"
+            print_warn "Waiting for Ingress readiness... ($i/5) status: $HEALTH_STATUS"
             sleep 5
         fi
     done
 fi
 
-# 10. Setup /etc/hosts entry for api.local
-print_info "Checking /etc/hosts for api.local entry..."
-if ! grep -q "api.local" /etc/hosts; then
-    print_warn "api.local not found in /etc/hosts. Adding it now..."
-    echo "127.0.0.1 api.local" | sudo tee -a /etc/hosts > /dev/null
-    print_info "✅ Added api.local to /etc/hosts"
-else
-    print_info "✅ api.local already exists in /etc/hosts"
-fi
+# 10. Setup /etc/hosts entries for local domains
+print_info "Checking /etc/hosts for local domains..."
+DOMAINS=("api.local" "grafana.local" "prometheus.local")
+for domain in "${DOMAINS[@]}"; do
+    if ! grep -q "$domain" /etc/hosts; then
+        print_warn "$domain not found in /etc/hosts. Adding it now..."
+        echo "127.0.0.1 $domain" | sudo tee -a /etc/hosts > /dev/null
+    fi
+done
+print_info "✅ /etc/hosts is configured."
 
 print_info "=== Deployment Complete ==="
 print_info ""
@@ -197,16 +227,21 @@ print_info ""
 print_info "💾 Storage:"
 print_info "   • Files: http://api.local/express-nest-blueprint/..."
 print_info ""
-print_info "🔧 Port-Forward (Alternative Access):"
-print_info "   • API: http://localhost:8080/api/v1/..."
-print_info "   • Admin: http://localhost:8080/admin/"
+print_info "📊 Monitoring & Metrics:"
+print_info "   • Grafana:    http://grafana.local (admin/admin)"
+print_info "   • Prometheus: http://prometheus.local"
+print_info "   • Metrics:    http://api.local/api/v1/metrics"
+print_info ""
+print_info "🔧 Access Mode:"
+print_info "   • Pure Ingress (No tunnels needed)"
+print_info "   • Port 80 based (Professional Domain Access)"
 print_info ""
 print_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 if [ "$KEEP_PORT_FORWARD" = false ]; then
-    print_warn "⚠️  Port-forward will close when script finishes. Use --keep-port-forward to keep it alive."
+    print_warn "⚠️  Port-forwards will close when script finishes. Use --keep-port-forward to keep them alive."
 else
-    print_info "✅ Port-forward running in background (PID: $PF_PID)"
+    print_info "✅ Port-forwards running in background"
 fi
 
 print_info ""

@@ -1,24 +1,38 @@
 #!/usr/bin/env bash
+set -e
 
-set -e  # Exit on any error
+# Colors for output
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m'
 
-# Include bootstrap configuration (assuming it's already set up)
+print_info() { echo -e "${GREEN}[INFO] $1${NC}"; }
+print_warn() { echo -e "${YELLOW}[WARN] $1${NC}"; }
+print_error() { echo -e "${RED}[ERROR] $1${NC}"; }
+
 . ../docker-config/bootstrap.sh
 
-echo "Project Name: $PROJECT_NAME"
-echo "================================================"
+print_info "🛑 Stopping all services for project: $PROJECT_NAME"
+print_info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-# List all containers with the project name filter
-docker ps --filter "name=$PROJECT_NAME"
+# Show running containers
+print_info "Currently running containers:"
+docker ps --filter "name=$PROJECT_NAME" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
-# Stop containers forcefully and remove them
-docker-compose --project-name $PROJECT_NAME down --volumes --remove-orphans
+print_info ""
+print_info "Stopping containers..."
+docker-compose --project-name $PROJECT_NAME down
 
-# Attempt to force kill all containers related to the project
+# Force kill any remaining containers
 RUNNING_CONTAINERS=$(docker ps -a --filter "name=$PROJECT_NAME" -q)
 if [ -n "$RUNNING_CONTAINERS" ]; then
-  echo "Forcing stop and kill of containers..."
-  docker kill $RUNNING_CONTAINERS
-else
-  echo "All containers stopped successfully."
+  print_warn "Force stopping remaining containers..."
+  docker kill $RUNNING_CONTAINERS 2>/dev/null || true
 fi
+
+print_info ""
+print_info "✅ All services stopped successfully!"
+print_info ""
+print_info "💡 To start services again, run: bash start.sh"
+print_info ""

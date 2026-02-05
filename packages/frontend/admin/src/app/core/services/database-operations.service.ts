@@ -1,8 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
-import { GlobalCacheService } from './global-cache.service';
 import { ToastService } from './toast.service';
 import { DatabaseDraftService } from './database-draft.service';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
@@ -50,23 +48,11 @@ export interface PaginatedResponse<T> {
 })
 export class DatabaseOperationsService {
   private http = inject(HttpClient);
-  private cacheService = inject(GlobalCacheService);
   private toastService = inject(ToastService);
   private draftService = inject(DatabaseDraftService);
 
-  private readonly SCHEMA_CACHE_TTL = 10 * 60 * 1000;
-  private readonly TABLE_DATA_CACHE_TTL = 2 * 60 * 1000;
-
   loadSchema (): Observable<ApiResponse<Schema>> {
-    const cacheKey = 'database-schema';
-
-    return this.http.get<ApiResponse<Schema>>(API_ENDPOINTS.ADMIN.SCHEMA).pipe(
-      tap((response) => {
-        this.cacheService.set(cacheKey, response, this.SCHEMA_CACHE_TTL);
-        localStorage.setItem('database-schema-cache', JSON.stringify(response));
-        localStorage.setItem('database-schema-cache-time', Date.now().toString());
-      }),
-    );
+    return this.http.get<ApiResponse<Schema>>(API_ENDPOINTS.ADMIN.SCHEMA);
   }
 
   loadTableData (
@@ -75,24 +61,14 @@ export class DatabaseOperationsService {
     limit: number,
     searchQuery: string,
   ): Observable<ApiResponse<PaginatedResponse<Record<string, unknown>>>> {
-    const cacheKey = `table-data-${table.category}-${table.name}-${page}-${limit}-${searchQuery}`;
-
     const url = API_ENDPOINTS.ADMIN.CRUD(table.category, table.name);
-    return this.http
-      .get<ApiResponse<PaginatedResponse<Record<string, unknown>>>>(url, {
-        params: {
-          page: page.toString(),
-          limit: limit.toString(),
-          search: searchQuery,
-        },
-      })
-      .pipe(
-        tap((response) => {
-          if (!searchQuery) {
-            this.cacheService.set(cacheKey, response, this.TABLE_DATA_CACHE_TTL);
-          }
-        }),
-      );
+    return this.http.get<ApiResponse<PaginatedResponse<Record<string, unknown>>>>(url, {
+      params: {
+        page: page.toString(),
+        limit: limit.toString(),
+        search: searchQuery,
+      },
+    });
   }
 
   updateRecord (
@@ -101,20 +77,12 @@ export class DatabaseOperationsService {
     data: Record<string, unknown>,
   ): Observable<ApiResponse<Record<string, unknown>>> {
     const url = `${API_ENDPOINTS.ADMIN.CRUD(table.category, table.name)}/${id}`;
-    return this.http.put<ApiResponse<Record<string, unknown>>>(url, data).pipe(
-      tap(() => {
-        this.invalidateTableCache(table);
-      }),
-    );
+    return this.http.put<ApiResponse<Record<string, unknown>>>(url, data);
   }
 
   deleteRecord (table: TableMetadata, id: number): Observable<ApiResponse<void>> {
     const url = `${API_ENDPOINTS.ADMIN.CRUD(table.category, table.name)}/${id}`;
-    return this.http.delete<ApiResponse<void>>(url).pipe(
-      tap(() => {
-        this.invalidateTableCache(table);
-      }),
-    );
+    return this.http.delete<ApiResponse<void>>(url);
   }
 
   refreshSchema (): Observable<ApiResponse<Schema>> {
@@ -130,42 +98,14 @@ export class DatabaseOperationsService {
     return this.loadTableData(table, page, limit, searchQuery);
   }
 
-  invalidateTableCache (table: TableMetadata): void {
-    const cacheInfo = this.cacheService.getCacheInfo();
-    const tablePrefix = `table-data-${table.category}-${table.name}`;
-
-    cacheInfo.forEach(({ key }) => {
-      if (key.startsWith(tablePrefix)) {
-        this.cacheService.delete(key);
-      }
-    });
-  }
-
-  invalidateAllCache (): void {
-    this.cacheService.clear();
-    localStorage.removeItem('database-schema-cache');
-    localStorage.removeItem('database-schema-cache-time');
-  }
-
-  hasValidSchemaCache (): boolean {
-    return this.cacheService.has('database-schema');
-  }
-
   bulkDelete (
     table: TableMetadata,
     ids: number[],
   ): Observable<ApiResponse<{ deletedCount: number; message: string }>> {
     const url = `${API_ENDPOINTS.ADMIN.CRUD(table.category, table.name)}/bulk-delete`;
-    return this.http
-      .post<ApiResponse<{ deletedCount: number; message: string }>>(url, { ids })
-      .pipe(
-        tap(() => {
-          this.invalidateTableCache(table);
-        }),
-      );
+    return this.http.post<ApiResponse<{ deletedCount: number; message: string }>>(url, { ids });
   }
 
-  // Merged from database-crud.service.ts
   createUpdateDraft (table: TableMetadata, record: Record<string, unknown>, formData: Record<string, unknown>): void {
     const recordId = record['id'] as number;
 
@@ -200,7 +140,6 @@ export class DatabaseOperationsService {
     );
   }
 
-  // Merged from database-cache.service.ts
   loadSchemaWithCache (): Observable<{ success: boolean; data: Schema }> {
     return this.loadSchema();
   }
@@ -225,7 +164,7 @@ export class DatabaseOperationsService {
     table: TableMetadata,
     page: number,
     limit: number,
-    searchQuery: string
+    searchQuery: string,
   ): Observable<{ success: boolean; data: { data: Record<string, unknown>[]; total: number } }> {
     return new Observable((observer) => {
       this.refreshTableData(table, page, limit, searchQuery).subscribe({
@@ -246,7 +185,7 @@ export class DatabaseOperationsService {
     table: TableMetadata,
     page: number,
     limit: number,
-    searchQuery: string
+    searchQuery: string,
   ): Observable<{ success: boolean; data: { data: Record<string, unknown>[]; total: number } }> {
     return this.loadTableData(table, page, limit, searchQuery);
   }

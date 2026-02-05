@@ -1,6 +1,5 @@
 import { BaseHealthComponent, Timestamped } from '../common/base.interface';
 import { HealthComponentName, HealthStatus, OverallStatus, ReadyComponentName, ReadyStatus, WorkerStatus } from '../../types/common/status.type';
-import { DatabaseStatus } from '../../types/health/health-status.type';
 
 export interface RedisStatus extends BaseHealthComponent {
   info?: {
@@ -37,7 +36,7 @@ export interface HealthComponentStatus {
   name: HealthComponentName;
   status: HealthStatus;
   message?: string;
-  details?: DatabaseStatus | RedisStatus | QueueStatus | ComputeStatus;
+  details?: BaseHealthComponent | RedisStatus | QueueStatus | ComputeStatus;
 }
 
 export interface HealthCheckStatus {

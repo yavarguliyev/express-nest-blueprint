@@ -47,7 +47,7 @@ export class ComputeService {
     this.queueEvents = new QueueEvents(this.QUEUE_NAME, { connection });
     this.queueManager.createQueue(this.QUEUE_NAME);
 
-    this.queueEvents.on('completed', ({ jobId, returnvalue }) => {
+    this.queueEvents.on('completed', ({ jobId, returnvalue }: { jobId: string; returnvalue: unknown }) => {
       const pending = this.pendingJobs.get(jobId);
       if (pending) {
         pending.resolve(returnvalue);
@@ -55,7 +55,8 @@ export class ComputeService {
       }
     });
 
-    this.queueEvents.on('failed', ({ jobId, failedReason }) => {
+
+    this.queueEvents.on('failed', ({ jobId, failedReason }: { jobId: string; failedReason: string }) => {
       const pending = this.pendingJobs.get(jobId);
       if (pending) {
         pending.reject(new Error(failedReason));
@@ -70,12 +71,8 @@ export class ComputeService {
       concurrency: 10
     });
 
-    this.worker.on('completed', (job: Job) => {
-      void this.logger.log(`✅ Job ${job.id} completed successfully`);
-    });
-    this.worker.on('failed', (job: Job | undefined, err) => {
-      void this.logger.error(`❌ Job ${job?.id} failed: ${getErrorMessage(err)}`);
-    });
+    this.worker.on('completed', (job: Job) => void this.logger.log(`✅ Job ${job.id} completed successfully`));
+    this.worker.on('failed', (job: Job | undefined, err: Error) => void this.logger.error(`❌ Job ${job?.id} failed: ${getErrorMessage(err)}`));
   }
 
   public registerHandler (taskName: string, handler: ComputeHandler): void {
@@ -113,6 +110,7 @@ export class ComputeService {
       } catch {
         return originalMethod.apply(instance, args);
       }
+
     };
 
     (patchedMethod as PatchedMethod).__original__ = originalMethod as (...args: unknown[]) => Promise<unknown>;
@@ -121,8 +119,8 @@ export class ComputeService {
 
   private async executeJob (data: ComputeJobData): Promise<unknown> {
     const { taskName, args } = data;
-    const handler = this.handlers.get(taskName);
 
+    const handler = this.handlers.get(taskName);
     if (!handler) throw new BadRequestException(`Handler for task ${taskName} not found`);
 
     const instance = Container.getInstance().resolve({ provide: handler.serviceToken as Constructor });
@@ -143,7 +141,6 @@ export class ComputeService {
   public async close (): Promise<void> {
     if (this.worker) await this.worker.close();
     if (this.queueEvents) await this.queueEvents.close();
-
     await this.queueManager.closeAllQueues();
     void this.logger.log('Compute service closed');
   }
