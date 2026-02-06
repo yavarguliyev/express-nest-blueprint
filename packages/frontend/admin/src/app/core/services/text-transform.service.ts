@@ -56,6 +56,10 @@ export class TextTransformService {
     isPublic: 'PUBLIC',
     isPrivate: 'PRIVATE',
     isRead: 'READ',
+    isEmpty: 'EMPTY',
+    isCustomizable: 'CUSTOMIZABLE',
+    isImportant: 'IMPORTANT',
+    isSystemGradient: 'SYSTEM GRADIENT',
     allowEmails: 'EMAIL NOTIFICATIONS',
     allowSms: 'SMS NOTIFICATIONS',
 
@@ -71,7 +75,7 @@ export class TextTransformService {
     responseTime: 'RESPONSE TIME',
   };
 
-  getDisplayName (fieldName: string): string {
+  getDisplayName(fieldName: string): string {
     if (this.fieldDisplayNames[fieldName]) {
       return this.fieldDisplayNames[fieldName];
     }
@@ -79,19 +83,19 @@ export class TextTransformService {
     return this.camelCaseToUpperCase(fieldName);
   }
 
-  private camelCaseToUpperCase (str: string): string {
+  private camelCaseToUpperCase(str: string): string {
     return str.replace(/([a-z])([A-Z])/g, '$1 $2').toUpperCase();
   }
 
-  getAllMappings (): Record<string, string> {
+  getAllMappings(): Record<string, string> {
     return { ...this.fieldDisplayNames };
   }
 
-  registerFieldMapping (fieldName: string, displayName: string): void {
+  registerFieldMapping(fieldName: string, displayName: string): void {
     this.fieldDisplayNames[fieldName] = displayName;
   }
 
-  registerFieldMappings (mappings: Record<string, string>): void {
+  registerFieldMappings(mappings: Record<string, string>): void {
     Object.assign(this.fieldDisplayNames, mappings);
   }
 }

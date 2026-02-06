@@ -56,7 +56,7 @@ export class DatabaseDraftService {
     this.loadDraftsFromStorage();
   }
 
-  createDraft (operation: DatabaseOperation, originalData: Record<string, unknown>): void {
+  createDraft (operation: DatabaseOperation, originalData: Record<string, unknown> | null): void {
     const draftId = this.generateDraftId(operation.category, operation.table, operation.recordId);
     const currentDrafts = this._drafts();
 
@@ -66,9 +66,9 @@ export class DatabaseDraftService {
       category: operation.category,
       recordId: operation.recordId || 'new',
       operation: operation.type,
-      originalData: { ...originalData },
-      draftData: { ...originalData },
-      hasChanges: operation.type === 'delete' ? true : false,
+      originalData: originalData ? { ...originalData } : {},
+      draftData: operation.data ? { ...operation.data } : (originalData ? { ...originalData } : {}),
+      hasChanges: operation.type === 'delete' || !!operation.data,
       timestamp: new Date(),
     };
 

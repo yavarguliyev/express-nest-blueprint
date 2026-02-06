@@ -532,8 +532,22 @@
   color: var(--page-accent);
   text-transform: capitalize;
   letter-spacing: 0.5px;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
   display: block;
+}
+
+.toggle-field-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.toggle-status-text {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--page-accent);
+  opacity: 0.8;
 }
 
 /* Light mode field labels - UPDATED COLORS */
@@ -721,6 +735,61 @@ select.form-input.disabled {
 .form-input::placeholder {
   color: rgba(255, 255, 255, 0.4);
   font-weight: 400;
+}
+
+/* Password field styling */
+.password-field-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.password-input {
+  flex: 1;
+  padding-right: 48px;
+}
+
+.visibility-toggle {
+  position: absolute;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.visibility-toggle:hover {
+  background: rgba(0, 210, 255, 0.1);
+  transform: scale(1.1);
+}
+
+.generate-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  padding: 6px 12px;
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+.generate-btn .material-icons {
+  font-size: 1.1rem;
 }
 
 .modal-footer {

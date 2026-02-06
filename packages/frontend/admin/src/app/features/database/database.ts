@@ -239,10 +239,29 @@ export class Database implements OnInit, AfterViewInit {
     return this.pagination.generatePageNumbers(this.page(), this.totalPages);
   }
 
+  modalMode = signal<'create' | 'update'>('update');
+  showPassword = signal(false);
+
   isCurrentUser (id: number): boolean { return this.dbForm.isCurrentUser(id); }
   isRestrictedTable (): boolean { return this.dbForm.isRestrictedTable(this.selectedTable()); }
-  isFieldExcludedFromUpdate (col: string): boolean { return this.dbForm.isFieldExcludedFromUpdate(col, this.selectedRecord()); }
-  isFieldDisabled (col: string): boolean { return this.dbForm.isFieldDisabled(col); }
+  isFieldExcluded (col: string): boolean { return this.dbForm.isFieldExcludedFromUpdate(col, this.selectedRecord()); }
+  isFieldDisabled (col: string): boolean {
+    return this.dbForm.isFieldDisabled(col, this.selectedTable(), this.modalMode());
+  }
+
+  isFieldInMetadata (col: string): boolean {
+    return this.selectedTable()?.columns.some(c => c.name === col) ?? false;
+  }
+
+  generatePassword (): void {
+    const pwd = this.dbForm.generateRandomPassword();
+    this.updateFormData.update(c => ({ ...c, password: pwd }));
+    this.showPassword.set(true);
+  }
+
+  togglePasswordVisibility (): void {
+    this.showPassword.update(v => !v);
+  }
   canDeleteRecord (): boolean { return this.dbHelper.canDeleteRecord(); }
   formatValue (v: unknown, c: Column): string { return this.dbHelper.formatValue(v, c); }
   getBooleanValue (row: Record<string, unknown>, col: string): boolean {
@@ -266,8 +285,20 @@ export class Database implements OnInit, AfterViewInit {
   getChangedFields (): Array<{ name: string; oldValue: unknown; newValue: unknown }> { return this.dbForm.getChangedFields(this.updateFormData(), this.originalFormData()); }
   isRoleInvalid (): boolean { return this.dbForm.isRoleInvalid(this.updateFormData()); }
   isFormInvalid (): boolean { return this.dbForm.isFormInvalid(this.updateFormData(), this.originalFormData()); }
-  getUpdateButtonText (): string { return this.dbForm.getUpdateButtonText(this.updateFormData(), this.originalFormData()); }
+  getModalTitle (): string { return this.dbForm.getModalTitle(this.modalMode()); }
+  getSubmitButtonText (): string { return this.dbForm.getSubmitButtonText(this.modalMode(), this.hasFormChanges()); }
+  getSubmitButtonIcon (): string { return this.dbForm.getSubmitButtonIcon(this.modalMode()); }
   getUpdateButtonTooltip (): string { return this.dbForm.getUpdateButtonTooltip(this.updateFormData(), this.originalFormData()); }
+
+  createRecord (): void {
+    const table = this.selectedTable();
+    if (!table) return;
+    const formData = this.dbForm.prepareCreateFormData(table);
+    this.modalMode.set('create');
+    this.updateFormData.set(formData);
+    this.originalFormData.set({ ...formData });
+    this.showUpdateModal.set(true);
+  }
 
   updateRecord (id: number): void {
     const table = this.selectedTable();
@@ -275,25 +306,33 @@ export class Database implements OnInit, AfterViewInit {
     const record = this.tableData().find((row) => row['id'] === id);
     if (!record) return;
     const formData = this.dbForm.prepareFormData(table, record, (columnName) =>
-      this.isFieldExcludedFromUpdate(columnName),
+      this.isFieldExcluded(columnName),
     );
-    this.dbOperations.createUpdateDraft(table, record, formData);
+    this.modalMode.set('update');
     this.selectedRecord.set(record);
     this.updateFormData.set(formData);
     this.originalFormData.set({ ...formData });
     this.showUpdateModal.set(true);
   }
 
-  submitUpdate (): void {
+  submitForm (): void {
     const table = this.selectedTable();
-    const record = this.selectedRecord();
-    if (!table || !record) return;
-    const success = this.dbForm.validateAndSubmitUpdate(
-      table,
-      record,
-      this.updateFormData(),
-      this.originalFormData(),
-    );
+    if (!table) return;
+
+    let success = false;
+    if (this.modalMode() === 'create') {
+      success = this.dbForm.validateAndSubmitCreate(table, this.updateFormData());
+    } else {
+      const record = this.selectedRecord();
+      if (!record) return;
+      success = this.dbForm.validateAndSubmitUpdate(
+        table,
+        record,
+        this.updateFormData(),
+        this.originalFormData(),
+      );
+    }
+
     if (success) this.closeUpdateModal();
   }
 

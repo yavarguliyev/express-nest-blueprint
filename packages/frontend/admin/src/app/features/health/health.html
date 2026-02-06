@@ -6,10 +6,6 @@
       <p class="text-muted">Real-time health status of all infrastructure components</p>
     </div>
     <div class="header-actions" appDraggableResizable="health-header-actions">
-      <button class="btn btn-secondary" (click)="refresh()" [disabled]="loading()" title="Use cached data">
-        <span class="material-icons" [class.spin]="loading()">cached</span>
-        {{ loading() ? 'Loading...' : 'Refresh' }}
-      </button>
       <button class="btn btn-primary" (click)="forceRefresh()" [disabled]="loading()" title="Force fresh data" appDraggableResizable="health-scan-btn">
         <span class="material-icons" [class.spin]="loading()">refresh</span>
         {{ loading() ? 'Scanning...' : 'Run Diagnostics' }}

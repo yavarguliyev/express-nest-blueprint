@@ -13,7 +13,10 @@ export class DatabaseFormService {
   private draftService = inject(DatabaseDraftService);
   private authService = inject(AuthService);
 
-  hasFormChanges (currentData: Record<string, unknown>, originalData: Record<string, unknown>): boolean {
+  hasFormChanges(
+    currentData: Record<string, unknown>,
+    originalData: Record<string, unknown>,
+  ): boolean {
     for (const key in currentData) {
       if (currentData[key] !== originalData[key]) {
         return true;
@@ -29,11 +32,18 @@ export class DatabaseFormService {
     return false;
   }
 
-  isFieldChanged (fieldName: string, currentData: Record<string, unknown>, originalData: Record<string, unknown>): boolean {
+  isFieldChanged(
+    fieldName: string,
+    currentData: Record<string, unknown>,
+    originalData: Record<string, unknown>,
+  ): boolean {
     return currentData[fieldName] !== originalData[fieldName];
   }
 
-  getChangedFields (currentData: Record<string, unknown>, originalData: Record<string, unknown>): Array<{ name: string; oldValue: unknown; newValue: unknown }> {
+  getChangedFields(
+    currentData: Record<string, unknown>,
+    originalData: Record<string, unknown>,
+  ): Array<{ name: string; oldValue: unknown; newValue: unknown }> {
     const changes: Array<{ name: string; oldValue: unknown; newValue: unknown }> = [];
 
     for (const key in currentData) {
@@ -52,18 +62,21 @@ export class DatabaseFormService {
     return changes;
   }
 
-  isRoleInvalid (formData: Record<string, unknown>): boolean {
+  isRoleInvalid(formData: Record<string, unknown>): boolean {
     return (
       Object.prototype.hasOwnProperty.call(formData, 'role') &&
       (!formData['role'] || formData['role'] === '')
     );
   }
 
-  isFormInvalid (formData: Record<string, unknown>, originalData: Record<string, unknown>): boolean {
+  isFormInvalid(formData: Record<string, unknown>, originalData: Record<string, unknown>): boolean {
     return this.isRoleInvalid(formData) || !this.hasFormChanges(formData, originalData);
   }
 
-  getUpdateButtonText (formData: Record<string, unknown>, originalData: Record<string, unknown>): string {
+  getUpdateButtonText(
+    formData: Record<string, unknown>,
+    originalData: Record<string, unknown>,
+  ): string {
     if (this.isRoleInvalid(formData)) {
       return 'Update Record';
     }
@@ -73,7 +86,10 @@ export class DatabaseFormService {
     return 'Update Record';
   }
 
-  getUpdateButtonTooltip (formData: Record<string, unknown>, originalData: Record<string, unknown>): string {
+  getUpdateButtonTooltip(
+    formData: Record<string, unknown>,
+    originalData: Record<string, unknown>,
+  ): string {
     if (this.isRoleInvalid(formData)) {
       return 'Please select a valid role before updating';
     }
@@ -83,7 +99,11 @@ export class DatabaseFormService {
     return 'Save changes to record';
   }
 
-  prepareFormData (table: TableMetadata, record: Record<string, unknown>, isFieldExcludedFromUpdate: (columnName: string) => boolean): Record<string, unknown> {
+  prepareFormData(
+    table: TableMetadata,
+    record: Record<string, unknown>,
+    isFieldExcludedFromUpdate: (columnName: string) => boolean,
+  ): Record<string, unknown> {
     const formData: Record<string, unknown> = {};
     table.columns.forEach((col) => {
       if (col.editable && !isFieldExcludedFromUpdate(col.name)) {
@@ -93,11 +113,29 @@ export class DatabaseFormService {
     return formData;
   }
 
-  validateAndSubmitUpdate (
+  prepareCreateFormData(table: TableMetadata): Record<string, unknown> {
+    const formData: Record<string, unknown> = {};
+    table.columns.forEach((col) => {
+      if (col.editable && !this.isFieldExcludedFromUpdate(col.name, null)) {
+        formData[col.name] = col.type === 'boolean' ? false : '';
+      }
+    });
+
+    const hasEmail = table.columns.some((c) => c.name === 'email');
+    const hasPassword = table.columns.some((c) => c.name === 'password');
+
+    if (hasEmail && !hasPassword) {
+      formData['password'] = '';
+    }
+
+    return formData;
+  }
+
+  validateAndSubmitUpdate(
     table: TableMetadata,
     record: Record<string, unknown>,
     currentData: Record<string, unknown>,
-    originalData: Record<string, unknown>
+    originalData: Record<string, unknown>,
   ): boolean {
     const changedData: Record<string, unknown> = {};
     for (const key in currentData) {
@@ -130,13 +168,80 @@ export class DatabaseFormService {
     return true;
   }
 
-  handleBooleanUpdate (
+  validateAndSubmitCreate(table: TableMetadata, formData: Record<string, unknown>): boolean {
+    const editableColumns = table.columns.filter(
+      (col) => col.editable && !this.isFieldExcludedFromUpdate(col.name, null),
+    );
+
+    const errors = this.validateFormData(
+      formData,
+      editableColumns.map((col) => ({ name: col.name, required: col.required })),
+    );
+
+    if (errors.length > 0) {
+      this.toastService.error(`Please fix the following errors: ${errors.join(', ')}`);
+      return false;
+    }
+
+    if (
+      Object.prototype.hasOwnProperty.call(formData, 'role') &&
+      (!formData['role'] || formData['role'] === '')
+    ) {
+      this.toastService.error('Please select a valid role before creating the record.');
+      return false;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(formData, 'password')) {
+      const password = formData['password'] as string;
+      if (!password || password.length < 8) {
+        this.toastService.error('Password must be at least 8 characters long.');
+        return false;
+      }
+    }
+
+    this.draftService.createDraft(
+      {
+        type: 'create',
+        table: table.name,
+        category: table.category,
+        data: formData,
+      },
+      null,
+    );
+
+    return true;
+  }
+
+  getModalTitle(mode: 'create' | 'update'): string {
+    return mode === 'create' ? 'Add New Record' : 'Update Record';
+  }
+
+  getSubmitButtonText(mode: 'create' | 'update', hasChanges: boolean): string {
+    if (mode === 'create') return 'Create Record';
+    return hasChanges ? 'Update Record' : 'No Changes';
+  }
+
+  getSubmitButtonIcon(mode: 'create' | 'update'): string {
+    return mode === 'create' ? 'add_circle' : 'save';
+  }
+
+  generateRandomPassword(): string {
+    const length = 12;
+    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+';
+    let retVal = '';
+    for (let i = 0, n = charset.length; i < length; ++i) {
+      retVal += charset.charAt(Math.floor(Math.random() * n));
+    }
+    return retVal;
+  }
+
+  handleBooleanUpdate(
     table: TableMetadata,
     record: Record<string, unknown>,
     column: Column,
     newValue: boolean,
     isSensitiveField: (columnName: string) => boolean,
-    canModifySensitiveFields: () => boolean
+    canModifySensitiveFields: () => boolean,
   ): void {
     if (!table || !record || column.type !== 'boolean') return;
 
@@ -170,24 +275,26 @@ export class DatabaseFormService {
     }
   }
 
-  // Merged from database-validation.service.ts
-  isCurrentUser (id: number): boolean {
+  isCurrentUser(id: number): boolean {
     const user = this.authService.getCurrentUser();
     return user ? String(user.id) === String(id) : false;
   }
 
-  isRestrictedTable (table: TableMetadata | null): boolean {
+  isRestrictedTable(table: TableMetadata | null): boolean {
     return table?.tableName === 'users';
   }
 
-  isFieldRestricted (_id: number, _colName: string): boolean {
+  isFieldRestricted(_id: number, _colName: string): boolean {
     void _id;
     void _colName;
     return false;
   }
 
-  isFieldExcludedFromUpdate (columnName: string, selectedRecord: Record<string, unknown> | null): boolean {
-    const excludedFields = ['id', 'isActive', 'isEmailVerified', 'profileImageUrl'];
+  isFieldExcludedFromUpdate(
+    columnName: string,
+    selectedRecord?: Record<string, unknown> | null,
+  ): boolean {
+    const excludedFields = ['id', 'profileImageUrl', 'createdAt', 'updatedAt', 'lastLogin'];
 
     const currentUser = this.authService.getCurrentUser();
 
@@ -202,12 +309,24 @@ export class DatabaseFormService {
     return excludedFields.includes(columnName);
   }
 
-  isFieldDisabled (columnName: string): boolean {
-    const disabledFields = ['email'];
+  isFieldDisabled(
+    columnName: string,
+    table: TableMetadata | null,
+    mode: 'create' | 'update' = 'update',
+  ): boolean {
+    if (
+      mode === 'create' &&
+      columnName === 'email' &&
+      table?.columns.some((c) => c.name === 'email')
+    ) {
+      return false;
+    }
+
+    const disabledFields = ['id', 'email', 'createdAt', 'updatedAt', 'lastLogin'];
     return disabledFields.includes(columnName);
   }
 
-  canDeleteRecord (record: Record<string, unknown>, table: TableMetadata | null): boolean {
+  canDeleteRecord(record: Record<string, unknown>, table: TableMetadata | null): boolean {
     if (!table) return false;
 
     const currentUser = this.authService.getCurrentUser();
@@ -224,7 +343,10 @@ export class DatabaseFormService {
     return true;
   }
 
-  validateFormData (formData: Record<string, unknown>, columns: Array<{ name: string; required: boolean }>): string[] {
+  validateFormData(
+    formData: Record<string, unknown>,
+    columns: Array<{ name: string; required: boolean }>,
+  ): string[] {
     const errors: string[] = [];
 
     for (const column of columns) {

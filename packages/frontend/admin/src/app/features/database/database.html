@@ -5,10 +5,6 @@
       <p class="text-muted">Direct oversight and manipulation of relational entity matrices</p>
     </div>
     <div class="header-actions" appDraggableResizable="database-header-actions">
-      <button class="btn btn-secondary" (click)="loadSchema()" [disabled]="loadingSchema()" title="Use cached schema" appDraggableResizable="database-load-schema-btn">
-        <span class="material-icons" [class.spin]="loadingSchema()">cached</span>
-        Load Schema
-      </button>
       <button class="btn btn-primary" (click)="refreshSchema()" [disabled]="loadingSchema()" title="Force fresh schema" appDraggableResizable="database-refresh-schema-btn">
         <span class="material-icons" [class.spin]="loadingSchema()">hub</span>
         Re-scan Infrastructure
@@ -46,6 +42,14 @@
                 <input type="text" [placeholder]="'Search ' + table.displayName + '...'" (input)="onSearch($event)">
               </div>
               <div class="crud-actions">
+                <button 
+                  *ngIf="table.actions?.create !== false"
+                  class="btn btn-sm btn-primary" 
+                  (click)="createRecord()" 
+                  title="Add new record">
+                  <span class="material-icons">add</span>
+                  <span>Add Record</span>
+                </button>
                 <button class="btn btn-sm btn-secondary" (click)="refreshTableData()" [disabled]="loadingData()" title="Refresh table data">
                   <span class="material-icons" [class.spin]="loadingData()">refresh</span>
                 </button>
@@ -70,10 +74,10 @@
                     <th *ngFor="let col of table.columns" 
                         [class]="getHeaderClasses(col.name, col.type)"
                         [ngStyle]="getColumnStyles(col.name, col.type)">
-                      {{ getFieldDisplayName(col.name) }}
+                      <span>{{ getFieldDisplayName(col.name) }}</span>
                     </th>
                     <th *ngIf="hasAnyActions()" class="header-actions text-center" style="width: 160px; min-width: 160px;">
-                      ACTIONS
+                      <span>ACTIONS</span>
                     </th>
                   </tr>
                 </thead>
@@ -178,13 +182,13 @@
   <div class="modal-overlay" *ngIf="showUpdateModal()" (click)="closeUpdateModal()">
     <div class="modal-content glass" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h3>Update Record</h3>
+        <h3>{{ getModalTitle() }}</h3>
         <button class="close-btn" (click)="closeUpdateModal()">
           <span class="material-icons">close</span>
         </button>
       </div>
       
-      <div class="modal-body" *ngIf="selectedTable() && selectedRecord()">
+      <div class="modal-body" *ngIf="selectedTable()">
         <!-- Changes summary -->
         <div *ngIf="hasFormChanges()" class="changes-summary">
           <h4>Changes to be applied:</h4>
@@ -199,11 +203,11 @@
         </div>
         
         <div class="form-container">
-          <div *ngFor="let col of selectedTable()!.columns" class="form-field">
-            <div *ngIf="col.editable && !isFieldExcludedFromUpdate(col.name)">
+          <ng-container *ngFor="let col of selectedTable()!.columns">
+            <div class="form-field" *ngIf="col.editable && !isFieldExcluded(col.name)">
               <label class="field-label">
                 {{ getFieldDisplayName(col.name) }}
-                <span *ngIf="isFieldChanged(col.name)" class="field-changed-indicator" title="Field has been modified">●</span>
+                <span *ngIf="modalMode() === 'update' && isFieldChanged(col.name)" class="field-changed-indicator" title="Field has been modified">●</span>
               </label>
               
               <!-- Role dropdown (special case) -->
@@ -251,6 +255,40 @@
                 [value]="updateFormData()[col.name] || ''"
                 (input)="updateFormField(col.name, +$any($event.target).value)"
                 [placeholder]="'Enter ' + getFieldDisplayName(col.name)">
+
+              <!-- Boolean Toggle Switch -->
+              <div *ngIf="col.type === 'boolean'" class="toggle-field-wrapper">
+                <app-toggle-switch
+                  [checked]="$any(updateFormData()[col.name])"
+                  [disabled]="isFieldDisabled(col.name)"
+                  (toggleChange)="updateFormField(col.name, $event)">
+                </app-toggle-switch>
+                <span class="toggle-status-text">{{ updateFormData()[col.name] ? 'Enabled' : 'Disabled' }}</span>
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- Injected password field specifically for account/identity creation -->
+          <div *ngIf="modalMode() === 'create' && updateFormData()['password'] !== undefined && !isFieldInMetadata('password')" class="form-field">
+            <label class="field-label">Security Key (Password)</label>
+            <div class="password-field-container">
+              <div class="password-input-wrapper">
+                <input 
+                  [type]="showPassword() ? 'text' : 'password'"
+                  class="form-input password-input"
+                  [value]="updateFormData()['password'] || ''"
+                  (input)="updateFormField('password', $any($event.target).value)"
+                  placeholder="Enter or generate security key">
+                
+                <button class="icon-btn visibility-toggle" (click)="togglePasswordVisibility()" title="Toggle visibility">
+                  <span class="material-icons">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
+                </button>
+              </div>
+              
+              <button class="btn btn-secondary btn-sm generate-btn" (click)="generatePassword()" title="Synthesize high-entropy password">
+                <span class="material-icons">autorenew</span>
+                Generate
+              </button>
             </div>
           </div>
         </div>
@@ -261,10 +299,10 @@
         <button class="btn btn-primary" 
                 [class.disabled]="isFormInvalid()"
                 [disabled]="isFormInvalid()"
-                [title]="getUpdateButtonTooltip()"
-                (click)="submitUpdate()">
-          <span class="material-icons">save</span>
-          {{ getUpdateButtonText() }}
+                [title]="modalMode() === 'update' ? getUpdateButtonTooltip() : 'Create New Record'"
+                (click)="submitForm()">
+          <span class="material-icons">{{ getSubmitButtonIcon() }}</span>
+          {{ getSubmitButtonText() }}
         </button>
       </div>
     </div>

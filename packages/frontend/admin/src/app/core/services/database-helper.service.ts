@@ -51,7 +51,11 @@ export class DatabaseHelperService {
     );
   }
 
-  getBooleanValue (row: Record<string, unknown>, columnName: string, draftData: Record<string, unknown> | null): boolean {
+  getBooleanValue (
+    row: Record<string, unknown>,
+    columnName: string,
+    draftData: Record<string, unknown> | null,
+  ): boolean {
     if (draftData && columnName in draftData) {
       return draftData[columnName] as boolean;
     }
@@ -171,8 +175,11 @@ export class DatabaseHelperService {
     return sensitiveFields.includes(columnName);
   }
 
-  // Merged from database-ui.service.ts
-  publishAllChanges (hasDrafts: boolean, isPublishing: (value: boolean) => void, loadTableData: () => void): void {
+  publishAllChanges (
+    hasDrafts: boolean,
+    isPublishing: (value: boolean) => void,
+    loadTableData: () => void,
+  ): void {
     if (!hasDrafts) {
       this.toastService.info('No changes to publish');
       return;
@@ -182,15 +189,26 @@ export class DatabaseHelperService {
       next: (response) => {
         isPublishing(false);
         if (response.success) {
-          this.toastService.success(`Successfully published ${response.summary.successful} changes`);
+          this.toastService.success(
+            `Successfully published ${response.summary.successful} changes`,
+          );
           loadTableData();
         } else {
-          this.toastService.error(`Published ${response.summary.successful} changes, ${response.summary.failed} failed`);
+          this.toastService.error(
+            `Published ${response.summary.successful} changes, ${response.summary.failed} failed`,
+          );
         }
       },
-      error: () => {
+      error: (error: unknown) => {
+        const err = error as {
+          error?: {
+            message?: string;
+          };
+          message?: string;
+        };
+
         isPublishing(false);
-        this.toastService.error('Failed to publish changes');
+        this.toastService.error(err?.error?.message || err?.message || 'Failed to publish changes');
       },
     });
   }
@@ -200,11 +218,14 @@ export class DatabaseHelperService {
       this.toastService.info('No changes to reset');
       return;
     }
-    this.toastService.confirm(`Reset all ${draftCount} unsaved changes? This cannot be undone.`, () => {
-      this.draftService.resetDrafts();
-      loadTableData();
-      this.toastService.success('All changes have been reset');
-    });
+    this.toastService.confirm(
+      `Reset all ${draftCount} unsaved changes? This cannot be undone.`,
+      () => {
+        this.draftService.resetDrafts();
+        loadTableData();
+        this.toastService.success('All changes have been reset');
+      },
+    );
   }
 
   handleImageClick (imageUrl: string): void {
