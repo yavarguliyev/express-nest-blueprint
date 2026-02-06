@@ -1,5 +1,14 @@
 import { BaseHealthComponent, Timestamped } from '../common/base.interface';
-import { HealthComponentName, HealthStatus, OverallStatus, ReadyComponentName, ReadyStatus, WorkerStatus } from '../../types/common/status.type';
+import {
+  HealthComponentName,
+  HealthStatus,
+  OverallStatus,
+  ReadyComponentName,
+  ReadyStatus,
+  WorkerStatus,
+  ChartType,
+  DashboardAlertType
+} from '../../types/common/status.type';
 
 export interface RedisStatus extends BaseHealthComponent {
   info?: {
@@ -43,4 +52,27 @@ export interface HealthCheckStatus {
   overallStatus: OverallStatus;
   timestamp: string;
   components: HealthComponentStatus[];
+}
+
+export interface HealthRegistryItem {
+  key: string;
+  name: string;
+  unit?: string;
+  critical?: boolean;
+  threshold?: number | null;
+  promMetric?: string;
+  precision?: number;
+}
+
+export interface AlertTemplate {
+  header: string;
+  title: (name: string) => string;
+  message: (name: string, value: number, unit: string, precision?: number) => string;
+  type: DashboardAlertType;
+}
+
+export interface DashboardChartConfig {
+  title: string;
+  metric: string;
+  type: ChartType;
 }

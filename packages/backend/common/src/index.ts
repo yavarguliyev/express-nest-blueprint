@@ -120,7 +120,6 @@ export * from './domain/types/infra/kafka.type';
 export * from './domain/types/infra/swagger.type';
 export * from './domain/types/infra/storage.type';
 export * from './domain/types/health/health-status.type';
-export * from './domain/constants/health/health-check.const';
 export * from './domain/types/module/provider.type';
 export * from './domain/types/nest/nest-core.type';
 

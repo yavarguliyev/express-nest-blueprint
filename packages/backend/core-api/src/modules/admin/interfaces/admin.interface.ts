@@ -1,4 +1,12 @@
-import { ChartType, DashboardAlertType, TableAction } from '@config/libs';
+import { ChartType, DashboardAlertType, TableAction, PromMetric, HealthCheckResult } from '@config/libs';
+
+export interface DashboardMetricsContext {
+  rawMetrics: PromMetric[];
+  healthResult: HealthCheckResult;
+  kafkaMetrics: { messagesInPerSec: number; underReplicatedPartitions: number };
+  dbQueryResults: { rows: { size: string }[] };
+  getVal: <T>(idx: number, fallback: T) => T;
+}
 
 export interface ChartDataPoint {
   label: string;
