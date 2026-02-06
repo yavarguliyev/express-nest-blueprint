@@ -1,4 +1,4 @@
-import { Injectable, ValidationService, BadRequestException, Cache, CacheService, CACHE_TTL_1_MIN, CACHE_KEYS } from '@config/libs';
+import { Injectable, ValidationService, BadRequestException, Cache, InvalidateCache, CACHE_TTL_1_MIN, CACHE_KEYS } from '@config/libs';
 
 import { SettingsRepository } from '@modules/settings/settings.repository';
 import { SystemSetting } from '@modules/settings/interfaces/settings.interface';
@@ -8,8 +8,7 @@ import { UpdateSettingsDto } from '@modules/settings/dtos/update-settings.dto';
 @Injectable()
 export class SettingsService {
   constructor (
-    private readonly settingsRepository: SettingsRepository,
-    private readonly cacheService: CacheService
+    private readonly settingsRepository: SettingsRepository
   ) {}
 
   async getAllSettings (): Promise<SettingsResponseDto[]> {
@@ -38,6 +37,7 @@ export class SettingsService {
     return setting.value as T;
   }
 
+  @InvalidateCache({ keys: [CACHE_KEYS.SETTINGS] })
   async updateSettings (updateDto: UpdateSettingsDto): Promise<SettingsResponseDto[]> {
     const updatedSettings: SystemSetting[] = [];
 
@@ -50,8 +50,6 @@ export class SettingsService {
         updatedSettings[updatedSettings.length - 1] = updatedActive;
       }
     }
-
-    await this.cacheService.delete(CACHE_KEYS.SETTINGS);
 
     return this.getAllSettings();
   }

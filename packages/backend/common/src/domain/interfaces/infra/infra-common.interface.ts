@@ -2,7 +2,11 @@ import { LogLevel } from '../../enums/infra/infra.enum';
 
 export interface CacheOptions {
   ttl?: number;
-  key?: string;
+  key?: string | ((...args: unknown[]) => string);
+}
+
+export interface InvalidateCacheOptions {
+  keys: (string | ((...args: unknown[]) => string))[];
 }
 
 export interface ComputeOptions {

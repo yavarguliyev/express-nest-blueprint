@@ -1,8 +1,8 @@
 import { CacheService } from '../cache/cache.service';
 import { Container } from '../../core/container/container';
-import { CACHE_METADATA } from '../../core/decorators/cache.decorator';
+import { CACHE_METADATA, INVALIDATE_CACHE_METADATA } from '../../core/decorators/cache.decorator';
 import { Injectable } from '../../core/decorators/injectable.decorator';
-import { CacheOptions } from '../../domain/interfaces/infra/infra-common.interface';
+import { CacheOptions, InvalidateCacheOptions } from '../../domain/interfaces/infra/infra-common.interface';
 
 @Injectable()
 export class CacheExplorer {
@@ -24,25 +24,43 @@ export class CacheExplorer {
         const method = (proto as Record<string, unknown>)[methodName];
         if (typeof method !== 'function') continue;
 
-        const metadata = Reflect.getMetadata(CACHE_METADATA, method) as (CacheOptions & { methodName: string }) | undefined;
+        const cacheMetadata = Reflect.getMetadata(CACHE_METADATA, method) as (CacheOptions & { methodName: string }) | undefined;
+        if (cacheMetadata) this.patchCacheMethod(instance, methodName, cacheMetadata);
 
-        if (metadata) this.patchMethod(instance, methodName, metadata);
+        const invalidateMetadata = Reflect.getMetadata(INVALIDATE_CACHE_METADATA, method) as (InvalidateCacheOptions & { methodName: string }) | undefined;
+        if (invalidateMetadata) this.patchInvalidationMethod(instance, methodName, invalidateMetadata);
       }
     }
   }
 
-  private patchMethod (instance: Record<string, unknown>, methodName: string, options: CacheOptions): void {
+  private patchCacheMethod (instance: Record<string, unknown>, methodName: string, options: CacheOptions): void {
     const originalMethod = instance[methodName] as (...args: unknown[]) => Promise<unknown>;
     const cacheService = this.cacheService;
 
     instance[methodName] = async function (...args: unknown[]): Promise<unknown> {
-      const cacheKey = options.key ?? `${instance.constructor.name}:${methodName}:${JSON.stringify(args)}`;
+      const cacheKey = typeof options.key === 'function' ? options.key(...args) : options.key ?? `${instance.constructor.name}:${methodName}:${JSON.stringify(args)}`;
       const cachedResult = await cacheService.get(cacheKey);
 
       if (cachedResult !== null) return cachedResult;
 
       const result = await originalMethod.apply(this, args);
       await cacheService.set(cacheKey, result, options.ttl);
+      return result;
+    };
+  }
+
+  private patchInvalidationMethod (instance: Record<string, unknown>, methodName: string, options: InvalidateCacheOptions): void {
+    const originalMethod = instance[methodName] as (...args: unknown[]) => Promise<unknown>;
+    const cacheService = this.cacheService;
+
+    instance[methodName] = async function (...args: unknown[]): Promise<unknown> {
+      const result = await originalMethod.apply(this, args);
+
+      for (const keyOrFn of options.keys) {
+        const key = typeof keyOrFn === 'function' ? keyOrFn(...args) : keyOrFn;
+        await cacheService.delete(key);
+      }
+
       return result;
     };
   }

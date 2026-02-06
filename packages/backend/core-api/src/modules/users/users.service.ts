@@ -4,6 +4,7 @@ import {
   Injectable,
   Cache,
   Compute,
+  InvalidateCache,
   DatabaseService,
   PaginatedResponseDto,
   BadRequestException,
@@ -13,6 +14,8 @@ import {
   ForbiddenException,
   JwtPayload,
   CACHE_TTL_1_MIN,
+  CACHE_TTL_5_MIN,
+  CACHE_KEYS,
   COMPUTE_TIMEOUT_DEFAULT
 } from '@config/libs';
 
@@ -72,6 +75,7 @@ export class UsersService {
     return { data: responseData, pagination: { page, limit, total, totalPages } };
   }
 
+  @Cache({ ttl: CACHE_TTL_5_MIN, key: (id: unknown): string => CACHE_KEYS.USER_PROFILE(id as string | number) })
   async findOne (id: string): Promise<UserResponseDto> {
     const userId = this.parseAndValidateId(id);
     const user = await this.usersRepository.findById(userId);
@@ -80,6 +84,7 @@ export class UsersService {
     return ValidationService.transformResponse(UserResponseDto, user);
   }
 
+  @InvalidateCache({ keys: [CACHE_KEYS.USER_LIST] })
   async create (createUserDto: CreateUserDto): Promise<UserResponseDto> {
     return this.databaseService.getWriteConnection().transactionWithRetry(async transaction => {
       const existingUser = await this.usersRepository.findByEmail(createUserDto.email, transaction);
@@ -95,6 +100,7 @@ export class UsersService {
     });
   }
 
+  @InvalidateCache({ keys: [CACHE_KEYS.USER_LIST, (id: unknown): string => CACHE_KEYS.USER_PROFILE(id as string | number)] })
   async update (id: string | number, updateUserDto: UpdateUserDto, currentUser?: JwtPayload): Promise<UserResponseDto> {
     const userId = this.parseAndValidateId(id);
 
@@ -126,6 +132,7 @@ export class UsersService {
     });
   }
 
+  @InvalidateCache({ keys: [CACHE_KEYS.USER_LIST, (id: unknown): string => CACHE_KEYS.USER_PROFILE(id as string | number)] })
   async remove (id: string | number, currentUser?: JwtPayload): Promise<{ message: string }> {
     const userId = this.parseAndValidateId(id);
 
@@ -142,6 +149,7 @@ export class UsersService {
     return { message: 'User deleted successfully' };
   }
 
+  @InvalidateCache({ keys: [CACHE_KEYS.USER_LIST, (id: unknown): string => CACHE_KEYS.USER_PROFILE(id as string | number)] })
   async updateProfileImage (id: string, file?: Express.Multer.File, currentUser?: JwtPayload): Promise<UserResponseDto> {
     if (!file) throw new BadRequestException('No file uploaded or file rejected');
 
@@ -174,6 +182,7 @@ export class UsersService {
     });
   }
 
+  @InvalidateCache({ keys: [CACHE_KEYS.USER_LIST, (id: unknown): string => CACHE_KEYS.USER_PROFILE(id as string | number)] })
   async removeProfileImage (id: string, currentUser?: JwtPayload): Promise<UserResponseDto> {
     const userId = this.parseAndValidateId(id);
 
