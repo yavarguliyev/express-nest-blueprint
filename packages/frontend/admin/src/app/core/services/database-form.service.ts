@@ -13,7 +13,7 @@ export class DatabaseFormService {
   private draftService = inject(DatabaseDraftService);
   private authService = inject(AuthService);
 
-  hasFormChanges(
+  hasFormChanges (
     currentData: Record<string, unknown>,
     originalData: Record<string, unknown>,
   ): boolean {
@@ -32,7 +32,7 @@ export class DatabaseFormService {
     return false;
   }
 
-  isFieldChanged(
+  isFieldChanged (
     fieldName: string,
     currentData: Record<string, unknown>,
     originalData: Record<string, unknown>,
@@ -40,7 +40,7 @@ export class DatabaseFormService {
     return currentData[fieldName] !== originalData[fieldName];
   }
 
-  getChangedFields(
+  getChangedFields (
     currentData: Record<string, unknown>,
     originalData: Record<string, unknown>,
   ): Array<{ name: string; oldValue: unknown; newValue: unknown }> {
@@ -62,18 +62,18 @@ export class DatabaseFormService {
     return changes;
   }
 
-  isRoleInvalid(formData: Record<string, unknown>): boolean {
+  isRoleInvalid (formData: Record<string, unknown>): boolean {
     return (
       Object.prototype.hasOwnProperty.call(formData, 'role') &&
       (!formData['role'] || formData['role'] === '')
     );
   }
 
-  isFormInvalid(formData: Record<string, unknown>, originalData: Record<string, unknown>): boolean {
+  isFormInvalid (formData: Record<string, unknown>, originalData: Record<string, unknown>): boolean {
     return this.isRoleInvalid(formData) || !this.hasFormChanges(formData, originalData);
   }
 
-  getUpdateButtonText(
+  getUpdateButtonText (
     formData: Record<string, unknown>,
     originalData: Record<string, unknown>,
   ): string {
@@ -86,7 +86,7 @@ export class DatabaseFormService {
     return 'Update Record';
   }
 
-  getUpdateButtonTooltip(
+  getUpdateButtonTooltip (
     formData: Record<string, unknown>,
     originalData: Record<string, unknown>,
   ): string {
@@ -99,7 +99,7 @@ export class DatabaseFormService {
     return 'Save changes to record';
   }
 
-  prepareFormData(
+  prepareFormData (
     table: TableMetadata,
     record: Record<string, unknown>,
     isFieldExcludedFromUpdate: (columnName: string) => boolean,
@@ -113,7 +113,7 @@ export class DatabaseFormService {
     return formData;
   }
 
-  prepareCreateFormData(table: TableMetadata): Record<string, unknown> {
+  prepareCreateFormData (table: TableMetadata): Record<string, unknown> {
     const formData: Record<string, unknown> = {};
     table.columns.forEach((col) => {
       if (col.editable && !this.isFieldExcludedFromUpdate(col.name, null)) {
@@ -131,7 +131,7 @@ export class DatabaseFormService {
     return formData;
   }
 
-  validateAndSubmitUpdate(
+  validateAndSubmitUpdate (
     table: TableMetadata,
     record: Record<string, unknown>,
     currentData: Record<string, unknown>,
@@ -168,7 +168,7 @@ export class DatabaseFormService {
     return true;
   }
 
-  validateAndSubmitCreate(table: TableMetadata, formData: Record<string, unknown>): boolean {
+  validateAndSubmitCreate (table: TableMetadata, formData: Record<string, unknown>): boolean {
     const editableColumns = table.columns.filter(
       (col) => col.editable && !this.isFieldExcludedFromUpdate(col.name, null),
     );
@@ -212,20 +212,20 @@ export class DatabaseFormService {
     return true;
   }
 
-  getModalTitle(mode: 'create' | 'update'): string {
+  getModalTitle (mode: 'create' | 'update'): string {
     return mode === 'create' ? 'Add New Record' : 'Update Record';
   }
 
-  getSubmitButtonText(mode: 'create' | 'update', hasChanges: boolean): string {
+  getSubmitButtonText (mode: 'create' | 'update', hasChanges: boolean): string {
     if (mode === 'create') return 'Create Record';
     return hasChanges ? 'Update Record' : 'No Changes';
   }
 
-  getSubmitButtonIcon(mode: 'create' | 'update'): string {
+  getSubmitButtonIcon (mode: 'create' | 'update'): string {
     return mode === 'create' ? 'add_circle' : 'save';
   }
 
-  generateRandomPassword(): string {
+  generateRandomPassword (): string {
     const length = 12;
     const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+';
     let retVal = '';
@@ -235,7 +235,7 @@ export class DatabaseFormService {
     return retVal;
   }
 
-  handleBooleanUpdate(
+  handleBooleanUpdate (
     table: TableMetadata,
     record: Record<string, unknown>,
     column: Column,
@@ -275,22 +275,22 @@ export class DatabaseFormService {
     }
   }
 
-  isCurrentUser(id: number): boolean {
+  isCurrentUser (id: number): boolean {
     const user = this.authService.getCurrentUser();
     return user ? String(user.id) === String(id) : false;
   }
 
-  isRestrictedTable(table: TableMetadata | null): boolean {
+  isRestrictedTable (table: TableMetadata | null): boolean {
     return table?.tableName === 'users';
   }
 
-  isFieldRestricted(_id: number, _colName: string): boolean {
+  isFieldRestricted (_id: number, _colName: string): boolean {
     void _id;
     void _colName;
     return false;
   }
 
-  isFieldExcludedFromUpdate(
+  isFieldExcludedFromUpdate (
     columnName: string,
     selectedRecord?: Record<string, unknown> | null,
   ): boolean {
@@ -309,7 +309,7 @@ export class DatabaseFormService {
     return excludedFields.includes(columnName);
   }
 
-  isFieldDisabled(
+  isFieldDisabled (
     columnName: string,
     table: TableMetadata | null,
     mode: 'create' | 'update' = 'update',
@@ -326,7 +326,7 @@ export class DatabaseFormService {
     return disabledFields.includes(columnName);
   }
 
-  canDeleteRecord(record: Record<string, unknown>, table: TableMetadata | null): boolean {
+  canDeleteRecord (record: Record<string, unknown>, table: TableMetadata | null): boolean {
     if (!table) return false;
 
     const currentUser = this.authService.getCurrentUser();
@@ -343,7 +343,7 @@ export class DatabaseFormService {
     return true;
   }
 
-  validateFormData(
+  validateFormData (
     formData: Record<string, unknown>,
     columns: Array<{ name: string; required: boolean }>,
   ): string[] {
