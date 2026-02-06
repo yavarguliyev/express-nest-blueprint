@@ -38,7 +38,7 @@ import { UsersRepository } from '@modules/users/users.repository';
 
 @Injectable()
 export class AdminMetricsService {
-  constructor(
+  constructor (
     private readonly usersRepository: UsersRepository,
     private readonly databaseService: DatabaseService,
     private readonly redisService: RedisService,
@@ -48,7 +48,7 @@ export class AdminMetricsService {
     private readonly metricsService: MetricsService
   ) {}
 
-  public async getHealthStatus(): Promise<HealthCheckStatus> {
+  public async getHealthStatus (): Promise<HealthCheckStatus> {
     const result = await this.healthService.checkHealth();
 
     return {
@@ -66,7 +66,7 @@ export class AdminMetricsService {
     };
   }
 
-  public async getDashboardMetrics(): Promise<DashboardMetricsResponse> {
+  public async getDashboardMetrics (): Promise<DashboardMetricsResponse> {
     const timestamp = nowISO();
     const settledResults = await Promise.allSettled([
       this.metricsService.getMetricsAsJSON(),
@@ -117,7 +117,7 @@ export class AdminMetricsService {
     return { metrics, charts, alerts: this.generateAlerts(metrics) };
   }
 
-  private resolveChartData(config: DashboardChartConfig, rawMetrics: PromMetric[]): { label: string; value: number }[] {
+  private resolveChartData (config: DashboardChartConfig, rawMetrics: PromMetric[]): { label: string; value: number }[] {
     const metric = rawMetrics.find((m): boolean => m.name === config.metric);
     if (!metric) return [];
 
@@ -142,7 +142,7 @@ export class AdminMetricsService {
     return [];
   }
 
-  private generateAlerts(metrics: DashboardMetric[]): DashboardAlert[] {
+  private generateAlerts (metrics: DashboardMetric[]): DashboardAlert[] {
     const ts = nowISO();
     const t = ALERT_TEMPLATES.THRESHOLD_EXCEEDED as AlertTemplate;
     const s = ALERT_TEMPLATES.SYSTEM_STABLE as AlertTemplate;
@@ -162,7 +162,7 @@ export class AdminMetricsService {
     return alerts.length ? alerts : [{ header: s.header, title: s.title(''), message: s.message('', 0, ''), type: 'info' as const, timestamp: ts }];
   }
 
-  private resolveMetricValue(reg: HealthRegistryItem, ctx: DashboardMetricsContext): number {
+  private resolveMetricValue (reg: HealthRegistryItem, ctx: DashboardMetricsContext): number {
     switch (reg.key) {
       case 'database':
         return bytesToMB(parseInt(String(ctx.dbQueryResults.rows[0]?.size || '0'), 10));
