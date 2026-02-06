@@ -59,23 +59,7 @@
   color: var(--text-muted);
 }
 
-.glass-input {
-  width: 100%;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px 16px;
-  color: var(--text-main);
-  font-size: 1rem;
-  transition: all 0.2s;
-}
-
-.glass-input:focus {
-  outline: none;
-  border-color: var(--primary);
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 0 10px var(--primary-glow);
-}
+/* Global input styles now handled in styles.css */
 
 .btn-block {
   width: 100%;

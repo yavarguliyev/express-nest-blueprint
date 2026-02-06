@@ -22,15 +22,13 @@
 
       <div class="form-group">
         <label for="password">Password</label>
-        <input
-          type="password"
+        <app-password-input
+          [(value)]="password"
           id="password"
           name="password"
-          [(ngModel)]="password"
-          required
-          placeholder="••••••••"
-          class="glass-input"
-        />
+          customClass="glass-input"
+          placeholder="••••••••">
+        </app-password-input>
       </div>
 
       @if (error()) {

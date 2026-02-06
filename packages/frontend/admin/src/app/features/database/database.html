@@ -271,25 +271,13 @@
           <!-- Injected password field specifically for account/identity creation -->
           <div *ngIf="modalMode() === 'create' && updateFormData()['password'] !== undefined && !isFieldInMetadata('password')" class="form-field">
             <label class="field-label">Security Key (Password)</label>
-            <div class="password-field-container">
-              <div class="password-input-wrapper">
-                <input 
-                  [type]="showPassword() ? 'text' : 'password'"
-                  class="form-input password-input"
-                  [value]="updateFormData()['password'] || ''"
-                  (input)="updateFormField('password', $any($event.target).value)"
-                  placeholder="Enter or generate security key">
-                
-                <button class="icon-btn visibility-toggle" (click)="togglePasswordVisibility()" title="Toggle visibility">
-                  <span class="material-icons">{{ showPassword() ? 'visibility_off' : 'visibility' }}</span>
-                </button>
-              </div>
-              
-              <button class="btn btn-secondary btn-sm generate-btn" (click)="generatePassword()" title="Synthesize high-entropy password">
-                <span class="material-icons">autorenew</span>
-                Generate
-              </button>
-            </div>
+            <app-password-input
+              [value]="$any(updateFormData()['password'] || '')"
+              (valueChange)="updateFormField('password', $event)"
+              [showGenerate]="true"
+              (generate)="generatePassword()"
+              placeholder="Enter or generate security key">
+            </app-password-input>
           </div>
         </div>
       </div>

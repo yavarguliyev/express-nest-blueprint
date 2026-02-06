@@ -11,10 +11,12 @@ interface ErrorResponse {
   message?: string;
 }
 
+import { PasswordInput } from '../../shared/components/password-input/password-input';
+
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PasswordInput],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })

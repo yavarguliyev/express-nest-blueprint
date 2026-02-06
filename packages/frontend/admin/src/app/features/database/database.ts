@@ -32,10 +32,20 @@ import {
 
 import { DraggableResizableDirective } from '../../shared/directives/draggable-resizable.directive';
 
+import { PasswordInput } from '../../shared/components/password-input/password-input';
+
 @Component({
   selector: 'app-database',
   standalone: true,
-  imports: [CommonModule, FormsModule, ToggleSwitch, ActionButtons, DraftStatusBar, DraggableResizableDirective],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ToggleSwitch,
+    ActionButtons,
+    DraftStatusBar,
+    DraggableResizableDirective,
+    PasswordInput,
+  ],
   templateUrl: './database.html',
   styleUrl: './database.css',
 })
@@ -256,11 +266,6 @@ export class Database implements OnInit, AfterViewInit {
   generatePassword (): void {
     const pwd = this.dbForm.generateRandomPassword();
     this.updateFormData.update(c => ({ ...c, password: pwd }));
-    this.showPassword.set(true);
-  }
-
-  togglePasswordVisibility (): void {
-    this.showPassword.update(v => !v);
   }
   canDeleteRecord (): boolean { return this.dbHelper.canDeleteRecord(); }
   formatValue (v: unknown, c: Column): string { return this.dbHelper.formatValue(v, c); }
