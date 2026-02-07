@@ -504,12 +504,12 @@ This project is bridge-ready for cloud deployment.
 
 # 🛡 Testing & Validation
 
-We include specialized scripts in `packages/infrastructure/scripts`.
+We include specialized scripts in `packages/infrastructure/common/tests`.
 
 ### 🛡️ Rate Limiting Test
 
 ```bash
-node packages/infrastructure/scripts/test-throttling.js
+node packages/infrastructure/common/tests/test-throttling.js
 ```
 
 ### ⚡ Stress Test
@@ -517,7 +517,7 @@ node packages/infrastructure/scripts/test-throttling.js
 Verify parallel processing:
 
 ```bash
-node packages/infrastructure/scripts/stress-test.js
+node packages/infrastructure/common/tests/stress-test.js
 ```
 
 ---
@@ -540,13 +540,17 @@ We provide a professional K8s suite in `packages/infrastructure/infra`.
 - **NetworkPolicies**: Zero-trust internal traffic.
 
 ### Local Domain Access (Ingress - K8s)
+
 The Kubernetes deployment uses an Ingress-first model for maximum stability. Access your services via:
+
 - **API & Admin Panel**: [http://api.local](http://api.local)
 - **Grafana Dashboards**: [http://grafana.local](http://grafana.local)
 - **Prometheus UI**: [http://prometheus.local](http://prometheus.local)
 
 ### Local Docker Compose Access (Alternative)
+
 If running via `docker-compose`:
+
 - **Dev Admin UI**: [http://localhost:8081](http://localhost:8081)
 - **Dev API**: [http://localhost:3000](http://localhost:3000)
 - **Prod Access**: [http://localhost:80](http://localhost:80)
@@ -561,15 +565,19 @@ If running via `docker-compose`:
 Professional monitoring is integrated via Prometheus for data collection and Grafana for visualization.
 
 ### Grafana Dashboards
+
 - **URL**: [http://grafana.local](http://grafana.local)
 - **Credentials**: `admin` / `admin`
 - **Key Metrics**: Request Rate, p95 Latency, Error rates, and Cache performance.
 
 ### Prometheus Query Engine
+
 - **URL**: [http://prometheus.local](http://prometheus.local)
 
 ### Service Metrics (Raw Data)
+
 Exposed at the `/metrics` endpoint (requires `HEALTH_CHECK_SECRET` if accessed via API):
+
 ```bash
 # In Kubernetes
 curl http://api.local/api/v1/metrics
