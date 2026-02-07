@@ -126,7 +126,6 @@ services:
       start_period: 15s
 
   api:
-    container_name: app_api
     build:
       context: ../../../../
       dockerfile: packages/infrastructure/Dockerfile
@@ -159,7 +158,6 @@ services:
       start_period: 60s
 
   worker:
-    container_name: app_worker
     build:
       context: ../../../../
       dockerfile: packages/infrastructure/Dockerfile
@@ -187,7 +185,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-
 
   metrics-proxy-api:
     container_name: metrics_proxy_api_prod
