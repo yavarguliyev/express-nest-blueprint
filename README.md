@@ -255,7 +255,7 @@ This project uses Docker to manage infrastructure services (Redis and PostgreSQL
 
 ```bash
 # Start the infrastructure (PostgreSQL & Redis)
-cd packages/infrastructure/deployment/dev
+cd packages/infrastructure/deployments/dev
 bash start.sh
 ```
 
@@ -284,7 +284,7 @@ cp .env.example .env
 │   │       └── src/domain             # Enums, Interfaces, Types, Exceptions
 │   ├── frontend/admin      # Angular 18+ Admin Dashboard
 │   └── infrastructure      # DevOps & Infrastructure
-│       ├── deployment/dev  # Local dev environment (PostgreSQL, Redis)
+│       ├── deployments/dev # Local dev environment (Admin UI: :8081, API: :3000)
 │       ├── infra           # K8s manifests (ArgoCD, Prometheus, Zero-trust)
 │       └── scripts         # Maintenance & Stress-test scripts
 ├── image/                  # Project assets and architectural diagrams
@@ -539,11 +539,17 @@ We provide a professional K8s suite in `packages/infrastructure/infra`.
 - **Worker Pods**: Headless background processors.
 - **NetworkPolicies**: Zero-trust internal traffic.
 
-### Local Domain Access (Ingress)
+### Local Domain Access (Ingress - K8s)
 The Kubernetes deployment uses an Ingress-first model for maximum stability. Access your services via:
 - **API & Admin Panel**: [http://api.local](http://api.local)
 - **Grafana Dashboards**: [http://grafana.local](http://grafana.local)
 - **Prometheus UI**: [http://prometheus.local](http://prometheus.local)
+
+### Local Docker Compose Access (Alternative)
+If running via `docker-compose`:
+- **Dev Admin UI**: [http://localhost:8081](http://localhost:8081)
+- **Dev API**: [http://localhost:3000](http://localhost:3000)
+- **Prod Access**: [http://localhost:80](http://localhost:80)
 
 > [!NOTE]
 > The `deploy.sh` script automatically configures your `/etc/hosts` file for these domains.

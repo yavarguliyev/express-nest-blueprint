@@ -1,0 +1,26 @@
+FROM prom/prometheus:latest
+
+# Need root to chmod the entrypoint
+USER root
+
+# Copy entrypoint script
+COPY prometheus-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/prometheus-entrypoint.sh
+
+# Copy configuration files
+COPY prometheus.yml /etc/prometheus/prometheus.yml
+COPY alerts.yml /etc/prometheus/alerts.yml
+COPY prometheus.yml.template /etc/prometheus/prometheus.yml.template
+
+# Ensure nobody user can write to the config directory for env substitution
+RUN chown -R nobody:nobody /etc/prometheus
+
+USER nobody
+
+ENTRYPOINT ["/usr/local/bin/prometheus-entrypoint.sh"]
+CMD ["--config.file=/etc/prometheus/prometheus.yml", \
+     "--storage.tsdb.path=/prometheus", \
+     "--storage.tsdb.retention.time=15d", \
+     "--web.console.libraries=/etc/prometheus/console_libraries", \
+     "--web.console.templates=/etc/prometheus/consoles", \
+     "--web.enable-lifecycle"]

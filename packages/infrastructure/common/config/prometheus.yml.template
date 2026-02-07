@@ -1,0 +1,31 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'express-nest-blueprint'
+    environment: 'development'
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+rule_files:
+  - '/etc/prometheus/alerts.yml'
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['127.0.0.1:9090']
+
+  - job_name: 'nodejs-api'
+    static_configs:
+      - targets: ['metrics-proxy-api:9100']
+        labels:
+          instance: 'app-api'
+
+  - job_name: 'nodejs-worker'
+    static_configs:
+      - targets: ['metrics-proxy-worker:9100']
+        labels:
+          instance: 'app-worker'

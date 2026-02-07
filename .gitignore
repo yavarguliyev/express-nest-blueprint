@@ -61,3 +61,8 @@ jspm_packages/
 
 # Yarn Integrity file
 .yarn-integrity
+
+# Infrastructure
+packages/infrastructure/deployments/dev@tmp/
+packages/infrastructure/deployments/prod@tmp/
+packages/infrastructure/deployments/infra/scripts@tmp

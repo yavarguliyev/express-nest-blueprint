@@ -51,7 +51,7 @@ COPY --from=builder /app/packages/backend/common ./packages/backend/common
 COPY --from=builder /app/packages/backend/core-api ./packages/backend/core-api
 COPY --from=builder /app/packages/frontend/admin/dist/admin/browser ./public/admin
 COPY --from=builder /app/packages/backend/core-api/database.json ./database.json
-COPY --from=builder /app/packages/infrastructure/deployment/prod/docker-entrypoint.sh ./docker-entrypoint.sh
+COPY --from=builder /app/packages/infrastructure/deployments/prod/docker-entrypoint.sh ./docker-entrypoint.sh
 
 RUN chmod +x ./docker-entrypoint.sh
 
