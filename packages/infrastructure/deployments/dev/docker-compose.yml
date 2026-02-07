@@ -2,8 +2,8 @@ version: "3.8"
 
 services:
   minio:
-    image: minio/minio:latest
     container_name: minio_container
+    image: minio/minio:latest
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -30,10 +30,10 @@ services:
       - common
 
   postgres:
+    container_name: postgres_container
     build:
       context: ../../../../
       dockerfile: packages/infrastructure/common/config/Dockerfile.postgres
-    container_name: postgres_container
     restart: always
     env_file:
       - ./.env
@@ -45,8 +45,8 @@ services:
       - common
 
   zookeeper:
-    image: confluentinc/cp-zookeeper:7.5.0
     container_name: zookeeper_container
+    image: confluentinc/cp-zookeeper:7.5.0
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -54,8 +54,8 @@ services:
       - common
 
   kafka:
-    image: confluentinc/cp-kafka:7.5.0
     container_name: kafka_container
+    image: confluentinc/cp-kafka:7.5.0
     hostname: kafka
     depends_on:
       - zookeeper
@@ -89,10 +89,10 @@ services:
       - common
 
   app-api:
+    container_name: app_api
     build:
       context: ../../../../
       dockerfile: packages/infrastructure/Dockerfile
-    container_name: app_api
     restart: always
     env_file:
       - .env
@@ -115,6 +115,7 @@ services:
       - common
 
   app-worker:
+    container_name: app_worker
     build:
       context: ../../../../
       dockerfile: packages/infrastructure/Dockerfile
@@ -138,10 +139,10 @@ services:
       - common
 
   admin-ui:
+    container_name: admin_ui
     build:
       context: .
       dockerfile: Dockerfile.nginx
-    container_name: admin_ui
     ports:
       - "8081:80"
     depends_on:
@@ -150,10 +151,10 @@ services:
       - common
 
   metrics-proxy-api:
+    container_name: metrics_proxy_api
     build:
       context: ../../common/config
       dockerfile: Dockerfile.metrics-proxy
-    container_name: metrics_proxy_api
     env_file:
       - .env
     environment:
@@ -168,10 +169,10 @@ services:
       - common
 
   metrics-proxy-worker:
+    container_name: metrics_proxy_worker
     build:
       context: ../../common/config
       dockerfile: Dockerfile.metrics-proxy
-    container_name: metrics_proxy_worker
     env_file:
       - .env
     environment:
@@ -186,10 +187,10 @@ services:
       - common
 
   prometheus:
+    container_name: prometheus_container
     build:
       context: ../../common/config
       dockerfile: Dockerfile.prometheus
-    container_name: prometheus_container
     ports:
       - "9090:9090"
     volumes:
@@ -208,10 +209,10 @@ services:
       - common
 
   grafana:
+    container_name: grafana_container
     build:
       context: ../../common/config
       dockerfile: Dockerfile.grafana
-    container_name: grafana_container
     ports:
       - "3001:3000"
     environment:

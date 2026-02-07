@@ -2,10 +2,10 @@ version: '3.8'
 
 services:
   jenkins:
+    container_name: jenkins-server
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: jenkins-server
     restart: always
     privileged: true
     user: root
@@ -32,6 +32,12 @@ services:
       - "prometheus.local:host-gateway"
       - "minio.local:host-gateway"
       - "kubernetes.docker.internal:host-gateway"
+    networks:
+      - common
+
+networks:
+  common:
+    driver: bridge
 
 volumes:
   jenkins_home:

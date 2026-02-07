@@ -2,10 +2,10 @@ version: '3.8'
 
 services:
   nginx:
+    container_name: express_nginx
     build:
       context: .
       dockerfile: Dockerfile.nginx
-    container_name: express_nginx
     ports:
       - "80:80"
     depends_on:
@@ -21,10 +21,10 @@ services:
           memory: 256M
 
   postgres:
+    container_name: express_postgres
     build:
       context: ../../../../
       dockerfile: packages/infrastructure/common/config/Dockerfile.postgres
-    container_name: express_postgres
     restart: always
     environment:
       POSTGRES_USER: postgres
@@ -46,8 +46,8 @@ services:
       retries: 5
 
   redis:
-    image: redis:7-alpine
     container_name: express_redis
+    image: redis:7-alpine
     restart: always
     networks:
       - common
@@ -63,8 +63,8 @@ services:
       retries: 5
 
   minio:
-    image: minio/minio:latest
     container_name: minio_container
+    image: minio/minio:latest
     ports:
       - '9000:9000'
       - '9001:9001'
@@ -83,8 +83,8 @@ services:
       retries: 3
 
   zookeeper:
-    image: confluentinc/cp-zookeeper:7.5.0
     container_name: zookeeper_container
+    image: confluentinc/cp-zookeeper:7.5.0
     restart: always
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
@@ -93,8 +93,8 @@ services:
       - common
 
   kafka:
-    image: confluentinc/cp-kafka:7.5.0
     container_name: kafka_container
+    image: confluentinc/cp-kafka:7.5.0
     restart: always
     depends_on:
       - zookeeper
@@ -126,6 +126,7 @@ services:
       start_period: 15s
 
   api:
+    container_name: app_api
     build:
       context: ../../../../
       dockerfile: packages/infrastructure/Dockerfile
@@ -158,6 +159,7 @@ services:
       start_period: 60s
 
   worker:
+    container_name: app_worker
     build:
       context: ../../../../
       dockerfile: packages/infrastructure/Dockerfile
@@ -188,10 +190,10 @@ services:
 
 
   metrics-proxy-api:
+    container_name: metrics_proxy_api_prod
     build:
       context: ../../common/config
       dockerfile: Dockerfile.metrics-proxy
-    container_name: metrics_proxy_api_prod
     env_file:
       - ./.env
     environment:
@@ -211,10 +213,10 @@ services:
           memory: 64M
 
   metrics-proxy-worker:
+    container_name: metrics_proxy_worker_prod
     build:
       context: ../../common/config
       dockerfile: Dockerfile.metrics-proxy
-    container_name: metrics_proxy_worker_prod
     env_file:
       - ./.env
     environment:
@@ -234,10 +236,10 @@ services:
           memory: 64M
 
   prometheus:
+    container_name: prometheus_prod
     build:
       context: ../../common/config
       dockerfile: Dockerfile.prometheus
-    container_name: prometheus_prod
     ports:
       - "9090:9090"
     volumes:
@@ -265,10 +267,10 @@ services:
           memory: 512M
 
   grafana:
+    container_name: grafana_prod
     build:
       context: ../../common/config
       dockerfile: Dockerfile.grafana
-    container_name: grafana_prod
     ports:
       - "3001:3000"
     environment:

@@ -19,5 +19,14 @@ fi
 
 docker-compose -f "${SCRIPT_DIR}/docker-compose.yml" down -v
 
+print_info "Cleaning up Docker resources..."
+docker container prune -f
+docker network prune -f
+docker volume prune -f
+
+print_info "📊 Docker disk usage after cleanup:"
+docker system prune -a -f
+docker system df
+
 print_success "Jenkins server removed successfully"
 print_info "To start fresh: bash ${SCRIPT_DIR}/start.sh"
