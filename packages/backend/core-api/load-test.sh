@@ -9,8 +9,8 @@ set -e
 # Base configuration
 BASE_URL="http://127.0.0.1:3000"
 DURATION=60
-CONNECTIONS=20
-WORKERS=8
+CONNECTIONS=60
+WORKERS=32
 
 # Colors for output
 GREEN='\033[0;32m'
