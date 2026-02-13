@@ -42,7 +42,7 @@ import { UsersResolver } from '@modules/users/users.resolver';
   exports: []
 })
 export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer): void {
+  configure (consumer: MiddlewareConsumer): void {
     consumer.apply(MetricsMiddleware, HeaderAuthMiddleware).forRoutes(ALL_ROUTES);
     consumer.apply(LoggerMiddleware, MaintenanceMiddleware).forRoutes(ALL_ROUTES);
   }
