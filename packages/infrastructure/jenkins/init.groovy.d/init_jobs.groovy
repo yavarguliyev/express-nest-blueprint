@@ -33,6 +33,7 @@ pipeline {
     agent any
     parameters {
         choice(name: 'ACTION', choices: ['deploy', 'restart', 'stop', 'remove'], description: 'Select action to perform')
+        choice(name: 'RUN_MODE', choices: ['node', 'pm2'], description: 'Runtime mode: node (single instance) or pm2 (cluster mode)')
     }
     stages {
         stage('Execute') {
@@ -42,7 +43,7 @@ pipeline {
                     dir('/var/jenkins_home/workspace/project/packages/infrastructure/deployments/dev') {
                         sh "chmod +x ${scriptName}"
                         def forceFlag = (params.ACTION == 'remove') ? ' --force' : ''
-                        sh "bash ${scriptName}${forceFlag}"
+                        sh "export RUN_MODE=${params.RUN_MODE} && bash ${scriptName}${forceFlag}"
                     }
                 }
             }
@@ -84,6 +85,7 @@ pipeline {
     agent any
     parameters {
         choice(name: 'ACTION', choices: ['deploy', 'restart', 'stop', 'remove'], description: 'Select action to perform')
+        choice(name: 'RUN_MODE', choices: ['node', 'pm2'], description: 'Runtime mode: node (single instance) or pm2 (cluster mode)')
     }
     stages {
         stage('Execute') {
@@ -93,7 +95,7 @@ pipeline {
                     dir('/var/jenkins_home/workspace/project/packages/infrastructure/deployments/prod') {
                         sh "chmod +x ${scriptName}"
                         def forceFlag = (params.ACTION == 'remove') ? ' --force' : ''
-                        sh "bash ${scriptName}${forceFlag}"
+                        sh "export RUN_MODE=${params.RUN_MODE} && bash ${scriptName}${forceFlag}"
                     }
                 }
             }

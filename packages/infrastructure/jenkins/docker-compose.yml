@@ -26,6 +26,13 @@ services:
       - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
       - CASC_JENKINS_CONFIG=/var/jenkins_home/casc.yaml
       - JENKINS_ADMIN_PASSWORD=admin123
+      # Disable proxy for Docker image pulls
+      - HTTP_PROXY=
+      - HTTPS_PROXY=
+      - NO_PROXY=*
+      - http_proxy=
+      - https_proxy=
+      - no_proxy=*
     extra_hosts:
       - "api.local:host-gateway"
       - "grafana.local:host-gateway"

@@ -137,6 +137,7 @@ services:
     environment:
       APP_ROLE: API
       NODE_ENV: production
+      RUN_MODE: ${RUN_MODE:-node}
     depends_on:
       postgres:
         condition: service_healthy
@@ -167,6 +168,7 @@ services:
     environment:
       APP_ROLE: WORKER
       NODE_ENV: production
+      RUN_MODE: ${RUN_MODE:-node}
     depends_on:
       postgres:
         condition: service_healthy

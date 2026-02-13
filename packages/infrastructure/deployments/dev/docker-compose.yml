@@ -100,6 +100,7 @@ services:
       APP_ROLE: API
       COMPUTE_APP_ROLE: API
       KAFKA_CLIENT_ID: express-nest-blueprint-api
+      RUN_MODE: ${RUN_MODE:-node}
     ports:
       - "3000:3000"
     depends_on:
@@ -126,6 +127,7 @@ services:
       APP_ROLE: WORKER
       COMPUTE_APP_ROLE: WORKER
       KAFKA_CLIENT_ID: express-nest-blueprint-worker
+      RUN_MODE: ${RUN_MODE:-node}
     depends_on:
       postgres:
         condition: service_started

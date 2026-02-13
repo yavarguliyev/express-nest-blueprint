@@ -1,0 +1,27 @@
+{
+  "apps": [
+    {
+      "name": "express-nest-api",
+      "script": "packages/backend/core-api/dist/main.js",
+      "instances": 8,
+      "exec_mode": "cluster",
+      "env": {
+        "NODE_ENV": "production",
+        "KAFKAJS_NO_PARTITIONER_WARNING": "1"
+      },
+      "log_date_format": "YYYY-MM-DD HH:mm:ss Z",
+      "error_file": "./logs/pm2-error.log",
+      "out_file": "./logs/pm2-out.log",
+      "merge_logs": true,
+      "autorestart": true,
+      "watch": false,
+      "max_memory_restart": "500M",
+      "ignore_watch": ["node_modules", "logs"],
+      "min_uptime": "10s",
+      "max_restarts": 10,
+      "kill_timeout": 5000,
+      "wait_ready": true,
+      "listen_timeout": 10000
+    }
+  ]
+}
