@@ -13,7 +13,12 @@ import {
 } from '@config/libs';
 
 import { UsersService } from '@modules/users/users.service';
-import { User, UserList, DeleteResponse, CreateUserInput, UpdateUserInput, UsersArgs } from '@modules/users/graphql/user.types';
+import { UsersArgs } from '@modules/users/args/users.args';
+import { UpdateUserInput } from '@modules/users/args/update-user.args';
+import { CreateUserInput } from '@modules/users/args/create-user.args';
+import { DeleteResponse } from '@modules/users/args/delete-response.args';
+import { UserList } from '@modules/users/args/user-list.args';
+import { User } from '@modules/users/args/user.args';
 
 @Injectable()
 @Resolver()

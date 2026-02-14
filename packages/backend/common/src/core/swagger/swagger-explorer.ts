@@ -5,6 +5,7 @@ import { CONTROLLER_METADATA } from '../decorators/controller.decorator';
 import { PARAM_METADATA } from '../decorators/param.decorators';
 import { CONTROLLER_REGISTRY } from '../decorators/register-controller-class.decorator';
 import { ROUTE_METADATA } from '../decorators/route.decorators';
+import { GUARDS_METADATA } from '../decorators/middleware.decorators';
 import { API_SECURITY_KEY } from '../decorators/swagger.decorators';
 import { RouteMetadata, ParamMetadata } from '../../domain/interfaces/nest/nest-core.interface';
 import { OpenAPISchema, SwaggerConfig, OpenAPIObject, OpenAPIOperation } from '../../domain/interfaces/infra/swagger-config.interface';
@@ -62,6 +63,14 @@ export class SwaggerExplorer {
           else if (controllerRequiresAuth) requiresAuth = true;
 
           if (requiresAuth || roles) operation.security = [{ bearerAuth: [] }];
+
+          const classGuards = (Reflect.getMetadata(GUARDS_METADATA, controller) || []) as Constructor[];
+          const methodGuards = (Reflect.getMetadata(GUARDS_METADATA, prototype, methodName) || []) as Constructor[];
+          const allGuards = [...classGuards, ...methodGuards];
+
+          if (allGuards.some(g => g.name === 'HeaderAuthGuard')) {
+           operation.security = [...(operation.security || []), { 'health-key': [] }];
+          }
 
           const methodSecurity = Reflect.getMetadata(API_SECURITY_KEY, prototype, methodName) as Record<string, string[]>[];
           const controllerSecurity = Reflect.getMetadata(API_SECURITY_KEY, controller) as Record<string, string[]>[];
@@ -182,8 +191,8 @@ export class SwaggerExplorer {
 
   private normalizePath (base: string, path: string): string {
     const combined = `/${base}/${path}`.replace(/\/+/g, '/');
-    const result = combined.replace(/:([a-zA-Z0-9_]+)/g, '{$1}');
-    return result === '' ? '/' : result;
+    const result = (combined.length > 1 && combined.endsWith('/')) ? combined.slice(0, -1) : combined;
+    return result.replace(/:([a-zA-Z0-9_]+)/g, '{$1}');
   }
 
   private humanize (str: string): string {
