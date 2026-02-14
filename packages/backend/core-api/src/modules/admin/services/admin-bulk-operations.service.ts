@@ -1,57 +1,28 @@
+import { Job, QueueEvents } from 'bullmq';
 import {
   getErrorMessage,
   Injectable,
-  InternalServerErrorException,
-  DatabaseService,
   DatabaseOperation,
   BulkOperationResponse,
-  OperationResult,
   ValidationResult,
   ValidationItem,
   ConflictItem,
-  JwtPayload
+  JwtPayload,
+  QueueManager,
+  RedisService
 } from '@config/libs';
 
 import { AdminCrudService } from '@modules/admin/services/admin-crud.service';
 
 @Injectable()
 export class AdminBulkOperationsService {
+  private queueEventsMap = new Map<string, QueueEvents>();
+
   constructor (
     private readonly adminCrudService: AdminCrudService,
-    private readonly databaseService: DatabaseService
+    private readonly queueManager: QueueManager,
+    private readonly redisService: RedisService
   ) {}
-
-  async processBulkOperations (operations: DatabaseOperation[], user: JwtPayload): Promise<BulkOperationResponse> {
-    if (operations.length === 0) {
-      return { success: true, results: [], summary: { total: 0, successful: 0, failed: 0 } };
-    }
-
-    const database = this.databaseService.getWriteConnection();
-
-    return database.transaction(async () => {
-      const results: OperationResult[] = [];
-
-      for (const operation of operations) {
-        try {
-          const result = await this.executeOperation(operation, user);
-          results.push({ operation, success: true, data: result });
-        } catch (error) {
-          results.push({ operation, success: false, error: getErrorMessage(error) });
-          throw error;
-        }
-      }
-
-      return {
-        success: true,
-        results,
-        summary: {
-          total: operations.length,
-          successful: results.filter(r => r.success).length,
-          failed: results.filter(r => !r.success).length
-        }
-      };
-    });
-  }
 
   validateOperations (operations: DatabaseOperation[]): ValidationResult {
     const validationResults: ValidationItem[] = [];
@@ -94,6 +65,33 @@ export class AdminBulkOperationsService {
     };
   }
 
+  async processBulkOperations (operations: DatabaseOperation[], user: JwtPayload, wait = false): Promise<BulkOperationResponse> {
+    if (operations.length === 0) return { success: true, results: [], summary: { total: 0, successful: 0, failed: 0 } };
+
+    const sanitizedOperations = operations.map(op => ({
+      ...op,
+      data: op.data ? this.sanitizeData(op.data) : undefined
+    }));
+
+    const queue = this.queueManager.createQueue('admin-commands');
+    const job = await queue.add('admin.bulk.execute', { operations: sanitizedOperations, user });
+
+    if (wait) return (await this.waitForJobCompletion('admin-commands', job)) as BulkOperationResponse;
+
+    const response: BulkOperationResponse = {
+      success: true,
+      results: [],
+      summary: {
+        total: operations.length,
+        successful: 0,
+        failed: 0
+      }
+    };
+
+    if (job.id) response.jobId = job.id;
+    return response;
+  }
+
   async detectConflicts (operations: DatabaseOperation[]): Promise<{ conflicts: ConflictItem[] }> {
     const conflicts: ConflictItem[] = [];
 
@@ -124,25 +122,16 @@ export class AdminBulkOperationsService {
     return { conflicts };
   }
 
-  private async executeOperation (operation: DatabaseOperation, user: JwtPayload): Promise<unknown> {
-    switch (operation.type) {
-      case 'create':
-        return this.adminCrudService.createTableRecord(operation.category, operation.table, this.sanitizeData(operation.data!));
-      case 'update':
-        return this.adminCrudService.updateTableRecord(
-          operation.category,
-          operation.table,
-          operation.recordId!,
-          this.sanitizeData(operation.data!),
-          user
-        );
-      case 'delete':
-        return this.adminCrudService.deleteTableRecord(operation.category, operation.table, operation.recordId!, user);
-      default: {
-        const exhaustiveCheck: never = operation.type;
-        throw new InternalServerErrorException(`Unsupported operation type: ${String(exhaustiveCheck)}`);
-      }
+  private async waitForJobCompletion (queueName: string, job: Job): Promise<unknown> {
+    const queueNameWithHash = queueName.startsWith('{') ? queueName : `{${queueName}}`;
+
+    let queueEvents = this.queueEventsMap.get(queueNameWithHash);
+    if (!queueEvents) {
+      queueEvents = new QueueEvents(queueNameWithHash, { connection: this.redisService.getClient() });
+      this.queueEventsMap.set(queueNameWithHash, queueEvents);
     }
+
+    return await job.waitUntilFinished(queueEvents, 60000);
   }
 
   private sanitizeData (data: Record<string, unknown>): Record<string, unknown> {

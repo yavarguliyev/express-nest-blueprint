@@ -1,5 +1,5 @@
 import { Queue, QueueOptions } from 'bullmq';
-import Redis from 'ioredis';
+import Redis, { Cluster } from 'ioredis';
 
 import { RedisService } from '../../redis/redis.service';
 import { Injectable } from '../../../core/decorators/injectable.decorator';
@@ -9,7 +9,7 @@ import { QueueHealth } from '../../../domain/interfaces/infra/bullmq.interface';
 @Injectable()
 export class QueueManager {
   private readonly queues = new Map<string, Queue>();
-  private readonly redis: Redis;
+  private readonly redis: Redis | Cluster;
 
   constructor (private readonly redisService: RedisService) {
     this.redis = this.redisService.getClient();
@@ -32,7 +32,8 @@ export class QueueManager {
       ...options
     };
 
-    const queue = new Queue(name, queueOptions);
+    const queueNameWithHash = name.startsWith('{') ? name : `{${name}}`;
+    const queue = new Queue(queueNameWithHash, queueOptions);
     this.queues.set(name, queue);
 
     return queue;

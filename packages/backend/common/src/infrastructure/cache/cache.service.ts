@@ -16,11 +16,34 @@ export class CacheService {
     return JSON.parse(data) as T;
   }
 
-  async set (key: string, value: unknown, ttl?: number): Promise<void> {
+  async set (key: string, value: unknown, ttl?: number, tags: string[] = []): Promise<void> {
     const data = JSON.stringify(value);
-    if (ttl) await this.redisService.getClient().set(key, data, 'EX', ttl);
-    else await this.redisService.getClient().set(key, data);
+    const client = this.redisService.getClient();
+    
+    if (ttl) await client.set(key, data, 'EX', ttl);
+    else await client.set(key, data);
+
+    if (tags.length > 0) {
+      for (const tag of tags) {
+        const tagKey = `{cache:tag}:${tag}`;
+        await client.sadd(tagKey, key);
+        if (ttl) await client.expire(tagKey, ttl);
+      }
+    }
+
     this.metricsService.recordCacheOperation('set', 'success');
+  }
+
+  async invalidateTags (tags: string[]): Promise<void> {
+    const client = this.redisService.getClient();
+    for (const tag of tags) {
+      const tagKey = `{cache:tag}:${tag}`;
+      const keys = await client.smembers(tagKey);
+      if (keys.length > 0) {
+        await Promise.all(keys.map(key => client.del(key)));
+        await client.del(tagKey);
+      }
+    }
   }
 
   async delete (key: string): Promise<void> {

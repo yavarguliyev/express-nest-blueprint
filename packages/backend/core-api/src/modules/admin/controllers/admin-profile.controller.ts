@@ -1,4 +1,4 @@
-import { ApiController, AuthenticatedRequest, Body, Delete, Get, Patch, Post, Req, Roles, UserRoles } from '@config/libs';
+import { ApiController, AuthenticatedRequest, Body, Delete, Get, Patch, Post, Req, Roles, UserRoles, JobResponseDto } from '@config/libs';
 
 import { UsersService } from '@modules/users/users.service';
 import { UserResponseDto } from '@modules/users/dtos/user-response.dto';
@@ -15,7 +15,7 @@ export class AdminProfileController {
   }
 
   @Patch('/')
-  async updateProfile (@Req() req: AuthenticatedRequest, @Body() body: UpdateUserDto): Promise<UserResponseDto> {
+  async updateProfile (@Req() req: AuthenticatedRequest, @Body() body: UpdateUserDto): Promise<JobResponseDto> {
     return this.usersService.update(String(req.user.sub), body);
   }
 

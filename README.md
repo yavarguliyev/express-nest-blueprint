@@ -61,85 +61,52 @@
 
 # 🏗 Architecture Overview
 
-We have transitioned to a **Monorepo** structure to ensure independent scalability and microservices readiness.
-
-### Core Components
-
-- **Shared Kernel (`packages/backend/common`)**: Single source of truth for guards, decorators, and utils.
-- **Backend (`packages/backend/core-api`)**: The main API gateway and worker manager.
-- **Frontend (`packages/frontend/admin`)**: The administrative UI.
-- **Infrastructure (`packages/infrastructure`)**: Centralized DevOps configuration.
+The system is a **Brain & Muscles** architecture. The **API (Brain)** handles logic instantly, while **Workers (Muscles)** process data in the background.
 
 ```mermaid
 graph TD
-    User["User (Admin Panel)"]
+    User["📱 User"]
+    API["🧠 The Brain (API)"]
+    Queue["⚡ Task Queue"]
+    Worker["💪 The Muscles (Worker)"]
+    DB[("💾 Database")]
 
-    subgraph Frontend["Frontend (Angular)"]
-        UI["Admin UI"]
-    end
-
-    subgraph Backend["Backend"]
-        API["API Gateway (Role: API)"]
-        Worker["Background Worker (Role: WORKER)"]
-
-        API -- "@Compute" --> Redis
-        Worker -- "Pulls Jobs" --> Redis
-    end
-
-    subgraph Infra["Infrastructure"]
-        Postgres[("PostgreSQL")]
-        Redis[("Redis / BullMQ")]
-        Kafka[("Apache Kafka")]
-    end
-
-    User <--> UI
-    UI <--> API
-    API <--> Postgres
-
-    API -- "Produces Events" --> Kafka
-    Kafka -- "Consumes Events" --> Worker
-    Worker -- "Persists / Updates" --> Postgres
+    User <--> API
+    API -- "Queues Work" --> Queue
+    Queue --> Worker
+    Worker --> DB
+    API -- "Reads" --> DB
 ```
 
 ---
 
-# 🧩 Interaction Flow in DDD and Architecture
+# 🧩 Interaction Flow: How it Works
 
-This project strictly adheres to Domain-Driven Design (DDD) principles, ensuring that each layer has a clear responsibility and that dependencies flow inwards.
+We prioritize **Speed**. The moment you click save, the API confirms success and continues processing in the background.
+
+### The Success Sequence
 
 ```mermaid
-graph LR
-    subgraph RequestLayer["1. Request Layer"]
-        Ctrl["Controller"]
-    end
+sequenceDiagram
+    autonumber
+    participant User as 📱 User Dashboard
+    participant API as 🧠 The Brain (API)
+    participant Queue as ⚡ Task Queue
+    participant Worker as 💪 The Muscles (Worker)
 
-    subgraph DomainLayer["2. Business Logic"]
-        Service["Service"]
-        Compute["@Compute Proxy"]
-    end
-
-    subgraph Messaging["3. Event Bus / Queue"]
-        Kafka["Kafka (Events)"]
-        BullMQ["BullMQ (Jobs)"]
-    end
-
-    subgraph InfraLayer["4. Infrastructure"]
-        Handler["EventHandler / Worker"]
-        Repo["Repository"]
-    end
-
-    subgraph DB["5. Persistence"]
-        PG[("Postgres")]
-    end
-
-    Ctrl --> Service
-    Service -- "Side Effect" --> Kafka
-    Service -- "Compute Task" --> Compute
-    Compute --> BullMQ
-    Kafka --> Handler
-    Handler --> Repo
-    Repo --> PG
+    User->>API: Click "Save" or "Delete"
+    API->>Queue: Offload heavy task
+    API-->>User: 🚀 Instant "Success" Payload
+    
+    Note over Queue, Worker: Processing continues...
+    Queue->>Worker: Pick up task
+    Worker->>Database: Save final data state
 ```
+
+### Why it feels so fast
+1.  **Instant Response**: The API replies at **Step 3**, long before the database work is even finished.
+2.  **No Waiting**: Your mouse is never "stuck" spinning; the system processes 1000s of requests in parallel.
+3.  **Guaranteed Finish**: Even if you close the browser at Step 3, the **Muscles (Worker)** will finish the job safely.
 
 ## 1. Request Layer
 

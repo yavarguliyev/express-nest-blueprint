@@ -19,6 +19,7 @@ import { MetricsModule } from '../infrastructure/metrics/metrics.module';
 import { RedisModule } from '../infrastructure/redis/redis.module';
 import { StorageModule } from '../infrastructure/storage/storage.module';
 import { ThrottlerModule } from '../infrastructure/throttler/throttler.module';
+import { BullMQModule } from '../infrastructure/bullmq/bullmq.module';
 
 @Module({
   imports: [
@@ -33,7 +34,8 @@ import { ThrottlerModule } from '../infrastructure/throttler/throttler.module';
     ThrottlerModule,
     MetricsModule,
     CircuitBreakerModule,
-    KafkaModule.forRoot()
+    KafkaModule.forRoot(),
+    BullMQModule.forRoot()
   ],
   controllers: [],
   providers: [
@@ -64,7 +66,9 @@ import { ThrottlerModule } from '../infrastructure/throttler/throttler.module';
         'CACHE_INITIALIZER',
         'GRAPHQL_INITIALIZER',
         'KAFKA_INITIALIZER',
-        'KAFKA_SUBSCRIBER_INITIALIZER'
+        'KAFKA_SUBSCRIBER_INITIALIZER',
+        'BULLMQ_INITIALIZER',
+        'BULLMQ_WORKER_INITIALIZER'
       ]
     }
   ],

@@ -5,6 +5,12 @@ export interface CrudTableOptions {
   category: string;
   name: string;
   displayName?: string;
+  commandQueue?: string;
+  operationMapping?: Record<string, string>;
+  cacheConfig?: {
+    prefix: string;
+    detailKey?: (id: string | number) => string;
+  };
   actions?: {
     create?: boolean;
     update?: boolean;

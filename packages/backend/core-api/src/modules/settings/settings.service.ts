@@ -7,16 +7,14 @@ import { UpdateSettingsDto } from '@modules/settings/dtos/update-settings.dto';
 
 @Injectable()
 export class SettingsService {
-  constructor (
-    private readonly settingsRepository: SettingsRepository
-  ) {}
+  constructor (private readonly settingsRepository: SettingsRepository) {}
 
   async getAllSettings (): Promise<SettingsResponseDto[]> {
     const settings = await this.getAllSettingsRaw();
     return this.transformToResponse(settings);
   }
 
-  @Cache({ ttl: CACHE_TTL_1_MIN, key: CACHE_KEYS.SETTINGS })
+  @Cache({ ttl: CACHE_TTL_1_MIN, key: CACHE_KEYS.SETTINGS.LIST_PREFIX })
   async getAllSettingsRaw (): Promise<SystemSetting[]> {
     return this.settingsRepository.findAll();
   }
@@ -37,7 +35,7 @@ export class SettingsService {
     return setting.value as T;
   }
 
-  @InvalidateCache({ keys: [CACHE_KEYS.SETTINGS] })
+  @InvalidateCache({ keys: [CACHE_KEYS.SETTINGS.LIST_PREFIX] })
   async updateSettings (updateDto: UpdateSettingsDto): Promise<SettingsResponseDto[]> {
     const updatedSettings: SystemSetting[] = [];
 

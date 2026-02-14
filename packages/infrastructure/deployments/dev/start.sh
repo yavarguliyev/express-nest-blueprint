@@ -57,15 +57,69 @@ while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
   fi
 done
 
-print_info "Starting services..."
-docker-compose --project-name $PROJECT_NAME up -d
+initialize_redis_cluster() {
+  print_info "Checking Redis cluster status..."
+  
+  # Load REDIS_PASSWORD from .env
+  local REDIS_PASSWORD=$(grep '^REDIS_PASSWORD=' .env | cut -d '=' -f2-)
+  
+  # Wait for all nodes to be ready
+  print_info "Waiting for all Redis nodes to be reachable..."
+  for node in {1..8}; do
+    until docker exec redis_node_${node} redis-cli -a "${REDIS_PASSWORD}" ping > /dev/null 2>&1; do
+      echo -n "."
+      sleep 1
+    done
+  done
+  echo ""
+
+  # Check cluster state
+  local state=$(docker exec redis_node_1 redis-cli -a "${REDIS_PASSWORD}" cluster info 2>/dev/null | grep 'cluster_state:' | cut -d ':' -f2 | tr -d '\r')
+  
+  if [ "$state" != "ok" ]; then
+    print_warn "Redis cluster is not initialized (state: $state). Initializing now..."
+    
+    # Ensure nodes are clean before creating cluster
+    print_info "Cleaning Redis nodes..."
+    for node in {1..8}; do
+      docker exec redis_node_${node} redis-cli -a "${REDIS_PASSWORD}" flushall > /dev/null 2>&1 || true
+      docker exec redis_node_${node} redis-cli -a "${REDIS_PASSWORD}" cluster reset > /dev/null 2>&1 || true
+    done
+
+    docker exec redis_node_1 redis-cli -a "${REDIS_PASSWORD}" --cluster create \
+      redis_node_1:6379 \
+      redis_node_2:6379 \
+      redis_node_3:6379 \
+      redis_node_4:6379 \
+      redis_node_5:6379 \
+      redis_node_6:6379 \
+      redis_node_7:6379 \
+      redis_node_8:6379 \
+      --cluster-replicas 1 --cluster-yes || print_error "Failed to initialize Redis cluster"
+    
+    # Wait for cluster to stabilize
+    sleep 5
+    print_info "Redis cluster initialized successfully!"
+  else
+    print_info "Redis cluster is already healthy."
+  fi
+}
+
+print_info "Starting services with project name: ${PROJECT_NAME}..."
+docker-compose --project-name "${PROJECT_NAME}" up -d
+
+# Initialize Redis Cluster if needed
+initialize_redis_cluster
 
 print_info "Cleaning up unused Docker resources..."
+
 docker container prune -f
 docker network prune -f
 docker volume prune -f
 
 print_info "📊 Docker disk usage:"
+
+docker system prune -a -f
 docker system df
 
 print_info ""

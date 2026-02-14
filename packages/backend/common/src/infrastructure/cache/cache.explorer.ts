@@ -44,7 +44,8 @@ export class CacheExplorer {
       if (cachedResult !== null) return cachedResult;
 
       const result = await originalMethod.apply(this, args);
-      await cacheService.set(cacheKey, result, options.ttl);
+      const tags = options.prefix ? [options.prefix] : [];
+      await cacheService.set(cacheKey, result, options.ttl, tags);
       return result;
     };
   }

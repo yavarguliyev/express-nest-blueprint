@@ -3,15 +3,15 @@ import { Worker, Job, QueueEvents } from 'bullmq';
 import { BullMQService } from '../bullmq/services/bullmq.service';
 import { QueueManager } from '../bullmq/services/queue-manager.service';
 import { Logger } from '../logger/logger.service';
+import { RedisService } from '../redis/redis.service';
 import { Container } from '../../core/container/container';
-import { BULLMQ_OPTIONS, COMPUTE_MODULE_OPTIONS } from '../../core/decorators/bullmq.decorators';
+import { COMPUTE_MODULE_OPTIONS, QUEUE_NAME_METADA } from '../../core/decorators/bullmq.decorators';
 import { Injectable, Inject } from '../../core/decorators/injectable.decorator';
 import { BadRequestException, ServiceUnavailableException } from '../../domain/exceptions/http-exceptions';
 import { getErrorMessage } from '../../domain/helpers/utility-functions.helper';
 import {
   ComputeHandler,
   PendingJob,
-  BullMQModuleOptions,
   ComputeModuleOptions,
   ComputeJobData,
   PatchedMethod,
@@ -25,24 +25,19 @@ export class ComputeService {
   private readonly logger = new Logger(ComputeService.name);
   private handlers = new Map<string, ComputeHandler>();
   private pendingJobs = new Map<string, PendingJob>();
-  private readonly QUEUE_NAME = 'compute-queue';
+  private readonly QUEUE_NAME = QUEUE_NAME_METADA;
   private worker!: Worker;
   private queueEvents!: QueueEvents;
 
   constructor (
     private readonly bullMqService: BullMQService,
-    @Inject(BULLMQ_OPTIONS) private readonly options: BullMQModuleOptions,
     private readonly queueManager: QueueManager,
+    private readonly redisService: RedisService,
     @Inject(COMPUTE_MODULE_OPTIONS) private readonly moduleOptions: ComputeModuleOptions
   ) {}
 
   public start (): void {
-    const connection = {
-      host: this.options.redis.host,
-      port: this.options.redis.port || 6379,
-      password: this.options.redis.password || '',
-      db: this.options.redis.db || 0
-    };
+    const connection = this.redisService.getClient();
 
     this.queueEvents = new QueueEvents(this.QUEUE_NAME, { connection });
     this.queueManager.createQueue(this.QUEUE_NAME);
@@ -54,7 +49,6 @@ export class ComputeService {
         this.pendingJobs.delete(jobId);
       }
     });
-
 
     this.queueEvents.on('failed', ({ jobId, failedReason }: { jobId: string; failedReason: string }) => {
       const pending = this.pendingJobs.get(jobId);
@@ -97,9 +91,7 @@ export class ComputeService {
         const timeout = options.timeout ?? 5000;
 
         return await Promise.race([
-          new Promise((resolve, reject) => {
-            this.pendingJobs.set(job.id!, { resolve, reject });
-          }),
+          new Promise((resolve, reject) => this.pendingJobs.set(job.id!, { resolve, reject })),
           new Promise((_, reject) => {
             setTimeout(() => {
               this.pendingJobs.delete(job.id!);
@@ -110,7 +102,6 @@ export class ComputeService {
       } catch {
         return originalMethod.apply(instance, args);
       }
-
     };
 
     (patchedMethod as PatchedMethod).__original__ = originalMethod as (...args: unknown[]) => Promise<unknown>;

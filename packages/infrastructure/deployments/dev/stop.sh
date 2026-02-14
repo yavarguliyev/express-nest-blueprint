@@ -32,13 +32,13 @@ print_info "Currently running containers:"
 docker ps --filter "name=$PROJECT_NAME" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
 print_info ""
-print_info "Stopping containers..."
-docker-compose --project-name $PROJECT_NAME down
+print_info "Stopping containers for project: ${PROJECT_NAME}..."
+docker-compose --project-name "${PROJECT_NAME}" down
 
 # Force kill any remaining containers
-RUNNING_CONTAINERS=$(docker ps -a --filter "name=$PROJECT_NAME" -q)
+RUNNING_CONTAINERS=$(docker ps -a --filter "name=${PROJECT_NAME}" -q)
 if [ -n "$RUNNING_CONTAINERS" ]; then
-  print_warn "Force stopping remaining containers..."
+  print_warn "Force stopping remaining containers for project: ${PROJECT_NAME}..."
   docker kill $RUNNING_CONTAINERS 2>/dev/null || true
 fi
 

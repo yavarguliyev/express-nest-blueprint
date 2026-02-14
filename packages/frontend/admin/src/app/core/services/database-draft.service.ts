@@ -166,12 +166,16 @@ export class DatabaseDraftService {
         success: boolean;
         data: BulkOperationResponse;
         message?: string;
-      }>(API_ENDPOINTS.ADMIN.BULK_OPERATIONS, request)
+      }>(`${API_ENDPOINTS.ADMIN.BULK_OPERATIONS}?wait=true`, request)
       .pipe(
         map((response) => response.data),
         tap((bulkResponse) => {
-          if (bulkResponse.success) {
+          if (bulkResponse.success && bulkResponse.results) {
             const cssTokenOperations = operations.filter((op) => op.table === 'css_tokens');
+
+            const currentDrafts = this._drafts();
+            const newDrafts = new Map(currentDrafts);
+            let draftsChanged = false;
 
             bulkResponse.results.forEach((result) => {
               if (result.success) {
@@ -180,13 +184,16 @@ export class DatabaseDraftService {
                   result.operation.table,
                   result.operation.recordId,
                 );
-                const currentDrafts = this._drafts();
-                const newDrafts = new Map(currentDrafts);
-                newDrafts.delete(draftId);
-                this._drafts.set(newDrafts);
+                if (newDrafts.delete(draftId)) {
+                  draftsChanged = true;
+                }
               }
             });
-            this.saveDraftsToStorage();
+
+            if (draftsChanged) {
+              this._drafts.set(newDrafts);
+              this.saveDraftsToStorage();
+            }
 
             if (cssTokenOperations.length > 0) {
               this.tokenNotificationService.notifyAllTokensUpdated('database');

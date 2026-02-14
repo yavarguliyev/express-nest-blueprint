@@ -8,9 +8,9 @@ set -e
 
 # Base configuration
 BASE_URL="http://127.0.0.1:3000"
-DURATION=60
-CONNECTIONS=60
-WORKERS=32
+DURATION=10
+CONNECTIONS=120
+WORKERS=8
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -160,7 +160,7 @@ case "${1:-help}" in
     # ========================================
     
     admin-bulk)
-        print_warn "Replace eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiZ3VsaXlldi55YXZhckBleGFtcGxlLmNvbSIsInJvbGUiOiJnbG9iYWwgYWRtaW4iLCJpYXQiOjE3NzA5NjY3ODQsImV4cCI6MTc3MTA1MzE4NH0.AIAtA8EsbC2w3X6Nd3l-TtEe2syqXNhGAevoz8DIx04 with actual admin bearer token"
+        print_warn "Replace YOUR_JWT_TOKEN and USER_ID with actual admin bearer token"
         autocannon \
             --workers $WORKERS \
             -c $CONNECTIONS \
@@ -170,19 +170,19 @@ case "${1:-help}" in
             -m POST \
             -H "Content-Type: application/json" \
             -H "Accept: application/json" \
-            -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiZ3VsaXlldi55YXZhckBleGFtcGxlLmNvbSIsInJvbGUiOiJnbG9iYWwgYWRtaW4iLCJpYXQiOjE3NzA5NjY3ODQsImV4cCI6MTc3MTA1MzE4NH0.AIAtA8EsbC2w3X6Nd3l-TtEe2syqXNhGAevoz8DIx04" \
+            -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiZ3VsaXlldi55YXZhckBleGFtcGxlLmNvbSIsInJvbGUiOiJnbG9iYWwgYWRtaW4iLCJpYXQiOjE3NzEwNjA1ODIsImV4cCI6MTc3MTE0Njk4Mn0.mm-DfmVQDlWZYvJWnkyaQRpKtVMhmC0J07bCoz7h2WA" \
             -b '{
                 "operations": [
-                    {"type":"update","table":"users","category":"Database Management","recordId":3,"data":{"isActive":false}},
-                    {"type":"update","table":"users","category":"Database Management","recordId":4,"data":{"isActive":false}},
+                    {"type":"update","table":"users","category":"Database Management","recordId":3,"data":{"isActive":true}},
+                    {"type":"update","table":"users","category":"Database Management","recordId":4,"data":{"isActive":true}},
                     {"type":"update","table":"users","category":"Database Management","recordId":5,"data":{"isActive":true}},
                     {"type":"update","table":"users","category":"Database Management","recordId":6,"data":{"isActive":true}},
-                    {"type":"update","table":"users","category":"Database Management","recordId":7,"data":{"isActive":false}},
-                    {"type":"update","table":"users","category":"Database Management","recordId":8,"data":{"isActive":false}},
+                    {"type":"update","table":"users","category":"Database Management","recordId":7,"data":{"isActive":true}},
+                    {"type":"update","table":"users","category":"Database Management","recordId":8,"data":{"isActive":true}},
                     {"type":"update","table":"users","category":"Database Management","recordId":9,"data":{"isActive":true}},
                     {"type":"update","table":"users","category":"Database Management","recordId":10,"data":{"isActive":true}},
                     {"type":"update","table":"users","category":"Database Management","recordId":3,"data":{"isEmailVerified":true}},
-                    {"type":"update","table":"users","category":"Database Management","recordId":4,"data":{"isEmailVerified":false}}
+                    {"type":"update","table":"users","category":"Database Management","recordId":4,"data":{"isEmailVerified":true}}
                 ]
             }' \
             "${BASE_URL}/api/v1/admin/bulk-operations"

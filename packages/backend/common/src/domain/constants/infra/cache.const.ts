@@ -7,8 +7,14 @@ export const CACHE_TTL_1_HOUR = 3600;
 export const CACHE_TTL_1_DAY = 86400;
 
 export const CACHE_KEYS = {
-  SETTINGS: 'system:all_settings',
-  USER_LIST: 'users:list',
-  USER_PROFILE: (id: string | number) => `users:profile:${id}`,
-  THEMES: 'system:themes'
+  SETTINGS: {
+    LIST_PREFIX: '{system_all_settings}:list'
+  },
+  THEMES: {
+    LIST_PREFIX: '{system_themes}:list'
+  },
+  USERS: {
+    DETAIL: (id: string | number) => `{user}:detail:${id}`,
+    LIST_PREFIX: '{user}:list:'
+  }
 } as const;

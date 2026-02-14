@@ -32,6 +32,7 @@ export interface BulkOperationResponse {
   success: boolean;
   results: OperationResult[];
   summary: OperationSummary;
+  jobId?: string;
 }
 
 export interface ValidationResult {

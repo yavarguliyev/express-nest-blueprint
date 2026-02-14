@@ -1,3 +1,4 @@
+import { QueueEvents, Job } from 'bullmq';
 import {
   CRUD_TABLE_METADATA_KEY,
   CrudRepository,
@@ -7,7 +8,11 @@ import {
   JwtPayload,
   NotFoundException,
   BaseRepository,
-  parseId
+  parseId,
+  QueueManager,
+  RedisService,
+  CacheService,
+  Logger
 } from '@config/libs';
 
 import { TableMetadata, ColumnMetadata } from '@modules/admin/interfaces/admin.interface';
@@ -23,9 +28,14 @@ import { CssAuditLogRepository } from '@modules/themes/repositories/css-audit-lo
 
 @Injectable()
 export class AdminCrudService {
+  private readonly logger = new Logger(AdminCrudService.name);
   private repositories = new Map<string, RepositoryEntry>();
+  private queueEventsMap = new Map<string, QueueEvents>();
 
   constructor (
+    private readonly queueManager: QueueManager,
+    private readonly redisService: RedisService,
+    private readonly cacheService: CacheService,
     usersRepository: UsersRepository,
     cssFilesRepository: CssFilesRepository,
     cssTokensRepository: CssTokensRepository,
@@ -97,9 +107,20 @@ export class AdminCrudService {
     return entry.repository.findById(parsedId);
   }
 
-  async createTableRecord (category: string, name: string, data: unknown): Promise<unknown> {
+  async createTableRecord (category: string, name: string, data: unknown, currentUser?: JwtPayload, bypassQueue = false): Promise<unknown> {
     const entry = this.repositories.get(`${category}:${name}`);
     if (!entry || !entry.repository.create) throw new NotFoundException(`Table ${category}:${name} not found or unsupported`);
+
+    if (entry.metadata.commandQueue && !bypassQueue) {
+      const jobName = entry.metadata.operationMapping?.['create'] || `${entry.metadata.name}.create`;
+      const queue = this.queueManager.createQueue(entry.metadata.commandQueue);
+      const job = await queue.add(jobName, { data, currentUser });
+
+      const result = (await this.waitForJobCompletion(entry.metadata.commandQueue, job)) as { id?: string | number; userId?: string | number };
+      await this.invalidateCache(entry.metadata, result?.id || result?.userId);
+      return result;
+    }
+
     return entry.repository.create(data);
   }
 
@@ -108,22 +129,61 @@ export class AdminCrudService {
     name: string,
     id: string | number,
     data: Record<string, unknown>,
-    currentUser?: JwtPayload
+    currentUser?: JwtPayload,
+    bypassQueue = false
   ): Promise<unknown> {
     const entry = this.repositories.get(`${category}:${name}`);
     if (!entry || !entry.repository.update) throw new NotFoundException(`Table ${category}:${name} not found or unsupported`);
+
+    if (entry.metadata.commandQueue && !bypassQueue) {
+      const jobName = entry.metadata.operationMapping?.['update'] || `${entry.metadata.name}.update`;
+      const queue = this.queueManager.createQueue(entry.metadata.commandQueue);
+      const job = await queue.add(jobName, { userId: id, data, currentUser });
+
+      await this.waitForJobCompletion(entry.metadata.commandQueue, job);
+      await this.invalidateCache(entry.metadata, id);
+      return { success: true, id };
+    }
+
     const repository = entry.repository as BaseRepository<unknown>;
     const parsedId = parseId(id);
     return repository.update(parsedId, data, undefined, undefined, currentUser);
   }
 
-  async deleteTableRecord (category: string, name: string, id: string | number, currentUser?: JwtPayload): Promise<{ success: boolean }> {
+  async deleteTableRecord (
+    category: string,
+    name: string,
+    id: string | number,
+    currentUser?: JwtPayload,
+    bypassQueue = false
+  ): Promise<{ success: boolean }> {
     const entry = this.repositories.get(`${category}:${name}`);
     if (!entry || !entry.repository.delete) throw new NotFoundException(`Table ${category}:${name} not found or unsupported`);
+
+    if (entry.metadata.commandQueue && !bypassQueue) {
+      const jobName = entry.metadata.operationMapping?.['delete'] || `${entry.metadata.name}.delete`;
+      const queue = this.queueManager.createQueue(entry.metadata.commandQueue);
+      const job = await queue.add(jobName, { userId: id, currentUser });
+
+      await this.waitForJobCompletion(entry.metadata.commandQueue, job);
+      await this.invalidateCache(entry.metadata, id);
+
+      return { success: true };
+    }
+
     const repository = entry.repository as BaseRepository<unknown>;
     const parsedId = parseId(id);
     const success = await repository.delete(parsedId, undefined, currentUser);
+
     return { success };
+  }
+
+  async close (): Promise<void> {
+    for (const queueEvents of this.queueEventsMap.values()) {
+      await queueEvents.close();
+    }
+
+    this.queueEventsMap.clear();
   }
 
   private registerRepository (repository: CrudRepository, repositoryClass: object): void {
@@ -144,6 +204,37 @@ export class AdminCrudService {
   private getTableColumns (tableName: string): ColumnMetadata[] {
     const entry = this.findRepositoryByName(tableName);
     if (!entry || !entry.repository.getColumnMetadata) return [];
-    return entry.repository.getColumnMetadata();
+    return entry.repository.getColumnMetadata() as ColumnMetadata[];
+  }
+
+  private async waitForJobCompletion (queueName: string, job: Job): Promise<unknown> {
+    const queueNameWithHash = queueName.startsWith('{') ? queueName : `{${queueName}}`;
+
+    let queueEvents = this.queueEventsMap.get(queueNameWithHash);
+    if (!queueEvents) {
+      await this.logger.debug(`Creating new QueueEvents listener for ${queueNameWithHash}`);
+      queueEvents = new QueueEvents(queueNameWithHash, { connection: this.redisService.getClient() });
+      this.queueEventsMap.set(queueNameWithHash, queueEvents);
+    }
+
+    await this.logger.debug(`Waiting for job ${job.id} in queue ${queueNameWithHash} (timeout: 10s)...`);
+
+    const result: unknown = await job.waitUntilFinished(queueEvents, 10000);
+    await this.logger.debug(`Job ${job.id} finished successfully`);
+    return result;
+  }
+
+  private async invalidateCache (metadata: CrudTableOptions, id?: string | number): Promise<void> {
+    if (!metadata.cacheConfig) return;
+
+    if (metadata.cacheConfig.prefix) {
+      await this.cacheService.invalidateTags([metadata.cacheConfig.prefix]);
+      await this.logger.debug(`Invalidated cache for prefix: ${metadata.cacheConfig.prefix}`);
+    }
+
+    if (id && metadata.cacheConfig.detailKey) {
+      const detailKey = metadata.cacheConfig.detailKey(id);
+      await this.cacheService.delete(detailKey);
+    }
   }
 }

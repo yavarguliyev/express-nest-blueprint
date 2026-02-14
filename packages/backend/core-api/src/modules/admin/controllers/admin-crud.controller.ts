@@ -42,8 +42,13 @@ export class AdminCrudController extends BaseController {
   }
 
   @Post('/:category/:name')
-  async createTableRecord (@Param('category') category: string, @Param('name') name: string, @Body() data: unknown): Promise<unknown> {
-    return this.adminCrudService.createTableRecord(category, name, data);
+  async createTableRecord (
+    @Param('category') category: string,
+    @Param('name') name: string,
+    @Body() data: unknown,
+    @CurrentUser() user: JwtPayload
+  ): Promise<unknown> {
+    return this.adminCrudService.createTableRecord(category, name, data, user);
   }
 
   @Patch('/:category/:name/:id')

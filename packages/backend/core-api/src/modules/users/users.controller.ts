@@ -13,7 +13,8 @@ import {
   PaginatedResponseDto,
   CurrentUser,
   JwtPayload,
-  UserRoles
+  UserRoles,
+  JobResponseDto
 } from '@config/libs';
 
 import { CreateUserDto } from '@modules/users/dtos/create-user.dto';
@@ -41,17 +42,17 @@ export class UsersController extends BaseController {
   }
 
   @Post()
-  async create (@Body() createUserDto: CreateUserDto): Promise<UserResponseDto | null> {
+  async create (@Body() createUserDto: CreateUserDto): Promise<JobResponseDto> {
     return this.usersService.create(createUserDto);
   }
 
   @Put('/:id')
-  async update (@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @CurrentUser() user: JwtPayload): Promise<UserResponseDto> {
+  async update (@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @CurrentUser() user: JwtPayload): Promise<JobResponseDto> {
     return this.usersService.update(id, updateUserDto, user);
   }
 
   @Delete('/:id')
-  async remove (@Param('id') id: string, @CurrentUser() user: JwtPayload): Promise<{ message: string }> {
+  async remove (@Param('id') id: string, @CurrentUser() user: JwtPayload): Promise<JobResponseDto> {
     return this.usersService.remove(id, user);
   }
 }

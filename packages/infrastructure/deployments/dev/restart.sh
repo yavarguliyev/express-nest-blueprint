@@ -6,7 +6,11 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/../../common/scripts/infra-common.sh"
 
-PROJECT_NAME="express-nest-dev"
+# Source bootstrap for PROJECT_NAME
+if [ -f "${SCRIPT_DIR}/../../common/docker-config/bootstrap.sh" ]; then
+    . "${SCRIPT_DIR}/../../common/docker-config/bootstrap.sh"
+fi
+PROJECT_NAME=${PROJECT_NAME:-express_nest_blueprint}
 
 print_header "Restarting Development Environment"
 

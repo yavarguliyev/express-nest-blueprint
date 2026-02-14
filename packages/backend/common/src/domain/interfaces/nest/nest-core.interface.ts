@@ -1,5 +1,6 @@
 import { MiddlewareConsumer } from './middleware.interface';
 import { ParamSource } from '../../types/nest/nest-core.type';
+import { AppName } from '../../../domain/enums/common/common.enum';
 
 export interface ArgumentsHost {
   getArgByIndex<T = unknown>(index: number): T;
@@ -61,4 +62,13 @@ export interface ParamMetadata {
 export interface RouteMetadata {
   method: string;
   path: string;
+}
+
+export interface BootstrapOptions {
+  appName?: AppName;
+  portEnvVar?: string;
+  hostEnvVar?: string;
+  defaultPort?: number;
+  defaultHost?: string;
+  rootDir?: string;
 }

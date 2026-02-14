@@ -13,13 +13,29 @@ import {
   UserRoles,
   JwtPayload,
   KAFKA_TOPICS,
+  CACHE_KEYS,
   CIRCUIT_BREAKER_KEYS
 } from '@config/libs';
 
 import { FindUsersQueryDto } from '@modules/users/dtos/find-users-query.dto';
 import { UserResponseDto } from '@modules/users/dtos/user-response.dto';
 
-@CrudTable({ category: 'Database Management', name: 'users', displayName: 'Users', actions: { create: true, update: true, delete: true } })
+@CrudTable({
+  category: 'Database Management',
+  name: 'users',
+  displayName: 'Users',
+  commandQueue: 'users-commands',
+  operationMapping: {
+    create: 'user.create',
+    update: 'user.update',
+    delete: 'user.delete'
+  },
+  cacheConfig: {
+    prefix: CACHE_KEYS.USERS.LIST_PREFIX,
+    detailKey: (id: string | number) => CACHE_KEYS.USERS.DETAIL(id)
+  },
+  actions: { create: true, update: true, delete: true }
+})
 @Injectable()
 export class UsersRepository extends BaseRepository<UserResponseDto> {
   constructor (
@@ -62,7 +78,8 @@ export class UsersRepository extends BaseRepository<UserResponseDto> {
   }
 
   async findByEmail (email: string, connection?: DatabaseAdapter): Promise<UserResponseDto | null> {
-    return this.findOne({ email }, connection);
+    const db = connection || this.databaseService.getReadConnection();
+    return this.findOne({ email }, db);
   }
 
   @CircuitBreaker({ key: CIRCUIT_BREAKER_KEYS.POSTGRES })
@@ -86,40 +103,54 @@ export class UsersRepository extends BaseRepository<UserResponseDto> {
       ...(search ? { search } : {})
     };
 
-    const result = await this.findAllWithPagination(options);
+    const db = this.databaseService.getReadConnection();
+    const result = await this.findAllWithPagination(options, db);
 
     return { users: result.data, total: result.total };
   }
 
+  async createPrimary (data: Partial<UserResponseDto>): Promise<UserResponseDto | null> {
+    const db = this.databaseService.getWriteConnection();
+    const result = await this.create(data, undefined, db);
+    return result as UserResponseDto | null;
+  }
+
+  async updatePrimary (id: string | number, data: Partial<UserResponseDto>): Promise<UserResponseDto | null> {
+    const db = this.databaseService.getWriteConnection();
+    const result = await this.update(id, data, undefined, db);
+    return result as UserResponseDto | null;
+  }
+
   override async update<K extends keyof UserResponseDto> (
-    id: number,
+    id: string | number,
     data: Partial<UserResponseDto>,
     returningColumns?: K[],
     connection?: DatabaseAdapter,
     currentUser?: JwtPayload
   ): Promise<Pick<UserResponseDto, K> | null> {
-    if (!currentUser) throw new InternalServerErrorException('Security Context Missing: Unable to verify user permissions');
+    if (!currentUser) throw new InternalServerErrorException('Security Context Missing');
 
-    if (currentUser.sub === id) {
+    if (String(currentUser.sub) === String(id)) {
       const restrictedFields = ['isactive', 'is_active', 'isemailverified', 'is_email_verified', 'role'];
       const hasRestrictedField = Object.keys(data).some(field =>
         restrictedFields.some(restricted => field.toLowerCase() === restricted.toLowerCase())
       );
 
-      if (hasRestrictedField) throw new ForbiddenException('You are not allowed to update sensitive fields on your own account');
+      if (hasRestrictedField) throw new ForbiddenException('Forbidden account update');
     }
 
     const sensitiveFields = ['isActive', 'isEmailVerified'];
     const hasSensitiveField = Object.keys(data).some(field => sensitiveFields.some(sensitive => field.toLowerCase() === sensitive.toLowerCase()));
 
     if (hasSensitiveField && currentUser.role !== UserRoles.GLOBAL_ADMIN) {
-      throw new ForbiddenException('Only Global Administrators can modify user activation and email verification status');
+      throw new ForbiddenException('Admin required for sensitive fields');
     }
 
     if (data.role !== undefined && currentUser.role !== UserRoles.GLOBAL_ADMIN)
-      throw new ForbiddenException('Only Global Administrators can update user roles');
+      throw new ForbiddenException('Admin required for role update');
 
-    const updatedUser = await super.update(id, data, returningColumns, connection);
+    const db = connection || this.databaseService.getWriteConnection();
+    const updatedUser = await super.update(id, data, returningColumns, db);
     if (!updatedUser) return null;
 
     if (currentUser?.role === UserRoles.GLOBAL_ADMIN) {
@@ -144,12 +175,13 @@ export class UsersRepository extends BaseRepository<UserResponseDto> {
     return updatedUser;
   }
 
-  override async delete (id: number, connection?: DatabaseAdapter, currentUser?: JwtPayload): Promise<boolean> {
-    if (!currentUser) throw new InternalServerErrorException('Security Context Missing: Unable to verify user permissions');
-    if (currentUser.sub === id) throw new ForbiddenException('You cannot delete your own account');
-    if (currentUser.role !== UserRoles.GLOBAL_ADMIN) throw new ForbiddenException('Only Global Administrators can delete user accounts');
+  override async delete (id: string | number, connection?: DatabaseAdapter, currentUser?: JwtPayload): Promise<boolean> {
+    if (!currentUser) throw new InternalServerErrorException('Security Context Missing');
+    if (String(currentUser.sub) === String(id)) throw new ForbiddenException('Forbidden self-deletion');
+    if (currentUser.role !== UserRoles.GLOBAL_ADMIN) throw new ForbiddenException('Admin required for deletion');
 
-    return super.delete(id, connection);
+    const db = connection || this.databaseService.getWriteConnection();
+    return super.delete(id, db);
   }
 
   override async applyPostProcessing (data: unknown[]): Promise<void> {

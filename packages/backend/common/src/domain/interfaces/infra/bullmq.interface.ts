@@ -2,7 +2,7 @@ import { JobsOptions, QueueOptions, WorkerOptions } from 'bullmq';
 
 import { ComputeOptions } from './infra-common.interface';
 import { AppRoles } from '../../enums/auth/auth.enum';
-import { WorkerStatus } from '../../types/common/status.type';
+import { OperationStatus, WorkerStatus } from '../../types/common/status.type';
 import { InjectionToken } from '../../types/module/provider.type';
 import { DataProcessingOperation, JobBackoffType, ReportType } from '../../types/infra/bullmq.type';
 
@@ -107,4 +107,15 @@ export interface ComputeServiceStatus {
   workerStatus: WorkerStatus;
   pendingJobsCount: number;
   handlersCount: number;
+}
+export interface JobResponse {
+  jobId: string;
+  status: OperationStatus;
+  message?: string;
+}
+
+export interface BullMQJobHandlerMetadata {
+  methodName: string;
+  jobName: string;
+  options?: JobHandlerOptions;
 }

@@ -1,4 +1,4 @@
-import Redis from 'ioredis';
+import Redis, { Cluster } from 'ioredis';
 
 import { BULLMQ_OPTIONS } from '../../core/decorators/bullmq.decorators';
 import { Inject, Injectable } from '../../core/decorators/injectable.decorator';
@@ -7,7 +7,7 @@ import { ConfigService } from '../../infrastructure/config/config.service';
 
 @Injectable()
 export class RedisService {
-  private readonly redis: Redis;
+  private readonly redis: Redis | Cluster;
 
   constructor (
     @Inject(BULLMQ_OPTIONS) options: BullMQModuleOptions,
@@ -18,19 +18,19 @@ export class RedisService {
 
     if (clusterNodes) {
       const nodes = clusterNodes.split(',').map(node => {
-        const parts = node.split(':');
-        const host = parts[0] || 'localhost';
-        const port = parseInt(parts[1] || '6379', 10);
-        return { host, port };
+        const [host, port] = node.split(':');
+        if (password) return `redis://:${password}@${host}:${port || 6379}`;
+        return { host, port: parseInt(port || '6379', 10) };
       });
 
-      this.redis = new Redis.Cluster(nodes, {
+      this.redis = new Redis.Cluster(nodes as (string | { host: string; port: number })[], {
         redisOptions: {
           ...(password ? { password } : {}),
-          enableReadyCheck: false,
+          enableReadyCheck: true,
           maxRetriesPerRequest: null
-        }
-      }) as unknown as Redis;
+        },
+        clusterRetryStrategy: (times: number): number => Math.min(times * 100, 3000)
+      });
     } else {
       this.redis = new Redis({
         host: options.redis.host,
@@ -43,7 +43,7 @@ export class RedisService {
     }
   }
 
-  getClient (): Redis {
+  getClient (): Redis | Cluster {
     return this.redis;
   }
 

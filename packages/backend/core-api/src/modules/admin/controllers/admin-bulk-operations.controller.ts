@@ -25,8 +25,12 @@ export class AdminBulkOperationsController extends BaseController {
   }
 
   @Post()
-  async executeBulkOperations (@Body() request: BulkOperationRequest, @CurrentUser() user: JwtPayload): Promise<BulkOperationResponse> {
-    return this.bulkOperationsService.processBulkOperations(request.operations, user);
+  async executeBulkOperations (
+    @Body() request: BulkOperationRequest,
+    @CurrentUser() user: JwtPayload,
+    @Query('wait') wait?: string
+  ): Promise<BulkOperationResponse> {
+    return this.bulkOperationsService.processBulkOperations(request.operations, user, wait === 'true' || wait === '1');
   }
 
   @Post('validate')

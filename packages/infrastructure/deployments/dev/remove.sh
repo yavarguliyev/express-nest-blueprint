@@ -73,12 +73,14 @@ if [ -n "$RUNNING_CONTAINERS" ]; then
   docker rm $RUNNING_CONTAINERS 2>/dev/null || true
 fi
 
-print_info "Cleaning up Docker resources..."
+print_info "Cleaning up project-specific Docker resources..."
+
 docker container prune -f
 docker network prune -f
 docker volume prune -f
 
-print_info "📊 Docker disk usage after cleanup:"
+print_info "📊 Docker disk usage:"
+
 docker system prune -a -f
 docker system df
 

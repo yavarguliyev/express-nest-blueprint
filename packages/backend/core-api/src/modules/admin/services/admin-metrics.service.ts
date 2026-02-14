@@ -68,6 +68,7 @@ export class AdminMetricsService {
 
   public async getDashboardMetrics (): Promise<DashboardMetricsResponse> {
     const timestamp = nowISO();
+
     const settledResults = await Promise.allSettled([
       this.metricsService.getMetricsAsJSON(),
       this.usersRepository.count(),

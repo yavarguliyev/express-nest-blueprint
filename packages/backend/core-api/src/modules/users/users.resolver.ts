@@ -8,7 +8,8 @@ import {
   Roles,
   UserRoles,
   GqlCurrentUser as CurrentUser,
-  JwtPayload
+  JwtPayload,
+  JobResponseDto
 } from '@config/libs';
 
 import { UsersService } from '@modules/users/users.service';
@@ -31,17 +32,17 @@ export class UsersResolver {
   }
 
   @Mutation(() => User)
-  async createUser (@Args() input: CreateUserInput): Promise<User | null> {
+  async createUser (@Args() input: CreateUserInput): Promise<JobResponseDto> {
     return this.usersService.create({ ...input, isActive: true });
   }
 
   @Mutation(() => User)
-  async updateUser (@Args() { id, ...data }: UpdateUserInput, @CurrentUser() currentUser: JwtPayload): Promise<User> {
+  async updateUser (@Args() { id, ...data }: UpdateUserInput, @CurrentUser() currentUser: JwtPayload): Promise<JobResponseDto> {
     return this.usersService.update(id, data, currentUser);
   }
 
   @Mutation(() => DeleteResponse)
-  async deleteUser (@Arg('id') id: string, @CurrentUser() currentUser: JwtPayload): Promise<DeleteResponse> {
-    return this.usersService.remove(id, currentUser).then(res => ({ ...res, success: true }));
+  async deleteUser (@Arg('id') id: string, @CurrentUser() currentUser: JwtPayload): Promise<JobResponseDto> {
+    return this.usersService.remove(id, currentUser);
   }
 }

@@ -1,3 +1,5 @@
 FROM postgres:15-alpine
-# The context will be the project root to access the core-api database folder
 COPY packages/backend/core-api/database /docker-entrypoint-initdb.d
+
+COPY packages/infrastructure/common/scripts/00_init_replication.sh /docker-entrypoint-initdb.d/00_init_replication.sh
+

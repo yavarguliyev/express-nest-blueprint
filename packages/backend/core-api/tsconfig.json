@@ -7,8 +7,7 @@
     "paths": {
       "@*": ["./*"],
       "@modules/*": ["./modules/*"],
-      "@config/libs": ["../common/src/index.ts"],
-      "@config/libs/*": ["../common/src/*"]
+      "@bootstrap/*": ["./bootstrap/*"]
     }
   },
   "include": ["src/**/*"]

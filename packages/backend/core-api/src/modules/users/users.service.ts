@@ -1,4 +1,5 @@
 import { extname } from 'path';
+import { Queue } from 'bullmq';
 
 import {
   Injectable,
@@ -14,9 +15,12 @@ import {
   ForbiddenException,
   JwtPayload,
   CACHE_TTL_1_MIN,
-  CACHE_TTL_5_MIN,
   CACHE_KEYS,
-  COMPUTE_TIMEOUT_DEFAULT
+  COMPUTE_TIMEOUT_DEFAULT,
+  CACHE_TTL_1_HOUR,
+  QueueManager,
+  JobResponseDto,
+  JobStatus
 } from '@config/libs';
 
 import { CreateUserDto } from '@modules/users/dtos/create-user.dto';
@@ -27,11 +31,16 @@ import { UsersRepository } from '@modules/users/users.repository';
 
 @Injectable()
 export class UsersService {
+  private commandQueue: Queue;
+
   constructor (
     private readonly usersRepository: UsersRepository,
     private readonly databaseService: DatabaseService,
-    private readonly storageService: StorageService
-  ) {}
+    private readonly storageService: StorageService,
+    private readonly queueManager: QueueManager
+  ) {
+    this.commandQueue = this.queueManager.createQueue('users-commands');
+  }
 
   @Cache({ ttl: CACHE_TTL_1_MIN })
   @Compute({ timeout: COMPUTE_TIMEOUT_DEFAULT })
@@ -75,7 +84,7 @@ export class UsersService {
     return { data: responseData, pagination: { page, limit, total, totalPages } };
   }
 
-  @Cache({ ttl: CACHE_TTL_5_MIN, key: (id: unknown): string => CACHE_KEYS.USER_PROFILE(id as string | number) })
+  @Cache({ ttl: CACHE_TTL_1_HOUR, key: (id: unknown): string => CACHE_KEYS.USERS.DETAIL(id as string | number) })
   async findOne (id: string): Promise<UserResponseDto> {
     const userId = this.parseAndValidateId(id);
     const user = await this.usersRepository.findById(userId);
@@ -84,24 +93,21 @@ export class UsersService {
     return ValidationService.transformResponse(UserResponseDto, user);
   }
 
-  @InvalidateCache({ keys: [CACHE_KEYS.USER_LIST] })
-  async create (createUserDto: CreateUserDto): Promise<UserResponseDto> {
-    return this.databaseService.getWriteConnection().transactionWithRetry(async transaction => {
-      const existingUser = await this.usersRepository.findByEmail(createUserDto.email, transaction);
-      if (existingUser) throw new BadRequestException(`User with email ${createUserDto.email} already exists`);
-
-      const createdUser = await this.usersRepository.create(
-        createUserDto,
-        ['id', 'email', 'firstName', 'lastName', 'role', 'isActive', 'createdAt', 'updatedAt'],
-        transaction
-      );
-
-      return ValidationService.transformResponse(UserResponseDto, createdUser!);
+  async create (createUserDto: CreateUserDto): Promise<JobResponseDto> {
+    const job = await this.commandQueue.add('user.create', {
+      command: 'CREATE',
+      data: createUserDto,
+      timestamp: Date.now()
     });
+
+    return {
+      jobId: job.id as string,
+      status: JobStatus.PENDING,
+      message: 'User creation queued'
+    };
   }
 
-  @InvalidateCache({ keys: [CACHE_KEYS.USER_LIST, (id: unknown): string => CACHE_KEYS.USER_PROFILE(id as string | number)] })
-  async update (id: string | number, updateUserDto: UpdateUserDto, currentUser?: JwtPayload): Promise<UserResponseDto> {
+  async update (id: string | number, updateUserDto: UpdateUserDto, currentUser?: JwtPayload): Promise<JobResponseDto> {
     const userId = this.parseAndValidateId(id);
 
     if (currentUser && currentUser.sub === userId) {
@@ -110,46 +116,40 @@ export class UsersService {
       }
     }
 
-    return this.databaseService.getWriteConnection().transactionWithRetry(async transaction => {
-      const existingUser = await this.usersRepository.findById(userId, transaction);
-      if (!existingUser) throw new NotFoundException(`User with ID ${userId} not found`);
-
-      if (updateUserDto.email && updateUserDto.email !== existingUser.email) {
-        const userWithEmail = await this.usersRepository.findByEmail(updateUserDto.email, transaction);
-        if (userWithEmail) throw new BadRequestException(`User with email ${updateUserDto.email} already exists`);
-      }
-
-      const updatedUser = await this.usersRepository.update(
-        userId,
-        updateUserDto,
-        ['id', 'email', 'firstName', 'lastName', 'role', 'isActive', 'createdAt', 'updatedAt'],
-        transaction,
-        currentUser
-      );
-      if (!updatedUser) throw new BadRequestException(`Failed to update user with ID ${userId}`);
-
-      return ValidationService.transformResponse(UserResponseDto, updatedUser);
+    const job = await this.commandQueue.add('user.update', {
+      command: 'UPDATE',
+      data: updateUserDto,
+      userId,
+      timestamp: Date.now()
     });
+
+    return {
+      jobId: job.id as string,
+      status: JobStatus.PENDING,
+      message: 'User update queued'
+    };
   }
 
-  @InvalidateCache({ keys: [CACHE_KEYS.USER_LIST, (id: unknown): string => CACHE_KEYS.USER_PROFILE(id as string | number)] })
-  async remove (id: string | number, currentUser?: JwtPayload): Promise<{ message: string }> {
+  async remove (id: string | number, currentUser?: JwtPayload): Promise<JobResponseDto> {
     const userId = this.parseAndValidateId(id);
 
     if (currentUser && String(currentUser.sub) === String(userId)) throw new ForbiddenException('You cannot delete your own account');
 
-    const existingUser = await this.usersRepository.findById(userId);
-    if (!existingUser) throw new NotFoundException(`User with ID ${userId} not found`);
+    const job = await this.commandQueue.add('user.delete', {
+      command: 'DELETE',
+      userId,
+      data: {},
+      timestamp: Date.now()
+    });
 
-    if (existingUser.profileImageUrl) await this.storageService.delete(existingUser.profileImageUrl);
-
-    const deleted = await this.usersRepository.delete(userId, undefined, currentUser);
-    if (!deleted) throw new BadRequestException(`Failed to delete user with ID ${userId}`);
-
-    return { message: 'User deleted successfully' };
+    return {
+      jobId: job.id as string,
+      status: JobStatus.PENDING,
+      message: 'User deletion queued'
+    };
   }
 
-  @InvalidateCache({ keys: [CACHE_KEYS.USER_LIST, (id: unknown): string => CACHE_KEYS.USER_PROFILE(id as string | number)] })
+  @InvalidateCache({ keys: [CACHE_KEYS.USERS.LIST_PREFIX, (id: unknown): string => CACHE_KEYS.USERS.DETAIL(id as string | number)] })
   async updateProfileImage (id: string, file?: Express.Multer.File, currentUser?: JwtPayload): Promise<UserResponseDto> {
     if (!file) throw new BadRequestException('No file uploaded or file rejected');
 
@@ -182,7 +182,7 @@ export class UsersService {
     });
   }
 
-  @InvalidateCache({ keys: [CACHE_KEYS.USER_LIST, (id: unknown): string => CACHE_KEYS.USER_PROFILE(id as string | number)] })
+  @InvalidateCache({ keys: [CACHE_KEYS.USERS.LIST_PREFIX, (id: unknown): string => CACHE_KEYS.USERS.DETAIL(id as string | number)] })
   async removeProfileImage (id: string, currentUser?: JwtPayload): Promise<UserResponseDto> {
     const userId = this.parseAndValidateId(id);
 

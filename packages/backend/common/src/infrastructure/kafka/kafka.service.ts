@@ -2,25 +2,24 @@ import { Kafka, Producer, Consumer, logLevel, LogEntry } from 'kafkajs';
 
 import { Logger } from '../logger/logger.service';
 import { ConfigService } from '../config/config.service';
+import { MetricsService } from '../metrics/metrics.service';
 import { Inject, Injectable } from '../../core/decorators/injectable.decorator';
 import { KAFKA_OPTIONS } from '../../core/decorators/kafka.decorators';
 import { KafkaMessagePayload, KafkaModuleOptions, KafkaSubscribeOptions } from '../../domain/interfaces/infra/kafka.interface';
 import { getErrorMessage } from '../../domain/helpers/utility-functions.helper';
 import { KafkaMessageHandler } from '../../domain/types/infra/kafka.type';
-import { MetricsService } from '../metrics/metrics.service';
 
 @Injectable()
 export class KafkaService {
+  private readonly isWorkerRole: boolean;
   private kafka: Kafka;
   private producer: Producer;
   private consumer: Consumer;
 
   private isProducerConnected = false;
   private isConsumerConnected = false;
-  private readonly isWorkerRole: boolean;
   private lastTotalMessages = 0;
   private lastMetricsTimestamp = Date.now();
-
 
   constructor (
     @Inject(KAFKA_OPTIONS) private options: KafkaModuleOptions,
@@ -33,7 +32,14 @@ export class KafkaService {
       return (entry: LogEntry): void => {
         const { label, level, log } = entry;
         const { message, ...extra } = log;
+
         const context = `Kafka:${label}`;
+
+        const messageStr = typeof message === 'string' ? message : '';
+        const errorStr = typeof extra['error'] === 'string' ? extra['error'] : '';
+        const isRebalancing = messageStr.toLowerCase().includes('rebalancing') || errorStr.toLowerCase().includes('rebalancing');
+
+        if (isRebalancing) return;
 
         if (level <= logLevel.ERROR) Logger.error(message, JSON.stringify(extra), context);
         else if (level <= logLevel.WARN) Logger.warn(message, context);
@@ -116,6 +122,7 @@ export class KafkaService {
           }
         ]
       });
+
       this.metricsService.recordKafkaMessage(payload.topic, 'producer', 'success');
     } catch (error) {
       this.metricsService.recordKafkaMessage(payload.topic, 'producer', 'error');
