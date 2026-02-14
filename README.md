@@ -39,7 +39,7 @@
 
 ## Computation Offloading (@Compute)
 
-- **Transparent Task Delegation**
+- **High-Performance Background Processing**: Sync-Wait consistency model ensures snappy UI updates while work completes in the background.
   - Simply annotate any service method with `@Compute()` to offload it to background workers.
   - Handles both "Wait-for-result" and "Fire-and-forget" (background) modes.
 - **Intelligent Worker Spawning**
@@ -47,12 +47,13 @@
 
 ## Event-Driven Architecture (Kafka)
 
+- **CQRS Integration**: Fast-path state updates via Redis/BullMQ with cross-service synchronization via Kafka.
 - **Decoupled Messaging**: Service-to-service communication via Kafka events.
 - **Scalable Processing**: High-throughput event consumption handled by background workers.
-- **Future-Ready**: Extensible event bus for cross-service synchronization and data streaming.
 
 ## System Resilience
 
+- **Unified Bootstrap Orchestration**: Centralized SOLID-based startup sequence in `@app/common`.
 - **Lazy Initialization Pattern**: Strictly ordered startup sequence (DB -> Redis -> App).
 - **Universal Graceful Shutdown**: Centralized lifecycle management.
 - **Circuit Breaker Pattern**: Automatic failure detection and isolation.
@@ -120,18 +121,22 @@ sequenceDiagram
 
 ## 3. Infrastructure Layer
 
+- **Unified Bootstrap**: Orchestrates the strict initialization sequence across all workspaces.
+- **Context-Aware Static Assets**: Serves legacy Admin and Upload assets with relative path compatibility.
 - **DatabaseService**: Manages PostgreSQL connections.
-- **Redis/BullMQ**: Handles the transport layer for offloaded jobs.
-- **Kafka**: Manages event-driven communication (e.g., cross-service events).
+- **Redis/BullMQ**: Handles the high-performance transport layer for offloaded jobs.
+- **Kafka**: Manages event-driven communication (e.g., cross-service events) following CQRS patterns.
 - **LifecycleModule**: Coordinates system-wide startup and shutdown.
 
 ---
 
 # ⚙️ Key Technical Features
 
+- **SOLID Bootstrap Engine**: Reusable architecture for spinning up API or Worker roles with zero configuration overlap.
+- **Sync-Wait Persistence**: Guaranteed data consistency for heavy operations without blocking the main event loop.
 - **Custom Decorators**: Support for `@Injectable`, `@Module`, `@Inject`, and `@Compute`.
 - **Centralized Logging**: Structured, console-based logging with diagnostic prefixes.
-- **Strict Role detection**: Automatic role assignment for parent and child processes.
+- **Strict Role detection**: Automatic role assignment (API vs. WORKER) integrated into the bootstrap lifecycle.
 - **Rate Limiting (Throttling)**: Intelligent request limiting based on IP and User ID.
 - **Error Handling**: Standardized Exception Filters.
 - **Git Hooks (Husky)**: Automated pre-commit and pre-push hooks for code quality checks including linting and build validation across all workspaces.
@@ -146,25 +151,29 @@ sequenceDiagram
 
 ## 2. Dependency Injection (DI)
 
-- Decouples components by injecting dependencies at runtime (Moved to `@config/libs`).
+- Decouples components by injecting dependencies at runtime (Centralized in `@app/common`).
 
 ## 3. Proxy Pattern
 
-- Used by the `ComputeExplorer` to intercept method calls and redirect them to the BullMQ queue.
+- Used by the `ComputeExplorer` and `SyncWait` logic to intercept method calls and redirect them to the BullMQ queue.
 
-## 4. Repository Pattern
+## 4. Template Method Pattern
+
+- Implemented in `BaseBootstrap` to enforce a standard lifecycle while allowing individual applications to define their own dependencies.
+
+## 5. Repository Pattern
 
 - Abstracts database queries behind a clean interface, separating domain logic from persistence.
 
-## 5. Decorator Pattern
+## 6. Decorator Pattern
 
 - Extensively used for metadata tagging (`@Module`, `@Injectable`) and runtime behavior modification.
 
-## 6. Factory Pattern
+## 7. Factory Pattern
 
-- Implemented in module providers to handle complex instance creation.
+- Implemented in the `NestFactory` and module providers to handle high-performance instance creation.
 
-## 7. Caching Decorator Pattern
+## 8. Caching Decorator Pattern
 
 - Simple `@Cache()` annotation for transparent Redis persistence.
 
@@ -271,7 +280,7 @@ cp .env.example .env
 This project follows a **Modular Monorepo Architecture** for several critical reasons:
 
 1.  **Strict Separation of Concerns**: By isolating the `common` library (Shared Kernel), we ensure that core logic (like DI, Security, and Database adapters) is reusable and never coupled to a specific delivery mechanism (REST or GraphQL).
-2.  **Shared Infrastructure**: Root-level configuration files (`tsconfig.json`, `eslint.config.mjs`) ensure consistent standards across all backend and frontend packages, reducing maintenance overhead.
+2.  **Shared Orchestration**: The `common` library acts as the orchestration engine, managing the entire lifecycle from bootstrap to graceful shutdown.
 3.  **Scalability**: The separation of `core-api` from `infrastructure` allows you to scale background workers independently of the API gateway while keeping the deployment logic (Kubernetes) centralized.
 4.  **Developer Experience**: NPM Workspaces allow for local linking, so changes in `packages/backend/common` are immediately reflected in `packages/backend/core-api` without needing to publish packages.
 5.  **Single Source of Truth**: Assets, documentation, and shared dependencies live at the root, ensuring that the entire ecosystem (API, Workers, Admin UI) moves in sync.
@@ -387,10 +396,10 @@ The system uses **Apache Kafka** for asynchronous, event-driven communication. T
 
 ### Workflow:
 
-1.  **Event Production**: The API emits an event (e.g., `user.created`).
-2.  **Message Brokering**: Kafka persists the event and distributes it to the consumer group.
-3.  **Consumption**: Dedicated **Worker** processes consume the message.
-4.  **Action**: Event Handlers process the message, performing tasks like updating auxiliary databases or triggering external services.
+1.  **Event Production**: The API emits an event (e.g., `user.created`) to indicate a state change.
+2.  **Message Brokering**: Kafka persists the event and distributes it to the relevant consumer group.
+3.  **Scalable Consumption**: Independent **Worker** processes consume the message at high throughput.
+4.  **CQRS Resolution**: Event Handlers process the message, ensuring cross-service data consistency or triggering external side effects.
 
 ---
 
@@ -460,8 +469,8 @@ This project is bridge-ready for cloud deployment.
 
 ### 3. Computation Assets
 
-- **API Mode**: `COMPUTE_APP_ROLE=api`
-- **Worker Mode**: `COMPUTE_APP_ROLE=worker` (Scale independently)
+- **API Mode (The Brain)**: `APP_ROLE=API`
+- **Worker Mode (The Muscles)**: `APP_ROLE=WORKER` (Scale independently to handle heavy loads)
 
 ### 4. Storage (S3)
 
