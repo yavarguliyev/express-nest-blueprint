@@ -23,7 +23,7 @@ import {
 } from '../../core/services/database-operations.service';
 import { DatabaseHelperService } from '../../core/services/database-helper.service';
 import { DatabaseFormService } from '../../core/services/database-form.service';
-import { GqlDatabaseOperationsService } from '../../core/services/gql-database-operations.service';
+import { ApiConfigService } from '../../core/services/api-config.service';
 import { PaginationService } from '../../core/services/pagination.service';
 import { ToggleSwitch } from '../../shared/components/toggle-switch/toggle-switch';
 import { ActionButtons } from '../../shared/components/action-buttons/action-buttons';
@@ -56,7 +56,7 @@ export class Database implements OnInit, AfterViewInit {
 
   private toastService = inject(ToastService);
   private dbOperations = inject(DatabaseOperationsService);
-  private gqlDbOperations = inject(GqlDatabaseOperationsService);
+  private apiConfig = inject(ApiConfigService);
   private dbHelper = inject(DatabaseHelperService);
   private dbForm = inject(DatabaseFormService);
   private pagination = inject(PaginationService);
@@ -128,8 +128,7 @@ export class Database implements OnInit, AfterViewInit {
 
   loadSchema (isRefresh = false): void {
     this.loadingSchema.set(true);
-    const service = this.useGraphQL() ? this.gqlDbOperations : this.dbOperations;
-    service.loadSchema().subscribe({
+    this.dbOperations.loadSchema().subscribe({
       next: (res) => {
         if (isRefresh && !res.success) {
           this.toastService.error(res.message || 'Failed to refresh schema');
@@ -155,9 +154,8 @@ export class Database implements OnInit, AfterViewInit {
     const table = this.selectedTable();
     if (!table) return;
     this.loadingData.set(true);
-    const service = this.useGraphQL() ? this.gqlDbOperations : this.dbOperations;
 
-    service.loadTableData(table, this.page(), this.limit, this.searchQuery()).subscribe({
+    this.dbOperations.loadTableData(table, this.page(), this.limit, this.searchQuery()).subscribe({
       next: (res) => {
         if (res.success) {
           const responseData = res.data;
@@ -203,9 +201,8 @@ export class Database implements OnInit, AfterViewInit {
     const table = this.selectedTable();
     if (!table) return;
     this.loadingData.set(true);
-    const service = this.useGraphQL() ? this.gqlDbOperations : this.dbOperations;
 
-    service.loadTableData(table, this.page(), this.limit, this.searchQuery()).subscribe({
+    this.dbOperations.loadTableData(table, this.page(), this.limit, this.searchQuery()).subscribe({
       next: (res) => {
         const responseData = res.data;
         if (responseData?.data) {
@@ -224,6 +221,13 @@ export class Database implements OnInit, AfterViewInit {
         this.loadingData.set(false);
       },
     });
+  }
+
+  toggleGraphQL (): void {
+    const newProtocol = this.useGraphQL() ? 'rest' : 'graphql';
+    this.apiConfig.setProtocol(newProtocol);
+    this.useGraphQL.set(!this.useGraphQL());
+    this.toastService.info(`Switched to ${newProtocol.toUpperCase()} mode`);
   }
 
   onSearch (event: Event): void {
@@ -469,7 +473,7 @@ export class Database implements OnInit, AfterViewInit {
   }
 
   publishAllChanges (): void {
-    if (this.useGraphQL()) {
+    if (this.apiConfig.isGraphQL()) {
       const allDrafts = Array.from(this.draftService.drafts().values()).filter(
         (draft) => draft.hasChanges,
       );
@@ -493,7 +497,7 @@ export class Database implements OnInit, AfterViewInit {
         return operation;
       });
 
-      this.gqlDbOperations.bulkUpdate(operations, true).subscribe({
+      this.dbOperations.bulkUpdate(operations, true).subscribe({
         next: (res) => {
           this.isPublishing.set(false);
           if (res.success) {
