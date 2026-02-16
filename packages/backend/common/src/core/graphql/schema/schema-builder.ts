@@ -98,9 +98,16 @@ export class SchemaBuilder {
     if (type === String || type === 'String') return GraphQLString;
     if (type === Number || type === 'Number' || type === 'Int') return GraphQLInt;
     if (type === Boolean || type === 'Boolean') return GraphQLBoolean;
-    if (type === 'JSON' || type === 'JSONObject' || type === GraphQLJSONObject || (typeof type === 'function' && (type as Constructor).name === 'Object')) return GraphQLJSONObject;
-    if (this.typeCache.has(type)) return this.typeCache.get(type)!;
+    if (
+      type === 'JSON' ||
+      type === 'JSONObject' ||
+      type === GraphQLJSONObject ||
+      (typeof type === 'function' && (type as Constructor).name === 'Object')
+    ) {
+      return GraphQLJSONObject;
+    }
 
+    if (this.typeCache.has(type)) return this.typeCache.get(type)!;
     if (typeof type === 'function') {
       const objectMetadata = Reflect.getMetadata(OBJECT_TYPE_METADATA, type as object) as { name: string } | undefined;
       if (objectMetadata) return this.buildObjectType(type as Constructor, objectMetadata);
@@ -200,10 +207,7 @@ export class SchemaBuilder {
               return argsObj;
             }
 
-            if (arg.isCurrentUser) {
-              return (req as AuthenticatedRequest).user;
-            }
-
+            if (arg.isCurrentUser) return (req as AuthenticatedRequest).user;
             return arg.name ? resolverArgs[arg.name] : undefined;
           });
 

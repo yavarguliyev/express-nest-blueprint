@@ -1,7 +1,8 @@
-import { NestApplication, BaseBootstrap, AppName } from '@config/libs';
-import { AppModule } from '@app.module';
 import { join } from 'path';
-import { ServiceLinker } from './service-linker';
+import { NestApplication, BaseBootstrap, AppName } from '@config/libs';
+
+import { AppModule } from '@app.module';
+import { ServiceLinker } from '@bootstrap/service-linker';
 
 export class AppBootstrap extends BaseBootstrap {
   constructor () {

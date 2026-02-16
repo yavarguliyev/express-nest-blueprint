@@ -75,11 +75,8 @@ export class MiddlewareConsumerImpl implements MiddlewareConsumer {
       try {
         if (isMiddlewareConstructor(middleware)) {
           return this.container.resolve({ provide: middleware as Constructor<NestMiddleware> }).use(req, res, next);
-        } else if (isNestMiddleware(middleware)) {
-          return middleware.use(req, res, next);
-        } else {
-          next();
-        }
+        } else if (isNestMiddleware(middleware)) return middleware.use(req, res, next);
+        else next();
       } catch (error) {
         next(error);
       }
@@ -106,7 +103,6 @@ export class MiddlewareConsumerImpl implements MiddlewareConsumer {
       });
 
       if (shouldExclude) return next();
-
       return wrappedMiddleware(req, res, next);
     };
   }
@@ -120,7 +116,6 @@ export class MiddlewareConsumerImpl implements MiddlewareConsumer {
     const pathSegments = requestPath.split('/');
 
     if (routeSegments.length !== pathSegments.length) return false;
-
     return routeSegments.every((segment, index) => segment.startsWith(':') || segment === pathSegments[index]);
   }
 

@@ -23,9 +23,7 @@ export class MaintenanceMiddleware {
     }
 
     try {
-      if (this.settingsService) {
-        this.isMaintenanceMode = await this.settingsService.isMaintenanceModeEnabled();
-      }
+      if (this.settingsService) this.isMaintenanceMode = await this.settingsService.isMaintenanceModeEnabled();
 
       if (this.isMaintenanceMode && req.user && req.user.role !== UserRoles.GLOBAL_ADMIN) {
         throw new ServiceUnavailableException('System is currently under maintenance. Please try again later.');

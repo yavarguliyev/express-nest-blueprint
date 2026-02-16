@@ -6,10 +6,10 @@ import { NestApplication } from '../nest-application';
 import { NestFactory } from '../nest-factory';
 import { AppRoles } from '../../domain/enums/auth/auth.enum';
 import { AppName } from '../../domain/enums/common/common.enum';
+import { BootstrapOptions } from '../../domain/interfaces/nest/nest-core.interface';
 import { Constructor } from '../../domain/types/common/util.type';
 import { ConfigService } from '../../infrastructure/config/config.service';
 import { Logger } from '../../infrastructure/logger/logger.service';
-import { BootstrapOptions } from '../../domain/interfaces/nest/nest-core.interface';
 
 export abstract class BaseBootstrap {
   protected lifecycleService?: LifecycleService;
@@ -23,10 +23,6 @@ export abstract class BaseBootstrap {
 
   getOptions (): BootstrapOptions {
     return this.options;
-  }
-
-  protected getAppName (): AppName {
-    return this.options.appName ?? AppName.MAIN;
   }
 
   async start (): Promise<void> {
@@ -48,6 +44,10 @@ export abstract class BaseBootstrap {
     } catch {
       await this.handleStartupError();
     }
+  }
+
+  protected getAppName (): AppName {
+    return this.options.appName ?? AppName.MAIN;
   }
 
   protected async bootstrapApi (app: NestApplication): Promise<void> {

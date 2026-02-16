@@ -51,6 +51,63 @@ export class NestApplication {
     methodNames.forEach(name => this.registerRoutes(controllerClass, instance, name, metadata.path || '', methodMap));
   }
 
+  setupGlobalErrorHandler (): void {
+    this.app.use(GlobalExceptionFilter.create());
+    this.app.use((req: Request, res: Response) => {
+      res.status(404).json({
+        success: false,
+        error: {
+          statusCode: 404,
+          reason: 'Route not found',
+          errors: [{ message: `Route ${req.method} ${req.path} not found`, reason: 'Route not found' }]
+        },
+        timestamp: new Date().toISOString(),
+        path: req.url
+      });
+    });
+  }
+
+  use(middleware: RequestHandler): this;
+  use(path: string, middleware: RequestHandler): this;
+  use (pathOrMiddleware: string | RequestHandler, middleware?: RequestHandler): this {
+    if (typeof pathOrMiddleware === 'function') this.app.use(pathOrMiddleware);
+    else if (middleware) {
+      if (this.hasInvalidPathSyntax(pathOrMiddleware)) return this;
+      this.app.use(pathOrMiddleware, middleware);
+    }
+
+    return this;
+  }
+
+  enableCors (options?: CorsOptions): void {
+    this.app.use((req: Request, res: Response, next: NextFunction) => {
+      res.header('Access-Control-Allow-Origin', options?.origin ?? '*');
+      res.header('Access-Control-Allow-Methods', options?.methods ?? 'GET,PUT,POST,DELETE,PATCH,OPTIONS');
+      res.header('Access-Control-Allow-Headers', options?.allowedHeaders ?? 'Content-Type, Authorization');
+
+      if (req.method === 'OPTIONS') res.sendStatus(200);
+      else next();
+    });
+  }
+
+  setGlobalPrefix (prefix: string): void {
+    const normalizedPrefix = prefix.trim();
+    if (normalizedPrefix.includes('://')) {
+      this.globalPrefix = '';
+      return;
+    }
+
+    this.globalPrefix = normalizedPrefix.startsWith('/') ? normalizedPrefix : '/' + normalizedPrefix;
+    if (this.globalPrefix.length > 1 && this.globalPrefix.endsWith('/')) {
+      this.globalPrefix = this.globalPrefix.substring(0, this.globalPrefix.length - 1);
+    }
+  }
+
+  async close (): Promise<void> {
+    if (this.server?.listening) await new Promise<void>((resolve, reject) => this.server!.close(error => (error ? reject(error) : resolve())));
+    this.container.clear();
+  }
+
   private getControllerMetadata<T extends object> (controllerClass: Constructor<T>): ControllerOptions {
     const metadata = Reflect.getMetadata(CONTROLLER_METADATA, controllerClass) as ControllerOptions;
     if (!metadata) throw new BadRequestException(`${controllerClass.name} is not marked as @Controller()`);
@@ -169,22 +226,6 @@ export class NestApplication {
     res.json({ success: true, data: result, message: 'Operation completed successfully' });
   }
 
-  setupGlobalErrorHandler (): void {
-    this.app.use(GlobalExceptionFilter.create());
-    this.app.use((req: Request, res: Response) => {
-      res.status(404).json({
-        success: false,
-        error: {
-          statusCode: 404,
-          reason: 'Route not found',
-          errors: [{ message: `Route ${req.method} ${req.path} not found`, reason: 'Route not found' }]
-        },
-        timestamp: new Date().toISOString(),
-        path: req.url
-      });
-    });
-  }
-
   async listen (port: number, host?: string): Promise<Server> {
     this.setupGlobalErrorHandler();
     return this.attemptListenWithRetries(port, host);
@@ -225,47 +266,6 @@ export class NestApplication {
         setTimeout(() => void retryFn().then(resolve).catch(reject), 500);
       } else reject(new InternalServerErrorException(getErrorMessage(error)));
     })();
-  }
-
-  use(middleware: RequestHandler): this;
-  use(path: string, middleware: RequestHandler): this;
-  use (pathOrMiddleware: string | RequestHandler, middleware?: RequestHandler): this {
-    if (typeof pathOrMiddleware === 'function') this.app.use(pathOrMiddleware);
-    else if (middleware) {
-      if (this.hasInvalidPathSyntax(pathOrMiddleware)) return this;
-      this.app.use(pathOrMiddleware, middleware);
-    }
-
-    return this;
-  }
-
-  enableCors (options?: CorsOptions): void {
-    this.app.use((req: Request, res: Response, next: NextFunction) => {
-      res.header('Access-Control-Allow-Origin', options?.origin ?? '*');
-      res.header('Access-Control-Allow-Methods', options?.methods ?? 'GET,PUT,POST,DELETE,PATCH,OPTIONS');
-      res.header('Access-Control-Allow-Headers', options?.allowedHeaders ?? 'Content-Type, Authorization');
-
-      if (req.method === 'OPTIONS') res.sendStatus(200);
-      else next();
-    });
-  }
-
-  setGlobalPrefix (prefix: string): void {
-    const normalizedPrefix = prefix.trim();
-    if (normalizedPrefix.includes('://')) {
-      this.globalPrefix = '';
-      return;
-    }
-
-    this.globalPrefix = normalizedPrefix.startsWith('/') ? normalizedPrefix : '/' + normalizedPrefix;
-    if (this.globalPrefix.length > 1 && this.globalPrefix.endsWith('/')) {
-      this.globalPrefix = this.globalPrefix.substring(0, this.globalPrefix.length - 1);
-    }
-  }
-
-  async close (): Promise<void> {
-    if (this.server?.listening) await new Promise<void>((resolve, reject) => this.server!.close(error => (error ? reject(error) : resolve())));
-    this.container.clear();
   }
 
   private hasMethod<T extends object> ({ instance, methodName }: HasMethodOptions<T>): boolean {

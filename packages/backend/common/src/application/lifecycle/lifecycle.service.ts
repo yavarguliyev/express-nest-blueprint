@@ -10,12 +10,12 @@ import { Logger } from '../../infrastructure/logger/logger.service';
 export class LifecycleService {
   private readonly logger = new Logger(LifecycleService.name);
 
-  constructor (private readonly configService: ConfigService) {}
-
   private shutdownHandlers: GracefulShutDownServiceConfig[] = [];
   private httpServer: http.Server | null = null;
   private workerStarter?: () => void;
   private isShuttingDown = false;
+
+  constructor (private readonly configService: ConfigService) {}
 
   registerShutdownHandler (handler: GracefulShutDownServiceConfig): void {
     this.shutdownHandlers.push(handler);
@@ -31,6 +31,10 @@ export class LifecycleService {
 
   setHttpServer (server: http.Server): void {
     this.httpServer = server;
+  }
+
+  getShutdownHandlers (): GracefulShutDownServiceConfig[] {
+    return [...this.shutdownHandlers];
   }
 
   async executeGracefulShutdown (): Promise<void> {
@@ -51,9 +55,5 @@ export class LifecycleService {
       maxRetries: this.configService.get<number>('SHUTDOWN_RETRIES', 3),
       retryDelay: this.configService.get<number>('SHUTDOWN_RETRY_DELAY', 1000)
     });
-  }
-
-  getShutdownHandlers (): GracefulShutDownServiceConfig[] {
-    return [...this.shutdownHandlers];
   }
 }

@@ -84,11 +84,6 @@ export class PostgreSQLAdapter implements DatabaseAdapter {
     }
   }
 
-  private validateQueryResult<T> (rows: unknown[]): T[] {
-    if (!Array.isArray(rows)) throw new InternalServerErrorException('Invalid query result: expected array of rows');
-    return rows as T[];
-  }
-
   async transaction<R> (callback: (adapter: DatabaseAdapter) => Promise<R>): Promise<R> {
     return this.transactionWithRetry(callback, 1);
   }
@@ -124,5 +119,10 @@ export class PostgreSQLAdapter implements DatabaseAdapter {
     }
 
     throw lastError;
+  }
+
+  private validateQueryResult<T> (rows: unknown[]): T[] {
+    if (!Array.isArray(rows)) throw new InternalServerErrorException('Invalid query result: expected array of rows');
+    return rows as T[];
   }
 }

@@ -21,6 +21,10 @@ export class KafkaService {
   private lastTotalMessages = 0;
   private lastMetricsTimestamp = Date.now();
 
+  private handlers: Array<{ topic: string | RegExp; handler: KafkaMessageHandler<unknown> }> = [];
+  private isRunning = false;
+  private connectionPromise: Promise<void> | null = null;
+
   constructor (
     @Inject(KAFKA_OPTIONS) private options: KafkaModuleOptions,
     private readonly configService: ConfigService,
@@ -71,10 +75,6 @@ export class KafkaService {
       ...this.options.consumerConfig
     });
   }
-
-  private handlers: Array<{ topic: string | RegExp; handler: KafkaMessageHandler<unknown> }> = [];
-  private isRunning = false;
-  private connectionPromise: Promise<void> | null = null;
 
   async connect (): Promise<void> {
     if (this.connectionPromise) return this.connectionPromise;

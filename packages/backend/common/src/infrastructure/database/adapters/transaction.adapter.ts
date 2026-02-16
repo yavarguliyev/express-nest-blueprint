@@ -18,19 +18,19 @@ export class TransactionAdapter implements DatabaseAdapter {
     return { rows: this.validateQueryResult<T>(result.rows), rowCount: result.rowCount || 0 };
   }
 
-  private validateQueryResult<T> (rows: unknown[]): T[] {
-    if (!Array.isArray(rows)) {
-      throw new InternalServerErrorException('Invalid query result: expected array of rows');
-    }
-
-    return rows as T[];
-  }
-
   async transaction<R> (callback: (adapter: DatabaseAdapter) => Promise<R>): Promise<R> {
     return callback(this);
   }
 
   async transactionWithRetry<R> (callback: (adapter: DatabaseAdapter) => Promise<R>): Promise<R> {
     return callback(this);
+  }
+
+  private validateQueryResult<T> (rows: unknown[]): T[] {
+    if (!Array.isArray(rows)) {
+      throw new InternalServerErrorException('Invalid query result: expected array of rows');
+    }
+
+    return rows as T[];
   }
 }

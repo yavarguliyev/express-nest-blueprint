@@ -34,16 +34,16 @@ export class JwtService {
     }
   }
 
-  private handleVerifyError (error: unknown): UnauthorizedException {
-    if (error instanceof jwt.TokenExpiredError) return new UnauthorizedException('Token has expired');
-    if (error instanceof jwt.JsonWebTokenError) return new UnauthorizedException('Invalid token');
-    return new UnauthorizedException('Token verification failed');
-  }
-
   getExpiresInSeconds (): number {
     const match = this.expiresIn.match(/^(\d+)([smhd])$/);
     if (!match) return 86400;
     return this.calculateSeconds(Number(match[1]), match[2] as TimeUnit);
+  }
+
+  private handleVerifyError (error: unknown): UnauthorizedException {
+    if (error instanceof jwt.TokenExpiredError) return new UnauthorizedException('Token has expired');
+    if (error instanceof jwt.JsonWebTokenError) return new UnauthorizedException('Invalid token');
+    return new UnauthorizedException('Token verification failed');
   }
 
   private calculateSeconds (value: number, unit: TimeUnit): number {

@@ -13,6 +13,7 @@ export const GraphQLJSONObject = new GraphQLScalarType({
         return null;
       }
     }
+
     return null;
   }
 });
