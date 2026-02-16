@@ -4,6 +4,7 @@ import { DatabaseDraftService } from './database-draft.service';
 import { AuthService } from './auth.service';
 import { UserRoleHelper } from '../enums/user-roles.enum';
 import { TableMetadata, Column } from './database-operations.service';
+import { FormValidationUtil } from '../utils/form-validation.util';
 
 @Injectable({
   providedIn: 'root',
@@ -17,25 +18,7 @@ export class DatabaseFormService {
     currentData: Record<string, unknown>,
     originalData: Record<string, unknown>,
   ): boolean {
-    for (const key in currentData) {
-      const current = currentData[key];
-      const original = originalData[key];
-
-      const isEmptyCurrent = current === null || current === undefined || current === '';
-      const isEmptyOriginal = original === null || original === undefined || original === '';
-
-      if (isEmptyCurrent && isEmptyOriginal) continue;
-      if (isEmptyCurrent && isEmptyOriginal) continue;
-      if (current != original) return true;
-    }
-
-    for (const key in originalData) {
-      if (!(key in currentData)) {
-        return true;
-      }
-    }
-
-    return false;
+    return FormValidationUtil.hasChanges(currentData, originalData);
   }
 
   isFieldChanged (
@@ -43,36 +26,18 @@ export class DatabaseFormService {
     currentData: Record<string, unknown>,
     originalData: Record<string, unknown>,
   ): boolean {
-    return currentData[fieldName] !== originalData[fieldName];
+    return FormValidationUtil.isFieldChanged(fieldName, currentData, originalData);
   }
 
   getChangedFields (
     currentData: Record<string, unknown>,
     originalData: Record<string, unknown>,
   ): Array<{ name: string; oldValue: unknown; newValue: unknown }> {
-    const changes: Array<{ name: string; oldValue: unknown; newValue: unknown }> = [];
-
-    for (const key in currentData) {
-      if (
-        Object.prototype.hasOwnProperty.call(currentData, key) &&
-        currentData[key] !== originalData[key]
-      ) {
-        changes.push({
-          name: key,
-          oldValue: originalData[key],
-          newValue: currentData[key],
-        });
-      }
-    }
-
-    return changes;
+    return FormValidationUtil.getChangedFields(currentData, originalData);
   }
 
   isRoleInvalid (formData: Record<string, unknown>): boolean {
-    return (
-      Object.prototype.hasOwnProperty.call(formData, 'role') &&
-      (!formData['role'] || formData['role'] === '')
-    );
+    return FormValidationUtil.hasRole(formData) && !FormValidationUtil.isRoleValid(formData);
   }
 
   isFormInvalid (formData: Record<string, unknown>, originalData: Record<string, unknown>): boolean {
@@ -137,25 +102,14 @@ export class DatabaseFormService {
     currentData: Record<string, unknown>,
     originalData: Record<string, unknown>,
   ): boolean {
-    const changedData: Record<string, unknown> = {};
-    for (const key in currentData) {
-      if (
-        Object.prototype.hasOwnProperty.call(currentData, key) &&
-        currentData[key] !== originalData[key]
-      ) {
-        changedData[key] = currentData[key];
-      }
-    }
+    const changedData = FormValidationUtil.getChangedData(currentData, originalData);
 
     if (Object.keys(changedData).length === 0) {
       this.toastService.error('No changes detected to update.');
       return false;
     }
 
-    if (
-      Object.prototype.hasOwnProperty.call(changedData, 'role') &&
-      (!changedData['role'] || changedData['role'] === '')
-    ) {
+    if (!FormValidationUtil.isRoleValid(changedData)) {
       this.toastService.error('Please select a valid role before updating the record.');
       return false;
     }
@@ -186,28 +140,29 @@ export class DatabaseFormService {
       (col) => col.editable && !this.isFieldExcludedFromUpdate(col.name, null),
     );
 
-    const errors = this.validateFormData(
+    const validationResult = FormValidationUtil.validateRequiredFields(
       formData,
       editableColumns.map((col) => ({ name: col.name, required: col.required })),
     );
 
-    if (errors.length > 0) {
-      this.toastService.error(`Please fix the following errors: ${errors.join(', ')}`);
+    if (!validationResult.valid) {
+      this.toastService.error(
+        `Please fix the following errors: ${validationResult.errors?.join(', ')}`,
+      );
       return false;
     }
 
-    if (
-      Object.prototype.hasOwnProperty.call(formData, 'role') &&
-      (!formData['role'] || formData['role'] === '')
-    ) {
+    if (!FormValidationUtil.isRoleValid(formData)) {
       this.toastService.error('Please select a valid role before creating the record.');
       return false;
     }
 
-    if (Object.prototype.hasOwnProperty.call(formData, 'password')) {
-      const password = formData['password'] as string;
-      if (!password || password.length < 8) {
-        this.toastService.error('Password must be at least 8 characters long.');
+    if (FormValidationUtil.hasPassword(formData)) {
+      const passwordValidation = FormValidationUtil.validatePassword(
+        formData['password'] as string,
+      );
+      if (!passwordValidation.valid) {
+        this.toastService.error(passwordValidation.error || 'Invalid password');
         return false;
       }
     }
@@ -239,13 +194,7 @@ export class DatabaseFormService {
   }
 
   generateRandomPassword (): string {
-    const length = 12;
-    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+';
-    let retVal = '';
-    for (let i = 0, n = charset.length; i < length; ++i) {
-      retVal += charset.charAt(Math.floor(Math.random() * n));
-    }
-    return retVal;
+    return FormValidationUtil.generateRandomPassword();
   }
 
   handleBooleanUpdate (
@@ -354,23 +303,5 @@ export class DatabaseFormService {
     }
 
     return true;
-  }
-
-  validateFormData (
-    formData: Record<string, unknown>,
-    columns: Array<{ name: string; required: boolean }>,
-  ): string[] {
-    const errors: string[] = [];
-
-    for (const column of columns) {
-      if (column.required) {
-        const value = formData[column.name];
-        if (value === null || value === undefined || value === '') {
-          errors.push(`${column.name} is required`);
-        }
-      }
-    }
-
-    return errors;
   }
 }
