@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { ToastService } from './toast.service';
 import { DatabaseDraftService } from './database-draft.service';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
+export { DatabaseOperation } from '../interfaces/database-bulk.interface';
 
 export interface Column {
   name: string;
@@ -67,6 +68,7 @@ export class DatabaseOperationsService {
         page: page.toString(),
         limit: limit.toString(),
         search: searchQuery,
+        t: new Date().getTime().toString(),
       },
     });
   }
@@ -106,7 +108,11 @@ export class DatabaseOperationsService {
     return this.http.post<ApiResponse<{ deletedCount: number; message: string }>>(url, { ids });
   }
 
-  createUpdateDraft (table: TableMetadata, record: Record<string, unknown>, formData: Record<string, unknown>): void {
+  createUpdateDraft (
+    table: TableMetadata,
+    record: Record<string, unknown>,
+    formData: Record<string, unknown>,
+  ): void {
     const recordId = record['id'] as number;
 
     this.draftService.createDraft(

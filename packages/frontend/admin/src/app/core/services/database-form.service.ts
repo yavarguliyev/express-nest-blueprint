@@ -18,9 +18,15 @@ export class DatabaseFormService {
     originalData: Record<string, unknown>,
   ): boolean {
     for (const key in currentData) {
-      if (currentData[key] !== originalData[key]) {
-        return true;
-      }
+      const current = currentData[key];
+      const original = originalData[key];
+
+      const isEmptyCurrent = current === null || current === undefined || current === '';
+      const isEmptyOriginal = original === null || original === undefined || original === '';
+
+      if (isEmptyCurrent && isEmptyOriginal) continue;
+      if (isEmptyCurrent && isEmptyOriginal) continue;
+      if (current != original) return true;
     }
 
     for (const key in originalData) {
@@ -90,12 +96,8 @@ export class DatabaseFormService {
     formData: Record<string, unknown>,
     originalData: Record<string, unknown>,
   ): string {
-    if (this.isRoleInvalid(formData)) {
-      return 'Please select a valid role before updating';
-    }
-    if (!this.hasFormChanges(formData, originalData)) {
-      return 'Make changes to enable update';
-    }
+    if (this.isRoleInvalid(formData)) return 'Please select a valid role before updating';
+    if (!this.hasFormChanges(formData, originalData)) return 'Make changes to enable update';
     return 'Save changes to record';
   }
 
@@ -124,9 +126,7 @@ export class DatabaseFormService {
     const hasEmail = table.columns.some((c) => c.name === 'email');
     const hasPassword = table.columns.some((c) => c.name === 'password');
 
-    if (hasEmail && !hasPassword) {
-      formData['password'] = '';
-    }
+    if (hasEmail && !hasPassword) formData['password'] = '';
 
     return formData;
   }
@@ -163,7 +163,20 @@ export class DatabaseFormService {
     const recordId = record['id'] as number;
     const draftId = `${table.category}:${table.name}:${recordId}`;
 
-    this.draftService.updateDraft(draftId, currentData);
+    if (!this.draftService.hasDraftChanges(draftId)) {
+      this.draftService.createDraft(
+        {
+          type: 'update',
+          table: table.name,
+          category: table.category,
+          recordId: recordId,
+          data: currentData,
+        },
+        record,
+      );
+    } else {
+      this.draftService.updateDraft(draftId, currentData);
+    }
 
     return true;
   }

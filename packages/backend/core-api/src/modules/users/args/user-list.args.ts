@@ -1,12 +1,13 @@
 import { ObjectType, Field } from '@config/libs';
-import { PaginationInfo } from './pagination-info.input';
-import { User } from './user.args';
+
+import { PaginationArgs } from '@modules/users/args/pagination-info.args';
+import { UserArgs } from '@modules/users/args/user.args';
 
 @ObjectType()
-export class UserList {
-  @Field(() => [User])
-  data!: User[];
+export class UserListArgs {
+  @Field(() => [UserArgs])
+  data!: UserArgs[];
 
-  @Field(() => PaginationInfo)
-  pagination!: PaginationInfo;
+  @Field(() => PaginationArgs)
+  pagination!: PaginationArgs;
 }

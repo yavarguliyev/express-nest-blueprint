@@ -44,6 +44,7 @@ export * from './core/decorators/swagger.decorators';
 export * from './core/filters/argument-host.filter';
 export * from './core/filters/global-exception.filter';
 export * from './core/graphql/schema/schema-builder';
+export * from './core/graphql/scalars/json.scalar';
 export * from './core/graphql/graphql-application';
 export * from './core/graphql/graphql.module';
 export * from './core/guards/auth.guard';

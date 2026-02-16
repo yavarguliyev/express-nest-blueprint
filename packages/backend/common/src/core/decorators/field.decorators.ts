@@ -28,21 +28,31 @@ export const Mutation = (typeFunc: TypeFunc, options?: { name?: string }): Metho
   };
 };
 
-export const Arg = (name: string, typeFunc?: TypeFunc): ParameterDecorator => {
+export interface ArgOptions {
+  name?: string;
+  typeFunc?: TypeFunc;
+  nullable?: boolean;
+}
+
+export const Arg = (nameOrOptions: string | ArgOptions, typeFunc?: TypeFunc): ParameterDecorator => {
   return (target: object, propertyKey: string | symbol | undefined, parameterIndex: number): void => {
     if (propertyKey) {
       const existingArgs = (Reflect.getMetadata(ARG_METADATA, target, propertyKey) || []) as ArgMetadata[];
 
-      let effectiveTypeFunc = typeFunc;
-      if (!effectiveTypeFunc) {
+      const name = typeof nameOrOptions === 'string' ? nameOrOptions : nameOrOptions.name;
+      const effectiveTypeFunc = typeof nameOrOptions === 'object' ? nameOrOptions.typeFunc : typeFunc;
+      const nullable = typeof nameOrOptions === 'object' ? nameOrOptions.nullable : false;
+
+      let finalTypeFunc = effectiveTypeFunc;
+      if (!finalTypeFunc) {
         const paramTypes = Reflect.getMetadata('design:paramtypes', target, propertyKey) as unknown[] | undefined;
         if (paramTypes && paramTypes[parameterIndex]) {
           const type = paramTypes[parameterIndex];
-          effectiveTypeFunc = (): unknown => type;
+          finalTypeFunc = (): unknown => type;
         }
       }
 
-      existingArgs.push({ index: parameterIndex, name, typeFunc: effectiveTypeFunc });
+      existingArgs.push({ index: parameterIndex, name, typeFunc: finalTypeFunc, nullable });
       Reflect.defineMetadata(ARG_METADATA, existingArgs, target, propertyKey);
     }
   };

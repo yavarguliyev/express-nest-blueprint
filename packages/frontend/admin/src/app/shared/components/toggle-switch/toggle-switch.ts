@@ -9,18 +9,18 @@ import { CommonModule } from '@angular/common';
   styleUrl: './toggle-switch.css',
 })
 export class ToggleSwitch {
+  @Input() label: string = '';
   @Input() checked: boolean = false;
   @Input() disabled: boolean = false;
   @Input() size: 'small' | 'medium' | 'large' = 'medium';
 
-  @Output() toggleChange = new EventEmitter<boolean>();
+  @Output() toggle = new EventEmitter<boolean>();
 
   toggleId = `toggle-${Math.random().toString(36).substr(2, 9)}`;
 
   onToggle (): void {
     if (!this.disabled) {
-      this.checked = !this.checked;
-      this.toggleChange.emit(this.checked);
+      this.toggle.emit(!this.checked);
     }
   }
 }

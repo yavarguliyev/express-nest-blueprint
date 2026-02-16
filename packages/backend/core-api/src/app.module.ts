@@ -21,6 +21,8 @@ import { AdminModule } from '@modules/admin/admin.module';
 import { ThemesModule } from '@modules/themes/themes.module';
 import { SettingsModule } from '@modules/settings/settings.module';
 import { UsersResolver } from '@modules/users/users.resolver';
+import { AdminCrudResolver } from '@modules/admin/resolvers/admin-crud.resolver';
+import { AdminBulkOperationsResolver } from '@modules/admin/resolvers/admin-bulk-operations.resolver';
 
 @Module({
   imports: [
@@ -31,7 +33,9 @@ import { UsersResolver } from '@modules/users/users.resolver';
     }),
     DatabaseModule.forRoot(),
     SharedModule,
-    GraphQLModule.forRoot({ resolvers: [UsersResolver] }),
+    GraphQLModule.forRoot({
+      resolvers: [UsersResolver, AdminCrudResolver, AdminBulkOperationsResolver]
+    }),
     UsersModule,
     AuthModule,
     AdminModule,

@@ -9,10 +9,20 @@ import { AdminCrudService } from '@modules/admin/services/admin-crud.service';
 import { AdminBulkOperationsService } from '@modules/admin/services/admin-bulk-operations.service';
 import { AdminMetricsService } from '@modules/admin/services/admin-metrics.service';
 import { AdminCommandsWorker } from '@modules/admin/workers/admin-commands.worker';
+import { AdminCrudResolver } from '@modules/admin/resolvers/admin-crud.resolver';
+import { AdminBulkOperationsResolver } from '@modules/admin/resolvers/admin-bulk-operations.resolver';
 
 @Module({
   controllers: [AdminDashboardController, AdminHealthController, AdminCrudController, AdminBulkOperationsController, AdminProfileController],
-  providers: [AdminMetricsService, AdminCrudService, AdminBulkOperationsService, AvatarUploadMiddleware, AdminCommandsWorker],
+  providers: [
+    AdminMetricsService,
+    AdminCrudService,
+    AdminBulkOperationsService,
+    AvatarUploadMiddleware,
+    AdminCommandsWorker,
+    AdminCrudResolver,
+    AdminBulkOperationsResolver
+  ],
   exports: [AdminMetricsService, AdminCrudService, AdminBulkOperationsService]
 })
 export class AdminModule implements NestModule {

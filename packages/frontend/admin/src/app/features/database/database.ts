@@ -19,9 +19,11 @@ import {
   TableMetadata,
   Schema,
   Column,
+  DatabaseOperation,
 } from '../../core/services/database-operations.service';
 import { DatabaseHelperService } from '../../core/services/database-helper.service';
 import { DatabaseFormService } from '../../core/services/database-form.service';
+import { GqlDatabaseOperationsService } from '../../core/services/gql-database-operations.service';
 import { PaginationService } from '../../core/services/pagination.service';
 import { ToggleSwitch } from '../../shared/components/toggle-switch/toggle-switch';
 import { ActionButtons } from '../../shared/components/action-buttons/action-buttons';
@@ -50,15 +52,18 @@ import { PasswordInput } from '../../shared/components/password-input/password-i
   styleUrl: './database.css',
 })
 export class Database implements OnInit, AfterViewInit {
+  @ViewChild('tableScrollContainer') tableScrollContainer!: ElementRef<HTMLDivElement>;
+
   private toastService = inject(ToastService);
-  draftService = inject(DatabaseDraftService);
   private dbOperations = inject(DatabaseOperationsService);
+  private gqlDbOperations = inject(GqlDatabaseOperationsService);
   private dbHelper = inject(DatabaseHelperService);
   private dbForm = inject(DatabaseFormService);
   private pagination = inject(PaginationService);
+  private searchSubject = new Subject<string>();
 
-  @ViewChild('tableScrollContainer') tableScrollContainer!: ElementRef<HTMLDivElement>;
-
+  draftService = inject(DatabaseDraftService);
+  useGraphQL = signal(false);
   schema = signal<Schema | null>(null);
   loadingSchema = signal(true);
   loadingData = signal(false);
@@ -69,13 +74,10 @@ export class Database implements OnInit, AfterViewInit {
   page = signal(1);
   limit = 10;
   searchQuery = signal('');
-  private searchSubject = new Subject<string>();
-
   selectedRecord = signal<Record<string, unknown> | null>(null);
   showUpdateModal = signal(false);
   updateFormData = signal<Record<string, unknown>>({});
   originalFormData = signal<Record<string, unknown>>({});
-
   draftCount = this.draftService.draftCount;
   hasDrafts = this.draftService.hasDrafts;
   affectedTables = this.draftService.affectedTables;
@@ -124,13 +126,19 @@ export class Database implements OnInit, AfterViewInit {
     }
   }
 
-  loadSchema (): void {
+  loadSchema (isRefresh = false): void {
     this.loadingSchema.set(true);
-    this.dbOperations.loadSchemaWithCache().subscribe({
+    const service = this.useGraphQL() ? this.gqlDbOperations : this.dbOperations;
+    service.loadSchema().subscribe({
       next: (res) => {
-        this.schema.set(res.data);
+        if (isRefresh && !res.success) {
+          this.toastService.error(res.message || 'Failed to refresh schema');
+        } else {
+          this.schema.set(res.data);
+          if (isRefresh) this.toastService.success('Schema refreshed successfully');
+        }
+
         this.loadingSchema.set(false);
-        this.expandFirstCategory();
       },
       error: () => {
         this.toastService.error('Failed to load database schema.');
@@ -140,47 +148,39 @@ export class Database implements OnInit, AfterViewInit {
   }
 
   refreshSchema (): void {
-    this.loadingSchema.set(true);
-    this.dbOperations.refreshSchemaWithToast().subscribe({
-      next: (res) => {
-        this.schema.set(res.data);
-        this.loadingSchema.set(false);
-        this.expandFirstCategory();
-      },
-      error: () => {
-        this.loadingSchema.set(false);
-      },
-    });
+    this.loadSchema(true);
   }
 
   refreshTableData (): void {
     const table = this.selectedTable();
     if (!table) return;
     this.loadingData.set(true);
-    this.dbOperations.refreshTableDataWithToast(table, this.page(), this.limit, this.searchQuery()).subscribe({
+    const service = this.useGraphQL() ? this.gqlDbOperations : this.dbOperations;
+
+    service.loadTableData(table, this.page(), this.limit, this.searchQuery()).subscribe({
       next: (res) => {
-        const responseData = res.data;
-        if (responseData?.data) {
-          this.tableData.set(responseData.data);
-          this.total.set(responseData.total || responseData.data.length);
-          this.resetTableScroll();
+        if (res.success) {
+          const responseData = res.data;
+          if (responseData?.data) {
+            this.tableData.set(responseData.data);
+            this.total.set(responseData.total || responseData.data.length);
+            this.resetTableScroll();
+          } else {
+            this.tableData.set([]);
+            this.total.set(0);
+          }
+
+          this.toastService.success('Table data refreshed successfully');
         } else {
-          this.tableData.set([]);
-          this.total.set(0);
+          this.toastService.error(res.message || `Failed to refresh ${table.name} data.`);
         }
+
         this.loadingData.set(false);
       },
       error: () => {
         this.loadingData.set(false);
       },
     });
-  }
-
-  private expandFirstCategory (): void {
-    const categories = Object.keys(this.schema() || {});
-    if (categories.length > 0 && categories[0]) {
-      this.toggleCategory(categories[0]);
-    }
   }
 
   toggleCategory (category: string): void {
@@ -193,6 +193,7 @@ export class Database implements OnInit, AfterViewInit {
       this.tableData.set([]);
       return;
     }
+
     this.selectedTable.set(table);
     this.page.set(1);
     this.loadTableData();
@@ -202,7 +203,9 @@ export class Database implements OnInit, AfterViewInit {
     const table = this.selectedTable();
     if (!table) return;
     this.loadingData.set(true);
-    this.dbOperations.loadTableDataWithCache(table, this.page(), this.limit, this.searchQuery()).subscribe({
+    const service = this.useGraphQL() ? this.gqlDbOperations : this.dbOperations;
+
+    service.loadTableData(table, this.page(), this.limit, this.searchQuery()).subscribe({
       next: (res) => {
         const responseData = res.data;
         if (responseData?.data) {
@@ -213,6 +216,7 @@ export class Database implements OnInit, AfterViewInit {
           this.tableData.set([]);
           this.total.set(0);
         }
+
         this.loadingData.set(false);
       },
       error: () => {
@@ -220,14 +224,6 @@ export class Database implements OnInit, AfterViewInit {
         this.loadingData.set(false);
       },
     });
-  }
-
-  private resetTableScroll (): void {
-    setTimeout(() => {
-      if (this.tableScrollContainer) {
-        this.tableScrollContainer.nativeElement.scrollLeft = 0;
-      }
-    }, 100);
   }
 
   onSearch (event: Event): void {
@@ -252,48 +248,133 @@ export class Database implements OnInit, AfterViewInit {
   modalMode = signal<'create' | 'update'>('update');
   showPassword = signal(false);
 
-  isCurrentUser (id: number): boolean { return this.dbForm.isCurrentUser(id); }
-  isRestrictedTable (): boolean { return this.dbForm.isRestrictedTable(this.selectedTable()); }
-  isFieldExcluded (col: string): boolean { return this.dbForm.isFieldExcludedFromUpdate(col, this.selectedRecord()); }
-  isFieldDisabled (col: string): boolean {
-    return this.dbForm.isFieldDisabled(col, this.selectedTable(), this.modalMode());
+  isCurrentUser (id: number): boolean {
+    return this.dbForm.isCurrentUser(id);
   }
 
-  isFieldInMetadata (col: string): boolean {
-    return this.selectedTable()?.columns.some(c => c.name === col) ?? false;
+  isRestrictedTable (): boolean {
+    return this.dbForm.isRestrictedTable(this.selectedTable());
+  }
+
+  isFieldExcluded (col: string): boolean {
+    return this.dbForm.isFieldExcludedFromUpdate(col, this.selectedRecord());
+  }
+
+  isFieldDisabled (c: string): boolean {
+    return this.dbForm.isFieldDisabled(c, this.selectedTable(), this.modalMode());
+  }
+
+  isFieldInMetadata (c: string): boolean {
+    return this.selectedTable()?.columns.some((col) => col.name === c) ?? false;
   }
 
   generatePassword (): void {
-    const pwd = this.dbForm.generateRandomPassword();
-    this.updateFormData.update(c => ({ ...c, password: pwd }));
+    this.updateFormData.update((c) => ({ ...c, password: this.dbForm.generateRandomPassword() }));
   }
-  canDeleteRecord (): boolean { return this.dbHelper.canDeleteRecord(); }
-  formatValue (v: unknown, c: Column): string { return this.dbHelper.formatValue(v, c); }
-  getBooleanValue (row: Record<string, unknown>, col: string): boolean {
-    return this.dbHelper.getBooleanValue(row, col, this.getRecordDraftData(this.dbHelper.getNumberValue(row, 'id')));
+
+  canDeleteRecord (): boolean {
+    return this.dbHelper.canDeleteRecord();
   }
-  getNumberValue (row: Record<string, unknown>, col: string): number { return this.dbHelper.getNumberValue(row, col); }
-  getFieldDisplayName (f: string): string { return this.dbHelper.getFieldDisplayName(f); }
-  getUserInitials (row: Record<string, unknown>): string { return this.dbHelper.getUserInitials(row); }
-  isImageUrl (n: string): boolean { return this.dbHelper.isImageUrl(n); }
-  getAvailableRoles (): { value: string; label: string }[] { return this.dbHelper.getAvailableRoles(); }
-  getHeaderClasses (n: string, t: string): string { return this.dbHelper.getHeaderClasses(n, t); }
-  getCellClasses (n: string, t: string): string { return this.dbHelper.getCellClasses(n, t); }
-  getColumnStyles (n: string, t: string): Record<string, string> { return this.dbHelper.getColumnStyles(n, t); }
-  hasAnyActions (): boolean { return this.dbHelper.hasAnyActions(this.selectedTable()); }
-  canModifySensitiveFields (): boolean { return this.dbHelper.canModifySensitiveFields(); }
-  isSensitiveField (n: string): boolean { return this.dbHelper.isSensitiveField(n); }
-  formatFieldValue (v: unknown): string { return this.dbHelper.formatFieldValue(v); }
-  updateFormField (f: string, v: unknown): void { this.updateFormData.update(c => ({ ...c, [f]: v })); }
-  hasFormChanges (): boolean { return this.dbForm.hasFormChanges(this.updateFormData(), this.originalFormData()); }
-  isFieldChanged (f: string): boolean { return this.dbForm.isFieldChanged(f, this.updateFormData(), this.originalFormData()); }
-  getChangedFields (): Array<{ name: string; oldValue: unknown; newValue: unknown }> { return this.dbForm.getChangedFields(this.updateFormData(), this.originalFormData()); }
-  isRoleInvalid (): boolean { return this.dbForm.isRoleInvalid(this.updateFormData()); }
-  isFormInvalid (): boolean { return this.dbForm.isFormInvalid(this.updateFormData(), this.originalFormData()); }
-  getModalTitle (): string { return this.dbForm.getModalTitle(this.modalMode()); }
-  getSubmitButtonText (): string { return this.dbForm.getSubmitButtonText(this.modalMode(), this.hasFormChanges()); }
-  getSubmitButtonIcon (): string { return this.dbForm.getSubmitButtonIcon(this.modalMode()); }
-  getUpdateButtonTooltip (): string { return this.dbForm.getUpdateButtonTooltip(this.updateFormData(), this.originalFormData()); }
+
+  formatValue (v: unknown, c: Column): string {
+    return this.dbHelper.formatValue(v, c);
+  }
+
+  getBooleanValue (r: Record<string, unknown>, c: string): boolean {
+    return this.dbHelper.getBooleanValue(
+      r,
+      c,
+      this.getRecordDraftData(this.dbHelper.getNumberValue(r, 'id')),
+    );
+  }
+
+  getNumberValue (r: Record<string, unknown>, c: string): number {
+    return this.dbHelper.getNumberValue(r, c);
+  }
+
+  getFieldDisplayName (f: string): string {
+    return this.dbHelper.getFieldDisplayName(f);
+  }
+
+  getUserInitials (r: Record<string, unknown>): string {
+    return this.dbHelper.getUserInitials(r);
+  }
+
+  isImageUrl (n: string): boolean {
+    return this.dbHelper.isImageUrl(n);
+  }
+
+  getAvailableRoles (): { value: string; label: string }[] {
+    return this.dbHelper.getAvailableRoles();
+  }
+
+  getHeaderClasses (n: string, t: string): string {
+    return this.dbHelper.getHeaderClasses(n, t);
+  }
+
+  getCellClasses (n: string, t: string): string {
+    return this.dbHelper.getCellClasses(n, t);
+  }
+
+  getColumnStyles (n: string, t: string): Record<string, string> {
+    return this.dbHelper.getColumnStyles(n, t);
+  }
+
+  hasAnyActions (): boolean {
+    return this.dbHelper.hasAnyActions(this.selectedTable());
+  }
+
+  canModifySensitiveFields (): boolean {
+    return this.dbHelper.canModifySensitiveFields();
+  }
+
+  isSensitiveField (n: string): boolean {
+    return this.dbHelper.isSensitiveField(n);
+  }
+
+  formatFieldValue (v: unknown): string {
+    return this.dbHelper.formatFieldValue(v);
+  }
+
+  updateFormField (f: string, v: unknown): void {
+    this.updateFormData.update((c) => ({ ...c, [f]: v }));
+  }
+
+  hasFormChanges (): boolean {
+    return this.dbForm.hasFormChanges(this.updateFormData(), this.originalFormData());
+  }
+
+  isFieldChanged (f: string): boolean {
+    return this.dbForm.isFieldChanged(f, this.updateFormData(), this.originalFormData());
+  }
+
+  getChangedFields (): Array<{ name: string; oldValue: unknown; newValue: unknown }> {
+    return this.dbForm.getChangedFields(this.updateFormData(), this.originalFormData());
+  }
+
+  isRoleInvalid (): boolean {
+    return this.dbForm.isRoleInvalid(this.updateFormData());
+  }
+
+  isFormInvalid (): boolean {
+    return this.dbForm.isFormInvalid(this.updateFormData(), this.originalFormData());
+  }
+
+  getModalTitle (): string {
+    return this.dbForm.getModalTitle(this.modalMode());
+  }
+
+  getSubmitButtonText (): string {
+    return this.dbForm.getSubmitButtonText(this.modalMode(), this.hasFormChanges());
+  }
+
+  getSubmitButtonIcon (): string {
+    return this.dbForm.getSubmitButtonIcon(this.modalMode());
+  }
+
+  getUpdateButtonTooltip (): string {
+    return this.dbForm.getUpdateButtonTooltip(this.updateFormData(), this.originalFormData());
+  }
 
   createRecord (): void {
     const table = this.selectedTable();
@@ -313,6 +394,7 @@ export class Database implements OnInit, AfterViewInit {
     const formData = this.dbForm.prepareFormData(table, record, (columnName) =>
       this.isFieldExcluded(columnName),
     );
+
     this.modalMode.set('update');
     this.selectedRecord.set(record);
     this.updateFormData.set(formData);
@@ -325,6 +407,7 @@ export class Database implements OnInit, AfterViewInit {
     if (!table) return;
 
     let success = false;
+
     if (this.modalMode() === 'create') {
       success = this.dbForm.validateAndSubmitCreate(table, this.updateFormData());
     } else {
@@ -344,6 +427,7 @@ export class Database implements OnInit, AfterViewInit {
   deleteRecord (id: number): void {
     const table = this.selectedTable();
     if (!table || !id) return;
+
     this.dbOperations.confirmDelete(id, () => {
       const record = this.tableData().find((row) => row['id'] === id);
       if (!record) return;
@@ -385,18 +469,58 @@ export class Database implements OnInit, AfterViewInit {
   }
 
   publishAllChanges (): void {
-    this.dbHelper.publishAllChanges(
-      this.hasDrafts(),
-      (value) => this.isPublishing.set(value),
-      () => this.loadTableData(false)
-    );
+    if (this.useGraphQL()) {
+      const allDrafts = Array.from(this.draftService.drafts().values()).filter(
+        (draft) => draft.hasChanges,
+      );
+
+      if (allDrafts.length === 0) {
+        this.toastService.info('No changes to publish');
+        return;
+      }
+
+      this.isPublishing.set(true);
+
+      const operations: DatabaseOperation[] = allDrafts.map((draft) => {
+        const operation: DatabaseOperation = {
+          type: draft.operation,
+          table: draft.tableName,
+          category: draft.category,
+        };
+
+        if (draft.recordId !== 'new') operation.recordId = draft.recordId;
+        if (draft.operation !== 'delete') operation.data = draft.draftData;
+        return operation;
+      });
+
+      this.gqlDbOperations.bulkUpdate(operations, true).subscribe({
+        next: (res) => {
+          this.isPublishing.set(false);
+          if (res.success) {
+            this.draftService.resetDrafts();
+            this.toastService.success('Successfully published changes via GraphQL');
+            this.loadTableData(false);
+          } else {
+            this.toastService.error(res.message || 'Failed to publish changes via GraphQL');
+          }
+        },
+        error: () => {
+          this.isPublishing.set(false);
+          this.toastService.error('Failed to publish changes via GraphQL');
+        },
+      });
+    } else {
+      this.dbHelper.publishAllChanges(
+        this.hasDrafts(),
+        (value) => this.isPublishing.set(value),
+        () => this.loadTableData(false),
+      );
+    }
   }
 
   resetAllChanges (): void {
-    this.dbHelper.resetAllChanges(
-      this.hasDrafts(),
-      this.draftCount(),
-      () => this.loadTableData(false)
+    this.dbHelper.resetAllChanges(this.hasDrafts(), this.draftCount(), () =>
+      this.loadTableData(false),
     );
   }
 
@@ -410,5 +534,13 @@ export class Database implements OnInit, AfterViewInit {
   handleImageClick (row: Record<string, unknown>, columnName: string): void {
     const imageUrl = row[columnName] as string;
     this.dbHelper.handleImageClick(imageUrl);
+  }
+
+  private resetTableScroll (): void {
+    setTimeout(() => {
+      if (this.tableScrollContainer) {
+        this.tableScrollContainer.nativeElement.scrollLeft = 0;
+      }
+    }, 100);
   }
 }

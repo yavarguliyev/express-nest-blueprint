@@ -1,7 +1,7 @@
 import { ObjectType, Field } from '@config/libs';
 
 @ObjectType()
-export class User {
+export class UserArgs {
   @Field(() => Number)
   id?: number | undefined;
 

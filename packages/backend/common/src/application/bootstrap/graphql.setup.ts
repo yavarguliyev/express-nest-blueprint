@@ -10,11 +10,13 @@ export class GraphQLSetup {
     const graphqlApp = app.get(GraphQLApplication);
 
     graphqlApp.applyMiddleware(app.getExpressApp(), '/graphql');
+    graphqlApp.applyMiddleware(app.getExpressApp(), '/admin/graphql');
 
     if (!isProduction) {
       graphqlApp.applyGraphiQL(app.getExpressApp(), '/graphiql');
-      Logger.log('🔮 GraphQL endpoint enabled at /graphql', 'GraphQLSetup');
-      Logger.log('🎮 GraphiQL playground enabled at /graphiql', 'GraphQLSetup');
+      graphqlApp.applyGraphiQL(app.getExpressApp(), '/admin/graphiql');
+      Logger.log('🔮 GraphQL endpoints enabled at /graphql and /admin/graphql', 'GraphQLSetup');
+      Logger.log('🎮 GraphiQL playgrounds enabled at /graphiql and /admin/graphiql', 'GraphQLSetup');
     }
   }
 }

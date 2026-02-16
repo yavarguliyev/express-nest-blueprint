@@ -17,11 +17,12 @@ export interface MutationMetadata {
 
 export interface ArgMetadata {
   index: number;
-  name?: string;
-  type?: string;
+  name?: string | undefined;
+  type?: string | undefined;
   typeFunc?: TypeFunc | undefined;
-  isArgs?: boolean;
-  isCurrentUser?: boolean;
+  isArgs?: boolean | undefined;
+  isCurrentUser?: boolean | undefined;
+  nullable?: boolean | undefined;
 }
 
 export interface FieldMetadata {

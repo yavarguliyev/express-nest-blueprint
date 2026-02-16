@@ -5,6 +5,12 @@
       <p class="text-muted">Direct oversight and manipulation of relational entity matrices</p>
     </div>
     <div class="header-actions" appDraggableResizable="database-header-actions">
+      <app-toggle-switch
+        [label]="'GraphQL Mode'"
+        [checked]="useGraphQL()"
+        (toggle)="useGraphQL.set($event); refreshSchema()"
+        style="margin-right: 1.5rem; transform: scale(0.9);"
+      ></app-toggle-switch>
       <button class="btn btn-primary" (click)="refreshSchema()" [disabled]="loadingSchema()" title="Force fresh schema" appDraggableResizable="database-refresh-schema-btn">
         <span class="material-icons" [class.spin]="loadingSchema()">hub</span>
         Re-scan Infrastructure
@@ -101,7 +107,7 @@
                         <app-toggle-switch 
                           [checked]="getBooleanValue(row, col.name)" 
                           [disabled]="isSensitiveField(col.name) && !canModifySensitiveFields()"
-                          (toggleChange)="updateBooleanValue(row, col, $event)"
+                          (toggle)="updateBooleanValue(row, col, $event)"
                           size="medium">
                         </app-toggle-switch>
                       </div>
@@ -204,7 +210,7 @@
         
         <div class="form-container">
           <ng-container *ngFor="let col of selectedTable()!.columns">
-            <div class="form-field" *ngIf="col.editable && !isFieldExcluded(col.name)">
+            <div class="form-field" *ngIf="col.editable && !isFieldExcluded(col.name) && col.type !== 'boolean'">
               <label class="field-label">
                 {{ getFieldDisplayName(col.name) }}
                 <span *ngIf="modalMode() === 'update' && isFieldChanged(col.name)" class="field-changed-indicator" title="Field has been modified">●</span>

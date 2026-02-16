@@ -1,7 +1,7 @@
 import { InputType, Field } from '@config/libs';
 
 @InputType()
-export class UpdateUserInput {
+export class UpdateUserArgs {
   @Field(() => Number)
   id!: number;
 

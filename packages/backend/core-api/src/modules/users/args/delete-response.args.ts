@@ -1,7 +1,7 @@
 import { ObjectType, Field } from '@config/libs';
 
 @ObjectType()
-export class DeleteResponse {
+export class DeleteResponseArgs {
   @Field(() => String)
   message!: string;
 

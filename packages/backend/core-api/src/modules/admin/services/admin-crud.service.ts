@@ -11,8 +11,7 @@ import {
   parseId,
   QueueManager,
   RedisService,
-  CacheService,
-  Logger
+  CacheService
 } from '@config/libs';
 
 import { TableMetadata, ColumnMetadata } from '@modules/admin/interfaces/admin.interface';
@@ -28,7 +27,6 @@ import { CssAuditLogRepository } from '@modules/themes/repositories/css-audit-lo
 
 @Injectable()
 export class AdminCrudService {
-  private readonly logger = new Logger(AdminCrudService.name);
   private repositories = new Map<string, RepositoryEntry>();
   private queueEventsMap = new Map<string, QueueEvents>();
 
@@ -81,13 +79,15 @@ export class AdminCrudService {
     name: string,
     pageNum?: string,
     limitNum?: string,
-    search?: string
+    search?: string,
+    t?: string
   ): Promise<{ data: unknown[]; total: number }> {
     const page = pageNum ? parseInt(pageNum, 10) : 1;
     const limit = limitNum ? parseInt(limitNum, 10) : 10;
     const key = `${category}:${name}`;
     const entry = this.repositories.get(key);
-    if (!entry) throw new NotFoundException(`Table ${category}:${name} not found`);
+
+    if (!entry) throw new NotFoundException(`Table ${category}:${name}${t ?? ''} not found`);
     return entry.repository.retrieveDataWithPagination!(page, limit, search);
   }
 
@@ -116,12 +116,14 @@ export class AdminCrudService {
       const queue = this.queueManager.createQueue(entry.metadata.commandQueue);
       const job = await queue.add(jobName, { data, currentUser });
 
-      const result = (await this.waitForJobCompletion(entry.metadata.commandQueue, job)) as { id?: string | number; userId?: string | number };
+      const result = (await this.waitForJobCompletion(entry.metadata.commandQueue, job)) as { id: number; userId: number };
       await this.invalidateCache(entry.metadata, result?.id || result?.userId);
       return result;
     }
 
-    return entry.repository.create(data);
+    const result = (await entry.repository.create(data)) as { id?: string | number; userId?: string | number };
+    await this.invalidateCache(entry.metadata, result?.id || result?.userId);
+    return result;
   }
 
   async updateTableRecord (
@@ -147,7 +149,11 @@ export class AdminCrudService {
 
     const repository = entry.repository as BaseRepository<unknown>;
     const parsedId = parseId(id);
-    return repository.update(parsedId, data, undefined, undefined, currentUser);
+    const result = await repository.update(parsedId, data, undefined, undefined, currentUser);
+
+    await this.invalidateCache(entry.metadata, id);
+
+    return result;
   }
 
   async deleteTableRecord (
@@ -174,6 +180,7 @@ export class AdminCrudService {
     const repository = entry.repository as BaseRepository<unknown>;
     const parsedId = parseId(id);
     const success = await repository.delete(parsedId, undefined, currentUser);
+    if (success) await this.invalidateCache(entry.metadata, id);
 
     return { success };
   }
@@ -211,30 +218,18 @@ export class AdminCrudService {
     const queueNameWithHash = queueName.startsWith('{') ? queueName : `{${queueName}}`;
 
     let queueEvents = this.queueEventsMap.get(queueNameWithHash);
+
     if (!queueEvents) {
-      await this.logger.debug(`Creating new QueueEvents listener for ${queueNameWithHash}`);
       queueEvents = new QueueEvents(queueNameWithHash, { connection: this.redisService.getClient() });
       this.queueEventsMap.set(queueNameWithHash, queueEvents);
     }
 
-    await this.logger.debug(`Waiting for job ${job.id} in queue ${queueNameWithHash} (timeout: 10s)...`);
-
-    const result: unknown = await job.waitUntilFinished(queueEvents, 10000);
-    await this.logger.debug(`Job ${job.id} finished successfully`);
-    return result;
+    return await job.waitUntilFinished(queueEvents, 60000);
   }
 
   private async invalidateCache (metadata: CrudTableOptions, id?: string | number): Promise<void> {
     if (!metadata.cacheConfig) return;
-
-    if (metadata.cacheConfig.prefix) {
-      await this.cacheService.invalidateTags([metadata.cacheConfig.prefix]);
-      await this.logger.debug(`Invalidated cache for prefix: ${metadata.cacheConfig.prefix}`);
-    }
-
-    if (id && metadata.cacheConfig.detailKey) {
-      const detailKey = metadata.cacheConfig.detailKey(id);
-      await this.cacheService.delete(detailKey);
-    }
+    if (metadata.cacheConfig.prefix) await this.cacheService.invalidateTags([metadata.cacheConfig.prefix]);
+    if (id && metadata.cacheConfig.detailKey) await this.cacheService.delete(metadata.cacheConfig.detailKey(id));
   }
 }

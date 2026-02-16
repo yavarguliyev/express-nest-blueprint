@@ -1,7 +1,7 @@
 import { ObjectType, Field } from '@config/libs';
 
 @ObjectType()
-export class PaginationInfo {
+export class PaginationArgs {
   @Field(() => Number)
   total!: number;
 

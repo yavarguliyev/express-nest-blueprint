@@ -14,6 +14,7 @@ import {
   GraphQLFieldConfigArgumentMap
 } from 'graphql';
 
+import { GraphQLJSONObject } from '../scalars/json.scalar';
 import { Container } from '../../container/container';
 import { QUERY_METADATA, MUTATION_METADATA, ARG_METADATA } from '../../decorators/field.decorators';
 import { GUARDS_METADATA } from '../../decorators/middleware.decorators';
@@ -97,6 +98,7 @@ export class SchemaBuilder {
     if (type === String || type === 'String') return GraphQLString;
     if (type === Number || type === 'Number' || type === 'Int') return GraphQLInt;
     if (type === Boolean || type === 'Boolean') return GraphQLBoolean;
+    if (type === 'JSON' || type === 'JSONObject' || type === GraphQLJSONObject || (typeof type === 'function' && (type as Constructor).name === 'Object')) return GraphQLJSONObject;
     if (this.typeCache.has(type)) return this.typeCache.get(type)!;
 
     if (typeof type === 'function') {
@@ -223,7 +225,7 @@ export class SchemaBuilder {
         }
       } else if (arg.name) {
         const type = arg.typeFunc ? this.resolveType(arg.typeFunc) : GraphQLString;
-        graphqlArgs[arg.name] = { type: new GraphQLNonNull(type as GraphQLInputType) };
+        graphqlArgs[arg.name] = { type: arg.nullable ? (type as GraphQLInputType) : new GraphQLNonNull(type as GraphQLInputType) };
       }
     }
 

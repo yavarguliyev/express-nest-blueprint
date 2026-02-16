@@ -1,7 +1,7 @@
 import { InputType, Field } from '@config/libs';
 
 @InputType()
-export class CreateUserInput {
+export class CreateUserArgs {
   @Field(() => String)
   email!: string;
 
