@@ -52,8 +52,30 @@ export class DatabaseOperationsService {
   private toastService = inject(ToastService);
   private draftService = inject(DatabaseDraftService);
 
-  loadSchema (): Observable<ApiResponse<Schema>> {
-    return this.http.get<ApiResponse<Schema>>(API_ENDPOINTS.ADMIN.SCHEMA);
+  loadSchema (options?: { refresh?: boolean; showToast?: boolean }): Observable<ApiResponse<Schema>> {
+    const url = options?.refresh ? `${API_ENDPOINTS.ADMIN.SCHEMA}?t=${Date.now()}` : API_ENDPOINTS.ADMIN.SCHEMA;
+
+    return new Observable((observer) => {
+      this.http.get<ApiResponse<Schema>>(url).subscribe({
+        next: (res) => {
+          if (options?.showToast) {
+            if (res.success) {
+              this.toastService.success('Schema loaded successfully');
+            } else {
+              this.toastService.error('Failed to load schema');
+            }
+          }
+          observer.next(res);
+          observer.complete();
+        },
+        error: (error) => {
+          if (options?.showToast) {
+            this.toastService.error('Failed to load database schema');
+          }
+          observer.error(error);
+        },
+      });
+    });
   }
 
   loadTableData (
@@ -61,15 +83,40 @@ export class DatabaseOperationsService {
     page: number,
     limit: number,
     searchQuery: string,
+    options?: { refresh?: boolean; showToast?: boolean },
   ): Observable<ApiResponse<PaginatedResponse<Record<string, unknown>>>> {
     const url = API_ENDPOINTS.ADMIN.CRUD(table.category, table.name);
-    return this.http.get<ApiResponse<PaginatedResponse<Record<string, unknown>>>>(url, {
-      params: {
-        page: page.toString(),
-        limit: limit.toString(),
-        search: searchQuery,
-        t: new Date().getTime().toString(),
-      },
+    const timestamp = options?.refresh !== false ? Date.now() : undefined;
+
+    return new Observable((observer) => {
+      this.http
+        .get<ApiResponse<PaginatedResponse<Record<string, unknown>>>>(url, {
+          params: {
+            page: page.toString(),
+            limit: limit.toString(),
+            search: searchQuery,
+            ...(timestamp && { t: timestamp.toString() }),
+          },
+        })
+        .subscribe({
+          next: (res) => {
+            if (options?.showToast) {
+              if (res.success) {
+                this.toastService.success('Table data loaded successfully');
+              } else {
+                this.toastService.error('Failed to load table data');
+              }
+            }
+            observer.next(res);
+            observer.complete();
+          },
+          error: (error) => {
+            if (options?.showToast) {
+              this.toastService.error(`Failed to load ${table.name} data`);
+            }
+            observer.error(error);
+          },
+        });
     });
   }
 
@@ -85,19 +132,6 @@ export class DatabaseOperationsService {
   deleteRecord (table: TableMetadata, id: number): Observable<ApiResponse<void>> {
     const url = `${API_ENDPOINTS.ADMIN.CRUD(table.category, table.name)}/${id}`;
     return this.http.delete<ApiResponse<void>>(url);
-  }
-
-  refreshSchema (): Observable<ApiResponse<Schema>> {
-    return this.loadSchema();
-  }
-
-  refreshTableData (
-    table: TableMetadata,
-    page: number,
-    limit: number,
-    searchQuery: string,
-  ): Observable<ApiResponse<PaginatedResponse<Record<string, unknown>>>> {
-    return this.loadTableData(table, page, limit, searchQuery);
   }
 
   bulkDelete (
@@ -144,55 +178,5 @@ export class DatabaseOperationsService {
       `Mark record ${recordId} for deletion? You can review and apply all changes with "Save Changes".`,
       onConfirm,
     );
-  }
-
-  loadSchemaWithCache (): Observable<{ success: boolean; data: Schema }> {
-    return this.loadSchema();
-  }
-
-  refreshSchemaWithToast (): Observable<{ success: boolean; data: Schema }> {
-    return new Observable((observer) => {
-      this.refreshSchema().subscribe({
-        next: (res) => {
-          this.toastService.success('Schema refreshed successfully');
-          observer.next(res);
-          observer.complete();
-        },
-        error: (error) => {
-          this.toastService.error('Failed to refresh database schema.');
-          observer.error(error);
-        },
-      });
-    });
-  }
-
-  refreshTableDataWithToast (
-    table: TableMetadata,
-    page: number,
-    limit: number,
-    searchQuery: string,
-  ): Observable<{ success: boolean; data: { data: Record<string, unknown>[]; total: number } }> {
-    return new Observable((observer) => {
-      this.refreshTableData(table, page, limit, searchQuery).subscribe({
-        next: (res) => {
-          this.toastService.success('Table data refreshed successfully');
-          observer.next(res);
-          observer.complete();
-        },
-        error: (error) => {
-          this.toastService.error(`Failed to refresh ${table.name} data.`);
-          observer.error(error);
-        },
-      });
-    });
-  }
-
-  loadTableDataWithCache (
-    table: TableMetadata,
-    page: number,
-    limit: number,
-    searchQuery: string,
-  ): Observable<{ success: boolean; data: { data: Record<string, unknown>[]; total: number } }> {
-    return this.loadTableData(table, page, limit, searchQuery);
   }
 }
