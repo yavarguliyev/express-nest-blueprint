@@ -25,6 +25,7 @@ import { DatabaseHelperService } from '../../core/services/database-helper.servi
 import { DatabaseFormService } from '../../core/services/database-form.service';
 import { ApiConfigService } from '../../core/services/api-config.service';
 import { PaginationService } from '../../core/services/pagination.service';
+import { ApiResponse, PaginatedResponse } from '../../core/interfaces/api-response.interface';
 import { ToggleSwitch } from '../../shared/components/toggle-switch/toggle-switch';
 import { ActionButtons } from '../../shared/components/action-buttons/action-buttons';
 import {
@@ -129,7 +130,7 @@ export class Database implements OnInit, AfterViewInit {
   loadSchema (isRefresh = false): void {
     this.loadingSchema.set(true);
     this.dbOperations.loadSchema().subscribe({
-      next: (res) => {
+      next: (res: ApiResponse<Schema>) => {
         if (isRefresh && !res.success) {
           this.toastService.error(res.message || 'Failed to refresh schema');
         } else {
@@ -156,7 +157,7 @@ export class Database implements OnInit, AfterViewInit {
     this.loadingData.set(true);
 
     this.dbOperations.loadTableData(table, this.page(), this.limit, this.searchQuery()).subscribe({
-      next: (res) => {
+      next: (res: ApiResponse<PaginatedResponse<Record<string, unknown>>>) => {
         if (res.success) {
           const responseData = res.data;
           if (responseData?.data) {
@@ -203,7 +204,7 @@ export class Database implements OnInit, AfterViewInit {
     this.loadingData.set(true);
 
     this.dbOperations.loadTableData(table, this.page(), this.limit, this.searchQuery()).subscribe({
-      next: (res) => {
+      next: (res: ApiResponse<PaginatedResponse<Record<string, unknown>>>) => {
         const responseData = res.data;
         if (responseData?.data) {
           this.tableData.set(responseData.data);
@@ -498,7 +499,7 @@ export class Database implements OnInit, AfterViewInit {
       });
 
       this.dbOperations.bulkUpdate(operations, true).subscribe({
-        next: (res) => {
+        next: (res: ApiResponse<unknown>) => {
           this.isPublishing.set(false);
           if (res.success) {
             this.draftService.resetDrafts();

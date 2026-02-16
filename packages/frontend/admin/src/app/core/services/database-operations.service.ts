@@ -1,8 +1,9 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Observable, map, tap, catchError } from 'rxjs';
 import { ToastService } from './toast.service';
 import { DatabaseDraftService } from './database-draft.service';
-import { ApiService, ApiResponse } from './base/api.service';
+import { ApiService } from './base/api.service';
+import { ApiResponse, PaginatedResponse } from '../interfaces/api-response.interface';
 import { ApiConfigService } from './api-config.service';
 import { NotificationUtil } from '../utils/notification.util';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
@@ -33,14 +34,6 @@ export interface Schema {
   [category: string]: TableMetadata[];
 }
 
-export interface PaginatedResponse<T> {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
 @Injectable({
   providedIn: 'root',
 })
@@ -63,7 +56,7 @@ export class DatabaseOperationsService {
 
     return new Observable((observer) => {
       this.api.get<Schema>(url).subscribe({
-        next: (res) => {
+        next: (res: ApiResponse<Schema>) => {
           if (options?.showToast) {
             if (res.success) {
               NotificationUtil.loadSuccess(this.toastService, 'Schema');
@@ -87,33 +80,30 @@ export class DatabaseOperationsService {
   private loadSchemaGraphQL (options?: { refresh?: boolean; showToast?: boolean }): Observable<ApiResponse<Schema>> {
     const query = `query { adminGetSchema }`;
 
-    return new Observable((observer) => {
-      this.api.graphql<{ adminGetSchema: Schema }>(this.GQL_URL, query).subscribe({
-        next: (res) => {
-          const schemaResponse: ApiResponse<Schema> = {
-            success: res.success,
-            data: res.data.adminGetSchema,
-            message: res.message,
-          };
-
-          if (options?.showToast) {
-            if (schemaResponse.success) {
-              NotificationUtil.loadSuccess(this.toastService, 'Schema');
-            } else {
-              NotificationUtil.loadError(this.toastService, 'schema');
-            }
+    return this.api.graphql<{ adminGetSchema: Schema }>(this.GQL_URL, query).pipe(
+      map((res: ApiResponse<{ adminGetSchema: Schema }>): ApiResponse<Schema> => {
+        return {
+          success: res.success,
+          data: res.data.adminGetSchema,
+          message: res.message,
+        };
+      }),
+      tap((schemaResponse) => {
+        if (options?.showToast) {
+          if (schemaResponse.success) {
+            NotificationUtil.loadSuccess(this.toastService, 'Schema');
+          } else {
+            NotificationUtil.loadError(this.toastService, 'schema');
           }
-          observer.next(schemaResponse);
-          observer.complete();
-        },
-        error: (error) => {
-          if (options?.showToast) {
-            NotificationUtil.loadError(this.toastService, 'database schema');
-          }
-          observer.error(error);
-        },
-      });
-    });
+        }
+      }),
+      catchError((error) => {
+        if (options?.showToast) {
+          NotificationUtil.loadError(this.toastService, 'database schema');
+        }
+        throw error;
+      }),
+    );
   }
 
   loadTableData (
@@ -150,7 +140,7 @@ export class DatabaseOperationsService {
           },
         })
         .subscribe({
-          next: (res) => {
+          next: (res: ApiResponse<PaginatedResponse<Record<string, unknown>>>) => {
             if (options?.showToast) {
               if (res.success) {
                 NotificationUtil.loadSuccess(this.toastService, 'Table data');
@@ -200,7 +190,7 @@ export class DatabaseOperationsService {
           variables,
         )
         .subscribe({
-          next: (res) => {
+          next: (res: ApiResponse<{ adminGetTableData: PaginatedResponse<Record<string, unknown>> }>) => {
             const tableDataResponse: ApiResponse<PaginatedResponse<Record<string, unknown>>> = {
               success: res.success,
               data: res.data.adminGetTableData,
@@ -264,15 +254,17 @@ export class DatabaseOperationsService {
       data,
     };
 
-    return this.api
+    return (this.api
       .graphql<{ adminUpdateRecord: Record<string, unknown> }>(this.GQL_URL, query, variables)
       .pipe(
-        map((res) => ({
-          success: res.success,
-          data: res.data.adminUpdateRecord,
-          message: res.message || '',
-        })),
-      );
+        map((res: ApiResponse<{ adminUpdateRecord: Record<string, unknown> }>): ApiResponse<Record<string, unknown>> => {
+          return {
+            success: res.success,
+            data: res.data.adminUpdateRecord,
+            message: res.message,
+          };
+        }),
+      ));
   }
 
   deleteRecord (table: TableMetadata, id: number): Observable<ApiResponse<void>> {
@@ -299,15 +291,17 @@ export class DatabaseOperationsService {
       id: id.toString(),
     };
 
-    return this.api
+    return (this.api
       .graphql<{ adminDeleteRecord: void }>(this.GQL_URL, query, variables)
       .pipe(
-        map((res) => ({
-          success: res.success,
-          data: undefined as unknown as void,
-          message: res.message || '',
-        })),
-      );
+        map((res: ApiResponse<{ adminDeleteRecord: void }>): ApiResponse<void> => {
+          return {
+            success: res.success,
+            data: undefined as unknown as void,
+            message: res.message,
+          };
+        }),
+      ));
   }
 
   bulkDelete (
@@ -344,11 +338,13 @@ export class DatabaseOperationsService {
     return this.api
       .graphql<{ adminExecuteBulk: unknown }>(this.GQL_URL, query, variables)
       .pipe(
-        map((res) => ({
-          success: res.success,
-          data: res.data.adminExecuteBulk,
-          message: res.message || '',
-        })),
+        map((res: ApiResponse<{ adminExecuteBulk: unknown }>): ApiResponse<unknown> => {
+          return {
+            success: res.success,
+            data: res.data.adminExecuteBulk,
+            message: res.message,
+          };
+        }),
       );
   }
 

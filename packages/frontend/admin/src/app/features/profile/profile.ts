@@ -8,16 +8,11 @@ import { TextTransformService } from '../../core/services/text-transform.service
 import { RoleAccessService } from '../../core/services/role-access.service';
 import { API_ENDPOINTS } from '../../core/constants/api-endpoints';
 import { DraggableResizableDirective } from '../../shared/directives/draggable-resizable.directive';
+import { ApiResponse } from '../../core/interfaces/api-response.interface';
 
 interface ProfileForm {
   firstName: string;
   lastName: string;
-}
-
-interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message?: string;
 }
 
 interface ErrorResponse {

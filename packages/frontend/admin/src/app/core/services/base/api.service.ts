@@ -1,21 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, catchError, throwError } from 'rxjs';
+import { Observable, catchError, throwError, map } from 'rxjs';
+import { ApiResponse, GqlResponse } from '../../interfaces/api-response.interface';
 
 export interface ApiRequestOptions {
   params?: Record<string, string | number | boolean>;
   headers?: Record<string, string>;
-}
-
-export interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message?: string | undefined;
-}
-
-export interface GqlResponse<T> {
-  data?: T;
-  errors?: Array<{ message: string }>;
 }
 
 @Injectable({
@@ -89,25 +79,22 @@ export class ApiService {
     query: string,
     variables?: Record<string, unknown>,
   ): Observable<ApiResponse<T>> {
-    return new Observable((observer) => {
-      this.http
-        .post<GqlResponse<T>>(endpoint, { query, variables })
-        .pipe(catchError((error) => this.handleError(error)))
-        .subscribe({
-          next: (gqlResponse) => {
-            const apiResponse: ApiResponse<T> = {
-              success: !gqlResponse.errors || gqlResponse.errors.length === 0,
-              data: gqlResponse.data as T,
-              message: gqlResponse.errors?.[0]?.message ?? '',
-            };
-            observer.next(apiResponse);
-            observer.complete();
-          },
-          error: (error) => {
-            observer.error(error);
-          },
-        });
-    });
+    return this.http
+      .post<GqlResponse<T>>(endpoint, { query, variables })
+      .pipe(
+        catchError((error) => this.handleError(error)),
+        map((gqlResponse: GqlResponse<T>): ApiResponse<T> => {
+          const errors = gqlResponse.errors ?? [];
+          const hasErrors = errors.length > 0;
+          const message = hasErrors && errors[0] ? errors[0].message : '';
+          
+          return {
+            success: !hasErrors,
+            data: gqlResponse.data,
+            message,
+          };
+        }),
+      );
   }
 
   private buildHttpParams (params?: Record<string, string | number | boolean>): HttpParams {

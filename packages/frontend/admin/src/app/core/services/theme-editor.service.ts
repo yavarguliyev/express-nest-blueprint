@@ -5,6 +5,7 @@ import { ThemeService } from './theme.service';
 import { TokenNotificationService } from './token-notification.service';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
 import { BaseDraftService, BaseDraft, PublishResult } from './base/base-draft.service';
+import { ApiResponse, PaginatedResponse } from '../interfaces/api-response.interface';
 
 export interface CssToken {
   id: string;
@@ -25,20 +26,6 @@ export interface TokenDraft extends BaseDraft {
   lightModeValue: string | null;
   darkModeValue: string | null;
   defaultValue: string;
-}
-
-export interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message?: string;
-}
-
-export interface PaginatedResponse<T> {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
 }
 
 @Injectable({

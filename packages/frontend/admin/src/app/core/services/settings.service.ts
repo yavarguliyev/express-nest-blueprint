@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
+import { ApiResponse } from '../interfaces/api-response.interface';
 
 export interface SettingItem {
   id: string;
@@ -18,12 +19,6 @@ export interface SettingsUpdateRequest {
     value: boolean;
     isActive?: boolean;
   }>;
-}
-
-export interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message: string;
 }
 
 @Injectable({
