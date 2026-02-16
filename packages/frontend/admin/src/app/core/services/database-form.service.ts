@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { ToastService } from './toast.service';
 import { DatabaseDraftService } from './database-draft.service';
 import { AuthService } from './auth.service';
-import { UserRoleHelper } from '../enums/user-roles.enum';
+import { RoleAccessService } from './role-access.service';
 import { TableMetadata, Column } from './database-operations.service';
 import { FormValidationUtil } from '../utils/form-validation.util';
 
@@ -13,6 +13,7 @@ export class DatabaseFormService {
   private toastService = inject(ToastService);
   private draftService = inject(DatabaseDraftService);
   private authService = inject(AuthService);
+  private roleAccess = inject(RoleAccessService);
 
   hasFormChanges (
     currentData: Record<string, unknown>,
@@ -261,7 +262,7 @@ export class DatabaseFormService {
     const currentUser = this.authService.getCurrentUser();
 
     if (columnName === 'role' && currentUser) {
-      if (!UserRoleHelper.canEditRoles(currentUser.role)) {
+      if (!this.roleAccess.canEditRoles()) {
         excludedFields.push('role');
       } else if (selectedRecord && this.isCurrentUser(selectedRecord['id'] as number)) {
         excludedFields.push('role');
@@ -299,7 +300,7 @@ export class DatabaseFormService {
       if (this.isCurrentUser(recordId)) {
         return false;
       }
-      return UserRoleHelper.isGlobalAdmin(currentUser.role);
+      return this.roleAccess.isGlobalAdmin();
     }
 
     return true;

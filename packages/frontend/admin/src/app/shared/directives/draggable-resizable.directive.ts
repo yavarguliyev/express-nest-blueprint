@@ -10,7 +10,7 @@ import {
   effect,
 } from '@angular/core';
 import { AuthService } from '../../core/services/auth.service';
-import { UserRoleHelper } from '../../core/enums/user-roles.enum';
+import { RoleAccessService } from '../../core/services/role-access.service';
 import { LayoutCustomizationService } from '../../core/services/layout-customization.service';
 
 @Directive({
@@ -21,6 +21,7 @@ export class DraggableResizableDirective implements OnInit, OnDestroy {
   private el: ElementRef<HTMLElement> = inject(ElementRef) as ElementRef<HTMLElement>;
   private renderer = inject(Renderer2);
   private authService = inject(AuthService);
+  private roleAccess = inject(RoleAccessService);
   private layoutService = inject(LayoutCustomizationService);
 
   @Input() appDraggableResizable: string = '';
@@ -79,7 +80,7 @@ export class DraggableResizableDirective implements OnInit, OnDestroy {
 
   ngOnInit (): void {
     const user = this.authService.getCurrentUser();
-    if (user && UserRoleHelper.isGlobalAdmin(user.role)) {
+    if (user && this.roleAccess.isGlobalAdmin()) {
       this.isGlobalAdmin = true;
       this.setupInteraction();
     }

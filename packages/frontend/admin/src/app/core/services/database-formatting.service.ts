@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { DateFormatService } from './date-format.service';
 import { TextTransformService } from './text-transform.service';
 import { TableStyleService } from './table-style.service';
-import { UserRoleHelper } from '../enums/user-roles.enum';
+import { RoleAccessService } from './role-access.service';
 import { Column } from './database-operations.service';
 
 @Injectable({
@@ -12,12 +12,13 @@ export class DatabaseFormattingService {
   private dateFormat = inject(DateFormatService);
   private textTransform = inject(TextTransformService);
   private tableStyle = inject(TableStyleService);
+  private roleAccess = inject(RoleAccessService);
 
   formatValue (value: unknown, column: Column): string {
     if (value === null || value === undefined) return '-';
 
     if (this.isRoleColumn(column.name) && typeof value === 'string') {
-      return UserRoleHelper.getRoleDisplayName(value);
+      return this.roleAccess.getRoleDisplayName(value);
     }
 
     if (column.type === 'datetime') {
@@ -38,7 +39,7 @@ export class DatabaseFormattingService {
     }
     if (typeof value === 'string') {
       if (value.includes('admin')) {
-        return UserRoleHelper.getRoleDisplayName(value);
+        return this.roleAccess.getRoleDisplayName(value);
       }
       return value;
     }

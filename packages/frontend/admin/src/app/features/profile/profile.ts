@@ -5,7 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { TextTransformService } from '../../core/services/text-transform.service';
-import { UserRoleHelper } from '../../core/enums/user-roles.enum';
+import { RoleAccessService } from '../../core/services/role-access.service';
 import { API_ENDPOINTS } from '../../core/constants/api-endpoints';
 import { DraggableResizableDirective } from '../../shared/directives/draggable-resizable.directive';
 
@@ -39,6 +39,7 @@ export class Profile implements OnInit, OnDestroy {
   private toastService = inject(ToastService);
   private http = inject(HttpClient);
   private textTransform = inject(TextTransformService);
+  private roleAccess = inject(RoleAccessService);
 
   user = this.authService.currentUser;
   loading = signal(false);
@@ -188,11 +189,7 @@ export class Profile implements OnInit, OnDestroy {
   }
 
   getRoleDisplayName (): string {
-    const currentUser = this.user();
-    if (!currentUser || !currentUser.role) {
-      return 'Unknown Role';
-    }
-    return UserRoleHelper.getRoleDisplayName(currentUser.role);
+    return this.roleAccess.getCurrentUserRoleDisplayName();
   }
 
   getUserInitials (): string {
