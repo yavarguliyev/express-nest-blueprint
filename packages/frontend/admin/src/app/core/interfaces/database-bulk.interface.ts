@@ -24,16 +24,15 @@ export const CONFLICT_RESOLUTION_STRATEGIES = {
 export type ConflictResolutionStrategy =
   (typeof CONFLICT_RESOLUTION_STRATEGIES)[keyof typeof CONFLICT_RESOLUTION_STRATEGIES];
 
-export interface DatabaseDraft {
-  id: string;
+import { BaseDraft } from '../services/base/base-draft.service';
+
+export interface DatabaseDraft extends BaseDraft {
   tableName: string;
   category: string;
   recordId: number | string;
   operation: BulkOperationType;
   originalData: Record<string, unknown>;
   draftData: Record<string, unknown>;
-  hasChanges: boolean;
-  timestamp: Date;
 }
 
 export interface DatabaseOperation {

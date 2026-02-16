@@ -1,38 +1,25 @@
-import { Injectable, inject, signal, computed } from '@angular/core';
+import { Injectable, inject, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap, map, finalize } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import {
   DatabaseDraft,
   DatabaseOperation,
   BulkOperationRequest,
   BulkOperationResponse,
-  DraftStorage,
   ValidationResult,
 } from '../interfaces/database-bulk.interface';
 import { TokenNotificationService } from './token-notification.service';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
+import { BaseDraftService, PublishResult } from './base/base-draft.service';
 
 @Injectable({
   providedIn: 'root',
 })
-export class DatabaseDraftService {
+export class DatabaseDraftService extends BaseDraftService<DatabaseDraft, DatabaseOperation> {
   private http = inject(HttpClient);
   private tokenNotificationService = inject(TokenNotificationService);
-  private readonly DRAFT_STORAGE_KEY = 'database-drafts';
-  private readonly STORAGE_VERSION = '1.0.0';
-
-  private _drafts = signal<Map<string, DatabaseDraft>>(new Map());
-  private _loading = signal(false);
-
-  drafts = this._drafts.asReadonly();
-  loading = this._loading.asReadonly();
-
-  draftCount = computed(() => {
-    const drafts = this._drafts();
-    return Array.from(drafts.values()).filter((draft) => draft.hasChanges).length;
-  });
-
-  hasDrafts = computed(() => this.draftCount() > 0);
+  protected readonly DRAFT_STORAGE_KEY = 'database-drafts';
+  protected readonly STORAGE_VERSION = '1.0.0';
 
   affectedTables = computed(() => {
     const drafts = this._drafts();
@@ -53,7 +40,72 @@ export class DatabaseDraftService {
   });
 
   constructor () {
-    this.loadDraftsFromStorage();
+    super();
+  }
+
+  protected buildOperation (draft: DatabaseDraft): DatabaseOperation {
+    const operation: DatabaseOperation = {
+      type: draft.operation,
+      table: draft.tableName,
+      category: draft.category,
+      recordId: draft.recordId,
+    };
+
+    if (draft.operation !== 'delete') {
+      operation.data = draft.draftData;
+    }
+
+    return operation;
+  }
+
+  protected executePublish (operations: DatabaseOperation[]): Observable<PublishResult> {
+    const request: BulkOperationRequest = { operations };
+
+    return this.http
+      .post<{
+        success: boolean;
+        data: BulkOperationResponse;
+        message?: string;
+      }>(`${API_ENDPOINTS.ADMIN.BULK_OPERATIONS}?wait=true`, request)
+      .pipe(
+        map((response) => ({
+          success: response.data.success,
+          summary: response.data.summary,
+          results: response.data.results,
+        })),
+      );
+  }
+
+  protected onPublishSuccess (result: PublishResult & { results?: BulkOperationResponse['results'] }): void {
+    if (result.success && result.results) {
+      const cssTokenOperations = result.results.filter((r) => r.operation.table === 'css_tokens');
+
+      const currentDrafts = this._drafts();
+      const newDrafts = new Map(currentDrafts);
+      let draftsChanged = false;
+
+      result.results.forEach((operationResult) => {
+        if (operationResult.success) {
+          const draftId = this.generateDraftId(
+            operationResult.operation.category,
+            operationResult.operation.table,
+            operationResult.operation.recordId,
+          );
+          if (newDrafts.delete(draftId)) {
+            draftsChanged = true;
+          }
+        }
+      });
+
+      if (draftsChanged) {
+        this._drafts.set(newDrafts);
+        this.saveDraftsToStorage();
+      }
+
+      if (cssTokenOperations.length > 0) {
+        this.tokenNotificationService.notifyAllTokensUpdated('database');
+      }
+    }
   }
 
   createDraft (operation: DatabaseOperation, originalData: Record<string, unknown> | null): void {
@@ -102,23 +154,6 @@ export class DatabaseDraftService {
     this.saveDraftsToStorage();
   }
 
-  deleteDraft (draftId: string): void {
-    const currentDrafts = this._drafts();
-    const newDrafts = new Map(currentDrafts);
-    newDrafts.delete(draftId);
-    this._drafts.set(newDrafts);
-    this.saveDraftsToStorage();
-  }
-
-  getDraft (draftId: string): DatabaseDraft | null {
-    return this._drafts().get(draftId) || null;
-  }
-
-  hasDraftChanges (draftId: string): boolean {
-    const draft = this._drafts().get(draftId);
-    return draft ? draft.hasChanges : false;
-  }
-
   getDraftForRecord (
     category: string,
     table: string,
@@ -126,89 +161,6 @@ export class DatabaseDraftService {
   ): DatabaseDraft | null {
     const draftId = this.generateDraftId(category, table, recordId);
     return this.getDraft(draftId);
-  }
-
-  publishDrafts (): Observable<BulkOperationResponse> {
-    const allDrafts = Array.from(this._drafts().values()).filter((draft) => draft.hasChanges);
-
-    if (allDrafts.length === 0) {
-      return new Observable((observer) => {
-        observer.next({
-          success: true,
-          results: [],
-          summary: { total: 0, successful: 0, failed: 0 },
-        });
-        observer.complete();
-      });
-    }
-
-    this._loading.set(true);
-
-    const operations: DatabaseOperation[] = allDrafts.map((draft) => {
-      const operation: DatabaseOperation = {
-        type: draft.operation,
-        table: draft.tableName,
-        category: draft.category,
-        recordId: draft.recordId,
-      };
-
-      if (draft.operation !== 'delete') {
-        operation.data = draft.draftData;
-      }
-
-      return operation;
-    });
-
-    const request: BulkOperationRequest = { operations };
-
-    return this.http
-      .post<{
-        success: boolean;
-        data: BulkOperationResponse;
-        message?: string;
-      }>(`${API_ENDPOINTS.ADMIN.BULK_OPERATIONS}?wait=true`, request)
-      .pipe(
-        map((response) => response.data),
-        tap((bulkResponse) => {
-          if (bulkResponse.success && bulkResponse.results) {
-            const cssTokenOperations = operations.filter((op) => op.table === 'css_tokens');
-
-            const currentDrafts = this._drafts();
-            const newDrafts = new Map(currentDrafts);
-            let draftsChanged = false;
-
-            bulkResponse.results.forEach((result) => {
-              if (result.success) {
-                const draftId = this.generateDraftId(
-                  result.operation.category,
-                  result.operation.table,
-                  result.operation.recordId,
-                );
-                if (newDrafts.delete(draftId)) {
-                  draftsChanged = true;
-                }
-              }
-            });
-
-            if (draftsChanged) {
-              this._drafts.set(newDrafts);
-              this.saveDraftsToStorage();
-            }
-
-            if (cssTokenOperations.length > 0) {
-              this.tokenNotificationService.notifyAllTokensUpdated('database');
-            }
-          }
-        }),
-        finalize(() => {
-          this._loading.set(false);
-        }),
-      );
-  }
-
-  resetDrafts (): void {
-    this._drafts.set(new Map());
-    this.saveDraftsToStorage();
   }
 
   validateDrafts (): Observable<ValidationResult> {
@@ -225,20 +177,7 @@ export class DatabaseDraftService {
       });
     }
 
-    const operations: DatabaseOperation[] = allDrafts.map((draft) => {
-      const operation: DatabaseOperation = {
-        type: draft.operation,
-        table: draft.tableName,
-        category: draft.category,
-        recordId: draft.recordId,
-      };
-
-      if (draft.operation !== 'delete') {
-        operation.data = draft.draftData;
-      }
-
-      return operation;
-    });
+    const operations: DatabaseOperation[] = allDrafts.map((draft) => this.buildOperation(draft));
 
     const request: BulkOperationRequest = { operations, validateOnly: true };
 
@@ -253,71 +192,5 @@ export class DatabaseDraftService {
 
   private generateDraftId (category: string, table: string, recordId?: number | string): string {
     return `${category}:${table}:${recordId || 'new'}`;
-  }
-
-  private hasDataChanges (
-    original: Record<string, unknown>,
-    modified: Record<string, unknown>,
-  ): boolean {
-    const originalKeys = Object.keys(original);
-    const modifiedKeys = Object.keys(modified);
-
-    if (originalKeys.length !== modifiedKeys.length) {
-      return true;
-    }
-
-    for (const key of originalKeys) {
-      if (original[key] !== modified[key]) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  private saveDraftsToStorage (): void {
-    if (typeof window === 'undefined') return;
-
-    const draftsArray = Array.from(this._drafts().entries());
-    const storage: DraftStorage = {
-      version: this.STORAGE_VERSION,
-      timestamp: new Date(),
-      drafts: Object.fromEntries(draftsArray),
-      metadata: {
-        totalChanges: this.draftCount(),
-        affectedTables: this.affectedTables(),
-        lastModified: new Date(),
-      },
-    };
-
-    localStorage.setItem(this.DRAFT_STORAGE_KEY, JSON.stringify(storage));
-  }
-
-  private loadDraftsFromStorage (): void {
-    if (typeof window === 'undefined') return;
-
-    try {
-      const stored = localStorage.getItem(this.DRAFT_STORAGE_KEY);
-      if (!stored) return;
-
-      const storage: DraftStorage = JSON.parse(stored) as DraftStorage;
-
-      if (storage.version !== this.STORAGE_VERSION) {
-        localStorage.removeItem(this.DRAFT_STORAGE_KEY);
-        return;
-      }
-
-      const draftsMap = new Map<string, DatabaseDraft>();
-      Object.entries(storage.drafts).forEach(([key, draft]) => {
-        draftsMap.set(key, {
-          ...draft,
-          timestamp: new Date(draft.timestamp),
-        });
-      });
-
-      this._drafts.set(draftsMap);
-    } catch {
-      localStorage.removeItem(this.DRAFT_STORAGE_KEY);
-    }
   }
 }
