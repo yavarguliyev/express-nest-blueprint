@@ -5,6 +5,7 @@ import { AuthService } from './auth.service';
 import { RoleAccessService } from './role-access.service';
 import { TableMetadata, Column } from './database-operations.service';
 import { FormValidationUtil } from '../utils/form-validation.util';
+import { NotificationUtil } from '../utils/notification.util';
 
 @Injectable({
   providedIn: 'root',
@@ -106,12 +107,12 @@ export class DatabaseFormService {
     const changedData = FormValidationUtil.getChangedData(currentData, originalData);
 
     if (Object.keys(changedData).length === 0) {
-      this.toastService.error('No changes detected to update.');
+      NotificationUtil.noChangesDetected(this.toastService);
       return false;
     }
 
     if (!FormValidationUtil.isRoleValid(changedData)) {
-      this.toastService.error('Please select a valid role before updating the record.');
+      NotificationUtil.validationError(this.toastService, 'Please select a valid role before updating the record.');
       return false;
     }
 
@@ -147,14 +148,15 @@ export class DatabaseFormService {
     );
 
     if (!validationResult.valid) {
-      this.toastService.error(
+      NotificationUtil.validationError(
+        this.toastService,
         `Please fix the following errors: ${validationResult.errors?.join(', ')}`,
       );
       return false;
     }
 
     if (!FormValidationUtil.isRoleValid(formData)) {
-      this.toastService.error('Please select a valid role before creating the record.');
+      NotificationUtil.validationError(this.toastService, 'Please select a valid role before creating the record.');
       return false;
     }
 
@@ -163,7 +165,7 @@ export class DatabaseFormService {
         formData['password'] as string,
       );
       if (!passwordValidation.valid) {
-        this.toastService.error(passwordValidation.error || 'Invalid password');
+        NotificationUtil.validationError(this.toastService, passwordValidation.error || 'Invalid password');
         return false;
       }
     }
@@ -209,8 +211,9 @@ export class DatabaseFormService {
     if (!table || !record || column.type !== 'boolean') return;
 
     if (isSensitiveField(column.name) && !canModifySensitiveFields()) {
-      this.toastService.error(
-        'Only Global Administrators can modify user activation and email verification status.',
+      NotificationUtil.permissionDenied(
+        this.toastService,
+        'modify user activation and email verification status',
       );
       return;
     }

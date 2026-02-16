@@ -4,6 +4,7 @@ import { ToastService } from './toast.service';
 import { DatabaseDraftService } from './database-draft.service';
 import { ApiService, ApiResponse } from './base/api.service';
 import { ApiConfigService } from './api-config.service';
+import { NotificationUtil } from '../utils/notification.util';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
 export { DatabaseOperation } from '../interfaces/database-bulk.interface';
 export type { ApiResponse };
@@ -65,9 +66,9 @@ export class DatabaseOperationsService {
         next: (res) => {
           if (options?.showToast) {
             if (res.success) {
-              this.toastService.success('Schema loaded successfully');
+              NotificationUtil.loadSuccess(this.toastService, 'Schema');
             } else {
-              this.toastService.error('Failed to load schema');
+              NotificationUtil.loadError(this.toastService, 'schema');
             }
           }
           observer.next(res);
@@ -75,7 +76,7 @@ export class DatabaseOperationsService {
         },
         error: (error) => {
           if (options?.showToast) {
-            this.toastService.error('Failed to load database schema');
+            NotificationUtil.loadError(this.toastService, 'database schema');
           }
           observer.error(error);
         },
@@ -97,9 +98,9 @@ export class DatabaseOperationsService {
 
           if (options?.showToast) {
             if (schemaResponse.success) {
-              this.toastService.success('Schema loaded successfully');
+              NotificationUtil.loadSuccess(this.toastService, 'Schema');
             } else {
-              this.toastService.error('Failed to load schema');
+              NotificationUtil.loadError(this.toastService, 'schema');
             }
           }
           observer.next(schemaResponse);
@@ -107,7 +108,7 @@ export class DatabaseOperationsService {
         },
         error: (error) => {
           if (options?.showToast) {
-            this.toastService.error('Failed to load database schema');
+            NotificationUtil.loadError(this.toastService, 'database schema');
           }
           observer.error(error);
         },
@@ -152,9 +153,9 @@ export class DatabaseOperationsService {
           next: (res) => {
             if (options?.showToast) {
               if (res.success) {
-                this.toastService.success('Table data loaded successfully');
+                NotificationUtil.loadSuccess(this.toastService, 'Table data');
               } else {
-                this.toastService.error('Failed to load table data');
+                NotificationUtil.loadError(this.toastService, 'table data');
               }
             }
             observer.next(res);
@@ -162,7 +163,7 @@ export class DatabaseOperationsService {
           },
           error: (error) => {
             if (options?.showToast) {
-              this.toastService.error(`Failed to load ${table.name} data`);
+              NotificationUtil.loadError(this.toastService, `${table.name} data`);
             }
             observer.error(error);
           },
@@ -208,9 +209,9 @@ export class DatabaseOperationsService {
 
             if (options?.showToast) {
               if (tableDataResponse.success) {
-                this.toastService.success('Table data loaded successfully');
+                NotificationUtil.loadSuccess(this.toastService, 'Table data');
               } else {
-                this.toastService.error('Failed to load table data');
+                NotificationUtil.loadError(this.toastService, 'table data');
               }
             }
             observer.next(tableDataResponse);
@@ -218,7 +219,7 @@ export class DatabaseOperationsService {
           },
           error: (error) => {
             if (options?.showToast) {
-              this.toastService.error(`Failed to load ${table.name} data`);
+              NotificationUtil.loadError(this.toastService, `${table.name} data`);
             }
             observer.error(error);
           },
@@ -383,9 +384,6 @@ export class DatabaseOperationsService {
   }
 
   confirmDelete (recordId: number, onConfirm: () => void): void {
-    this.toastService.confirm(
-      `Mark record ${recordId} for deletion? You can review and apply all changes with "Save Changes".`,
-      onConfirm,
-    );
+    NotificationUtil.confirmDelete(this.toastService, onConfirm, undefined, recordId);
   }
 }

@@ -3,6 +3,7 @@ import { ToastService } from './toast.service';
 import { DatabaseDraftService } from './database-draft.service';
 import { DatabaseFormattingService } from './database-formatting.service';
 import { DatabaseBusinessService } from './database-business.service';
+import { NotificationUtil } from '../utils/notification.util';
 import { Column, TableMetadata } from './database-operations.service';
 
 @Injectable({
@@ -76,7 +77,7 @@ export class DatabaseHelperService {
 
   publishAllChanges (hasDrafts: boolean, isPublishing: (value: boolean) => void, loadTableData: () => void): void {
     if (!hasDrafts) {
-      this.toastService.info('No changes to publish');
+      NotificationUtil.noChangesToPublish(this.toastService);
       return;
     }
     isPublishing(true);
@@ -84,43 +85,36 @@ export class DatabaseHelperService {
       next: (response) => {
         isPublishing(false);
         if (response.success) {
-          this.toastService.success(`Successfully published ${response.summary.successful} changes`);
+          NotificationUtil.changesPublished(this.toastService, response.summary.successful);
           loadTableData();
         } else {
-          this.toastService.error(`Published ${response.summary.successful} changes, ${response.summary.failed} failed`);
+          NotificationUtil.publishPartialSuccess(this.toastService, response.summary.successful, response.summary.failed);
         }
       },
       error: (error: unknown) => {
-        const err = error as {
-          error?: {
-            message?: string;
-          };
-          message?: string;
-        };
-
         isPublishing(false);
-        this.toastService.error(err?.error?.message || err?.message || 'Failed to publish changes');
+        NotificationUtil.operationError(this.toastService, 'publish changes', error);
       },
     });
   }
 
   resetAllChanges (hasDrafts: boolean, draftCount: number, loadTableData: () => void): void {
     if (!hasDrafts) {
-      this.toastService.info('No changes to reset');
+      NotificationUtil.noChangesToReset(this.toastService);
       return;
     }
-    this.toastService.confirm(`Reset all ${draftCount} unsaved changes? This cannot be undone.`, () => {
+    NotificationUtil.confirmReset(this.toastService, () => {
       this.draftService.resetDrafts();
       loadTableData();
-      this.toastService.success('All changes have been reset');
-    });
+      NotificationUtil.changesReset(this.toastService);
+    }, draftCount);
   }
 
   handleImageClick (imageUrl: string): void {
     if (imageUrl?.trim()) {
       window.open(imageUrl, '_blank');
     } else {
-      this.toastService.info('No image available.');
+      NotificationUtil.notAvailable(this.toastService, 'image');
     }
   }
 
