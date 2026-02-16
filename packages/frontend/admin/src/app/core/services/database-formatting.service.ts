@@ -3,6 +3,7 @@ import { DateFormatService } from './date-format.service';
 import { TextTransformService } from './text-transform.service';
 import { TableStyleService } from './table-style.service';
 import { RoleAccessService } from './role-access.service';
+import { FieldConfigService } from './field-config.service';
 import { Column } from './database-operations.service';
 
 @Injectable({
@@ -13,11 +14,12 @@ export class DatabaseFormattingService {
   private textTransform = inject(TextTransformService);
   private tableStyle = inject(TableStyleService);
   private roleAccess = inject(RoleAccessService);
+  private fieldConfig = inject(FieldConfigService);
 
   formatValue (value: unknown, column: Column): string {
     if (value === null || value === undefined) return '-';
 
-    if (this.isRoleColumn(column.name) && typeof value === 'string') {
+    if (this.fieldConfig.isRoleField(column.name) && typeof value === 'string') {
       return this.roleAccess.getRoleDisplayName(value);
     }
 
@@ -116,11 +118,6 @@ export class DatabaseFormattingService {
   }
 
   isImageUrl (colName: string): boolean {
-    return colName.toLowerCase().includes('image') || colName.toLowerCase().includes('avatar');
-  }
-
-  private isRoleColumn (columnName: string): boolean {
-    const roleColumnNames = ['role', 'user_role', 'userRole', 'account_role', 'accountRole', 'permission_level', 'permissionLevel'];
-    return roleColumnNames.some((roleName) => columnName.toLowerCase().includes(roleName.toLowerCase()));
+    return this.fieldConfig.isImageField(colName);
   }
 }

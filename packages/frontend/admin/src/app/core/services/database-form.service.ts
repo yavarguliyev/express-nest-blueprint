@@ -3,6 +3,7 @@ import { ToastService } from './toast.service';
 import { DatabaseDraftService } from './database-draft.service';
 import { AuthService } from './auth.service';
 import { RoleAccessService } from './role-access.service';
+import { FieldConfigService } from './field-config.service';
 import { TableMetadata, Column } from './database-operations.service';
 import { FormValidationUtil } from '../utils/form-validation.util';
 import { NotificationUtil } from '../utils/notification.util';
@@ -15,6 +16,7 @@ export class DatabaseFormService {
   private draftService = inject(DatabaseDraftService);
   private authService = inject(AuthService);
   private roleAccess = inject(RoleAccessService);
+  private fieldConfig = inject(FieldConfigService);
 
   hasFormChanges (
     currentData: Record<string, unknown>,
@@ -84,8 +86,9 @@ export class DatabaseFormService {
 
   prepareCreateFormData (table: TableMetadata): Record<string, unknown> {
     const formData: Record<string, unknown> = {};
+    const currentUser = this.authService.getCurrentUser();
     table.columns.forEach((col) => {
-      if (col.editable && !this.isFieldExcludedFromUpdate(col.name, null)) {
+      if (col.editable && !this.fieldConfig.isExcludedFromUpdate(col.name, currentUser?.id)) {
         formData[col.name] = col.type === 'boolean' ? false : '';
       }
     });
@@ -138,8 +141,9 @@ export class DatabaseFormService {
   }
 
   validateAndSubmitCreate (table: TableMetadata, formData: Record<string, unknown>): boolean {
+    const currentUser = this.authService.getCurrentUser();
     const editableColumns = table.columns.filter(
-      (col) => col.editable && !this.isFieldExcludedFromUpdate(col.name, null),
+      (col) => col.editable && !this.fieldConfig.isExcludedFromUpdate(col.name, currentUser?.id),
     );
 
     const validationResult = FormValidationUtil.validateRequiredFields(
@@ -260,19 +264,9 @@ export class DatabaseFormService {
     columnName: string,
     selectedRecord?: Record<string, unknown> | null,
   ): boolean {
-    const excludedFields = ['id', 'profileImageUrl', 'createdAt', 'updatedAt', 'lastLogin'];
-
     const currentUser = this.authService.getCurrentUser();
-
-    if (columnName === 'role' && currentUser) {
-      if (!this.roleAccess.canEditRoles()) {
-        excludedFields.push('role');
-      } else if (selectedRecord && this.isCurrentUser(selectedRecord['id'] as number)) {
-        excludedFields.push('role');
-      }
-    }
-
-    return excludedFields.includes(columnName);
+    const recordUserId = selectedRecord ? (selectedRecord['id'] as number) : undefined;
+    return this.fieldConfig.isExcludedFromUpdate(columnName, currentUser?.id, recordUserId);
   }
 
   isFieldDisabled (

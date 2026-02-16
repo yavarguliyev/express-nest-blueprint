@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { RoleAccessService } from './role-access.service';
+import { FieldConfigService } from './field-config.service';
 import { TableMetadata } from './database-operations.service';
 
 @Injectable({
@@ -7,6 +8,7 @@ import { TableMetadata } from './database-operations.service';
 })
 export class DatabaseBusinessService {
   private roleAccess = inject(RoleAccessService);
+  private fieldConfig = inject(FieldConfigService);
 
   canDeleteRecord (): boolean {
     return this.roleAccess.canDeleteRecords();
@@ -24,8 +26,7 @@ export class DatabaseBusinessService {
   }
 
   isSensitiveField (columnName: string): boolean {
-    const sensitiveFields = ['isActive', 'isEmailVerified'];
-    return sensitiveFields.includes(columnName);
+    return this.fieldConfig.isSensitiveField(columnName);
   }
 
   getAvailableRoles (): { value: string; label: string }[] {
