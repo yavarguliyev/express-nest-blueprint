@@ -10,6 +10,7 @@ import {
 } from '../interfaces/database-bulk.interface';
 import { TokenNotificationService } from './token-notification.service';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
+import { STORAGE_KEYS } from '../constants/storage-keys.const';
 import { BaseDraftService, PublishResult } from './base/base-draft.service';
 
 @Injectable({
@@ -18,8 +19,8 @@ import { BaseDraftService, PublishResult } from './base/base-draft.service';
 export class DatabaseDraftService extends BaseDraftService<DatabaseDraft, DatabaseOperation> {
   private http = inject(HttpClient);
   private tokenNotificationService = inject(TokenNotificationService);
-  protected readonly DRAFT_STORAGE_KEY = 'database-drafts';
-  protected readonly STORAGE_VERSION = '1.0.0';
+  protected readonly DRAFT_STORAGE_KEY = STORAGE_KEYS.DATABASE_DRAFTS;
+  protected readonly STORAGE_VERSION = STORAGE_KEYS.DRAFT_STORAGE_VERSION;
 
   affectedTables = computed(() => {
     const drafts = this._drafts();
