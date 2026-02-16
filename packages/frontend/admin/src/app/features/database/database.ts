@@ -13,18 +13,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { ToastService } from '../../core/services/toast.service';
-import { DatabaseDraftService } from '../../core/services/database-draft.service';
-import { DatabaseOperationsService } from '../../core/services/database-operations.service';
+import { DatabaseFacade } from './database.facade';
 import {
   TableMetadata,
   Schema,
   Column,
   DatabaseOperation,
 } from '../../core/services/database-operations.service';
-import { DatabaseHelperService } from '../../core/services/database-helper.service';
-import { DatabaseFormService } from '../../core/services/database-form.service';
-import { ApiConfigService } from '../../core/services/api-config.service';
-import { PaginationService } from '../../core/services/pagination.service';
 import { ApiResponse, PaginatedResponse } from '../../core/interfaces/api-response.interface';
 import { ToggleSwitch } from '../../shared/components/toggle-switch/toggle-switch';
 import { ActionButtons } from '../../shared/components/action-buttons/action-buttons';
@@ -56,14 +51,10 @@ export class Database implements OnInit, AfterViewInit {
   @ViewChild('tableScrollContainer') tableScrollContainer!: ElementRef<HTMLDivElement>;
 
   private toastService = inject(ToastService);
-  private dbOperations = inject(DatabaseOperationsService);
-  private apiConfig = inject(ApiConfigService);
-  private dbHelper = inject(DatabaseHelperService);
-  private dbForm = inject(DatabaseFormService);
-  private pagination = inject(PaginationService);
+  private facade = inject(DatabaseFacade);
   private searchSubject = new Subject<string>();
 
-  draftService = inject(DatabaseDraftService);
+  draftService = this.facade.getDraftService();
   useGraphQL = signal(false);
   schema = signal<Schema | null>(null);
   loadingSchema = signal(true);
@@ -79,9 +70,9 @@ export class Database implements OnInit, AfterViewInit {
   showUpdateModal = signal(false);
   updateFormData = signal<Record<string, unknown>>({});
   originalFormData = signal<Record<string, unknown>>({});
-  draftCount = this.draftService.draftCount;
-  hasDrafts = this.draftService.hasDrafts;
-  affectedTables = this.draftService.affectedTables;
+  draftCount = this.facade.draftCount;
+  hasDrafts = this.facade.hasDrafts;
+  affectedTables = this.facade.affectedTables;
   showBulkActions = signal(false);
   isPublishing = signal(false);
 
@@ -123,13 +114,13 @@ export class Database implements OnInit, AfterViewInit {
 
   ngAfterViewInit (): void {
     if (this.tableScrollContainer) {
-      this.dbHelper.setupScrollIndicators(this.tableScrollContainer.nativeElement);
+      this.facade.setupScrollIndicators(this.tableScrollContainer.nativeElement);
     }
   }
 
   loadSchema (isRefresh = false): void {
     this.loadingSchema.set(true);
-    this.dbOperations.loadSchema().subscribe({
+    this.facade.loadSchema().subscribe({
       next: (res: ApiResponse<Schema>) => {
         if (isRefresh && !res.success) {
           this.toastService.error(res.message || 'Failed to refresh schema');
@@ -156,7 +147,7 @@ export class Database implements OnInit, AfterViewInit {
     if (!table) return;
     this.loadingData.set(true);
 
-    this.dbOperations.loadTableData(table, this.page(), this.limit, this.searchQuery()).subscribe({
+    this.facade.loadTableData(table, this.page(), this.limit, this.searchQuery()).subscribe({
       next: (res: ApiResponse<PaginatedResponse<Record<string, unknown>>>) => {
         if (res.success) {
           const responseData = res.data;
@@ -203,7 +194,7 @@ export class Database implements OnInit, AfterViewInit {
     if (!table) return;
     this.loadingData.set(true);
 
-    this.dbOperations.loadTableData(table, this.page(), this.limit, this.searchQuery()).subscribe({
+    this.facade.loadTableData(table, this.page(), this.limit, this.searchQuery()).subscribe({
       next: (res: ApiResponse<PaginatedResponse<Record<string, unknown>>>) => {
         const responseData = res.data;
         if (responseData?.data) {
@@ -225,10 +216,8 @@ export class Database implements OnInit, AfterViewInit {
   }
 
   toggleGraphQL (): void {
-    const newProtocol = this.useGraphQL() ? 'rest' : 'graphql';
-    this.apiConfig.setProtocol(newProtocol);
+    this.facade.toggleProtocol(this.useGraphQL() ? 'graphql' : 'rest');
     this.useGraphQL.set(!this.useGraphQL());
-    this.toastService.info(`Switched to ${newProtocol.toUpperCase()} mode`);
   }
 
   onSearch (event: Event): void {
@@ -237,36 +226,36 @@ export class Database implements OnInit, AfterViewInit {
   }
 
   changePage (newPage: number): void {
-    if (!this.pagination.isValidPageChange(newPage, this.totalPages)) return;
+    if (!this.facade.isValidPageChange(newPage, this.totalPages)) return;
     this.page.set(newPage);
     this.loadTableData();
   }
 
   get totalPages (): number {
-    return this.pagination.calculateTotalPages(this.total(), this.limit);
+    return this.facade.calculateTotalPages(this.total(), this.limit);
   }
 
   get pages (): number[] {
-    return this.pagination.generatePageNumbers(this.page(), this.totalPages);
+    return this.facade.generatePageNumbers(this.page(), this.totalPages);
   }
 
   modalMode = signal<'create' | 'update'>('update');
   showPassword = signal(false);
 
   isCurrentUser (id: number): boolean {
-    return this.dbForm.isCurrentUser(id);
+    return this.facade.isCurrentUser(id);
   }
 
   isRestrictedTable (): boolean {
-    return this.dbForm.isRestrictedTable(this.selectedTable());
+    return this.facade.isRestrictedTable(this.selectedTable());
   }
 
   isFieldExcluded (col: string): boolean {
-    return this.dbForm.isFieldExcludedFromUpdate(col, this.selectedRecord());
+    return this.facade.isFieldExcludedFromUpdate(col, this.selectedRecord());
   }
 
   isFieldDisabled (c: string): boolean {
-    return this.dbForm.isFieldDisabled(c, this.selectedTable(), this.modalMode());
+    return this.facade.isFieldDisabled(c, this.selectedTable(), this.modalMode());
   }
 
   isFieldInMetadata (c: string): boolean {
@@ -274,71 +263,71 @@ export class Database implements OnInit, AfterViewInit {
   }
 
   generatePassword (): void {
-    this.updateFormData.update((c) => ({ ...c, password: this.dbForm.generateRandomPassword() }));
+    this.updateFormData.update((c) => ({ ...c, password: this.facade.generateRandomPassword() }));
   }
 
   canDeleteRecord (): boolean {
-    return this.dbHelper.canDeleteRecord();
+    return this.facade.canDeleteRecord();
   }
 
   formatValue (v: unknown, c: Column): string {
-    return this.dbHelper.formatValue(v, c);
+    return this.facade.formatValue(v, c);
   }
 
   getBooleanValue (r: Record<string, unknown>, c: string): boolean {
-    return this.dbHelper.getBooleanValue(
+    return this.facade.getBooleanValue(
       r,
       c,
-      this.getRecordDraftData(this.dbHelper.getNumberValue(r, 'id')),
+      this.getRecordDraftData(this.facade.getNumberValue(r, 'id')),
     );
   }
 
   getNumberValue (r: Record<string, unknown>, c: string): number {
-    return this.dbHelper.getNumberValue(r, c);
+    return this.facade.getNumberValue(r, c);
   }
 
   getFieldDisplayName (f: string): string {
-    return this.dbHelper.getFieldDisplayName(f);
+    return this.facade.getFieldDisplayName(f);
   }
 
   getUserInitials (r: Record<string, unknown>): string {
-    return this.dbHelper.getUserInitials(r);
+    return this.facade.getUserInitials(r);
   }
 
   isImageUrl (n: string): boolean {
-    return this.dbHelper.isImageUrl(n);
+    return this.facade.isImageUrl(n);
   }
 
   getAvailableRoles (): { value: string; label: string }[] {
-    return this.dbHelper.getAvailableRoles();
+    return this.facade.getAvailableRoles();
   }
 
   getHeaderClasses (n: string, t: string): string {
-    return this.dbHelper.getHeaderClasses(n, t);
+    return this.facade.getHeaderClasses(n, t);
   }
 
   getCellClasses (n: string, t: string): string {
-    return this.dbHelper.getCellClasses(n, t);
+    return this.facade.getCellClasses(n, t);
   }
 
   getColumnStyles (n: string, t: string): Record<string, string> {
-    return this.dbHelper.getColumnStyles(n, t);
+    return this.facade.getColumnStyles(n, t);
   }
 
   hasAnyActions (): boolean {
-    return this.dbHelper.hasAnyActions(this.selectedTable());
+    return this.facade.hasAnyActions(this.selectedTable());
   }
 
   canModifySensitiveFields (): boolean {
-    return this.dbHelper.canModifySensitiveFields();
+    return this.facade.canModifySensitiveFields();
   }
 
   isSensitiveField (n: string): boolean {
-    return this.dbHelper.isSensitiveField(n);
+    return this.facade.isSensitiveField(n);
   }
 
   formatFieldValue (v: unknown): string {
-    return this.dbHelper.formatFieldValue(v);
+    return this.facade.formatFieldValue(v);
   }
 
   updateFormField (f: string, v: unknown): void {
@@ -346,45 +335,45 @@ export class Database implements OnInit, AfterViewInit {
   }
 
   hasFormChanges (): boolean {
-    return this.dbForm.hasFormChanges(this.updateFormData(), this.originalFormData());
+    return this.facade.hasFormChanges(this.updateFormData(), this.originalFormData());
   }
 
   isFieldChanged (f: string): boolean {
-    return this.dbForm.isFieldChanged(f, this.updateFormData(), this.originalFormData());
+    return this.facade.isFieldChanged(f, this.updateFormData(), this.originalFormData());
   }
 
   getChangedFields (): Array<{ name: string; oldValue: unknown; newValue: unknown }> {
-    return this.dbForm.getChangedFields(this.updateFormData(), this.originalFormData());
+    return this.facade.getChangedFields(this.updateFormData(), this.originalFormData());
   }
 
   isRoleInvalid (): boolean {
-    return this.dbForm.isRoleInvalid(this.updateFormData());
+    return this.facade.isRoleInvalid(this.updateFormData());
   }
 
   isFormInvalid (): boolean {
-    return this.dbForm.isFormInvalid(this.updateFormData(), this.originalFormData());
+    return this.facade.isFormInvalid(this.updateFormData(), this.originalFormData());
   }
 
   getModalTitle (): string {
-    return this.dbForm.getModalTitle(this.modalMode());
+    return this.facade.getModalTitle(this.modalMode());
   }
 
   getSubmitButtonText (): string {
-    return this.dbForm.getSubmitButtonText(this.modalMode(), this.hasFormChanges());
+    return this.facade.getSubmitButtonText(this.modalMode(), this.hasFormChanges());
   }
 
   getSubmitButtonIcon (): string {
-    return this.dbForm.getSubmitButtonIcon(this.modalMode());
+    return this.facade.getSubmitButtonIcon(this.modalMode());
   }
 
   getUpdateButtonTooltip (): string {
-    return this.dbForm.getUpdateButtonTooltip(this.updateFormData(), this.originalFormData());
+    return this.facade.getUpdateButtonTooltip(this.updateFormData(), this.originalFormData());
   }
 
   createRecord (): void {
     const table = this.selectedTable();
     if (!table) return;
-    const formData = this.dbForm.prepareCreateFormData(table);
+    const formData = this.facade.prepareCreateFormData(table);
     this.modalMode.set('create');
     this.updateFormData.set(formData);
     this.originalFormData.set({ ...formData });
@@ -396,7 +385,7 @@ export class Database implements OnInit, AfterViewInit {
     if (!table || !id) return;
     const record = this.tableData().find((row) => row['id'] === id);
     if (!record) return;
-    const formData = this.dbForm.prepareFormData(table, record, (columnName) =>
+    const formData = this.facade.prepareFormData(table, record, (columnName) =>
       this.isFieldExcluded(columnName),
     );
 
@@ -414,11 +403,11 @@ export class Database implements OnInit, AfterViewInit {
     let success = false;
 
     if (this.modalMode() === 'create') {
-      success = this.dbForm.validateAndSubmitCreate(table, this.updateFormData());
+      success = this.facade.validateAndSubmitCreate(table, this.updateFormData());
     } else {
       const record = this.selectedRecord();
       if (!record) return;
-      success = this.dbForm.validateAndSubmitUpdate(
+      success = this.facade.validateAndSubmitUpdate(
         table,
         record,
         this.updateFormData(),
@@ -433,16 +422,16 @@ export class Database implements OnInit, AfterViewInit {
     const table = this.selectedTable();
     if (!table || !id) return;
 
-    this.dbOperations.confirmDelete(id, () => {
+    this.facade.confirmDelete(id, () => {
       const record = this.tableData().find((row) => row['id'] === id);
       if (!record) return;
-      this.dbOperations.createDeleteDraft(table, id, record);
+      this.facade.createDeleteDraft(table, id, record);
     });
   }
 
   updateBooleanValue (record: Record<string, unknown>, column: Column, newValue: boolean): void {
     const table = this.selectedTable();
-    this.dbForm.handleBooleanUpdate(
+    this.facade.handleBooleanUpdate(
       table!,
       record,
       column,
@@ -474,7 +463,7 @@ export class Database implements OnInit, AfterViewInit {
   }
 
   publishAllChanges (): void {
-    if (this.apiConfig.isGraphQL()) {
+    if (this.facade.isGraphQL()) {
       const allDrafts = Array.from(this.draftService.drafts().values()).filter(
         (draft) => draft.hasChanges,
       );
@@ -498,7 +487,7 @@ export class Database implements OnInit, AfterViewInit {
         return operation;
       });
 
-      this.dbOperations.bulkUpdate(operations, true).subscribe({
+      this.facade.bulkUpdate(operations, true).subscribe({
         next: (res: ApiResponse<unknown>) => {
           this.isPublishing.set(false);
           if (res.success) {
@@ -515,7 +504,7 @@ export class Database implements OnInit, AfterViewInit {
         },
       });
     } else {
-      this.dbHelper.publishAllChanges(
+      this.facade.publishAllChanges(
         this.hasDrafts(),
         (value) => this.isPublishing.set(value),
         () => this.loadTableData(false),
@@ -524,7 +513,7 @@ export class Database implements OnInit, AfterViewInit {
   }
 
   resetAllChanges (): void {
-    this.dbHelper.resetAllChanges(this.hasDrafts(), this.draftCount(), () =>
+    this.facade.resetAllChanges(this.hasDrafts(), this.draftCount(), () =>
       this.loadTableData(false),
     );
   }
@@ -538,7 +527,7 @@ export class Database implements OnInit, AfterViewInit {
 
   handleImageClick (row: Record<string, unknown>, columnName: string): void {
     const imageUrl = row[columnName] as string;
-    this.dbHelper.handleImageClick(imageUrl);
+    this.facade.handleImageClick(imageUrl);
   }
 
   private resetTableScroll (): void {
