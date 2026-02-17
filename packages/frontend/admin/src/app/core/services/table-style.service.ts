@@ -1,12 +1,5 @@
 import { Injectable } from '@angular/core';
-
-export interface ColumnStyleConfig {
-  headerClass: string;
-  cellClass: string;
-  alignment: 'left' | 'center' | 'right';
-  width?: string;
-  minWidth?: string;
-}
+import { ColumnStyleConfig } from '../interfaces/table-style.interface';
 
 @Injectable({
   providedIn: 'root',

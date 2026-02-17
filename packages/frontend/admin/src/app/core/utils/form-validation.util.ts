@@ -1,25 +1,12 @@
-export interface FieldChange {
-  name: string;
-  oldValue: unknown;
-  newValue: unknown;
-}
-
-export interface ValidationResult {
-  valid: boolean;
-  error?: string;
-  errors?: string[];
-}
-
-export interface FieldValidationRule {
-  name: string;
-  required: boolean;
-}
+import { charset } from '../constants';
+import {
+  FieldChange,
+  ValidationResults,
+  FieldValidationRule,
+} from '../interfaces/field-config.interface';
 
 export class FormValidationUtil {
-  static hasChanges (
-    current: Record<string, unknown>,
-    original: Record<string, unknown>,
-  ): boolean {
+  static hasChanges (current: Record<string, unknown>, original: Record<string, unknown>): boolean {
     for (const key in current) {
       const currentValue = current[key];
       const originalValue = original[key];
@@ -34,9 +21,7 @@ export class FormValidationUtil {
     }
 
     for (const key in original) {
-      if (!(key in current)) {
-        return true;
-      }
+      if (!(key in current)) return true;
     }
 
     return false;
@@ -49,10 +34,7 @@ export class FormValidationUtil {
     const changes: FieldChange[] = [];
 
     for (const key in current) {
-      if (
-        Object.prototype.hasOwnProperty.call(current, key) &&
-        current[key] !== original[key]
-      ) {
+      if (Object.prototype.hasOwnProperty.call(current, key) && current[key] !== original[key]) {
         changes.push({
           name: key,
           oldValue: original[key],
@@ -71,10 +53,7 @@ export class FormValidationUtil {
     const changedData: Record<string, unknown> = {};
 
     for (const key in current) {
-      if (
-        Object.prototype.hasOwnProperty.call(current, key) &&
-        current[key] !== original[key]
-      ) {
+      if (Object.prototype.hasOwnProperty.call(current, key) && current[key] !== original[key]) {
         changedData[key] = current[key];
       }
     }
@@ -90,27 +69,18 @@ export class FormValidationUtil {
     return current[fieldName] !== original[fieldName];
   }
 
-  static validateEmail (email: unknown): ValidationResult {
-    if (!email || email === '') {
-      return { valid: false, error: 'Email is required' };
-    }
-
-    if (typeof email !== 'string') {
-      return { valid: false, error: 'Email must be a string' };
-    }
+  static validateEmail (email: unknown): ValidationResults {
+    if (!email || email === '') return { valid: false, error: 'Email is required' };
+    if (typeof email !== 'string') return { valid: false, error: 'Email must be a string' };
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return { valid: false, error: 'Invalid email format' };
-    }
+    if (!emailRegex.test(email)) return { valid: false, error: 'Invalid email format' };
 
     return { valid: true };
   }
 
-  static validatePassword (password: string, minLength = 8): ValidationResult {
-    if (!password || password.length === 0) {
-      return { valid: false, error: 'Password is required' };
-    }
+  static validatePassword (password: string, minLength = 8): ValidationResults {
+    if (!password || password.length === 0) return { valid: false, error: 'Password is required' };
 
     if (password.length < minLength) {
       return { valid: false, error: `Password must be at least ${minLength} characters long` };
@@ -119,10 +89,8 @@ export class FormValidationUtil {
     return { valid: true };
   }
 
-  static validateRole (role: unknown): ValidationResult {
-    if (!role || role === '') {
-      return { valid: false, error: 'Role is required' };
-    }
+  static validateRole (role: unknown): ValidationResults {
+    if (!role || role === '') return { valid: false, error: 'Role is required' };
 
     const validRoles = ['global admin', 'admin', 'moderator', 'user'];
     if (typeof role === 'string' && !validRoles.includes(role.toLowerCase())) {
@@ -135,7 +103,7 @@ export class FormValidationUtil {
   static validateRequiredFields (
     data: Record<string, unknown>,
     rules: FieldValidationRule[],
-  ): ValidationResult {
+  ): ValidationResults {
     const errors: string[] = [];
 
     for (const rule of rules) {
@@ -147,9 +115,7 @@ export class FormValidationUtil {
       }
     }
 
-    if (errors.length > 0) {
-      return { valid: false, errors };
-    }
+    if (errors.length > 0) return { valid: false, errors };
 
     return { valid: true };
   }
@@ -176,11 +142,11 @@ export class FormValidationUtil {
   }
 
   static generateRandomPassword (length = 12): string {
-    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+';
     let result = '';
     for (let i = 0; i < length; i++) {
       result += charset.charAt(Math.floor(Math.random() * charset.length));
     }
+
     return result;
   }
 }

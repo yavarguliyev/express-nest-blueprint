@@ -3,23 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
 import { ApiResponse } from '../interfaces/api-response.interface';
-
-export interface SettingItem {
-  id: string;
-  label: string;
-  description: string;
-  value: boolean;
-  isActive: boolean;
-  category: string;
-}
-
-export interface SettingsUpdateRequest {
-  settings: Array<{
-    key: string;
-    value: boolean;
-    isActive?: boolean;
-  }>;
-}
+import { SettingItem, SettingsUpdateRequest } from '../interfaces/settings.interface';
 
 @Injectable({
   providedIn: 'root',

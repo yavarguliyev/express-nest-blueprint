@@ -15,3 +15,10 @@ export interface GqlResponse<T> {
   data: T;
   errors?: Array<{ message: string }>;
 }
+
+export interface ErrorResponse {
+  error?: {
+    message?: string;
+  };
+  message?: string;
+}

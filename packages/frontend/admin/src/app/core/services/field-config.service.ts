@@ -1,14 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { RoleAccessService } from './role-access.service';
-
-export interface FieldRule {
-  excluded?: boolean;
-  sensitive?: boolean;
-  editable?: boolean;
-  required?: boolean;
-  roleField?: boolean;
-  imageField?: boolean;
-}
+import { FieldRule } from '../interfaces/field-config.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -16,13 +8,33 @@ export interface FieldRule {
 export class FieldConfigService {
   private roleAccess = inject(RoleAccessService);
 
-  private readonly excludedFromUpdate: string[] = ['id', 'profileImageUrl', 'createdAt', 'updatedAt', 'lastLogin'];
+  private readonly excludedFromUpdate: string[] = [
+    'id',
+    'profileImageUrl',
+    'createdAt',
+    'updatedAt',
+    'lastLogin',
+  ];
 
   private readonly sensitiveFields: string[] = ['isActive', 'isEmailVerified'];
 
-  private readonly roleFields: string[] = ['role', 'user_role', 'userRole', 'account_role', 'accountRole', 'permission_level', 'permissionLevel'];
+  private readonly roleFields: string[] = [
+    'role',
+    'user_role',
+    'userRole',
+    'account_role',
+    'accountRole',
+    'permission_level',
+    'permissionLevel',
+  ];
 
-  private readonly imageFields: string[] = ['image', 'avatar', 'profileImageUrl', 'avatarUrl', 'imageUrl'];
+  private readonly imageFields: string[] = [
+    'image',
+    'avatar',
+    'profileImageUrl',
+    'avatarUrl',
+    'imageUrl',
+  ];
 
   isExcludedFromUpdate (fieldName: string, currentUserId?: number, recordUserId?: number): boolean {
     if (this.excludedFromUpdate.includes(fieldName)) {
@@ -47,11 +59,15 @@ export class FieldConfigService {
   }
 
   isRoleField (fieldName: string): boolean {
-    return this.roleFields.some((roleField) => fieldName.toLowerCase().includes(roleField.toLowerCase()));
+    return this.roleFields.some((roleField) =>
+      fieldName.toLowerCase().includes(roleField.toLowerCase()),
+    );
   }
 
   isImageField (fieldName: string): boolean {
-    return this.imageFields.some((imageField) => fieldName.toLowerCase().includes(imageField.toLowerCase()));
+    return this.imageFields.some((imageField) =>
+      fieldName.toLowerCase().includes(imageField.toLowerCase()),
+    );
   }
 
   canModifyField (fieldName: string): boolean {

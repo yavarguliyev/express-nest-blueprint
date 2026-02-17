@@ -2,11 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, catchError, throwError, map } from 'rxjs';
 import { ApiResponse, GqlResponse } from '../../interfaces/api-response.interface';
-
-export interface ApiRequestOptions {
-  params?: Record<string, string | number | boolean>;
-  headers?: Record<string, string>;
-}
+import { ApiRequestOptions } from '../../interfaces';
 
 @Injectable({
   providedIn: 'root',
@@ -26,7 +22,11 @@ export class ApiService {
       .pipe(catchError((error) => this.handleError(error)));
   }
 
-  post<T> (endpoint: string, body: unknown, options?: ApiRequestOptions): Observable<ApiResponse<T>> {
+  post<T> (
+    endpoint: string,
+    body: unknown,
+    options?: ApiRequestOptions,
+  ): Observable<ApiResponse<T>> {
     const params = this.buildHttpParams(options?.params);
     const config: { params: HttpParams; headers?: Record<string, string> } = { params };
     if (options?.headers) {
@@ -50,7 +50,11 @@ export class ApiService {
       .pipe(catchError((error) => this.handleError(error)));
   }
 
-  patch<T> (endpoint: string, body: unknown, options?: ApiRequestOptions): Observable<ApiResponse<T>> {
+  patch<T> (
+    endpoint: string,
+    body: unknown,
+    options?: ApiRequestOptions,
+  ): Observable<ApiResponse<T>> {
     const params = this.buildHttpParams(options?.params);
     const config: { params: HttpParams; headers?: Record<string, string> } = { params };
     if (options?.headers) {
@@ -79,22 +83,20 @@ export class ApiService {
     query: string,
     variables?: Record<string, unknown>,
   ): Observable<ApiResponse<T>> {
-    return this.http
-      .post<GqlResponse<T>>(endpoint, { query, variables })
-      .pipe(
-        catchError((error) => this.handleError(error)),
-        map((gqlResponse: GqlResponse<T>): ApiResponse<T> => {
-          const errors = gqlResponse.errors ?? [];
-          const hasErrors = errors.length > 0;
-          const message = hasErrors && errors[0] ? errors[0].message : '';
-          
-          return {
-            success: !hasErrors,
-            data: gqlResponse.data,
-            message,
-          };
-        }),
-      );
+    return this.http.post<GqlResponse<T>>(endpoint, { query, variables }).pipe(
+      catchError((error) => this.handleError(error)),
+      map((gqlResponse: GqlResponse<T>): ApiResponse<T> => {
+        const errors = gqlResponse.errors ?? [];
+        const hasErrors = errors.length > 0;
+        const message = hasErrors && errors[0] ? errors[0].message : '';
+
+        return {
+          success: !hasErrors,
+          data: gqlResponse.data,
+          message,
+        };
+      }),
+    );
   }
 
   private buildHttpParams (params?: Record<string, string | number | boolean>): HttpParams {
@@ -103,9 +105,7 @@ export class ApiService {
     if (params) {
       Object.keys(params).forEach((key) => {
         const value = params[key];
-        if (value !== null && value !== undefined) {
-          httpParams = httpParams.set(key, String(value));
-        }
+        if (value !== null && value !== undefined) httpParams = httpParams.set(key, String(value));
       });
     }
 
@@ -123,13 +123,9 @@ export class ApiService {
         statusText?: string;
       };
 
-      if (err.error?.message) {
-        errorMessage = err.error.message;
-      } else if (err.message) {
-        errorMessage = err.message;
-      } else if (err.statusText) {
-        errorMessage = `${err.status}: ${err.statusText}`;
-      }
+      if (err.error?.message) errorMessage = err.error.message;
+      else if (err.message) errorMessage = err.message;
+      else if (err.statusText) errorMessage = `${err.status}: ${err.statusText}`;
     }
 
     return throwError(() => new Error(errorMessage));

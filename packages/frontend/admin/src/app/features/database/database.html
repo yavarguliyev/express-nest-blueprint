@@ -8,7 +8,7 @@
       <app-toggle-switch
         [label]="'GraphQL Mode'"
         [checked]="useGraphQL()"
-        (toggle)="useGraphQL.set($event); refreshSchema()"
+        (toggleChange)="useGraphQL.set($event); refreshSchema()"
         style="margin-right: 1.5rem; transform: scale(0.9);"
       ></app-toggle-switch>
       <button class="btn btn-primary" (click)="refreshSchema()" [disabled]="loadingSchema()" title="Force fresh schema" appDraggableResizable="database-refresh-schema-btn">
@@ -107,7 +107,7 @@
                         <app-toggle-switch 
                           [checked]="getBooleanValue(row, col.name)" 
                           [disabled]="isSensitiveField(col.name) && !canModifySensitiveFields()"
-                          (toggle)="updateBooleanValue(row, col, $event)"
+                          (toggleChange)="updateBooleanValue(row, col, $event)"
                           size="medium">
                         </app-toggle-switch>
                       </div>

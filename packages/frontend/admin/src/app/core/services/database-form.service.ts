@@ -4,9 +4,9 @@ import { DatabaseDraftService } from './database-draft.service';
 import { AuthService } from './auth.service';
 import { RoleAccessService } from './role-access.service';
 import { FieldConfigService } from './field-config.service';
-import { TableMetadata, Column } from './database-operations.service';
-import { FormValidationUtil } from '../utils/form-validation.util';
+import { TableMetadata, Column } from '../interfaces/database.interface';
 import { NotificationUtil } from '../utils/notification.util';
+import { FormValidationUtil } from '../utils/form-validation.util';
 
 @Injectable({
   providedIn: 'root',
@@ -52,12 +52,8 @@ export class DatabaseFormService {
     formData: Record<string, unknown>,
     originalData: Record<string, unknown>,
   ): string {
-    if (this.isRoleInvalid(formData)) {
-      return 'Update Record';
-    }
-    if (!this.hasFormChanges(formData, originalData)) {
-      return 'No Changes';
-    }
+    if (this.isRoleInvalid(formData)) return 'Update Record';
+    if (!this.hasFormChanges(formData, originalData)) return 'No Changes';
     return 'Update Record';
   }
 
@@ -115,7 +111,10 @@ export class DatabaseFormService {
     }
 
     if (!FormValidationUtil.isRoleValid(changedData)) {
-      NotificationUtil.validationError(this.toastService, 'Please select a valid role before updating the record.');
+      NotificationUtil.validationError(
+        this.toastService,
+        'Please select a valid role before updating the record.',
+      );
       return false;
     }
 
@@ -160,7 +159,10 @@ export class DatabaseFormService {
     }
 
     if (!FormValidationUtil.isRoleValid(formData)) {
-      NotificationUtil.validationError(this.toastService, 'Please select a valid role before creating the record.');
+      NotificationUtil.validationError(
+        this.toastService,
+        'Please select a valid role before creating the record.',
+      );
       return false;
     }
 
@@ -169,7 +171,10 @@ export class DatabaseFormService {
         formData['password'] as string,
       );
       if (!passwordValidation.valid) {
-        NotificationUtil.validationError(this.toastService, passwordValidation.error || 'Invalid password');
+        NotificationUtil.validationError(
+          this.toastService,
+          passwordValidation.error || 'Invalid password',
+        );
         return false;
       }
     }

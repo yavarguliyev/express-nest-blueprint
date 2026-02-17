@@ -1,9 +1,5 @@
 import { Injectable } from '@angular/core';
-
-export interface ParsedValue {
-  number: number;
-  unit: string;
-}
+import { ParsedValue } from '../../../../core/interfaces/token.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -74,13 +70,13 @@ export class SpacingSliderHelperService {
 
   getValueType (value: string): string {
     const parsed = this.parseValue(value);
-    
+
     if (parsed.number === 0) return 'None';
     if (parsed.unit === 'px') return 'Fixed';
     if (parsed.unit === 'rem' || parsed.unit === 'em') return 'Relative';
     if (parsed.unit === '%') return 'Percentage';
     if (parsed.unit === 'vh' || parsed.unit === 'vw') return 'Viewport';
-    
+
     return 'Custom';
   }
 

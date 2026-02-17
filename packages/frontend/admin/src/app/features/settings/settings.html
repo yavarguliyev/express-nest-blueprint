@@ -37,7 +37,7 @@
                   <app-toggle-switch 
                     [checked]="setting.isActive" 
                     [disabled]="loading()"
-                    (toggle)="onActiveToggleChange(setting.id, $event)"
+                    (toggleChange)="onActiveToggleChange(setting.id, $event)"
                     size="medium">
                   </app-toggle-switch>
                 </div>
@@ -46,7 +46,7 @@
                   <app-toggle-switch 
                     [checked]="setting.value" 
                     [disabled]="loading() || !setting.isActive"
-                    (toggle)="onToggleChange(setting.id, $event)"
+                    (toggleChange)="onToggleChange(setting.id, $event)"
                     size="medium">
                   </app-toggle-switch>
                 </div>

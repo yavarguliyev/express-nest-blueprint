@@ -1,19 +1,13 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  DashboardService,
-  DashboardResponse,
-  DashboardMetric,
-  HealthStatus,
-} from '../../core/services/dashboard.service';
+import { DashboardService } from '../../core/services/dashboard.service';
 import { DraggableResizableDirective } from '../../shared/directives/draggable-resizable.directive';
-
-interface MetricConfig {
-  icon: string;
-  iconClass: string;
-  iconStyle?: string;
-  format: string;
-}
+import {
+  DashboardMetric,
+  DashboardResponse,
+  HealthStatus,
+  MetricConfig,
+} from '../../core/interfaces/dashboard.interface';
 
 @Component({
   selector: 'app-dashboard',

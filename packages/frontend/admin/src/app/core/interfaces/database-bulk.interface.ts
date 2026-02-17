@@ -1,30 +1,10 @@
-export const BULK_OPERATION_TYPES = {
-  CREATE: 'create',
-  UPDATE: 'update',
-  DELETE: 'delete',
-} as const;
-
-export type BulkOperationType = (typeof BULK_OPERATION_TYPES)[keyof typeof BULK_OPERATION_TYPES];
-
-export const CONFLICT_TYPES = {
-  CONCURRENT_MODIFICATION: 'concurrent_modification',
-  PERMISSION_DENIED: 'permission_denied',
-  CONSTRAINT_VIOLATION: 'constraint_violation',
-} as const;
-
-export type ConflictType = (typeof CONFLICT_TYPES)[keyof typeof CONFLICT_TYPES];
-
-export const CONFLICT_RESOLUTION_STRATEGIES = {
-  KEEP_MINE: 'keep_mine',
-  USE_THEIRS: 'use_theirs',
-  MERGE: 'merge',
-  SKIP: 'skip',
-} as const;
-
-export type ConflictResolutionStrategy =
-  (typeof CONFLICT_RESOLUTION_STRATEGIES)[keyof typeof CONFLICT_RESOLUTION_STRATEGIES];
-
-import { BaseDraft } from '../services/base/base-draft.service';
+import {
+  BulkOperationType,
+  ConflictType,
+  ConflictResolutionStrategy,
+} from '../types/database-bulk.type';
+import { ColumnMetadata } from './database.interface';
+import { BaseDraft } from './draft.interface';
 
 export interface DatabaseDraft extends BaseDraft {
   tableName: string;
@@ -181,11 +161,4 @@ export interface EnhancedTableMetadata {
       supportedOperations: BulkOperationType[];
     };
   };
-}
-
-export interface ColumnMetadata {
-  name: string;
-  type: string;
-  required: boolean;
-  editable: boolean;
 }

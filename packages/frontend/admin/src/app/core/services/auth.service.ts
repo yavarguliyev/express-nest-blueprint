@@ -4,28 +4,7 @@ import { Router } from '@angular/router';
 import { Observable, tap, firstValueFrom } from 'rxjs';
 import { LoadingService } from './loading.service';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
-
-export interface User {
-  id: number;
-  email: string;
-  role: string;
-  firstName?: string;
-  lastName?: string;
-  profileImageUrl?: string;
-}
-
-export interface AuthResponse {
-  success: boolean;
-  data: {
-    accessToken: string;
-    user: User;
-  };
-}
-
-export interface LoginCredentials {
-  email: string;
-  password: string;
-}
+import { User, LoginCredentials, AuthResponse } from '../interfaces';
 
 @Injectable({
   providedIn: 'root',

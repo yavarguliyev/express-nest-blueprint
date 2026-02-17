@@ -8,19 +8,8 @@ import { TextTransformService } from '../../core/services/text-transform.service
 import { RoleAccessService } from '../../core/services/role-access.service';
 import { API_ENDPOINTS } from '../../core/constants/api-endpoints';
 import { DraggableResizableDirective } from '../../shared/directives/draggable-resizable.directive';
-import { ApiResponse } from '../../core/interfaces/api-response.interface';
-
-interface ProfileForm {
-  firstName: string;
-  lastName: string;
-}
-
-interface ErrorResponse {
-  error?: {
-    message?: string;
-  };
-  message?: string;
-}
+import { ApiResponse, ErrorResponse } from '../../core/interfaces/api-response.interface';
+import { ProfileForm } from '../../core/interfaces/database.interface';
 
 @Component({
   selector: 'app-profile',

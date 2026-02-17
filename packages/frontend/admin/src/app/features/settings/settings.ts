@@ -4,17 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 
 import { ToggleSwitch } from '../../shared/components/toggle-switch/toggle-switch';
-import {
-  DraftStatusBar,
-  DraftStatusConfig,
-} from '../../shared/components/draft-status-bar/draft-status-bar';
+import { DraftStatusBar } from '../../shared/components/draft-status-bar/draft-status-bar';
 import { ToastService } from '../../core/services/toast.service';
-import {
-  SettingsService,
-  SettingItem,
-  SettingsUpdateRequest,
-} from '../../core/services/settings.service';
+import { SettingsService } from '../../core/services/settings.service';
 import { DraggableResizableDirective } from '../../shared/directives/draggable-resizable.directive';
+import { SettingItem, SettingsUpdateRequest } from '../../core/interfaces/settings.interface';
+import { DraftStatusConfig } from '../../core/interfaces/token.interface';
 
 @Component({
   selector: 'app-settings',
@@ -41,8 +36,10 @@ export class Settings implements OnInit {
 
     return current.some((setting) => {
       const originalSetting = original.find((orig) => orig.id === setting.id);
-      return originalSetting &&
-        (originalSetting.value !== setting.value || originalSetting.isActive !== setting.isActive);
+      return (
+        originalSetting &&
+        (originalSetting.value !== setting.value || originalSetting.isActive !== setting.isActive)
+      );
     });
   });
 
@@ -195,7 +192,7 @@ export class Settings implements OnInit {
           value: Boolean(setting.value),
           isActive: Boolean(setting.isActive),
         }));
-      
+
       this.settings.set([...filteredSettings]);
       this.originalSettings.set(JSON.parse(JSON.stringify(filteredSettings)) as SettingItem[]);
 

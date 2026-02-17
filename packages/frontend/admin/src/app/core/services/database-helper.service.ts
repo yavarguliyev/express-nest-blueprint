@@ -4,10 +4,10 @@ import { DatabaseDraftService } from './database-draft.service';
 import { DatabaseFormattingService } from './database-formatting.service';
 import { DatabaseBusinessService } from './database-business.service';
 import { NotificationUtil } from '../utils/notification.util';
-import { Column, TableMetadata } from './database-operations.service';
+import { Column, TableMetadata } from '../interfaces/database.interface';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class DatabaseHelperService {
   private toastService = inject(ToastService);

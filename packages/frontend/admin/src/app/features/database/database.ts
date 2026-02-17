@@ -14,23 +14,15 @@ import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { ToastService } from '../../core/services/toast.service';
 import { DatabaseFacade } from './database.facade';
-import {
-  TableMetadata,
-  Schema,
-  Column,
-  DatabaseOperation,
-} from '../../core/services/database-operations.service';
+import { TableMetadata, Schema, Column } from '../../core/interfaces/database.interface';
+import { DatabaseOperation } from '../../core/interfaces/database-bulk.interface';
 import { ApiResponse, PaginatedResponse } from '../../core/interfaces/api-response.interface';
 import { ToggleSwitch } from '../../shared/components/toggle-switch/toggle-switch';
 import { ActionButtons } from '../../shared/components/action-buttons/action-buttons';
-import {
-  DraftStatusBar,
-  DraftStatusConfig,
-} from '../../shared/components/draft-status-bar/draft-status-bar';
-
+import { DraftStatusBar } from '../../shared/components/draft-status-bar/draft-status-bar';
 import { DraggableResizableDirective } from '../../shared/directives/draggable-resizable.directive';
-
 import { PasswordInput } from '../../shared/components/password-input/password-input';
+import { DraftStatusConfig } from '../../core/interfaces/token.interface';
 
 @Component({
   selector: 'app-database',

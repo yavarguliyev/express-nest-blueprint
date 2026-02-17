@@ -8,28 +8,13 @@ import { DatabaseFormService } from '../../core/services/database-form.service';
 import { ApiConfigService } from '../../core/services/api-config.service';
 import { PaginationService } from '../../core/services/pagination.service';
 import { ApiResponse, PaginatedResponse } from '../../core/interfaces/api-response.interface';
-import {
-  TableMetadata,
-  Schema,
-  Column,
-  DatabaseOperation,
-} from '../../core/services/database-operations.service';
+import { TableMetadata, Schema, Column } from '../../core/interfaces/database.interface';
+import { DatabaseOperation } from '../../core/interfaces/database-bulk.interface';
 
-export interface DatabaseState {
-  schema: Schema | null;
-  selectedTable: TableMetadata | null;
-  tableData: Record<string, unknown>[];
-  total: number;
-  page: number;
-  limit: number;
-  searchQuery: string;
-  loadingSchema: boolean;
-  loadingData: boolean;
-  isPublishing: boolean;
-}
+export type { DatabaseState } from '../../core/interfaces/database-state.interface';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class DatabaseFacade {
   private toastService = inject(ToastService);

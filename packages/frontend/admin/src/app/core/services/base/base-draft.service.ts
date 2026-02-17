@@ -1,32 +1,6 @@
 import { signal, computed, Signal } from '@angular/core';
 import { Observable } from 'rxjs';
-
-export interface BaseDraft {
-  id: string;
-  hasChanges: boolean;
-  timestamp: Date;
-}
-
-export interface DraftStorageMetadata {
-  totalChanges: number;
-  lastModified: Date;
-}
-
-export interface BaseDraftStorage<T extends BaseDraft> {
-  version: string;
-  timestamp: Date;
-  drafts: Record<string, T>;
-  metadata: DraftStorageMetadata;
-}
-
-export interface PublishResult {
-  success: boolean;
-  summary: {
-    total: number;
-    successful: number;
-    failed: number;
-  };
-}
+import { BaseDraft, PublishResult, BaseDraftStorage } from '../../interfaces';
 
 export abstract class BaseDraftService<TDraft extends BaseDraft, TOperation> {
   protected abstract readonly DRAFT_STORAGE_KEY: string;
@@ -34,6 +8,10 @@ export abstract class BaseDraftService<TDraft extends BaseDraft, TOperation> {
 
   protected _drafts = signal<Map<string, TDraft>>(new Map());
   protected _loading = signal(false);
+
+  protected abstract buildOperation(draft: TDraft): TOperation;
+  protected abstract executePublish(operations: TOperation[]): Observable<PublishResult>;
+  protected abstract onPublishSuccess(result: PublishResult): void;
 
   drafts: Signal<Map<string, TDraft>> = this._drafts.asReadonly();
   loading: Signal<boolean> = this._loading.asReadonly();
@@ -44,10 +22,6 @@ export abstract class BaseDraftService<TDraft extends BaseDraft, TOperation> {
   });
 
   hasDrafts = computed(() => this.draftCount() > 0);
-
-  protected abstract buildOperation (draft: TDraft): TOperation;
-  protected abstract executePublish (operations: TOperation[]): Observable<PublishResult>;
-  protected abstract onPublishSuccess (result: PublishResult): void;
 
   constructor () {
     this.loadDraftsFromStorage();
@@ -160,14 +134,10 @@ export abstract class BaseDraftService<TDraft extends BaseDraft, TOperation> {
     const originalKeys = Object.keys(original);
     const modifiedKeys = Object.keys(modified);
 
-    if (originalKeys.length !== modifiedKeys.length) {
-      return true;
-    }
+    if (originalKeys.length !== modifiedKeys.length) return true;
 
     for (const key of originalKeys) {
-      if (original[key] !== modified[key]) {
-        return true;
-      }
+      if (original[key] !== modified[key]) return true;
     }
 
     return false;

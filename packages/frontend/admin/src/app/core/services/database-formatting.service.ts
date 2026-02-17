@@ -4,10 +4,10 @@ import { TextTransformService } from './text-transform.service';
 import { TableStyleService } from './table-style.service';
 import { RoleAccessService } from './role-access.service';
 import { FieldConfigService } from './field-config.service';
-import { Column } from './database-operations.service';
+import { Column } from '../interfaces/database.interface';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class DatabaseFormattingService {
   private dateFormat = inject(DateFormatService);

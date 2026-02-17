@@ -7,35 +7,14 @@ import { ApiResponse, PaginatedResponse } from '../interfaces/api-response.inter
 import { ApiConfigService } from './api-config.service';
 import { NotificationUtil } from '../utils/notification.util';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
+import { TableMetadata, Schema } from '../interfaces/database.interface';
+
 export { DatabaseOperation } from '../interfaces/database-bulk.interface';
+export { Column, TableMetadata, Schema } from '../interfaces/database.interface';
 export type { ApiResponse };
 
-export interface Column {
-  name: string;
-  type: string;
-  required: boolean;
-  editable: boolean;
-}
-
-export interface TableMetadata {
-  category: string;
-  name: string;
-  displayName: string;
-  tableName: string;
-  columns: Column[];
-  actions?: {
-    create?: boolean;
-    update?: boolean;
-    delete?: boolean;
-  };
-}
-
-export interface Schema {
-  [category: string]: TableMetadata[];
-}
-
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class DatabaseOperationsService {
   private api = inject(ApiService);

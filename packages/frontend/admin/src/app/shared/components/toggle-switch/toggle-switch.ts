@@ -21,14 +21,16 @@ export class ToggleSwitch {
   @Input() disabled: boolean = false;
   @Input() size: 'small' | 'medium' | 'large' = 'medium';
 
-  @Output() toggle = new EventEmitter<boolean>();
+  @Output() toggleChange = new EventEmitter<boolean>();
 
   checkedSignal = signal<boolean>(false);
   toggleId = `toggle-${Math.random().toString(36).substr(2, 9)}`;
 
   onToggle (): void {
     if (!this.disabled) {
-      this.toggle.emit(!this.checkedSignal());
+      const newValue = !this.checkedSignal();
+      this.checkedSignal.set(newValue);
+      this.toggleChange.emit(newValue);
     }
   }
 }

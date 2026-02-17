@@ -1,6 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-
-export type ApiProtocol = 'rest' | 'graphql';
+import { ApiProtocol } from '../types/api.type';
 
 @Injectable({
   providedIn: 'root',

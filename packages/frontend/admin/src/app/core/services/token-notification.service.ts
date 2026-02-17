@@ -1,12 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
-
-export interface TokenUpdateEvent {
-  tokenIds?: string[];
-  tokenNames?: string[];
-  source: 'theme-editor' | 'database' | 'api';
-  timestamp: number;
-}
+import { TokenUpdateEvent } from '../interfaces/token.interface';
 
 @Injectable({
   providedIn: 'root',

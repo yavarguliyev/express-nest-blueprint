@@ -11,7 +11,8 @@ import {
 import { TokenNotificationService } from './token-notification.service';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
 import { STORAGE_KEYS } from '../constants/storage-keys.const';
-import { BaseDraftService, PublishResult } from './base/base-draft.service';
+import { BaseDraftService } from './base/base-draft.service';
+import { PublishResult } from '../interfaces/draft.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -77,7 +78,9 @@ export class DatabaseDraftService extends BaseDraftService<DatabaseDraft, Databa
       );
   }
 
-  protected onPublishSuccess (result: PublishResult & { results?: BulkOperationResponse['results'] }): void {
+  protected onPublishSuccess (
+    result: PublishResult & { results?: BulkOperationResponse['results'] },
+  ): void {
     if (result.success && result.results) {
       const cssTokenOperations = result.results.filter((r) => r.operation.table === 'css_tokens');
 
@@ -120,7 +123,7 @@ export class DatabaseDraftService extends BaseDraftService<DatabaseDraft, Databa
       recordId: operation.recordId || 'new',
       operation: operation.type,
       originalData: originalData ? { ...originalData } : {},
-      draftData: operation.data ? { ...operation.data } : (originalData ? { ...originalData } : {}),
+      draftData: operation.data ? { ...operation.data } : originalData ? { ...originalData } : {},
       hasChanges: operation.type === 'delete' || !!operation.data,
       timestamp: new Date(),
     };

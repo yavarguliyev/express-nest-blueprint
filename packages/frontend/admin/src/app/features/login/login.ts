@@ -3,15 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
-
-interface ErrorResponse {
-  error?: {
-    message?: string;
-  };
-  message?: string;
-}
-
 import { PasswordInput } from '../../shared/components/password-input/password-input';
+import { ErrorResponse } from '../../core/interfaces/api-response.interface';
 
 @Component({
   selector: 'app-login',

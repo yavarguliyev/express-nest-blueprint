@@ -1,11 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
-export interface ActionButtonConfig {
-  show: boolean;
-  disabled?: boolean;
-  tooltip?: string;
-}
+import { ActionButtonConfig } from '../../../core/interfaces/token.interface';
 
 @Component({
   selector: 'app-action-buttons',

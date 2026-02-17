@@ -1,9 +1,8 @@
 import { Injectable, signal, effect } from '@angular/core';
-
-export type Theme = 'dark' | 'light';
+import { Theme } from '../types/theme.type';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class ThemeService {
   private readonly THEME_KEY = 'admin-theme-preference';

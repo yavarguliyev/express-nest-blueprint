@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ThemeEditorService, CssToken } from '../../core/services/theme-editor.service';
+import { ThemeEditorService } from '../../core/services/theme-editor.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ThemeSidebarService } from '../../core/services/theme-sidebar.service';
@@ -9,11 +9,9 @@ import { ToggleSwitch } from '../../shared/components/toggle-switch/toggle-switc
 import { ColorPicker } from './components/color-picker/color-picker';
 import { FontSelector } from './components/font-selector/font-selector';
 import { SpacingSlider } from './components/spacing-slider/spacing-slider';
-import {
-  DraftStatusBar,
-  DraftStatusConfig,
-} from '../../shared/components/draft-status-bar/draft-status-bar';
+import { DraftStatusBar } from '../../shared/components/draft-status-bar/draft-status-bar';
 import { DraggableResizableDirective } from '../../shared/directives/draggable-resizable.directive';
+import { CssToken, DraftStatusConfig } from '../../core/interfaces/token.interface';
 
 @Component({
   selector: 'app-theme-editor',

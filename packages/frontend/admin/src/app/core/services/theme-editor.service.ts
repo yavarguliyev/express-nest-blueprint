@@ -5,29 +5,10 @@ import { ThemeService } from './theme.service';
 import { TokenNotificationService } from './token-notification.service';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
 import { STORAGE_KEYS } from '../constants/storage-keys.const';
-import { BaseDraftService, BaseDraft, PublishResult } from './base/base-draft.service';
+import { BaseDraftService } from './base/base-draft.service';
 import { ApiResponse, PaginatedResponse } from '../interfaces/api-response.interface';
-
-export interface CssToken {
-  id: string;
-  tokenName: string;
-  tokenCategory: string;
-  tokenType: string;
-  defaultValue: string;
-  lightModeValue: string | null;
-  darkModeValue: string | null;
-  description: string | null;
-  isCustomizable: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface TokenDraft extends BaseDraft {
-  tokenName: string;
-  lightModeValue: string | null;
-  darkModeValue: string | null;
-  defaultValue: string;
-}
+import { CssToken, TokenDraft } from '../interfaces/token.interface';
+import { PublishResult } from '../interfaces/draft.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -141,8 +122,9 @@ export class ThemeEditorService extends BaseDraftService<TokenDraft, CssToken> {
   }
 
   loadTokens (): Observable<CssToken[]> {
-
-    if (this._tokens().length === 0) { this._loading.set(true); }
+    if (this._tokens().length === 0) {
+      this._loading.set(true);
+    }
 
     const url = API_ENDPOINTS.ADMIN.CRUD('Database Management', 'css_tokens');
 

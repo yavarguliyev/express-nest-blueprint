@@ -1,17 +1,6 @@
 import { Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
-export interface DraftStatusConfig {
-  draftCount: number;
-  hasDrafts: boolean;
-  affectedItems?: string[];
-  isProcessing: boolean;
-  itemType?: 'table' | 'token' | 'item';
-  resetButtonText?: string;
-  saveButtonText?: string;
-  resetButtonIcon?: string;
-  saveButtonIcon?: string;
-}
+import { DraftStatusConfig } from '../../../core/interfaces/token.interface';
 
 @Component({
   selector: 'app-draft-status-bar',

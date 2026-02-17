@@ -1,11 +1,7 @@
 import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
-export interface FontChangeEvent {
-  tokenId: string;
-  value: string;
-}
+import { BaseChangeEvent } from '../../../../core/interfaces/token.interface';
 
 @Component({
   selector: 'app-font-selector',
@@ -177,7 +173,7 @@ export class FontSelector {
   @Input() tokenId!: string;
   @Input() currentValue!: string;
 
-  @Output() valueChange = new EventEmitter<FontChangeEvent>();
+  @Output() valueChange = new EventEmitter<BaseChangeEvent>();
 
   customMode = signal(false);
 

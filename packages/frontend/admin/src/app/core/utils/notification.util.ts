@@ -13,7 +13,11 @@ export class NotificationUtil {
     service.success(`${recordType} deleted successfully`);
   }
 
-  static changesPublished (service: ToastService, count: number, itemType: string = 'changes'): void {
+  static changesPublished (
+    service: ToastService,
+    count: number,
+    itemType: string = 'changes',
+  ): void {
     service.success(`Successfully published ${count} ${itemType}`);
   }
 
@@ -59,12 +63,18 @@ export class NotificationUtil {
     service.error(message);
   }
 
-  static confirmDelete (service: ToastService, callback: () => void, itemName?: string, itemId?: number): void {
+  static confirmDelete (
+    service: ToastService,
+    callback: () => void,
+    itemName?: string,
+    itemId?: number,
+  ): void {
     const message = itemName
       ? `Delete ${itemName}? This cannot be undone.`
       : itemId
         ? `Mark record ${itemId} for deletion? You can review and apply all changes with "Save Changes".`
         : 'Delete this item? This cannot be undone.';
+
     service.confirm(message, callback);
   }
 

@@ -2,21 +2,7 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
-
-export interface LayoutPosition {
-  elementId: string;
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-  zIndex: number;
-}
-
-export interface LayoutCustomization {
-  userId: string;
-  positions: LayoutPosition[];
-  lastModified: Date;
-}
+import { LayoutCustomization, LayoutPosition } from '../interfaces/layout.interface';
 
 @Injectable({
   providedIn: 'root',
