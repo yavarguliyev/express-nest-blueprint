@@ -1,0 +1,11 @@
+export enum UserRole {
+  ADMIN = 'ADMIN',
+  USER = 'USER',
+  GUEST = 'GUEST'
+}
+
+export enum AuthStatus {
+  AUTHENTICATED = 'AUTHENTICATED',
+  UNAUTHENTICATED = 'UNAUTHENTICATED',
+  CHECKING = 'CHECKING'
+}

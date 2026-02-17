@@ -1,16 +1,71 @@
 import { ToastService } from '../services/toast.service';
 
 export class NotificationUtil {
-  static recordCreated (service: ToastService, recordType: string = 'Record'): void {
+  static success (service: ToastService, message: string): void {
+    service.success(message);
+  }
+
+  static error (service: ToastService, message: string): void {
+    service.error(message);
+  }
+
+  static info (service: ToastService, message: string): void {
+    service.info(message);
+  }
+
+  static warning (service: ToastService, message: string): void {
+    service.warning(message);
+  }
+
+  static confirm (service: ToastService, message: string, onConfirm: () => void, onCancel?: () => void): void {
+    service.confirm(message, onConfirm, onCancel);
+  }
+
+  static loadSuccess (service: ToastService, itemType: string): void {
+    service.success(`${itemType} loaded successfully`);
+  }
+
+  static loadError (service: ToastService, itemType: string): void {
+    service.error(`Failed to load ${itemType}`);
+  }
+
+  static saveSuccess (service: ToastService, itemType: string = 'changes'): void {
+    service.success(`${itemType} saved successfully`);
+  }
+
+  static saveError (service: ToastService, itemType: string = 'changes'): void {
+    service.error(`Failed to save ${itemType}`);
+  }
+
+  static createSuccess (service: ToastService, recordType: string = 'Record'): void {
     service.success(`${recordType} created successfully`);
   }
 
-  static recordUpdated (service: ToastService, recordType: string = 'Record'): void {
+  static updateSuccess (service: ToastService, recordType: string = 'Record'): void {
     service.success(`${recordType} updated successfully`);
   }
 
-  static recordDeleted (service: ToastService, recordType: string = 'Record'): void {
+  static deleteSuccess (service: ToastService, recordType: string = 'Record'): void {
     service.success(`${recordType} deleted successfully`);
+  }
+
+  static confirmDelete (
+    service: ToastService,
+    callback: () => void,
+    itemName?: string,
+    itemId?: number,
+  ): void {
+    let message: string;
+    if (itemName && itemId) {
+      message = `Are you sure you want to delete ${itemName} #${itemId}?`;
+    } else if (itemName) {
+      message = `Delete ${itemName}? This cannot be undone.`;
+    } else if (itemId) {
+      message = `Mark record ${itemId} for deletion? You can review and apply all changes with "Save Changes".`;
+    } else {
+      message = 'Are you sure you want to delete this item?';
+    }
+    service.confirm(message, callback);
   }
 
   static changesPublished (
@@ -37,22 +92,6 @@ export class NotificationUtil {
     service.info('No changes to save');
   }
 
-  static loadSuccess (service: ToastService, itemType: string): void {
-    service.success(`${itemType} loaded successfully`);
-  }
-
-  static loadError (service: ToastService, itemType: string): void {
-    service.error(`Failed to load ${itemType}`);
-  }
-
-  static saveSuccess (service: ToastService, itemType: string = 'changes'): void {
-    service.success(`Successfully saved ${itemType}`);
-  }
-
-  static saveError (service: ToastService, itemType: string = 'changes'): void {
-    service.error(`Failed to save ${itemType}`);
-  }
-
   static operationError (service: ToastService, operation: string, error?: unknown): void {
     const err = error as { error?: { message?: string }; message?: string } | undefined;
     const message = err?.error?.message || err?.message || `Failed to ${operation}`;
@@ -61,21 +100,6 @@ export class NotificationUtil {
 
   static validationError (service: ToastService, message: string): void {
     service.error(message);
-  }
-
-  static confirmDelete (
-    service: ToastService,
-    callback: () => void,
-    itemName?: string,
-    itemId?: number,
-  ): void {
-    const message = itemName
-      ? `Delete ${itemName}? This cannot be undone.`
-      : itemId
-        ? `Mark record ${itemId} for deletion? You can review and apply all changes with "Save Changes".`
-        : 'Delete this item? This cannot be undone.';
-
-    service.confirm(message, callback);
   }
 
   static confirmReset (service: ToastService, callback: () => void, count?: number): void {

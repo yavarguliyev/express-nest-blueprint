@@ -33,7 +33,7 @@ else
 fi
 
 print_info "Step 2/4: Building backend..."
-if npm run build:backend; then
+if npm run build:backend:main; then
     print_status "Backend build successful"
 else
     print_error "Backend build failed"
@@ -41,7 +41,7 @@ else
 fi
 
 print_info "Step 3/4: Building frontend..."
-if npm run build:frontend; then
+if npm run build:frontend:main; then
     print_status "Frontend build successful"
 else
     print_error "Frontend build failed"

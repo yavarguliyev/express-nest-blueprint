@@ -4,6 +4,7 @@ import {
   ValidationResults,
   FieldValidationRule,
 } from '../interfaces/field-config.interface';
+import { ValidationUtil as CommonValidationUtil } from '@app/common';
 
 export class FormValidationUtil {
   static hasChanges (current: Record<string, unknown>, original: Record<string, unknown>): boolean {
@@ -73,8 +74,8 @@ export class FormValidationUtil {
     if (!email || email === '') return { valid: false, error: 'Email is required' };
     if (typeof email !== 'string') return { valid: false, error: 'Email must be a string' };
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) return { valid: false, error: 'Invalid email format' };
+    if (!CommonValidationUtil.isEmail(email))
+      return { valid: false, error: 'Invalid email format' };
 
     return { valid: true };
   }
@@ -82,7 +83,7 @@ export class FormValidationUtil {
   static validatePassword (password: string, minLength = 8): ValidationResults {
     if (!password || password.length === 0) return { valid: false, error: 'Password is required' };
 
-    if (password.length < minLength) {
+    if (!CommonValidationUtil.minLength(password, minLength)) {
       return { valid: false, error: `Password must be at least ${minLength} characters long` };
     }
 

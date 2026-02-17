@@ -3,20 +3,18 @@
   "version": "1.0.0",
   "description": "express app in nest style monorepo",
   "private": true,
-  "workspaces": [
-    "packages/backend/common",
-    "packages/backend/*",
-    "packages/frontend/*"
-  ],
+  "workspaces": ["packages/backend/common", "packages/backend/*", "packages/frontend/common", "packages/frontend/*"],
   "dependencies": {
     "node-pg-migrate": "^7.9.0",
     "pg": "^8.13.1"
   },
   "scripts": {
-    "build:common": "npm run build -w @config/libs",
+    "build:backend:common": "npm run build -w @config/libs",
     "build:backend": "npm run build -w @app/core-api",
+    "build:frontend:common": "npm run build -w @app/common",
     "build:frontend": "npm run build -w @app/admin",
-    "build": "npm run build:common && npm run build:backend",
+    "build:frontend:main": "npm run build:frontend:common && npm run build:frontend",
+    "build:backend:main": "npm run build:backend:common && npm run build:backend",
     "dev:backend": "npm run dev -w @app/core-api",
     "dev:frontend": "npm run start -w @app/admin",
     "lint": "npm run lint --workspaces --if-present",

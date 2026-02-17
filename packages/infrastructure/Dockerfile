@@ -17,6 +17,7 @@ COPY package*.json tsconfig.json ./
 # Copy package manifests for better caching
 COPY packages/backend/common/package*.json ./packages/backend/common/
 COPY packages/backend/core-api/package*.json ./packages/backend/core-api/
+COPY packages/frontend/common/package*.json ./packages/frontend/common/
 COPY packages/frontend/admin/package*.json ./packages/frontend/admin/
 
 # Install all dependencies
@@ -29,8 +30,8 @@ RUN npm install -g pm2
 COPY . .
 
 # Build all packages
-RUN npm run build
-RUN npm run build:frontend
+RUN npm run build:backend:main
+RUN npm run build:frontend:main
 
 # Prune dev dependencies (optional, but tricky in monorepos)
 # Instead of full prune, we will just copy what we need in runner
@@ -56,6 +57,7 @@ COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/packages/backend/common ./packages/backend/common
 COPY --from=builder /app/packages/backend/core-api ./packages/backend/core-api
+COPY --from=builder /app/packages/frontend/common ./packages/frontend/common
 COPY --from=builder /app/packages/frontend/admin/dist/admin/browser ./public/admin
 COPY --from=builder /app/packages/backend/core-api/database.json ./database.json
 
