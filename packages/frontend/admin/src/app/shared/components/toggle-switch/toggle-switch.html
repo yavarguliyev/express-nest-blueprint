@@ -4,7 +4,7 @@
     <input 
       type="checkbox" 
       [id]="toggleId"
-      [checked]="checked" 
+      [checked]="checkedSignal()" 
       [disabled]="disabled"
       (change)="onToggle()"
       class="toggle-input">
