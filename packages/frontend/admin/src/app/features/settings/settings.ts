@@ -35,14 +35,14 @@ export class Settings implements OnInit {
     const current = this.settings();
     const original = this.originalSettings();
 
-    if (current.length !== original.length) return false;
+    if (current.length !== original.length) {
+      return true;
+    }
 
     return current.some((setting) => {
       const originalSetting = original.find((orig) => orig.id === setting.id);
-      return (
-        originalSetting &&
-        (originalSetting.value !== setting.value || originalSetting.isActive !== setting.isActive)
-      );
+      return originalSetting &&
+        (originalSetting.value !== setting.value || originalSetting.isActive !== setting.isActive);
     });
   });
 
@@ -101,11 +101,15 @@ export class Settings implements OnInit {
         'allow_registration',
         'enforce_mfa',
       ];
-      const filteredSettings = response.data.filter((setting) =>
-        allowedSettings.includes(setting.id),
-      );
+      const filteredSettings = response.data
+        .filter((setting) => allowedSettings.includes(setting.id))
+        .map((setting) => ({
+          ...setting,
+          value: Boolean(setting.value),
+          isActive: Boolean(setting.isActive),
+        }));
 
-      this.settings.set(filteredSettings);
+      this.settings.set([...filteredSettings]);
       this.originalSettings.set(JSON.parse(JSON.stringify(filteredSettings)) as SettingItem[]);
       void this.toastService.success('Settings refreshed successfully');
     } catch {
@@ -126,11 +130,15 @@ export class Settings implements OnInit {
         'allow_registration',
         'enforce_mfa',
       ];
-      const filteredSettings = response.data.filter((setting) =>
-        allowedSettings.includes(setting.id),
-      );
+      const filteredSettings = response.data
+        .filter((setting) => allowedSettings.includes(setting.id))
+        .map((setting) => ({
+          ...setting,
+          value: Boolean(setting.value),
+          isActive: Boolean(setting.isActive),
+        }));
 
-      this.settings.set(filteredSettings);
+      this.settings.set([...filteredSettings]);
       this.originalSettings.set(JSON.parse(JSON.stringify(filteredSettings)) as SettingItem[]);
     } catch {
       void this.toastService.error('Failed to load settings');
@@ -174,8 +182,22 @@ export class Settings implements OnInit {
 
       const response = await firstValueFrom(this.settingsService.updateSettings(updateRequest));
 
-      this.settings.set(response.data);
-      this.originalSettings.set(JSON.parse(JSON.stringify(response.data)) as SettingItem[]);
+      const allowedSettings = [
+        'maintenance_mode',
+        'debug_logging',
+        'allow_registration',
+        'enforce_mfa',
+      ];
+      const filteredSettings = response.data
+        .filter((setting) => allowedSettings.includes(setting.id))
+        .map((setting) => ({
+          ...setting,
+          value: Boolean(setting.value),
+          isActive: Boolean(setting.isActive),
+        }));
+      
+      this.settings.set([...filteredSettings]);
+      this.originalSettings.set(JSON.parse(JSON.stringify(filteredSettings)) as SettingItem[]);
 
       void this.toastService.success(`Successfully updated settings`);
     } catch {
