@@ -5,7 +5,7 @@ export const VALIDATION_RULES = {
   USERNAME_MAX_LENGTH: 50,
 } as const;
 
-export const VALIDATION_MESSAGES = {
+export const FORM_VALIDATION_MESSAGES = {
   EMAIL_REQUIRED: 'Email is required',
   EMAIL_INVALID: 'Please enter a valid email address',
   PASSWORD_REQUIRED: 'Password is required',

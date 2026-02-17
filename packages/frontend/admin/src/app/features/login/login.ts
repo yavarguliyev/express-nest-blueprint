@@ -2,9 +2,10 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { ErrorResponse } from '@app/common';
+
 import { AuthService } from '../../core/services/auth.service';
-import { PasswordInput } from '../../shared/components/password-input/password-input';
-import { ErrorResponse } from '../../core/interfaces/api-response.interface';
+import { PasswordInput } from '../../shared/components/password-input/password-input.component';
 
 @Component({
   selector: 'app-login',
@@ -40,10 +41,14 @@ export class Login {
         } else {
           this.error.set('Login failed. Please check your credentials.');
         }
+
         this.loading.set(false);
       },
       error: (err: ErrorResponse) => {
-        this.error.set(err.error?.message || err.message || 'An error occurred during login.');
+        this.error.set(
+          err.errors?.[0]?.message || err.message || 'An error occurred during login.',
+        );
+
         this.loading.set(false);
       },
     });

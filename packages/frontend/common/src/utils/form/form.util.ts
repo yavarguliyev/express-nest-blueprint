@@ -3,14 +3,14 @@ import { AbstractControl, FormGroup } from '@angular/forms';
 export class FormUtil {
   static getChangedFields (form: FormGroup): Record<string, unknown> {
     const changes: Record<string, unknown> = {};
-    
+
     Object.keys(form.controls).forEach(key => {
       const control = form.get(key);
       if (control && control.dirty) {
         changes[key] = control.value;
       }
     });
-    
+
     return changes;
   }
 
@@ -31,23 +31,23 @@ export class FormUtil {
 
   static getAllErrors (form: FormGroup): Record<string, unknown> {
     const errors: Record<string, unknown> = {};
-    
+
     Object.keys(form.controls).forEach(key => {
       const control = form.get(key);
       if (control && control.errors) {
         errors[key] = control.errors;
       }
     });
-    
+
     return errors;
   }
 
   static getErrorMessages (control: AbstractControl): string[] {
     if (!control.errors) return [];
-    
+
     const messages: string[] = [];
     const errors = control.errors;
-    
+
     if (errors['required']) messages.push('This field is required');
     if (errors['email']) messages.push('Please enter a valid email address');
     if (errors['phone']) messages.push('Please enter a valid phone number');
@@ -71,7 +71,7 @@ export class FormUtil {
     }
     if (errors['pattern']) messages.push('Invalid format');
     if (errors['match']) messages.push('Fields do not match');
-    
+
     return messages;
   }
 

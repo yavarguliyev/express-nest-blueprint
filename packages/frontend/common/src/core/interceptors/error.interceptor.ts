@@ -1,5 +1,6 @@
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { catchError, throwError } from 'rxjs';
+
 import { HTTP_STATUS } from '../../domain/constants/api.const';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {

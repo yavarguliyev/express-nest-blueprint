@@ -1,65 +1,28 @@
-import { charset } from '../constants';
+import { FormValidationUtil as CommonFormValidationUtil } from '@app/common';
+
 import {
   FieldChange,
   ValidationResults,
   FieldValidationRule,
 } from '../interfaces/field-config.interface';
-import { ValidationUtil as CommonValidationUtil } from '@app/common';
 
 export class FormValidationUtil {
   static hasChanges (current: Record<string, unknown>, original: Record<string, unknown>): boolean {
-    for (const key in current) {
-      const currentValue = current[key];
-      const originalValue = original[key];
-
-      const isEmptyCurrent =
-        currentValue === null || currentValue === undefined || currentValue === '';
-      const isEmptyOriginal =
-        originalValue === null || originalValue === undefined || originalValue === '';
-
-      if (isEmptyCurrent && isEmptyOriginal) continue;
-      if (currentValue != originalValue) return true;
-    }
-
-    for (const key in original) {
-      if (!(key in current)) return true;
-    }
-
-    return false;
+    return CommonFormValidationUtil.hasChanges(current, original);
   }
 
   static getChangedFields (
     current: Record<string, unknown>,
     original: Record<string, unknown>,
   ): FieldChange[] {
-    const changes: FieldChange[] = [];
-
-    for (const key in current) {
-      if (Object.prototype.hasOwnProperty.call(current, key) && current[key] !== original[key]) {
-        changes.push({
-          name: key,
-          oldValue: original[key],
-          newValue: current[key],
-        });
-      }
-    }
-
-    return changes;
+    return CommonFormValidationUtil.getChangedFields(current, original);
   }
 
   static getChangedData (
     current: Record<string, unknown>,
     original: Record<string, unknown>,
   ): Record<string, unknown> {
-    const changedData: Record<string, unknown> = {};
-
-    for (const key in current) {
-      if (Object.prototype.hasOwnProperty.call(current, key) && current[key] !== original[key]) {
-        changedData[key] = current[key];
-      }
-    }
-
-    return changedData;
+    return CommonFormValidationUtil.getChangedData(current, original);
   }
 
   static isFieldChanged (
@@ -67,27 +30,26 @@ export class FormValidationUtil {
     current: Record<string, unknown>,
     original: Record<string, unknown>,
   ): boolean {
-    return current[fieldName] !== original[fieldName];
+    return CommonFormValidationUtil.isFieldChanged(fieldName, current, original);
   }
 
   static validateEmail (email: unknown): ValidationResults {
-    if (!email || email === '') return { valid: false, error: 'Email is required' };
-    if (typeof email !== 'string') return { valid: false, error: 'Email must be a string' };
-
-    if (!CommonValidationUtil.isEmail(email))
-      return { valid: false, error: 'Invalid email format' };
-
-    return { valid: true };
+    return CommonFormValidationUtil.validateEmail(email);
   }
 
   static validatePassword (password: string, minLength = 8): ValidationResults {
-    if (!password || password.length === 0) return { valid: false, error: 'Password is required' };
+    return CommonFormValidationUtil.validatePassword(password, minLength);
+  }
 
-    if (!CommonValidationUtil.minLength(password, minLength)) {
-      return { valid: false, error: `Password must be at least ${minLength} characters long` };
-    }
+  static validateRequiredFields (
+    data: Record<string, unknown>,
+    rules: FieldValidationRule[],
+  ): ValidationResults {
+    return CommonFormValidationUtil.validateRequiredFields(data, rules);
+  }
 
-    return { valid: true };
+  static generateRandomPassword (length = 12): string {
+    return CommonFormValidationUtil.generateRandomPassword(length);
   }
 
   static validateRole (role: unknown): ValidationResults {
@@ -97,26 +59,6 @@ export class FormValidationUtil {
     if (typeof role === 'string' && !validRoles.includes(role.toLowerCase())) {
       return { valid: false, error: 'Invalid role selected' };
     }
-
-    return { valid: true };
-  }
-
-  static validateRequiredFields (
-    data: Record<string, unknown>,
-    rules: FieldValidationRule[],
-  ): ValidationResults {
-    const errors: string[] = [];
-
-    for (const rule of rules) {
-      if (rule.required) {
-        const value = data[rule.name];
-        if (value === null || value === undefined || value === '') {
-          errors.push(`${rule.name} is required`);
-        }
-      }
-    }
-
-    if (errors.length > 0) return { valid: false, errors };
 
     return { valid: true };
   }
@@ -140,14 +82,5 @@ export class FormValidationUtil {
     const password = data['password'];
     if (typeof password !== 'string') return false;
     return password.length >= minLength;
-  }
-
-  static generateRandomPassword (length = 12): string {
-    let result = '';
-    for (let i = 0; i < length; i++) {
-      result += charset.charAt(Math.floor(Math.random() * charset.length));
-    }
-
-    return result;
   }
 }

@@ -6,9 +6,7 @@ export class StringUtil {
   }
 
   static camelCase (str: string): string {
-    return str
-      .replace(/[-_\s]+(.)?/g, (_, char: string) => char ? char.toUpperCase() : '')
-      .replace(/^[A-Z]/, char => char.toLowerCase());
+    return str.replace(/[-_\s]+(.)?/g, (_, char: string) => (char ? char.toUpperCase() : '')).replace(/^[A-Z]/, char => char.toLowerCase());
   }
 
   static kebabCase (str: string): string {

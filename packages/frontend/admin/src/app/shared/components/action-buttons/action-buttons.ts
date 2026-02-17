@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+
 import { ActionButtonConfig } from '../../../core/interfaces/token.interface';
 
 @Component({

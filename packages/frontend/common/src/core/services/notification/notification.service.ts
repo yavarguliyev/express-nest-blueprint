@@ -1,4 +1,5 @@
 import { Injectable, Signal, computed, signal } from '@angular/core';
+
 import {
   INotificationService,
   Notification,
@@ -15,9 +16,7 @@ export class NotificationService implements INotificationService {
   private notificationIdCounter = 0;
 
   readonly notifications: Signal<Notification[]> = this._notifications.asReadonly();
-
   readonly notificationCount: Signal<number> = computed(() => this._notifications().length);
-
   readonly hasNotifications: Signal<boolean> = computed(() => this._notifications().length > 0);
 
   show (type: NotificationType, message: string, options?: NotificationOptions): void {

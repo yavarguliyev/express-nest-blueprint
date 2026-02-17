@@ -1,6 +1,7 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+
 import { API_ENDPOINTS } from '../constants/api-endpoints';
 import { LayoutCustomization, LayoutPosition } from '../interfaces/layout.interface';
 
@@ -8,34 +9,15 @@ import { LayoutCustomization, LayoutPosition } from '../interfaces/layout.interf
   providedIn: 'root',
 })
 export class LayoutCustomizationService {
+  private originalPositions = signal<Map<string, LayoutPosition>>(new Map());
   private http = inject(HttpClient);
   private STORAGE_KEY = 'admin_layout_customization';
+
+  public currentPositions = signal<Map<string, LayoutPosition>>(new Map());
 
   constructor () {
     this.loadFromLocalStorage();
   }
-
-  private loadFromLocalStorage (): void {
-    const saved = localStorage.getItem(this.STORAGE_KEY);
-    if (saved) {
-      const data = JSON.parse(saved) as LayoutPosition[];
-      const positionsMap = new Map<string, LayoutPosition>();
-      data.forEach((pos) => {
-        positionsMap.set(pos.elementId, pos);
-      });
-      this.originalPositions.set(positionsMap);
-      this.currentPositions.set(new Map(positionsMap));
-    }
-  }
-
-  private saveToLocalStorage (): void {
-    const positions = Array.from(this.originalPositions().values());
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(positions));
-  }
-
-  private originalPositions = signal<Map<string, LayoutPosition>>(new Map());
-
-  public currentPositions = signal<Map<string, LayoutPosition>>(new Map());
 
   hasDrafts = computed(() => {
     const original = this.originalPositions();
@@ -151,5 +133,26 @@ export class LayoutCustomizationService {
     this.originalPositions.set(new Map());
     this.currentPositions.set(new Map());
     localStorage.removeItem(this.STORAGE_KEY);
+  }
+
+  private loadFromLocalStorage (): void {
+    const saved = localStorage.getItem(this.STORAGE_KEY);
+
+    if (saved) {
+      const data = JSON.parse(saved) as LayoutPosition[];
+      const positionsMap = new Map<string, LayoutPosition>();
+
+      data.forEach((pos) => {
+        positionsMap.set(pos.elementId, pos);
+      });
+
+      this.originalPositions.set(positionsMap);
+      this.currentPositions.set(new Map(positionsMap));
+    }
+  }
+
+  private saveToLocalStorage (): void {
+    const positions = Array.from(this.originalPositions().values());
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(positions));
   }
 }

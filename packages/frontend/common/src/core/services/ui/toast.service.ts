@@ -1,28 +1,21 @@
-import { Injectable, signal } from '@angular/core';
-import { Toast } from '../interfaces/toast.interface';
-import { ToastType } from '../types/toast.type';
+import { Injectable, signal, WritableSignal } from '@angular/core';
+
+import { Toast } from '../../../domain/interfaces/toast.interface';
+import { ToastType } from '../../../domain/types/toast.type';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class ToastService {
-  toasts = signal<Toast[]>([]);
+  toasts: WritableSignal<Toast[]> = signal<Toast[]>([]);
   private counter = 0;
 
-  show (
-    message: string,
-    type: ToastType = 'info',
-    duration: number = 4000,
-    onConfirm?: () => void,
-    onCancel?: () => void,
-  ): void {
+  show (message: string, type: ToastType = 'info', duration: number = 4000, onConfirm?: () => void, onCancel?: () => void): void {
     const id = this.counter++;
     const toast: Toast = { id, message, type, duration, onConfirm, onCancel };
-    this.toasts.update((t) => [...t, toast]);
+    this.toasts.update((t: Toast[]) => [...t, toast]);
 
-    if (duration > 0) {
-      setTimeout(() => this.remove(id), duration);
-    }
+    if (duration > 0) setTimeout(() => this.remove(id), duration);
   }
 
   success (message: string, duration?: number): void {
@@ -46,6 +39,6 @@ export class ToastService {
   }
 
   remove (id: number): void {
-    this.toasts.update((t) => t.filter((toast) => toast.id !== id));
+    this.toasts.update((t: Toast[]) => t.filter(toast => toast.id !== id));
   }
 }

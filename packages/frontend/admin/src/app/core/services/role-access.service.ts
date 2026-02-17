@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+
 import { AuthService } from './auth.service';
 import { UserRoles } from '../enums/user-roles.enum';
 import { UserRoleHelper } from '../utils/user-role-helper.util';
@@ -38,9 +39,7 @@ export class RoleAccessService {
 
   getCurrentUserRoleDisplayName (): string {
     const currentUser = this.authService.getCurrentUser();
-    if (!currentUser) {
-      return 'Unknown Role';
-    }
+    if (!currentUser) return 'Unknown Role';
     return UserRoleHelper.getRoleDisplayName(currentUser.role);
   }
 

@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+
 import { ParsedValue } from '../../../../core/interfaces/token.interface';
 
 @Injectable({
@@ -6,9 +7,7 @@ import { ParsedValue } from '../../../../core/interfaces/token.interface';
 })
 export class SpacingSliderHelperService {
   parseValue (value: string): ParsedValue {
-    if (!value || value === '0') {
-      return { number: 0, unit: 'px' };
-    }
+    if (!value || value === '0') return { number: 0, unit: 'px' };
 
     const match = value.match(/^(-?\d*\.?\d+)(.*)$/);
     if (match) {

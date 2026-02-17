@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class DateFormatService {
   private readonly userLocale: string;
@@ -25,7 +25,7 @@ export class DateFormatService {
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
-        hour12: false,
+        hour12: false
       }).format(date);
     } catch {
       return 'Invalid Date';
@@ -47,7 +47,7 @@ export class DateFormatService {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
-      timeZoneName: 'short',
+      timeZoneName: 'short'
     }).format(date);
   }
 
@@ -67,16 +67,13 @@ export class DateFormatService {
         { label: 'month', seconds: 2592000 },
         { label: 'day', seconds: 86400 },
         { label: 'hour', seconds: 3600 },
-        { label: 'minute', seconds: 60 },
+        { label: 'minute', seconds: 60 }
       ];
 
       for (const interval of intervals) {
         const count = Math.floor(Math.abs(diffInSeconds) / interval.seconds);
         if (count >= 1) {
-          return rtf.format(
-            diffInSeconds > 0 ? -count : count,
-            interval.label as Intl.RelativeTimeFormatUnit,
-          );
+          return rtf.format(diffInSeconds > 0 ? -count : count, interval.label as Intl.RelativeTimeFormatUnit);
         }
       }
 
@@ -96,7 +93,7 @@ export class DateFormatService {
       timeZone: this.userTimezone,
       month: 'short',
       day: 'numeric',
-      year: 'numeric',
+      year: 'numeric'
     }).format(date);
   }
 
@@ -110,7 +107,7 @@ export class DateFormatService {
       timeZone: this.userTimezone,
       hour: '2-digit',
       minute: '2-digit',
-      hour12: false,
+      hour12: false
     }).format(date);
   }
 
@@ -144,7 +141,7 @@ export class DateFormatService {
   getUserInfo (): { locale: string; timezone: string } {
     return {
       locale: this.userLocale,
-      timezone: this.userTimezone,
+      timezone: this.userTimezone
     };
   }
 }

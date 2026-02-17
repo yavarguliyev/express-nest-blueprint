@@ -1,5 +1,6 @@
 import { Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+
 import { DraftStatusConfig } from '../../../core/interfaces/token.interface';
 
 @Component({

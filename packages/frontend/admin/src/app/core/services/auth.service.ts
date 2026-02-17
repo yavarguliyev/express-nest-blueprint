@@ -2,7 +2,8 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap, firstValueFrom } from 'rxjs';
-import { LoadingService } from './loading.service';
+import { LoadingService } from '@app/common';
+
 import { API_ENDPOINTS } from '../constants/api-endpoints';
 import { User, LoginCredentials, AuthResponse } from '../interfaces';
 
@@ -20,8 +21,8 @@ export class AuthService {
     return this.http.post<AuthResponse>(API_ENDPOINTS.AUTH.LOGIN, credentials).pipe(
       tap((response) => {
         if (response.success && response.data.accessToken) {
-          localStorage.setItem('admin_token', response.data.accessToken);
-          localStorage.setItem('admin_user', JSON.stringify(response.data.user));
+          localStorage.setItem('auth_token', response.data.accessToken);
+          localStorage.setItem('user_data', JSON.stringify(response.data.user));
           this.currentUser.set(response.data.user);
         }
       }),
@@ -29,18 +30,18 @@ export class AuthService {
   }
 
   logout (): void {
-    localStorage.removeItem('admin_token');
-    localStorage.removeItem('admin_user');
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user_data');
     this.currentUser.set(null);
     void this.router.navigate(['/login']);
   }
 
   getToken (): string | null {
-    return localStorage.getItem('admin_token');
+    return localStorage.getItem('auth_token');
   }
 
   private getCurrentUserFromStorage (): User | null {
-    const userJson = localStorage.getItem('admin_user');
+    const userJson = localStorage.getItem('user_data');
     return userJson ? (JSON.parse(userJson) as User) : null;
   }
 
@@ -53,7 +54,7 @@ export class AuthService {
   }
 
   updateCurrentUser (user: User): void {
-    localStorage.setItem('admin_user', JSON.stringify(user));
+    localStorage.setItem('user_data', JSON.stringify(user));
     this.currentUser.set(user);
   }
 

@@ -1,20 +1,18 @@
 import { Injectable, inject, Signal } from '@angular/core';
 import { Observable } from 'rxjs';
-import { ToastService } from '../../core/services/toast.service';
+import { ToastService, PaginationService, ApiResponse, PaginatedResponse } from '@app/common';
+
 import { DatabaseDraftService } from '../../core/services/database-draft.service';
 import { DatabaseOperationsService } from '../../core/services/database-operations.service';
 import { DatabaseHelperService } from '../../core/services/database-helper.service';
 import { DatabaseFormService } from '../../core/services/database-form.service';
 import { ApiConfigService } from '../../core/services/api-config.service';
-import { PaginationService } from '../../core/services/pagination.service';
-import { ApiResponse, PaginatedResponse } from '../../core/interfaces/api-response.interface';
 import { TableMetadata, Schema, Column } from '../../core/interfaces/database.interface';
 import { DatabaseOperation } from '../../core/interfaces/database-bulk.interface';
-
 export type { DatabaseState } from '../../core/interfaces/database-state.interface';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class DatabaseFacade {
   private toastService = inject(ToastService);
@@ -160,7 +158,11 @@ export class DatabaseFacade {
     return this.dbForm.isFieldExcludedFromUpdate(columnName, record);
   }
 
-  isFieldDisabled (columnName: string, table: TableMetadata | null, mode: 'create' | 'update'): boolean {
+  isFieldDisabled (
+    columnName: string,
+    table: TableMetadata | null,
+    mode: 'create' | 'update',
+  ): boolean {
     return this.dbForm.isFieldDisabled(columnName, table, mode);
   }
 
@@ -168,7 +170,10 @@ export class DatabaseFacade {
     return this.dbForm.generateRandomPassword();
   }
 
-  hasFormChanges (formData: Record<string, unknown>, originalData: Record<string, unknown>): boolean {
+  hasFormChanges (
+    formData: Record<string, unknown>,
+    originalData: Record<string, unknown>,
+  ): boolean {
     return this.dbForm.hasFormChanges(formData, originalData);
   }
 
@@ -207,7 +212,10 @@ export class DatabaseFacade {
     return this.dbForm.getSubmitButtonIcon(mode);
   }
 
-  getUpdateButtonTooltip (formData: Record<string, unknown>, originalData: Record<string, unknown>): string {
+  getUpdateButtonTooltip (
+    formData: Record<string, unknown>,
+    originalData: Record<string, unknown>,
+  ): string {
     return this.dbForm.getUpdateButtonTooltip(formData, originalData);
   }
 
@@ -244,7 +252,14 @@ export class DatabaseFacade {
     isSensitiveField: (columnName: string) => boolean,
     canModifySensitiveFields: () => boolean,
   ): void {
-    this.dbForm.handleBooleanUpdate(table, record, column, newValue, isSensitiveField, canModifySensitiveFields);
+    this.dbForm.handleBooleanUpdate(
+      table,
+      record,
+      column,
+      newValue,
+      isSensitiveField,
+      canModifySensitiveFields,
+    );
   }
 
   confirmDelete (id: number, onConfirm: () => void): void {

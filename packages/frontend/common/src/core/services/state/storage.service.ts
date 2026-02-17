@@ -1,11 +1,7 @@
 import { Injectable } from '@angular/core';
-import { StorageOptions } from '../../../domain/types/state.type';
 
-interface StorageData<T> {
-  value: T;
-  version: string;
-  timestamp: string;
-}
+import { StorageOptions } from '../../../domain/types/state.type';
+import { StorageData } from '../../../domain/interfaces/storage-data.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -30,13 +26,14 @@ export class StorageService {
       if (!item) return null;
 
       const data = JSON.parse(item) as StorageData<T>;
-      
+
       if (options?.version && data.version !== options.version) {
         if (options.migrate) {
           const migrated = options.migrate(data.value, data.version) as T;
           this.set(key, migrated, options);
           return migrated;
         }
+
         this.remove(key);
         return null;
       }
@@ -70,10 +67,12 @@ export class StorageService {
 
   keys (): string[] {
     const keys: string[] = [];
+
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       if (key) keys.push(key);
     }
+
     return keys;
   }
 }

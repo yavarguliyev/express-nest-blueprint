@@ -1,5 +1,6 @@
-import { HttpMethod, ApiProtocol } from '../enums/api.enum';
 import { Observable } from 'rxjs';
+
+import { HttpMethod, ApiProtocol } from '../enums/api.enum';
 
 export interface ApiResponse<T> {
   success: boolean;

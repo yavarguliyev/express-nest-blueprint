@@ -6,8 +6,8 @@ import { FormsModule } from '@angular/forms';
   selector: 'app-password-input',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './password-input.html',
-  styleUrl: './password-input.css',
+  templateUrl: './password-input.component.html',
+  styleUrl: './password-input.component.css',
   encapsulation: ViewEncapsulation.None,
 })
 export class PasswordInput {

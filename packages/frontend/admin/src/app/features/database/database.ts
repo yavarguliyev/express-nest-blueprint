@@ -12,16 +12,16 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
-import { ToastService } from '../../core/services/toast.service';
+import { ToastService, ApiResponse, PaginatedResponse } from '@app/common';
+
+import { ToggleSwitch } from '../../shared/components/toggle-switch/toggle-switch.component';
+import { DraggableResizableDirective } from '../../shared/directives/draggable-resizable.directive';
+import { PasswordInput } from '../../shared/components/password-input/password-input.component';
 import { DatabaseFacade } from './database.facade';
 import { TableMetadata, Schema, Column } from '../../core/interfaces/database.interface';
 import { DatabaseOperation } from '../../core/interfaces/database-bulk.interface';
-import { ApiResponse, PaginatedResponse } from '../../core/interfaces/api-response.interface';
-import { ToggleSwitch } from '../../shared/components/toggle-switch/toggle-switch';
 import { ActionButtons } from '../../shared/components/action-buttons/action-buttons';
 import { DraftStatusBar } from '../../shared/components/draft-status-bar/draft-status-bar';
-import { DraggableResizableDirective } from '../../shared/directives/draggable-resizable.directive';
-import { PasswordInput } from '../../shared/components/password-input/password-input';
 import { DraftStatusConfig } from '../../core/interfaces/token.interface';
 
 @Component({
@@ -47,6 +47,12 @@ export class Database implements OnInit, AfterViewInit {
   private searchSubject = new Subject<string>();
 
   draftService = this.facade.getDraftService();
+  draftCount = this.facade.draftCount;
+  hasDrafts = this.facade.hasDrafts;
+  affectedTables = this.facade.affectedTables;
+
+  limit = 10;
+
   useGraphQL = signal(false);
   schema = signal<Schema | null>(null);
   loadingSchema = signal(true);
@@ -56,17 +62,15 @@ export class Database implements OnInit, AfterViewInit {
   tableData = signal<Record<string, unknown>[]>([]);
   total = signal(0);
   page = signal(1);
-  limit = 10;
   searchQuery = signal('');
   selectedRecord = signal<Record<string, unknown> | null>(null);
   showUpdateModal = signal(false);
   updateFormData = signal<Record<string, unknown>>({});
   originalFormData = signal<Record<string, unknown>>({});
-  draftCount = this.facade.draftCount;
-  hasDrafts = this.facade.hasDrafts;
-  affectedTables = this.facade.affectedTables;
   showBulkActions = signal(false);
   isPublishing = signal(false);
+  modalMode = signal<'create' | 'update'>('update');
+  showPassword = signal(false);
 
   draftStatusConfig = computed<DraftStatusConfig>(() => ({
     draftCount: this.draftCount(),
@@ -88,6 +92,14 @@ export class Database implements OnInit, AfterViewInit {
       this.page.set(1);
       this.loadTableData();
     });
+  }
+
+  get totalPages (): number {
+    return this.facade.calculateTotalPages(this.total(), this.limit);
+  }
+
+  get pages (): number[] {
+    return this.facade.generatePageNumbers(this.page(), this.totalPages);
   }
 
   @HostListener('document:keydown.escape', ['$event'])
@@ -222,17 +234,6 @@ export class Database implements OnInit, AfterViewInit {
     this.page.set(newPage);
     this.loadTableData();
   }
-
-  get totalPages (): number {
-    return this.facade.calculateTotalPages(this.total(), this.limit);
-  }
-
-  get pages (): number[] {
-    return this.facade.generatePageNumbers(this.page(), this.totalPages);
-  }
-
-  modalMode = signal<'create' | 'update'>('update');
-  showPassword = signal(false);
 
   isCurrentUser (id: number): boolean {
     return this.facade.isCurrentUser(id);

@@ -4,9 +4,8 @@ import { Router, CanActivateFn } from '@angular/router';
 export const roleGuard = (allowedRoles: string[]): CanActivateFn => {
   return () => {
     const router = inject(Router);
-    
     const userDataStr = localStorage.getItem('user_data');
-    
+
     if (!userDataStr) {
       void router.navigate(['/login']);
       return false;

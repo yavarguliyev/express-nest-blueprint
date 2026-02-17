@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+
 import { DashboardService } from '../../core/services/dashboard.service';
 import { DraggableResizableDirective } from '../../shared/directives/draggable-resizable.directive';
 import { HealthStatus } from '../../core/interfaces/dashboard.interface';
@@ -13,6 +14,7 @@ import { HealthStatus } from '../../core/interfaces/dashboard.interface';
 })
 export class Health implements OnInit {
   private dashboardService = inject(DashboardService);
+
   healthStatus = signal<HealthStatus | null>(null);
   loading = signal(true);
   error = signal('');

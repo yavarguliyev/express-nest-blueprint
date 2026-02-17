@@ -1,4 +1,4 @@
-import { ToastService } from '../services/toast.service';
+import { ToastService } from '@app/common';
 
 export class NotificationUtil {
   static success (service: ToastService, message: string): void {
@@ -17,7 +17,12 @@ export class NotificationUtil {
     service.warning(message);
   }
 
-  static confirm (service: ToastService, message: string, onConfirm: () => void, onCancel?: () => void): void {
+  static confirm (
+    service: ToastService,
+    message: string,
+    onConfirm: () => void,
+    onCancel?: () => void,
+  ): void {
     service.confirm(message, onConfirm, onCancel);
   }
 

@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
+
 import { ApiAdapter, ApiRequest, ApiResponse, GqlResponse, GqlError } from '../../../domain/interfaces/api.interface';
 
 @Injectable({

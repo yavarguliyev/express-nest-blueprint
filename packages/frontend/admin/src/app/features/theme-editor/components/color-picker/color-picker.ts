@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+
 import { ColorChangeEvent } from '../../../../core/interfaces/token.interface';
 
 @Component({
@@ -272,9 +273,7 @@ export class ColorPicker {
     const input = event.target as HTMLInputElement;
     const color = input.value;
 
-    if (!this.isValidColor(color)) {
-      input.value = this.getCurrentValue();
-    }
+    if (!this.isValidColor(color)) input.value = this.getCurrentValue();
   }
 
   selectPresetColor (color: string): void {

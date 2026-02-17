@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+
 import { BaseChangeEvent } from '../../../../core/interfaces/token.interface';
 
 @Component({
@@ -250,10 +251,7 @@ export class FontSelector {
   onCustomFontChange (event: Event): void {
     const input = event.target as HTMLInputElement;
     const fontValue = input.value.trim();
-
-    if (fontValue) {
-      this.emitChange(fontValue);
-    }
+    if (fontValue) this.emitChange(fontValue);
   }
 
   enableCustomMode (): void {
@@ -265,15 +263,11 @@ export class FontSelector {
   }
 
   getFontDisplayName (): string {
-    if (this.isCustomFont()) {
-      return 'Custom Font';
-    }
+    if (this.isCustomFont()) return 'Custom Font';
 
     for (const group of this.fontGroups) {
       const font = group.fonts.find((f) => f.value === this.currentValue);
-      if (font) {
-        return font.name;
-      }
+      if (font) return font.name;
     }
 
     return 'Unknown Font';

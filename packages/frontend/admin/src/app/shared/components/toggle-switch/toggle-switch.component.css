@@ -1,0 +1,127 @@
+/* NEW TOGGLE DESIGN - CENTRALIZED */
+
+/* Hide the checkbox */
+.toggle-input {
+  display: none;
+}
+
+.toggle-switch-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 4px 0;
+}
+
+.toggle-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.toggle-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.toggle-switch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 90px;
+  height: 30px;
+  background-color: var(--toggle-bg-off); /* Use CSS variable for inactive state */
+  border-radius: 40px;
+  cursor: pointer;
+  transition-duration: 0.3s;
+}
+
+.toggle-switch.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.toggle-switch::after {
+  content: "";
+  position: absolute;
+  height: 30px;
+  width: 50%;
+  left: 0px;
+  background: var(--toggle-handle); /* Use CSS variable for handle color */
+  border-radius: 40px;
+  transition-duration: 0.3s;
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.281);
+}
+
+/* Checked state - knob moves to right */
+.toggle-input:checked + .toggle-switch::after {
+  transform: translateX(100%);
+  transition-duration: 0.3s;
+}
+
+/* Checked state - background color change */
+.toggle-input:checked + .toggle-switch {
+  background: var(--toggle-bg-on) !important; /* Use dedicated toggle-on variable */
+  transition-duration: 0.3s;
+}
+
+/* DARK MODE COLORS */
+[data-theme="dark"] .toggle-switch {
+  background-color: var(--toggle-bg-off); /* Use CSS variable */
+}
+
+[data-theme="dark"] .toggle-input:checked + .toggle-switch {
+  background: var(--toggle-bg-on) !important; /* Use CSS variable */
+}
+
+/* LIGHT MODE COLORS */
+[data-theme="light"] .toggle-switch {
+  background-color: var(--toggle-bg-off); /* Use CSS variable */
+}
+
+[data-theme="light"] .toggle-input:checked + .toggle-switch {
+  background: var(--toggle-bg-on) !important; /* Use CSS variable */
+}
+
+/* SIZE VARIANTS */
+.size-small .toggle-switch {
+  width: 60px;
+  height: 20px;
+}
+
+.size-small .toggle-switch::after {
+  height: 20px;
+}
+
+.size-medium .toggle-switch {
+  width: 90px;
+  height: 30px;
+}
+
+.size-medium .toggle-switch::after {
+  height: 30px;
+}
+
+.size-large .toggle-switch {
+  width: 120px;
+  height: 40px;
+}
+
+.size-large .toggle-switch::after {
+  height: 40px;
+}
+
+/* HOVER EFFECTS */
+.toggle-switch:hover:not(.disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .toggle-switch:hover:not(.disabled) {
+  box-shadow: 0 4px 15px var(--primary-glow); /* Use CSS variable for glow */
+}
+
+[data-theme="light"] .toggle-switch:hover:not(.disabled) {
+  box-shadow: 0 4px 15px var(--primary-glow); /* Use CSS variable for glow */
+}

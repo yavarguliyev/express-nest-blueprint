@@ -1,20 +1,18 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, map, tap, catchError } from 'rxjs';
-import { ToastService } from './toast.service';
+import { ToastService, ApiResponse, PaginatedResponse } from '@app/common';
+
 import { DatabaseDraftService } from './database-draft.service';
 import { ApiService } from './base/api.service';
-import { ApiResponse, PaginatedResponse } from '../interfaces/api-response.interface';
 import { ApiConfigService } from './api-config.service';
 import { NotificationUtil } from '../utils/notification.util';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
 import { TableMetadata, Schema } from '../interfaces/database.interface';
-
 export { DatabaseOperation } from '../interfaces/database-bulk.interface';
 export { Column, TableMetadata, Schema } from '../interfaces/database.interface';
-export type { ApiResponse };
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class DatabaseOperationsService {
   private api = inject(ApiService);
@@ -23,66 +21,12 @@ export class DatabaseOperationsService {
   private draftService = inject(DatabaseDraftService);
   private readonly GQL_URL = '/admin/graphql';
 
-  loadSchema (options?: { refresh?: boolean; showToast?: boolean }): Observable<ApiResponse<Schema>> {
-    if (this.apiConfig.isGraphQL()) {
-      return this.loadSchemaGraphQL(options);
-    }
+  loadSchema (options?: {
+    refresh?: boolean;
+    showToast?: boolean;
+  }): Observable<ApiResponse<Schema>> {
+    if (this.apiConfig.isGraphQL()) return this.loadSchemaGraphQL(options);
     return this.loadSchemaREST(options);
-  }
-
-  private loadSchemaREST (options?: { refresh?: boolean; showToast?: boolean }): Observable<ApiResponse<Schema>> {
-    const url = options?.refresh ? `${API_ENDPOINTS.ADMIN.SCHEMA}?t=${Date.now()}` : API_ENDPOINTS.ADMIN.SCHEMA;
-
-    return new Observable((observer) => {
-      this.api.get<Schema>(url).subscribe({
-        next: (res: ApiResponse<Schema>) => {
-          if (options?.showToast) {
-            if (res.success) {
-              NotificationUtil.loadSuccess(this.toastService, 'Schema');
-            } else {
-              NotificationUtil.loadError(this.toastService, 'schema');
-            }
-          }
-          observer.next(res);
-          observer.complete();
-        },
-        error: (error) => {
-          if (options?.showToast) {
-            NotificationUtil.loadError(this.toastService, 'database schema');
-          }
-          observer.error(error);
-        },
-      });
-    });
-  }
-
-  private loadSchemaGraphQL (options?: { refresh?: boolean; showToast?: boolean }): Observable<ApiResponse<Schema>> {
-    const query = `query { adminGetSchema }`;
-
-    return this.api.graphql<{ adminGetSchema: Schema }>(this.GQL_URL, query).pipe(
-      map((res: ApiResponse<{ adminGetSchema: Schema }>): ApiResponse<Schema> => {
-        return {
-          success: res.success,
-          data: res.data.adminGetSchema,
-          message: res.message,
-        };
-      }),
-      tap((schemaResponse) => {
-        if (options?.showToast) {
-          if (schemaResponse.success) {
-            NotificationUtil.loadSuccess(this.toastService, 'Schema');
-          } else {
-            NotificationUtil.loadError(this.toastService, 'schema');
-          }
-        }
-      }),
-      catchError((error) => {
-        if (options?.showToast) {
-          NotificationUtil.loadError(this.toastService, 'database schema');
-        }
-        throw error;
-      }),
-    );
   }
 
   loadTableData (
@@ -95,105 +39,8 @@ export class DatabaseOperationsService {
     if (this.apiConfig.isGraphQL()) {
       return this.loadTableDataGraphQL(table, page, limit, searchQuery, options);
     }
+
     return this.loadTableDataREST(table, page, limit, searchQuery, options);
-  }
-
-  private loadTableDataREST (
-    table: TableMetadata,
-    page: number,
-    limit: number,
-    searchQuery: string,
-    options?: { refresh?: boolean; showToast?: boolean },
-  ): Observable<ApiResponse<PaginatedResponse<Record<string, unknown>>>> {
-    const url = API_ENDPOINTS.ADMIN.CRUD(table.category, table.name);
-    const timestamp = options?.refresh !== false ? Date.now() : undefined;
-
-    return new Observable((observer) => {
-      this.api
-        .get<PaginatedResponse<Record<string, unknown>>>(url, {
-          params: {
-            page: page.toString(),
-            limit: limit.toString(),
-            search: searchQuery,
-            ...(timestamp && { t: timestamp.toString() }),
-          },
-        })
-        .subscribe({
-          next: (res: ApiResponse<PaginatedResponse<Record<string, unknown>>>) => {
-            if (options?.showToast) {
-              if (res.success) {
-                NotificationUtil.loadSuccess(this.toastService, 'Table data');
-              } else {
-                NotificationUtil.loadError(this.toastService, 'table data');
-              }
-            }
-            observer.next(res);
-            observer.complete();
-          },
-          error: (error) => {
-            if (options?.showToast) {
-              NotificationUtil.loadError(this.toastService, `${table.name} data`);
-            }
-            observer.error(error);
-          },
-        });
-    });
-  }
-
-  private loadTableDataGraphQL (
-    table: TableMetadata,
-    page: number,
-    limit: number,
-    searchQuery: string,
-    options?: { refresh?: boolean; showToast?: boolean },
-  ): Observable<ApiResponse<PaginatedResponse<Record<string, unknown>>>> {
-    const query = `
-      query($category: String!, $name: String!, $page: String, $limit: String, $search: String, $_t: String) {
-        adminGetTableData(category: $category, name: $name, page: $page, limit: $limit, search: $search, _t: $_t)
-      }
-    `;
-    const variables = {
-      category: table.category,
-      name: table.name,
-      page: page.toString(),
-      limit: limit.toString(),
-      search: searchQuery,
-      _t: Date.now().toString(),
-    };
-
-    return new Observable((observer) => {
-      this.api
-        .graphql<{ adminGetTableData: PaginatedResponse<Record<string, unknown>> }>(
-          this.GQL_URL,
-          query,
-          variables,
-        )
-        .subscribe({
-          next: (res: ApiResponse<{ adminGetTableData: PaginatedResponse<Record<string, unknown>> }>) => {
-            const tableDataResponse: ApiResponse<PaginatedResponse<Record<string, unknown>>> = {
-              success: res.success,
-              data: res.data.adminGetTableData,
-              message: res.message,
-            };
-
-            if (options?.showToast) {
-              if (tableDataResponse.success) {
-                NotificationUtil.loadSuccess(this.toastService, 'Table data');
-              } else {
-                NotificationUtil.loadError(this.toastService, 'table data');
-              }
-            }
-            observer.next(tableDataResponse);
-            observer.complete();
-          },
-          error: (error) => {
-            if (options?.showToast) {
-              NotificationUtil.loadError(this.toastService, `${table.name} data`);
-            }
-            observer.error(error);
-          },
-        });
-    });
   }
 
   updateRecord (
@@ -201,86 +48,13 @@ export class DatabaseOperationsService {
     id: number,
     data: Record<string, unknown>,
   ): Observable<ApiResponse<Record<string, unknown>>> {
-    if (this.apiConfig.isGraphQL()) {
-      return this.updateRecordGraphQL(table, id, data);
-    }
+    if (this.apiConfig.isGraphQL()) return this.updateRecordGraphQL(table, id, data);
     return this.updateRecordREST(table, id, data);
   }
 
-  private updateRecordREST (
-    table: TableMetadata,
-    id: number,
-    data: Record<string, unknown>,
-  ): Observable<ApiResponse<Record<string, unknown>>> {
-    const url = `${API_ENDPOINTS.ADMIN.CRUD(table.category, table.name)}/${id}`;
-    return this.api.put<Record<string, unknown>>(url, data);
-  }
-
-  private updateRecordGraphQL (
-    table: TableMetadata,
-    id: number,
-    data: Record<string, unknown>,
-  ): Observable<ApiResponse<Record<string, unknown>>> {
-    const query = `
-      mutation($category: String!, $name: String!, $id: String!, $data: JSONObject!) {
-        adminUpdateRecord(category: $category, name: $name, id: $id, data: $data)
-      }
-    `;
-    const variables = {
-      category: table.category,
-      name: table.name,
-      id: id.toString(),
-      data,
-    };
-
-    return (this.api
-      .graphql<{ adminUpdateRecord: Record<string, unknown> }>(this.GQL_URL, query, variables)
-      .pipe(
-        map((res: ApiResponse<{ adminUpdateRecord: Record<string, unknown> }>): ApiResponse<Record<string, unknown>> => {
-          return {
-            success: res.success,
-            data: res.data.adminUpdateRecord,
-            message: res.message,
-          };
-        }),
-      ));
-  }
-
   deleteRecord (table: TableMetadata, id: number): Observable<ApiResponse<void>> {
-    if (this.apiConfig.isGraphQL()) {
-      return this.deleteRecordGraphQL(table, id);
-    }
+    if (this.apiConfig.isGraphQL()) return this.deleteRecordGraphQL(table, id);
     return this.deleteRecordREST(table, id);
-  }
-
-  private deleteRecordREST (table: TableMetadata, id: number): Observable<ApiResponse<void>> {
-    const url = `${API_ENDPOINTS.ADMIN.CRUD(table.category, table.name)}/${id}`;
-    return this.api.delete<void>(url);
-  }
-
-  private deleteRecordGraphQL (table: TableMetadata, id: number): Observable<ApiResponse<void>> {
-    const query = `
-      mutation($category: String!, $name: String!, $id: String!) {
-        adminDeleteRecord(category: $category, name: $name, id: $id)
-      }
-    `;
-    const variables = {
-      category: table.category,
-      name: table.name,
-      id: id.toString(),
-    };
-
-    return (this.api
-      .graphql<{ adminDeleteRecord: void }>(this.GQL_URL, query, variables)
-      .pipe(
-        map((res: ApiResponse<{ adminDeleteRecord: void }>): ApiResponse<void> => {
-          return {
-            success: res.success,
-            data: undefined as unknown as void,
-            message: res.message,
-          };
-        }),
-      ));
   }
 
   bulkDelete (
@@ -292,39 +66,8 @@ export class DatabaseOperationsService {
   }
 
   bulkUpdate (operations: unknown[], wait = false): Observable<ApiResponse<unknown>> {
-    if (this.apiConfig.isGraphQL()) {
-      return this.bulkUpdateGraphQL(operations, wait);
-    }
+    if (this.apiConfig.isGraphQL()) return this.bulkUpdateGraphQL(operations, wait);
     return this.bulkUpdateREST(operations, wait);
-  }
-
-  private bulkUpdateREST (operations: unknown[], wait: boolean): Observable<ApiResponse<unknown>> {
-    const url = `${API_ENDPOINTS.ADMIN.BULK_OPERATIONS}?wait=${wait}`;
-    return this.api.post<unknown>(url, { operations });
-  }
-
-  private bulkUpdateGraphQL (operations: unknown[], wait: boolean): Observable<ApiResponse<unknown>> {
-    const query = `
-      mutation($operations: [JSONObject]!, $wait: Boolean) {
-        adminExecuteBulk(operations: $operations, wait: $wait)
-      }
-    `;
-    const variables = {
-      operations,
-      wait: !!wait,
-    };
-
-    return this.api
-      .graphql<{ adminExecuteBulk: unknown }>(this.GQL_URL, query, variables)
-      .pipe(
-        map((res: ApiResponse<{ adminExecuteBulk: unknown }>): ApiResponse<unknown> => {
-          return {
-            success: res.success,
-            data: res.data.adminExecuteBulk,
-            message: res.message,
-          };
-        }),
-      );
   }
 
   createUpdateDraft (
@@ -360,5 +103,263 @@ export class DatabaseOperationsService {
 
   confirmDelete (recordId: number, onConfirm: () => void): void {
     NotificationUtil.confirmDelete(this.toastService, onConfirm, undefined, recordId);
+  }
+
+  private loadSchemaREST (options?: {
+    refresh?: boolean;
+    showToast?: boolean;
+  }): Observable<ApiResponse<Schema>> {
+    const url = options?.refresh
+      ? `${API_ENDPOINTS.ADMIN.SCHEMA}?t=${Date.now()}`
+      : API_ENDPOINTS.ADMIN.SCHEMA;
+
+    return new Observable((observer) => {
+      this.api.get<Schema>(url).subscribe({
+        next: (res: ApiResponse<Schema>) => {
+          if (options?.showToast) {
+            if (res.success) NotificationUtil.loadSuccess(this.toastService, 'Schema');
+            else NotificationUtil.loadError(this.toastService, 'schema');
+          }
+
+          observer.next(res);
+          observer.complete();
+        },
+        error: (error) => {
+          if (options?.showToast) NotificationUtil.loadError(this.toastService, 'database schema');
+          observer.error(error);
+        },
+      });
+    });
+  }
+
+  private loadSchemaGraphQL (options?: {
+    refresh?: boolean;
+    showToast?: boolean;
+  }): Observable<ApiResponse<Schema>> {
+    const query = `query { adminGetSchema }`;
+
+    return this.api.graphql<{ adminGetSchema: Schema }>(this.GQL_URL, query).pipe(
+      map((res: ApiResponse<{ adminGetSchema: Schema }>): ApiResponse<Schema> => {
+        return {
+          success: res.success,
+          data: res.data.adminGetSchema,
+          message: res.message,
+        };
+      }),
+      tap((schemaResponse) => {
+        if (options?.showToast) {
+          if (schemaResponse.success) NotificationUtil.loadSuccess(this.toastService, 'Schema');
+          else NotificationUtil.loadError(this.toastService, 'schema');
+        }
+      }),
+      catchError((error) => {
+        if (options?.showToast) NotificationUtil.loadError(this.toastService, 'database schema');
+        throw error;
+      }),
+    );
+  }
+
+  private loadTableDataREST (
+    table: TableMetadata,
+    page: number,
+    limit: number,
+    searchQuery: string,
+    options?: { refresh?: boolean; showToast?: boolean },
+  ): Observable<ApiResponse<PaginatedResponse<Record<string, unknown>>>> {
+    const url = API_ENDPOINTS.ADMIN.CRUD(table.category, table.name);
+    const timestamp = options?.refresh !== false ? Date.now() : undefined;
+
+    return new Observable((observer) => {
+      this.api
+        .get<PaginatedResponse<Record<string, unknown>>>(url, {
+          params: {
+            page: page.toString(),
+            limit: limit.toString(),
+            search: searchQuery,
+            ...(timestamp && { t: timestamp.toString() }),
+          },
+        })
+        .subscribe({
+          next: (res: ApiResponse<PaginatedResponse<Record<string, unknown>>>) => {
+            if (options?.showToast) {
+              if (res.success) NotificationUtil.loadSuccess(this.toastService, 'Table data');
+              else NotificationUtil.loadError(this.toastService, 'table data');
+            }
+
+            observer.next(res);
+            observer.complete();
+          },
+          error: (error) => {
+            if (options?.showToast) {
+              NotificationUtil.loadError(this.toastService, `${table.name} data`);
+            }
+
+            observer.error(error);
+          },
+        });
+    });
+  }
+
+  private loadTableDataGraphQL (
+    table: TableMetadata,
+    page: number,
+    limit: number,
+    searchQuery: string,
+    options?: { refresh?: boolean; showToast?: boolean },
+  ): Observable<ApiResponse<PaginatedResponse<Record<string, unknown>>>> {
+    const query = `
+      query($category: String!, $name: String!, $page: String, $limit: String, $search: String, $_t: String) {
+        adminGetTableData(category: $category, name: $name, page: $page, limit: $limit, search: $search, _t: $_t)
+      }
+    `;
+
+    const variables = {
+      category: table.category,
+      name: table.name,
+      page: page.toString(),
+      limit: limit.toString(),
+      search: searchQuery,
+      _t: Date.now().toString(),
+    };
+
+    return new Observable((observer) => {
+      this.api
+        .graphql<{
+          adminGetTableData: PaginatedResponse<Record<string, unknown>>;
+        }>(this.GQL_URL, query, variables)
+        .subscribe({
+          next: (
+            res: ApiResponse<{ adminGetTableData: PaginatedResponse<Record<string, unknown>> }>,
+          ) => {
+            const tableDataResponse: ApiResponse<PaginatedResponse<Record<string, unknown>>> = {
+              success: res.success,
+              data: res.data.adminGetTableData,
+              message: res.message,
+            };
+
+            if (options?.showToast) {
+              if (tableDataResponse.success) {
+                NotificationUtil.loadSuccess(this.toastService, 'Table data');
+              } else {
+                NotificationUtil.loadError(this.toastService, 'table data');
+              }
+            }
+
+            observer.next(tableDataResponse);
+            observer.complete();
+          },
+          error: (error) => {
+            if (options?.showToast) {
+              NotificationUtil.loadError(this.toastService, `${table.name} data`);
+            }
+
+            observer.error(error);
+          },
+        });
+    });
+  }
+
+  private updateRecordREST (
+    table: TableMetadata,
+    id: number,
+    data: Record<string, unknown>,
+  ): Observable<ApiResponse<Record<string, unknown>>> {
+    const url = `${API_ENDPOINTS.ADMIN.CRUD(table.category, table.name)}/${id}`;
+    return this.api.put<Record<string, unknown>>(url, data);
+  }
+
+  private updateRecordGraphQL (
+    table: TableMetadata,
+    id: number,
+    data: Record<string, unknown>,
+  ): Observable<ApiResponse<Record<string, unknown>>> {
+    const query = `
+      mutation($category: String!, $name: String!, $id: String!, $data: JSONObject!) {
+        adminUpdateRecord(category: $category, name: $name, id: $id, data: $data)
+      }
+    `;
+
+    const variables = {
+      category: table.category,
+      name: table.name,
+      id: id.toString(),
+      data,
+    };
+
+    return this.api
+      .graphql<{ adminUpdateRecord: Record<string, unknown> }>(this.GQL_URL, query, variables)
+      .pipe(
+        map(
+          (
+            res: ApiResponse<{ adminUpdateRecord: Record<string, unknown> }>,
+          ): ApiResponse<Record<string, unknown>> => {
+            return {
+              success: res.success,
+              data: res.data.adminUpdateRecord,
+              message: res.message,
+            };
+          },
+        ),
+      );
+  }
+
+  private deleteRecordREST (table: TableMetadata, id: number): Observable<ApiResponse<void>> {
+    const url = `${API_ENDPOINTS.ADMIN.CRUD(table.category, table.name)}/${id}`;
+    return this.api.delete<void>(url);
+  }
+
+  private deleteRecordGraphQL (table: TableMetadata, id: number): Observable<ApiResponse<void>> {
+    const query = `
+      mutation($category: String!, $name: String!, $id: String!) {
+        adminDeleteRecord(category: $category, name: $name, id: $id)
+      }
+    `;
+
+    const variables = {
+      category: table.category,
+      name: table.name,
+      id: id.toString(),
+    };
+
+    return this.api.graphql<{ adminDeleteRecord: void }>(this.GQL_URL, query, variables).pipe(
+      map((res: ApiResponse<{ adminDeleteRecord: void }>): ApiResponse<void> => {
+        return {
+          success: res.success,
+          data: undefined as unknown as void,
+          message: res.message,
+        };
+      }),
+    );
+  }
+
+  private bulkUpdateREST (operations: unknown[], wait: boolean): Observable<ApiResponse<unknown>> {
+    const url = `${API_ENDPOINTS.ADMIN.BULK_OPERATIONS}?wait=${wait}`;
+    return this.api.post<unknown>(url, { operations });
+  }
+
+  private bulkUpdateGraphQL (
+    operations: unknown[],
+    wait: boolean,
+  ): Observable<ApiResponse<unknown>> {
+    const query = `
+      mutation($operations: [JSONObject]!, $wait: Boolean) {
+        adminExecuteBulk(operations: $operations, wait: $wait)
+      }
+    `;
+
+    const variables = {
+      operations,
+      wait: !!wait,
+    };
+
+    return this.api.graphql<{ adminExecuteBulk: unknown }>(this.GQL_URL, query, variables).pipe(
+      map((res: ApiResponse<{ adminExecuteBulk: unknown }>): ApiResponse<unknown> => {
+        return {
+          success: res.success,
+          data: res.data.adminExecuteBulk,
+          message: res.message,
+        };
+      }),
+    );
   }
 }

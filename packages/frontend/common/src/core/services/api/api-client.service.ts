@@ -1,5 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { Observable } from 'rxjs';
+
 import { ApiClientConfig, ApiRequest, ApiRequestOptions, ApiResponse } from '../../../domain/interfaces/api.interface';
 import { ApiProtocol, HttpMethod } from '../../../domain/enums/api.enum';
 import { DEFAULT_API_TIMEOUT } from '../../../domain/constants/api.const';
@@ -80,6 +81,10 @@ export class ApiClientService {
     });
   }
 
+  getConfig (): ApiClientConfig {
+    return this._config();
+  }
+
   private execute<T> (request: ApiRequest): Observable<ApiResponse<T>> {
     const config = this._config();
     const adapter = config.protocol === ApiProtocol.REST ? this.restAdapter : this.graphqlAdapter;
@@ -91,10 +96,7 @@ export class ApiClientService {
     const config = this._config();
     const baseUrl = config.baseUrl.endsWith('/') ? config.baseUrl.slice(0, -1) : config.baseUrl;
     const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-    return `${baseUrl}${path}`;
-  }
 
-  getConfig (): ApiClientConfig {
-    return this._config();
+    return `${baseUrl}${path}`;
   }
 }

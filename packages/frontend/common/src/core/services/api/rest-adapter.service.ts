@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
+
 import { ApiAdapter, ApiRequest, ApiResponse, ApiError } from '../../../domain/interfaces/api.interface';
 import { HTTP_STATUS } from '../../../domain/constants/api.const';
 

@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { ToastService } from './toast.service';
+import { ToastService } from '@app/common';
+
 import { DatabaseDraftService } from './database-draft.service';
 import { DatabaseFormattingService } from './database-formatting.service';
 import { DatabaseBusinessService } from './database-business.service';
@@ -7,7 +8,7 @@ import { NotificationUtil } from '../utils/notification.util';
 import { Column, TableMetadata } from '../interfaces/database.interface';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class DatabaseHelperService {
   private toastService = inject(ToastService);
@@ -43,7 +44,11 @@ export class DatabaseHelperService {
     return this.formatting.getColumnStyles(columnName, columnType);
   }
 
-  getBooleanValue (row: Record<string, unknown>, columnName: string, draftData: Record<string, unknown> | null): boolean {
+  getBooleanValue (
+    row: Record<string, unknown>,
+    columnName: string,
+    draftData: Record<string, unknown> | null,
+  ): boolean {
     return this.formatting.getBooleanValue(row, columnName, draftData);
   }
 
@@ -75,7 +80,11 @@ export class DatabaseHelperService {
     return this.business.getAvailableRoles();
   }
 
-  publishAllChanges (hasDrafts: boolean, isPublishing: (value: boolean) => void, loadTableData: () => void): void {
+  publishAllChanges (
+    hasDrafts: boolean,
+    isPublishing: (value: boolean) => void,
+    loadTableData: () => void,
+  ): void {
     if (!hasDrafts) {
       NotificationUtil.noChangesToPublish(this.toastService);
       return;
@@ -88,7 +97,11 @@ export class DatabaseHelperService {
           NotificationUtil.changesPublished(this.toastService, response.summary.successful);
           loadTableData();
         } else {
-          NotificationUtil.publishPartialSuccess(this.toastService, response.summary.successful, response.summary.failed);
+          NotificationUtil.publishPartialSuccess(
+            this.toastService,
+            response.summary.successful,
+            response.summary.failed,
+          );
         }
       },
       error: (error: unknown) => {
@@ -103,19 +116,21 @@ export class DatabaseHelperService {
       NotificationUtil.noChangesToReset(this.toastService);
       return;
     }
-    NotificationUtil.confirmReset(this.toastService, () => {
-      this.draftService.resetDrafts();
-      loadTableData();
-      NotificationUtil.changesReset(this.toastService);
-    }, draftCount);
+
+    NotificationUtil.confirmReset(
+      this.toastService,
+      () => {
+        this.draftService.resetDrafts();
+        loadTableData();
+        NotificationUtil.changesReset(this.toastService);
+      },
+      draftCount,
+    );
   }
 
   handleImageClick (imageUrl: string): void {
-    if (imageUrl?.trim()) {
-      window.open(imageUrl, '_blank');
-    } else {
-      NotificationUtil.notAvailable(this.toastService, 'image');
-    }
+    if (imageUrl?.trim()) window.open(imageUrl, '_blank');
+    else NotificationUtil.notAvailable(this.toastService, 'image');
   }
 
   setupScrollIndicators (container: HTMLDivElement): void {
@@ -125,6 +140,7 @@ export class DatabaseHelperService {
       if (scrollLeft > 0) container.classList.add('scrolled-left');
       if (scrollLeft < scrollWidth - clientWidth - 1) container.classList.add('scrolled-right');
     };
+
     setTimeout(updateScrollIndicators, 100);
     container.addEventListener('scroll', updateScrollIndicators);
     window.addEventListener('resize', updateScrollIndicators);

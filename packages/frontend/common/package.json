@@ -10,15 +10,21 @@
     "watch": "tsc -p tsconfig.build.json --watch",
     "test": "karma start",
     "test:watch": "karma start --no-single-run --auto-watch",
-    "lint": "eslint src/**/*.ts"
+    "lint": "eslint \"src/**/*.ts\" --fix"
   },
-  "keywords": [
-    "angular",
-    "frontend",
-    "shared",
-    "library",
-    "utilities"
-  ],
+  "prettier": {
+    "printWidth": 150,
+    "singleQuote": true,
+    "overrides": [
+      {
+        "files": "*.html",
+        "options": {
+          "parser": "angular"
+        }
+      }
+    ]
+  },
+  "keywords": ["angular", "frontend", "shared", "library", "utilities"],
   "author": "",
   "license": "MIT",
   "peerDependencies": {

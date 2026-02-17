@@ -1,4 +1,5 @@
 import { Injectable, signal } from '@angular/core';
+
 import { ApiProtocol } from '../types/api.type';
 
 @Injectable({

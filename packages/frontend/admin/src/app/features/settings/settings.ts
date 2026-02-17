@@ -2,12 +2,12 @@ import { Component, OnInit, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
+import { ToastService } from '@app/common';
 
-import { ToggleSwitch } from '../../shared/components/toggle-switch/toggle-switch';
-import { DraftStatusBar } from '../../shared/components/draft-status-bar/draft-status-bar';
-import { ToastService } from '../../core/services/toast.service';
-import { SettingsService } from '../../core/services/settings.service';
+import { ToggleSwitch } from '../../shared/components/toggle-switch/toggle-switch.component';
 import { DraggableResizableDirective } from '../../shared/directives/draggable-resizable.directive';
+import { DraftStatusBar } from '../../shared/components/draft-status-bar/draft-status-bar';
+import { SettingsService } from '../../core/services/settings.service';
 import { SettingItem, SettingsUpdateRequest } from '../../core/interfaces/settings.interface';
 import { DraftStatusConfig } from '../../core/interfaces/token.interface';
 
@@ -30,9 +30,7 @@ export class Settings implements OnInit {
     const current = this.settings();
     const original = this.originalSettings();
 
-    if (current.length !== original.length) {
-      return true;
-    }
+    if (current.length !== original.length) return true;
 
     return current.some((setting) => {
       const originalSetting = original.find((orig) => orig.id === setting.id);
@@ -87,6 +85,37 @@ export class Settings implements OnInit {
     void this.loadSettings();
   }
 
+  onToggleChange (settingId: string, newValue: boolean): void {
+    this.settings.update((currentSettings) =>
+      currentSettings.map((setting) =>
+        setting.id === settingId ? { ...setting, value: newValue } : setting,
+      ),
+    );
+  }
+
+  onActiveToggleChange (settingId: string, newValue: boolean): void {
+    this.settings.update((currentSettings) =>
+      currentSettings.map((setting) =>
+        setting.id === settingId ? { ...setting, isActive: newValue } : setting,
+      ),
+    );
+  }
+
+  resetChanges (): void {
+    if (!this.hasChanges()) {
+      void this.toastService.info('No changes to reset');
+      return;
+    }
+
+    void this.toastService.confirm(
+      `Reset all ${this.changedCount()} unsaved changes? This cannot be undone.`,
+      () => {
+        this.settings.set(JSON.parse(JSON.stringify(this.originalSettings())) as SettingItem[]);
+        void this.toastService.success('All changes have been reset');
+      },
+    );
+  }
+
   async refreshSettings (): Promise<void> {
     try {
       this.loading.set(true);
@@ -127,6 +156,7 @@ export class Settings implements OnInit {
         'allow_registration',
         'enforce_mfa',
       ];
+
       const filteredSettings = response.data
         .filter((setting) => allowedSettings.includes(setting.id))
         .map((setting) => ({
@@ -142,22 +172,6 @@ export class Settings implements OnInit {
     } finally {
       this.loading.set(false);
     }
-  }
-
-  onToggleChange (settingId: string, newValue: boolean): void {
-    this.settings.update((currentSettings) =>
-      currentSettings.map((setting) =>
-        setting.id === settingId ? { ...setting, value: newValue } : setting,
-      ),
-    );
-  }
-
-  onActiveToggleChange (settingId: string, newValue: boolean): void {
-    this.settings.update((currentSettings) =>
-      currentSettings.map((setting) =>
-        setting.id === settingId ? { ...setting, isActive: newValue } : setting,
-      ),
-    );
   }
 
   async saveSettings (): Promise<void> {
@@ -185,6 +199,7 @@ export class Settings implements OnInit {
         'allow_registration',
         'enforce_mfa',
       ];
+
       const filteredSettings = response.data
         .filter((setting) => allowedSettings.includes(setting.id))
         .map((setting) => ({
@@ -202,21 +217,6 @@ export class Settings implements OnInit {
     } finally {
       this.loading.set(false);
     }
-  }
-
-  resetChanges (): void {
-    if (!this.hasChanges()) {
-      void this.toastService.info('No changes to reset');
-      return;
-    }
-
-    void this.toastService.confirm(
-      `Reset all ${this.changedCount()} unsaved changes? This cannot be undone.`,
-      () => {
-        this.settings.set(JSON.parse(JSON.stringify(this.originalSettings())) as SettingItem[]);
-        void this.toastService.success('All changes have been reset');
-      },
-    );
   }
 
   private mapIdToKey (id: string): string {

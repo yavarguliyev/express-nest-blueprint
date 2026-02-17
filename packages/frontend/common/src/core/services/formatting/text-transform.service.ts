@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class TextTransformService {
   private readonly fieldDisplayNames: Record<string, string> = {
@@ -72,7 +72,7 @@ export class TextTransformService {
     networkUsage: 'NETWORK USAGE',
     requestCount: 'REQUEST COUNT',
     errorCount: 'ERROR COUNT',
-    responseTime: 'RESPONSE TIME',
+    responseTime: 'RESPONSE TIME'
   };
 
   getDisplayName (fieldName: string): string {
@@ -81,10 +81,6 @@ export class TextTransformService {
     }
 
     return this.camelCaseToUpperCase(fieldName);
-  }
-
-  private camelCaseToUpperCase (str: string): string {
-    return str.replace(/([a-z])([A-Z])/g, '$1 $2').toUpperCase();
   }
 
   getAllMappings (): Record<string, string> {
@@ -97,5 +93,9 @@ export class TextTransformService {
 
   registerFieldMappings (mappings: Record<string, string>): void {
     Object.assign(this.fieldDisplayNames, mappings);
+  }
+
+  private camelCaseToUpperCase (str: string): string {
+    return str.replace(/([a-z])([A-Z])/g, '$1 $2').toUpperCase();
   }
 }

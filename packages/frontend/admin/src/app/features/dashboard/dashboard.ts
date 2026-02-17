@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+
 import { DashboardService } from '../../core/services/dashboard.service';
 import { DraggableResizableDirective } from '../../shared/directives/draggable-resizable.directive';
 import {
@@ -18,11 +19,6 @@ import {
 })
 export class Dashboard implements OnInit {
   private dashboardService = inject(DashboardService);
-
-  data = signal<DashboardResponse | null>(null);
-  health = signal<HealthStatus | null>(null);
-  loading = signal(true);
-  error = signal('');
 
   private readonly metricConfigs: Record<string, MetricConfig> = {
     'Total Users': { icon: 'people', iconClass: 'users-icon', format: '1.0-0' },
@@ -61,9 +57,13 @@ export class Dashboard implements OnInit {
     },
   };
 
+  data = signal<DashboardResponse | null>(null);
+  health = signal<HealthStatus | null>(null);
+  loading = signal(true);
+  error = signal('');
+
   ngOnInit (): void {
     if (!window.location.pathname.includes('/dashboard')) return;
-
     this.refreshData();
   }
 
@@ -97,8 +97,10 @@ export class Dashboard implements OnInit {
   getMetricTrendIcon (name: string): string {
     if (name === 'Total Users') return 'trending_up';
     if (name === 'Total HTTP Requests') return '';
-    if (name === 'Database Usage' || name === 'Redis Usage' || name === 'Storage Usage')
+    if (name === 'Database Usage' || name === 'Redis Usage' || name === 'Storage Usage') {
       return 'check_circle';
+    }
+
     return '';
   }
 
@@ -107,8 +109,10 @@ export class Dashboard implements OnInit {
     if (name === 'Memory Usage') return `${((value / 1024) * 100).toFixed(1)}% of 1GB`;
     if (name === 'Total HTTP Requests') return `${Math.floor(value / 60)}/min`;
     if (name === 'CPU Usage') return value > 80 ? 'High load' : 'Optimal';
-    if (name === 'Database Usage' || name === 'Redis Usage' || name === 'Storage Usage')
+    if (name === 'Database Usage' || name === 'Redis Usage' || name === 'Storage Usage') {
       return 'Optimized';
+    }
+
     return '';
   }
 
@@ -123,6 +127,7 @@ export class Dashboard implements OnInit {
       warning: 'warning',
       error: 'error',
     };
+
     return icons[type] || 'info';
   }
 

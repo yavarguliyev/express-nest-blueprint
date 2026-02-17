@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+
 import { RoleAccessService } from './role-access.service';
 import { FieldRule } from '../interfaces/field-config.interface';
 
@@ -37,18 +38,11 @@ export class FieldConfigService {
   ];
 
   isExcludedFromUpdate (fieldName: string, currentUserId?: number, recordUserId?: number): boolean {
-    if (this.excludedFromUpdate.includes(fieldName)) {
-      return true;
-    }
+    if (this.excludedFromUpdate.includes(fieldName)) return true;
 
     if (this.isRoleField(fieldName)) {
-      if (!this.roleAccess.canEditRoles()) {
-        return true;
-      }
-
-      if (currentUserId && recordUserId && currentUserId === recordUserId) {
-        return true;
-      }
+      if (!this.roleAccess.canEditRoles()) return true;
+      if (currentUserId && recordUserId && currentUserId === recordUserId) return true;
     }
 
     return false;
@@ -71,14 +65,8 @@ export class FieldConfigService {
   }
 
   canModifyField (fieldName: string): boolean {
-    if (this.isSensitiveField(fieldName)) {
-      return this.roleAccess.canModifySensitiveFields();
-    }
-
-    if (this.isRoleField(fieldName)) {
-      return this.roleAccess.canEditRoles();
-    }
-
+    if (this.isSensitiveField(fieldName)) return this.roleAccess.canModifySensitiveFields();
+    if (this.isRoleField(fieldName)) return this.roleAccess.canEditRoles();
     return true;
   }
 

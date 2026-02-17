@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
+
 import { TokenUpdateEvent } from '../interfaces/token.interface';
 
 @Injectable({

@@ -1,13 +1,14 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router, NavigationEnd } from '@angular/router';
-import { AuthService } from '../../../core/services/auth.service';
-import { ThemeService } from '../../../core/services/theme.service';
-import { SidebarService } from '../../../core/services/sidebar.service';
-import { ToggleSwitch } from '../toggle-switch/toggle-switch';
 import { filter, map } from 'rxjs/operators';
 import { signal } from '@angular/core';
+
+import { AuthService } from '../../../core/services/auth.service';
+import { ToggleSwitch } from '../toggle-switch/toggle-switch.component';
 import { DraggableResizableDirective } from '../../directives/draggable-resizable.directive';
+import { SidebarService } from '../../../core/services/sidebar.service';
+import { AdminThemeService } from '../../../core/services/admin-theme.service';
 
 @Component({
   selector: 'app-topbar',
@@ -18,39 +19,13 @@ import { DraggableResizableDirective } from '../../directives/draggable-resizabl
 })
 export class Topbar {
   private authService = inject(AuthService);
-  private themeService = inject(ThemeService);
+  private themeService = inject(AdminThemeService);
   private sidebarService = inject(SidebarService);
   private router = inject(Router);
 
   user = this.authService.currentUser;
   currentPageName = signal('Dashboard');
   isCollapsed = this.sidebarService.isCollapsed;
-
-  isDarkMode (): boolean {
-    return this.themeService.isDarkMode();
-  }
-
-  toggleTheme (): void {
-    this.themeService.toggleTheme();
-  }
-
-  getUserInitials (): string {
-    const currentUser = this.user();
-
-    if (!currentUser) {
-      return 'U';
-    }
-
-    const firstName = currentUser.firstName?.trim();
-    const lastName = currentUser.lastName?.trim();
-
-    if (!firstName || !lastName) {
-      return 'U';
-    }
-
-    const initials = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
-    return initials;
-  }
 
   constructor () {
     this.router.events
@@ -63,6 +38,28 @@ export class Topbar {
       });
 
     this.currentPageName.set(this.getPageNameFromUrl(this.router.url));
+  }
+
+  isDarkMode (): boolean {
+    return this.themeService.isDarkMode();
+  }
+
+  toggleTheme (): void {
+    this.themeService.toggleTheme();
+  }
+
+  getUserInitials (): string {
+    const currentUser = this.user();
+
+    if (!currentUser) return 'U';
+
+    const firstName = currentUser.firstName?.trim();
+    const lastName = currentUser.lastName?.trim();
+
+    if (!firstName || !lastName) return 'U';
+
+    const initials = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
+    return initials;
   }
 
   private getPageNameFromUrl (url: string): string {

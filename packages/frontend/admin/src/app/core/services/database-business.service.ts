@@ -1,10 +1,11 @@
 import { Injectable, inject } from '@angular/core';
+
 import { RoleAccessService } from './role-access.service';
 import { FieldConfigService } from './field-config.service';
 import { TableMetadata } from '../interfaces/database.interface';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class DatabaseBusinessService {
   private roleAccess = inject(RoleAccessService);

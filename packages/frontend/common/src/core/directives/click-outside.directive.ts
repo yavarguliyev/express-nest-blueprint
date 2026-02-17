@@ -12,9 +12,9 @@ export class ClickOutsideDirective {
   @Output() clickOutside = new EventEmitter<MouseEvent>();
 
   constructor () {
-    effect((onCleanup) => {
+    effect(onCleanup => {
       const element = this.getElement();
-      
+
       const subscription: Subscription = fromEvent<MouseEvent>(document, 'click')
         .pipe(
           filter((event: MouseEvent) => {

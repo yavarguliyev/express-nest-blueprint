@@ -6,11 +6,10 @@ import { Directive, ElementRef, HostListener, Input, inject } from '@angular/cor
 })
 export class TooltipDirective {
   private readonly elementRef = inject(ElementRef<HTMLElement>);
+  private tooltipElement: HTMLDivElement | null = null;
 
   @Input() appTooltip = '';
   @Input() tooltipPosition: 'top' | 'bottom' | 'left' | 'right' = 'top';
-
-  private tooltipElement: HTMLDivElement | null = null;
 
   @HostListener('mouseenter')
   onMouseEnter (): void {
@@ -27,9 +26,9 @@ export class TooltipDirective {
     this.tooltipElement = document.createElement('div');
     this.tooltipElement.className = `tooltip tooltip-${this.tooltipPosition}`;
     this.tooltipElement.textContent = this.appTooltip;
-    
+
     document.body.appendChild(this.tooltipElement);
-    
+
     this.positionTooltip();
   }
 
@@ -46,7 +45,7 @@ export class TooltipDirective {
     const element = this.getElement();
     const hostPos = this.getRect(element);
     const tooltipPos = this.getRect(this.tooltipElement);
-    
+
     let top = 0;
     let left = 0;
 

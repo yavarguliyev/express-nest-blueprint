@@ -1,4 +1,5 @@
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+
 import { ValidationUtil } from '../validation/validation.util';
 
 export class CustomValidators {
@@ -35,9 +36,7 @@ export class CustomValidators {
       const matchingControl = formGroup.get(matchingControlName);
 
       if (!targetControl || !matchingControl) return null;
-      if (targetControl.value !== matchingControl.value) {
-        return { match: true };
-      }
+      if (targetControl.value !== matchingControl.value) return { match: true };
 
       return null;
     };

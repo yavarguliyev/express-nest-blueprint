@@ -1,6 +1,7 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { finalize } from 'rxjs/operators';
+
 import { LoadingStateService } from '../services/state/loading-state.service';
 
 export const loadingInterceptor: HttpInterceptorFn = (req, next) => {
@@ -9,7 +10,6 @@ export const loadingInterceptor: HttpInterceptorFn = (req, next) => {
 
   if (!skipLoading) {
     const loadingKey = generateLoadingKey(req.url);
-
     loadingService.startLoading(loadingKey);
 
     return next(req).pipe(

@@ -2,13 +2,12 @@ import { Component, inject, OnInit, signal, OnDestroy, effect } from '@angular/c
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { ToastService, TextTransformService, ApiResponse, ErrorResponse } from '@app/common';
+
 import { AuthService } from '../../core/services/auth.service';
-import { ToastService } from '../../core/services/toast.service';
-import { TextTransformService } from '../../core/services/text-transform.service';
+import { DraggableResizableDirective } from '../../shared/directives/draggable-resizable.directive';
 import { RoleAccessService } from '../../core/services/role-access.service';
 import { API_ENDPOINTS } from '../../core/constants/api-endpoints';
-import { DraggableResizableDirective } from '../../shared/directives/draggable-resizable.directive';
-import { ApiResponse, ErrorResponse } from '../../core/interfaces/api-response.interface';
 import { ProfileForm } from '../../core/interfaces/database.interface';
 
 @Component({
@@ -67,37 +66,6 @@ export class Profile implements OnInit, OnDestroy {
     }
   }
 
-  private setupVisibilityListener (): void {
-    this.visibilityListener = (): void => {
-      if (!document.hidden) {
-        const lastSync = localStorage.getItem('profile-last-sync');
-        const now = Date.now();
-        const fiveMinutes = 5 * 60 * 1000;
-
-        if (!lastSync || now - parseInt(lastSync) > fiveMinutes) {
-          void this.authService.syncProfile();
-          localStorage.setItem('profile-last-sync', now.toString());
-        }
-      }
-    };
-    document.addEventListener('visibilitychange', this.visibilityListener);
-  }
-
-  private updateFormFromUser (user: { firstName?: string; lastName?: string }): void {
-    this.profileForm = {
-      firstName: user.firstName || '',
-      lastName: user.lastName || '',
-    };
-    this.originalForm = { ...this.profileForm };
-  }
-
-  private initializeForm (): void {
-    const currentUser = this.user();
-    if (currentUser) {
-      this.updateFormFromUser(currentUser);
-    }
-  }
-
   hasChanges (): boolean {
     return (
       this.profileForm.firstName !== this.originalForm.firstName ||
@@ -107,65 +75,6 @@ export class Profile implements OnInit, OnDestroy {
 
   resetForm (): void {
     this.profileForm = { ...this.originalForm };
-  }
-
-  async saveProfile (): Promise<void> {
-    if (!this.hasChanges()) return;
-
-    const currentUser = this.user();
-    if (!currentUser) {
-      this.toastService.error('User session not found');
-      return;
-    }
-
-    this.loading.set(true);
-
-    try {
-      const updateData = {
-        firstName: this.profileForm.firstName.trim(),
-        lastName: this.profileForm.lastName.trim(),
-      };
-
-      await this.http
-        .patch<
-          ApiResponse<void>
-        >(API_ENDPOINTS.ADMIN.CRUD_ID('Database Management', 'users', currentUser.id), updateData)
-        .toPromise();
-
-      this.originalForm = { ...this.profileForm };
-
-      await this.authService.syncProfile();
-
-      this.toastService.success('Profile information updated successfully');
-    } catch (error) {
-      const err = error as ErrorResponse;
-      const message = err.error?.message || err.message || 'Failed to update profile';
-      this.toastService.error(message);
-    } finally {
-      this.loading.set(false);
-    }
-  }
-
-  async onFileSelected (event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-
-    if (file) {
-      if (!file.type.match('image.*')) {
-        this.toastService.error('Only image files are allowed');
-        input.value = '';
-        return;
-      }
-
-      try {
-        await this.authService.uploadAvatar(file);
-        this.toastService.success('Profile photo updated successfully');
-      } catch {
-        this.toastService.error('Failed to upload profile photo');
-      } finally {
-        input.value = '';
-      }
-    }
   }
 
   getFieldDisplayName (fieldName: string): string {
@@ -210,5 +119,95 @@ export class Profile implements OnInit, OnDestroy {
         }
       })();
     });
+  }
+
+  async saveProfile (): Promise<void> {
+    if (!this.hasChanges()) return;
+
+    const currentUser = this.user();
+    if (!currentUser) {
+      this.toastService.error('User session not found');
+      return;
+    }
+
+    this.loading.set(true);
+
+    try {
+      const updateData = {
+        firstName: this.profileForm.firstName.trim(),
+        lastName: this.profileForm.lastName.trim(),
+      };
+
+      await this.http
+        .patch<
+          ApiResponse<void>
+        >(API_ENDPOINTS.ADMIN.CRUD_ID('Database Management', 'users', currentUser.id), updateData)
+        .toPromise();
+
+      this.originalForm = { ...this.profileForm };
+
+      await this.authService.syncProfile();
+
+      this.toastService.success('Profile information updated successfully');
+    } catch (error) {
+      const err = error as ErrorResponse;
+      const message = err.errors?.[0]?.message || err.message || 'Failed to update profile';
+      this.toastService.error(message);
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  async onFileSelected (event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (file) {
+      if (!file.type.match('image.*')) {
+        this.toastService.error('Only image files are allowed');
+        input.value = '';
+        return;
+      }
+
+      try {
+        await this.authService.uploadAvatar(file);
+        this.toastService.success('Profile photo updated successfully');
+      } catch {
+        this.toastService.error('Failed to upload profile photo');
+      } finally {
+        input.value = '';
+      }
+    }
+  }
+
+  private setupVisibilityListener (): void {
+    this.visibilityListener = (): void => {
+      if (!document.hidden) {
+        const lastSync = localStorage.getItem('profile-last-sync');
+        const now = Date.now();
+        const fiveMinutes = 5 * 60 * 1000;
+
+        if (!lastSync || now - parseInt(lastSync) > fiveMinutes) {
+          void this.authService.syncProfile();
+          localStorage.setItem('profile-last-sync', now.toString());
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', this.visibilityListener);
+  }
+
+  private updateFormFromUser (user: { firstName?: string; lastName?: string }): void {
+    this.profileForm = {
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+    };
+
+    this.originalForm = { ...this.profileForm };
+  }
+
+  private initializeForm (): void {
+    const currentUser = this.user();
+    if (currentUser) this.updateFormFromUser(currentUser);
   }
 }

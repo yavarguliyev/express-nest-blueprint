@@ -1,7 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ToastService } from '../../../core/services/toast.service';
-import { Toast as ToastInterface } from '../../../core/interfaces/toast.interface';
+import { ToastService, Toast as ToastInterface } from '@app/common';
 
 @Component({
   selector: 'app-toast',
@@ -155,7 +154,7 @@ import { Toast as ToastInterface } from '../../../core/interfaces/toast.interfac
     `,
   ],
 })
-export class Toast {
+export class ToastComponent {
   toastService = inject(ToastService);
 
   handleConfirm (toast: ToastInterface): void {

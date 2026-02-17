@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { ToastService } from './toast.service';
+import { ToastService } from '@app/common';
+
 import { DatabaseDraftService } from './database-draft.service';
 import { AuthService } from './auth.service';
 import { RoleAccessService } from './role-access.service';

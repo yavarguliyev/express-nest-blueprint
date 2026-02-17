@@ -1,8 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { ApiResponse } from '@app/common';
+
 import { API_ENDPOINTS } from '../constants/api-endpoints';
-import { ApiResponse } from '../interfaces/api-response.interface';
 import { SettingItem, SettingsUpdateRequest } from '../interfaces/settings.interface';
 
 @Injectable({

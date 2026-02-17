@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
+
 import { API_ENDPOINTS } from '../constants/api-endpoints';
 import { DashboardResponse, HealthStatus } from '../interfaces';
 

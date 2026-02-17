@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, catchError, throwError, map } from 'rxjs';
-import { ApiResponse, GqlResponse } from '../../interfaces/api-response.interface';
+import { ApiResponse, GqlResponse } from '@app/common';
+
 import { ApiRequestOptions } from '../../interfaces';
 
 @Injectable({

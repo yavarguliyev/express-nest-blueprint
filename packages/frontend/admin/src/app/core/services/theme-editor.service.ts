@@ -1,26 +1,27 @@
 import { Injectable, inject, signal, computed, effect } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map, tap } from 'rxjs';
-import { ThemeService } from './theme.service';
+import { STORAGE_KEYS, ApiResponse, PaginatedResponse } from '@app/common';
+
 import { TokenNotificationService } from './token-notification.service';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
-import { STORAGE_KEYS } from '../constants/storage-keys.const';
 import { BaseDraftService } from './base/base-draft.service';
-import { ApiResponse, PaginatedResponse } from '../interfaces/api-response.interface';
 import { CssToken, TokenDraft } from '../interfaces/token.interface';
 import { PublishResult } from '../interfaces/draft.interface';
+import { AdminThemeService } from './admin-theme.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ThemeEditorService extends BaseDraftService<TokenDraft, CssToken> {
   private http = inject(HttpClient);
-  private themeService = inject(ThemeService);
+  private themeService = inject(AdminThemeService);
   private tokenNotificationService = inject(TokenNotificationService);
-  protected readonly DRAFT_STORAGE_KEY = STORAGE_KEYS.THEME_EDITOR_DRAFTS;
-  protected readonly STORAGE_VERSION = STORAGE_KEYS.DRAFT_STORAGE_VERSION;
 
   private _tokens = signal<CssToken[]>([]);
+
+  protected readonly DRAFT_STORAGE_KEY = STORAGE_KEYS.THEME_EDITOR_DRAFTS;
+  protected readonly STORAGE_VERSION = STORAGE_KEYS.DRAFT_STORAGE_VERSION;
 
   tokens = this._tokens.asReadonly();
 
@@ -29,9 +30,7 @@ export class ThemeEditorService extends BaseDraftService<TokenDraft, CssToken> {
     const grouped: Record<string, CssToken[]> = {};
 
     tokens.forEach((token) => {
-      if (!grouped[token.tokenCategory]) {
-        grouped[token.tokenCategory] = [];
-      }
+      if (!grouped[token.tokenCategory]) grouped[token.tokenCategory] = [];
       grouped[token.tokenCategory]!.push(token);
     });
 
@@ -47,9 +46,7 @@ export class ThemeEditorService extends BaseDraftService<TokenDraft, CssToken> {
     });
 
     this.tokenNotificationService.tokenUpdated$.subscribe((event) => {
-      if (event.source !== 'theme-editor') {
-        this.loadTokens().subscribe();
-      }
+      if (event.source !== 'theme-editor') this.loadTokens().subscribe();
     });
   }
 
@@ -107,11 +104,6 @@ export class ThemeEditorService extends BaseDraftService<TokenDraft, CssToken> {
     this.applyCurrentTokens();
   }
 
-  private clearDrafts (): void {
-    this._drafts.set(new Map());
-    this.saveDraftsToStorage();
-  }
-
   setTokens (tokens: CssToken[]): void {
     this._tokens.set(tokens);
     this.applyCurrentTokens();
@@ -122,9 +114,7 @@ export class ThemeEditorService extends BaseDraftService<TokenDraft, CssToken> {
   }
 
   loadTokens (): Observable<CssToken[]> {
-    if (this._tokens().length === 0) {
-      this._loading.set(true);
-    }
+    if (this._tokens().length === 0) this._loading.set(true);
 
     const url = API_ENDPOINTS.ADMIN.CRUD('Database Management', 'css_tokens');
 
@@ -159,6 +149,7 @@ export class ThemeEditorService extends BaseDraftService<TokenDraft, CssToken> {
 
     if (currentMode === 'light' && token.lightModeValue) return token.lightModeValue;
     if (currentMode === 'dark' && token.darkModeValue) return token.darkModeValue;
+
     return token.defaultValue;
   }
 
@@ -205,11 +196,8 @@ export class ThemeEditorService extends BaseDraftService<TokenDraft, CssToken> {
       updatedDraft.defaultValue !== token.defaultValue;
 
     const newDrafts = new Map(currentDrafts);
-    if (updatedDraft.hasChanges) {
-      newDrafts.set(tokenId, updatedDraft);
-    } else {
-      newDrafts.delete(tokenId);
-    }
+    if (updatedDraft.hasChanges) newDrafts.set(tokenId, updatedDraft);
+    else newDrafts.delete(tokenId);
 
     this._drafts.set(newDrafts);
     this.saveDraftsToStorage();
@@ -220,10 +208,49 @@ export class ThemeEditorService extends BaseDraftService<TokenDraft, CssToken> {
     return this.hasDraftChanges(tokenId);
   }
 
+  applyCurrentTokens (): void {
+    if (typeof document === 'undefined') return;
+
+    const tokens = this._tokens();
+    const currentMode = this.getCurrentThemeFromDocument();
+
+    tokens.forEach((token) => {
+      const value = this.getTokenValue(token.id, currentMode);
+      if (value) document.documentElement.style.setProperty(token.tokenName, value);
+    });
+
+    tokens.forEach((token) => {
+      const value = this.getTokenValue(token.id, currentMode);
+      if (value) this.applyRelatedTokens(token.tokenName, value);
+    });
+  }
+
+  getTokensByCategory (category: string): CssToken[] {
+    return this._tokens().filter((token) => token.tokenCategory === category);
+  }
+
+  getCategories (): string[] {
+    const tokens = this._tokens();
+    const categories = new Set(tokens.map((token) => token.tokenCategory));
+    return Array.from(categories).sort();
+  }
+
+  refreshTokens (): Observable<CssToken[]> {
+    return this.loadTokens();
+  }
+
+  hasToken (tokenName: string): boolean {
+    return this._tokens().some((token) => token.tokenName === tokenName);
+  }
+
+  private clearDrafts (): void {
+    this._drafts.set(new Map());
+    this.saveDraftsToStorage();
+  }
+
   private applyTokenToCSS (tokenName: string, value: string): void {
     if (typeof document !== 'undefined') {
       document.documentElement.style.setProperty(tokenName, value);
-
       this.applyRelatedTokens(tokenName, value);
     }
   }
@@ -273,34 +300,12 @@ export class ThemeEditorService extends BaseDraftService<TokenDraft, CssToken> {
   }
 
   private adjustOpacity (color: string, newOpacity: number): string {
-    if (color.startsWith('rgba(')) {
-      return color.replace(/,\s*[\d.]+\)$/, `, ${newOpacity})`);
-    }
+    if (color.startsWith('rgba(')) return color.replace(/,\s*[\d.]+\)$/, `, ${newOpacity})`);
     if (color.startsWith('rgb(')) {
       return color.replace('rgb(', 'rgba(').replace(')', `, ${newOpacity})`);
     }
+
     return color;
-  }
-
-  applyCurrentTokens (): void {
-    if (typeof document === 'undefined') return;
-
-    const tokens = this._tokens();
-    const currentMode = this.getCurrentThemeFromDocument();
-
-    tokens.forEach((token) => {
-      const value = this.getTokenValue(token.id, currentMode);
-      if (value) {
-        document.documentElement.style.setProperty(token.tokenName, value);
-      }
-    });
-
-    tokens.forEach((token) => {
-      const value = this.getTokenValue(token.id, currentMode);
-      if (value) {
-        this.applyRelatedTokens(token.tokenName, value);
-      }
-    });
   }
 
   private getCurrentThemeFromDocument (): 'light' | 'dark' {
@@ -312,14 +317,17 @@ export class ThemeEditorService extends BaseDraftService<TokenDraft, CssToken> {
       const hex = color.slice(1);
       const num = parseInt(hex, 16);
       const r = Math.min(255, Math.floor((num >> 16) + ((255 - (num >> 16)) * percent) / 100));
+
       const g = Math.min(
         255,
         Math.floor(((num >> 8) & 0x00ff) + ((255 - ((num >> 8) & 0x00ff)) * percent) / 100),
       );
+
       const b = Math.min(
         255,
         Math.floor((num & 0x0000ff) + ((255 - (num & 0x0000ff)) * percent) / 100),
       );
+
       return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
     }
 
@@ -330,37 +338,22 @@ export class ThemeEditorService extends BaseDraftService<TokenDraft, CssToken> {
           255,
           parseInt(matches[0]) + Math.floor(((255 - parseInt(matches[0])) * percent) / 100),
         );
+
         const g = Math.min(
           255,
           parseInt(matches[1]!) + Math.floor(((255 - parseInt(matches[1]!)) * percent) / 100),
         );
+
         const b = Math.min(
           255,
           parseInt(matches[2]!) + Math.floor(((255 - parseInt(matches[2]!)) * percent) / 100),
         );
+
         const a = matches[3] ? parseFloat(matches[3]) : 1;
         return matches.length > 3 ? `rgba(${r}, ${g}, ${b}, ${a})` : `rgb(${r}, ${g}, ${b})`;
       }
     }
 
     return color;
-  }
-
-  getTokensByCategory (category: string): CssToken[] {
-    return this._tokens().filter((token) => token.tokenCategory === category);
-  }
-
-  getCategories (): string[] {
-    const tokens = this._tokens();
-    const categories = new Set(tokens.map((token) => token.tokenCategory));
-    return Array.from(categories).sort();
-  }
-
-  refreshTokens (): Observable<CssToken[]> {
-    return this.loadTokens();
-  }
-
-  hasToken (tokenName: string): boolean {
-    return this._tokens().some((token) => token.tokenName === tokenName);
   }
 }

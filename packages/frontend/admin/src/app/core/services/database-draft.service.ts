@@ -1,6 +1,7 @@
 import { Injectable, inject, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
+
 import {
   DatabaseDraft,
   DatabaseOperation,
@@ -10,7 +11,7 @@ import {
 } from '../interfaces/database-bulk.interface';
 import { TokenNotificationService } from './token-notification.service';
 import { API_ENDPOINTS } from '../constants/api-endpoints';
-import { STORAGE_KEYS } from '../constants/storage-keys.const';
+import { STORAGE_KEYS } from '@app/common';
 import { BaseDraftService } from './base/base-draft.service';
 import { PublishResult } from '../interfaces/draft.interface';
 

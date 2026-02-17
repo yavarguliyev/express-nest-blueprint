@@ -1,13 +1,14 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
+import { computed, signal } from '@angular/core';
+import { ToastService } from '@app/common';
+
 import { Sidebar } from '../sidebar/sidebar';
 import { Topbar } from '../topbar/topbar';
 import { SidebarService } from '../../../core/services/sidebar.service';
 import { DraftStatusBar } from '../draft-status-bar/draft-status-bar';
 import { LayoutCustomizationService } from '../../../core/services/layout-customization.service';
-import { computed, signal } from '@angular/core';
-import { ToastService } from '../../../core/services/toast.service';
 import { DraftStatusConfig } from '../../../core/interfaces/token.interface';
 
 @Component({

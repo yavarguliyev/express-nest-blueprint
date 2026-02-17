@@ -1,0 +1,17 @@
+<div class="toggle-switch-container" [class]="'size-' + size">
+  <span class="toggle-label" *ngIf="label">{{ label }}</span>
+  <div class="toggle-wrapper">
+    <input 
+      type="checkbox" 
+      [id]="toggleId"
+      [checked]="checkedSignal()" 
+      [disabled]="disabled"
+      (change)="onToggle()"
+      class="toggle-input">
+    <label 
+      [for]="toggleId"
+      class="toggle-switch" 
+      [class.disabled]="disabled">
+    </label>
+  </div>
+</div>

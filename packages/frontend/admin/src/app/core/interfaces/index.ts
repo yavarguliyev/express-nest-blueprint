@@ -1,4 +1,3 @@
-export * from './api-response.interface';
 export * from './api.interface';
 export * from './auth.interface';
 export * from './dashboard.interface';
@@ -9,6 +8,4 @@ export * from './draft.interface';
 export * from './field-config.interface';
 export * from './layout.interface';
 export * from './settings.interface';
-export * from './table-style.interface';
-export * from './toast.interface';
 export * from './token.interface';

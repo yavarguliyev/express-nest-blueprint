@@ -1,6 +1,7 @@
 import { Injectable, Signal, computed, inject, signal } from '@angular/core';
 import { Observable } from 'rxjs';
 import { tap, finalize } from 'rxjs/operators';
+
 import { BaseDraft, DraftStorage } from '../../../domain/types/state.type';
 import { PublishResult } from '../../../domain/interfaces/common.interface';
 import { StorageService } from './storage.service';

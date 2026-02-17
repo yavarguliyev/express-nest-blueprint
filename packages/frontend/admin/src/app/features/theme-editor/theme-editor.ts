@@ -1,17 +1,18 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ToastService } from '@app/common';
+
 import { ThemeEditorService } from '../../core/services/theme-editor.service';
-import { ThemeService } from '../../core/services/theme.service';
-import { ToastService } from '../../core/services/toast.service';
+import { ToggleSwitch } from '../../shared/components/toggle-switch/toggle-switch.component';
+import { DraggableResizableDirective } from '../../shared/directives/draggable-resizable.directive';
 import { ThemeSidebarService } from '../../core/services/theme-sidebar.service';
-import { ToggleSwitch } from '../../shared/components/toggle-switch/toggle-switch';
 import { ColorPicker } from './components/color-picker/color-picker';
 import { FontSelector } from './components/font-selector/font-selector';
 import { SpacingSlider } from './components/spacing-slider/spacing-slider';
 import { DraftStatusBar } from '../../shared/components/draft-status-bar/draft-status-bar';
-import { DraggableResizableDirective } from '../../shared/directives/draggable-resizable.directive';
 import { CssToken, DraftStatusConfig } from '../../core/interfaces/token.interface';
+import { AdminThemeService } from '../../core/services/admin-theme.service';
 
 @Component({
   selector: 'app-theme-editor',
@@ -31,7 +32,7 @@ import { CssToken, DraftStatusConfig } from '../../core/interfaces/token.interfa
 })
 export class ThemeEditor implements OnInit {
   themeEditorService = inject(ThemeEditorService);
-  private themeService = inject(ThemeService);
+  private themeService = inject(AdminThemeService);
   private toastService = inject(ToastService);
   themeSidebarService = inject(ThemeSidebarService);
 
@@ -179,6 +180,7 @@ export class ThemeEditor implements OnInit {
       shadows: 'Shadows',
       gradients: 'Gradients',
     };
+
     return displayNames[category] || category.charAt(0).toUpperCase() + category.slice(1);
   }
 
@@ -191,6 +193,7 @@ export class ThemeEditor implements OnInit {
       shadows: '🌫️',
       gradients: '🌈',
     };
+
     return icons[category] || '⚙️';
   }
 

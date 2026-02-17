@@ -1,27 +1,20 @@
-import { Injectable, signal, effect } from '@angular/core';
+import { Injectable, signal, effect, Signal } from '@angular/core';
+
 import { Theme } from '../types/theme.type';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
-export class ThemeService {
+export class AdminThemeService {
   private readonly THEME_KEY = 'admin-theme-preference';
-
   private _currentTheme = signal<Theme>(this.getInitialTheme());
-  currentTheme = this._currentTheme.asReadonly();
+
+  currentTheme: Signal<Theme> = this._currentTheme.asReadonly();
 
   constructor () {
     effect(() => {
       this.applyTheme(this._currentTheme());
     });
-  }
-
-  private getInitialTheme (): Theme {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem(this.THEME_KEY) as Theme;
-      if (stored === 'dark' || stored === 'light') return stored;
-    }
-    return 'dark';
   }
 
   toggleTheme (): void {
@@ -42,6 +35,19 @@ export class ThemeService {
     return this._currentTheme() === 'light';
   }
 
+  getThemePreference (): Theme {
+    return this._currentTheme();
+  }
+
+  private getInitialTheme (): Theme {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem(this.THEME_KEY) as Theme;
+      if (stored === 'dark' || stored === 'light') return stored;
+    }
+
+    return 'dark';
+  }
+
   private applyTheme (theme: Theme): void {
     if (typeof document !== 'undefined') {
       document.documentElement.setAttribute('data-theme', theme);
@@ -51,12 +57,6 @@ export class ThemeService {
   }
 
   private saveToStorage (theme: Theme): void {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(this.THEME_KEY, theme);
-    }
-  }
-
-  getThemePreference (): Theme {
-    return this._currentTheme();
+    if (typeof window !== 'undefined') localStorage.setItem(this.THEME_KEY, theme);
   }
 }

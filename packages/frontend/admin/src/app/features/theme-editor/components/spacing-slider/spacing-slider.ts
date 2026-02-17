@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+
 import { SpacingSliderHelperService } from './spacing-slider-helper.service';
 import { ParsedValue, BaseChangeEvent } from '../../../../core/interfaces/token.interface';
 
