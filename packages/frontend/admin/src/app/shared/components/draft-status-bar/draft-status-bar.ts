@@ -1,17 +1,7 @@
 import { Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-export interface DraftStatusConfig {
-  draftCount: number;
-  hasDrafts: boolean;
-  affectedItems?: string[];
-  isProcessing: boolean;
-  itemType?: 'table' | 'token' | 'item';
-  resetButtonText?: string;
-  saveButtonText?: string;
-  resetButtonIcon?: string;
-  saveButtonIcon?: string;
-}
+import { DraftStatusConfig } from '../../../core/interfaces/theme.interface';
 
 @Component({
   selector: 'app-draft-status-bar',
@@ -45,12 +35,7 @@ export interface DraftStatusConfig {
             <span class="material-icons">{{ config().resetButtonIcon || 'refresh' }}</span>
             {{ config().resetButtonText || 'Reset All' }}
           </button>
-          <button
-            class="btn-primary save-btn"
-            (click)="onSaveChanges()"
-            [disabled]="config().isProcessing"
-            [title]="'Save all changes'"
-          >
+          <button class="btn-primary save-btn" (click)="onSaveChanges()" [disabled]="config().isProcessing" [title]="'Save all changes'">
             @if (!config().isProcessing) {
               <span>
                 <span class="material-icons">{{ config().saveButtonIcon || 'save' }}</span>
@@ -67,7 +52,7 @@ export interface DraftStatusConfig {
       </div>
     }
   `,
-  styleUrl: './draft-status-bar.css',
+  styleUrl: './draft-status-bar.css'
 })
 export class DraftStatusBar {
   config = input.required<DraftStatusConfig>();
@@ -87,10 +72,7 @@ export class DraftStatusBar {
     const items = this.config().affectedItems || [];
     const itemType = this.config().itemType || 'item';
 
-    if (items.length === 1) {
-      return itemType === 'table' ? 'table' : itemType === 'token' ? 'token' : 'item';
-    } else {
-      return itemType === 'table' ? 'tables' : itemType === 'token' ? 'tokens' : 'items';
-    }
+    if (items.length === 1) return itemType === 'table' ? 'table' : itemType === 'token' ? 'token' : 'item';
+    else return itemType === 'table' ? 'tables' : itemType === 'token' ? 'tokens' : 'items';
   }
 }

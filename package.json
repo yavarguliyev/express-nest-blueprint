@@ -3,11 +3,7 @@
   "version": "1.0.0",
   "description": "express app in nest style monorepo",
   "private": true,
-  "workspaces": [
-    "packages/backend/common",
-    "packages/backend/*",
-    "packages/frontend/*"
-  ],
+  "workspaces": ["packages/backend/common", "packages/backend/*", "packages/frontend/*"],
   "dependencies": {
     "node-pg-migrate": "^7.9.0",
     "pg": "^8.13.1"

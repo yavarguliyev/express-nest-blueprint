@@ -8,7 +8,7 @@ import { FormsModule } from '@angular/forms';
   imports: [CommonModule, FormsModule],
   templateUrl: './password-input.html',
   styleUrl: './password-input.css',
-  encapsulation: ViewEncapsulation.None,
+  encapsulation: ViewEncapsulation.None
 })
 export class PasswordInput {
   @Input() value: string = '';

@@ -4,28 +4,36 @@ export const API_ENDPOINTS = {
   AUTH: {
     BASE: `${API_BASE}/auth`,
     LOGIN: `${API_BASE}/auth/admin-login`,
+    LOGOUT: `${API_BASE}/auth/logout`,
+    REFRESH: `${API_BASE}/auth/refresh`,
     PROFILE: `${API_BASE}/admin/profile`,
     UPLOAD_AVATAR: `${API_BASE}/admin/profile/upload`,
-    DELETE_AVATAR: `${API_BASE}/admin/profile/image`,
+    DELETE_AVATAR: `${API_BASE}/admin/profile/image`
   },
 
   ADMIN: {
     BASE: `${API_BASE}/admin`,
+    GRAPHQL: '/admin/graphql',
     DASHBOARD_METRICS: `${API_BASE}/admin/dashboard/metrics`,
     HEALTH: `${API_BASE}/admin/health`,
     SCHEMA: `${API_BASE}/admin/crud/schema`,
     CRUD: (category: string, resource: string) => `${API_BASE}/admin/crud/${category}/${resource}`,
-    CRUD_ID: (category: string, resource: string, id: string | number) =>
-      `${API_BASE}/admin/crud/${category}/${resource}/${id}`,
+    CRUD_ID: (category: string, resource: string, id: string | number) => `${API_BASE}/admin/crud/${category}/${resource}/${id}`,
     BULK_OPERATIONS: `${API_BASE}/admin/bulk-operations`,
     BULK_OPERATIONS_VALIDATE: `${API_BASE}/admin/bulk-operations/validate`,
-    LAYOUT_CUSTOMIZATION: `${API_BASE}/admin/layout/customization`,
+    LAYOUT_CUSTOMIZATION: `${API_BASE}/admin/layout/customization`
   },
 
   SETTINGS: {
     BASE: `${API_BASE}/settings`,
     GET_ALL: `${API_BASE}/settings`,
     UPDATE: `${API_BASE}/settings`,
-    GET_BY_KEY: (key: string) => `${API_BASE}/settings/${key}`,
-  },
+    GET_BY_KEY: (key: string) => `${API_BASE}/settings/${key}`
+  }
+} as const;
+
+export const BULK_OPERATION_TYPES = {
+  CREATE: 'create',
+  UPDATE: 'update',
+  DELETE: 'delete'
 } as const;

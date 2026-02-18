@@ -1,55 +1,23 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { API_ENDPOINTS } from '../constants/api-endpoints';
 
-export interface LayoutPosition {
-  elementId: string;
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-  zIndex: number;
-}
-
-export interface LayoutCustomization {
-  userId: string;
-  positions: LayoutPosition[];
-  lastModified: Date;
-}
+import { API_ENDPOINTS } from '../../constants/api.constants';
+import { LayoutPosition, LayoutCustomization } from '../../interfaces/common.interface';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class LayoutCustomizationService {
   private http = inject(HttpClient);
   private STORAGE_KEY = 'admin_layout_customization';
 
+  private originalPositions = signal<Map<string, LayoutPosition>>(new Map());
+  public currentPositions = signal<Map<string, LayoutPosition>>(new Map());
+
   constructor () {
     this.loadFromLocalStorage();
   }
-
-  private loadFromLocalStorage (): void {
-    const saved = localStorage.getItem(this.STORAGE_KEY);
-    if (saved) {
-      const data = JSON.parse(saved) as LayoutPosition[];
-      const positionsMap = new Map<string, LayoutPosition>();
-      data.forEach((pos) => {
-        positionsMap.set(pos.elementId, pos);
-      });
-      this.originalPositions.set(positionsMap);
-      this.currentPositions.set(new Map(positionsMap));
-    }
-  }
-
-  private saveToLocalStorage (): void {
-    const positions = Array.from(this.originalPositions().values());
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(positions));
-  }
-
-  private originalPositions = signal<Map<string, LayoutPosition>>(new Map());
-
-  public currentPositions = signal<Map<string, LayoutPosition>>(new Map());
 
   hasDrafts = computed(() => {
     const original = this.originalPositions();
@@ -125,7 +93,7 @@ export class LayoutCustomizationService {
   });
 
   updatePosition (elementId: string, position: LayoutPosition): void {
-    this.currentPositions.update((positions) => {
+    this.currentPositions.update(positions => {
       const newMap = new Map(positions);
       newMap.set(elementId, position);
       return newMap;
@@ -138,7 +106,7 @@ export class LayoutCustomizationService {
 
   saveCustomization (positions: LayoutPosition[]): Observable<LayoutCustomization> {
     return this.http.post<LayoutCustomization>(`${API_ENDPOINTS.ADMIN.LAYOUT_CUSTOMIZATION}`, {
-      positions,
+      positions
     });
   }
 
@@ -153,7 +121,8 @@ export class LayoutCustomizationService {
 
   initialize (customization: LayoutCustomization): void {
     const positionsMap = new Map<string, LayoutPosition>();
-    customization.positions.forEach((pos) => {
+
+    customization.positions.forEach(pos => {
       positionsMap.set(pos.elementId, pos);
     });
 
@@ -165,5 +134,23 @@ export class LayoutCustomizationService {
     this.originalPositions.set(new Map());
     this.currentPositions.set(new Map());
     localStorage.removeItem(this.STORAGE_KEY);
+  }
+
+  private loadFromLocalStorage (): void {
+    const saved = localStorage.getItem(this.STORAGE_KEY);
+    if (saved) {
+      const data = JSON.parse(saved) as LayoutPosition[];
+      const positionsMap = new Map<string, LayoutPosition>();
+
+      data.forEach(pos => positionsMap.set(pos.elementId, pos));
+
+      this.originalPositions.set(positionsMap);
+      this.currentPositions.set(new Map(positionsMap));
+    }
+  }
+
+  private saveToLocalStorage (): void {
+    const positions = Array.from(this.originalPositions().values());
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(positions));
   }
 }

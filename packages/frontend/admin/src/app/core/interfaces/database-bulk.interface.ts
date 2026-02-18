@@ -1,35 +1,15 @@
-export const BULK_OPERATION_TYPES = {
-  CREATE: 'create',
-  UPDATE: 'update',
-  DELETE: 'delete',
-} as const;
-
-export type BulkOperationType = (typeof BULK_OPERATION_TYPES)[keyof typeof BULK_OPERATION_TYPES];
-
-export const CONFLICT_TYPES = {
-  CONCURRENT_MODIFICATION: 'concurrent_modification',
-  PERMISSION_DENIED: 'permission_denied',
-  CONSTRAINT_VIOLATION: 'constraint_violation',
-} as const;
-
-export type ConflictType = (typeof CONFLICT_TYPES)[keyof typeof CONFLICT_TYPES];
-
-export const CONFLICT_RESOLUTION_STRATEGIES = {
-  KEEP_MINE: 'keep_mine',
-  USE_THEIRS: 'use_theirs',
-  MERGE: 'merge',
-  SKIP: 'skip',
-} as const;
-
-export type ConflictResolutionStrategy =
-  (typeof CONFLICT_RESOLUTION_STRATEGIES)[keyof typeof CONFLICT_RESOLUTION_STRATEGIES];
+import { BulkOperationStatusType, ResponseType } from '../types/api.type';
+import { BulkOperationTypes } from '../types/api.type';
+import { SeverityType } from '../types/dashboard.type';
+import { ConflictResolutionStrategy, ConflictType, PermisionType } from '../types/permission.type';
+import { OperationResult, BulkOperationResponse } from './database.interface';
 
 export interface DatabaseDraft {
   id: string;
   tableName: string;
   category: string;
   recordId: number | string;
-  operation: BulkOperationType;
+  operation: BulkOperationTypes;
   originalData: Record<string, unknown>;
   draftData: Record<string, unknown>;
   hasChanges: boolean;
@@ -37,35 +17,11 @@ export interface DatabaseDraft {
 }
 
 export interface DatabaseOperation {
-  type: BulkOperationType;
+  type: BulkOperationTypes;
   table: string;
   category: string;
   recordId?: number | string;
   data?: Record<string, unknown>;
-}
-
-export interface BulkOperationRequest {
-  operations: DatabaseOperation[];
-  validateOnly?: boolean;
-}
-
-export interface OperationResult {
-  operation: DatabaseOperation;
-  success: boolean;
-  error?: string;
-  data?: unknown;
-}
-
-export interface OperationSummary {
-  total: number;
-  successful: number;
-  failed: number;
-}
-
-export interface BulkOperationResponse {
-  success: boolean;
-  results: OperationResult[];
-  summary: OperationSummary;
 }
 
 export interface BulkStatus {
@@ -76,8 +32,8 @@ export interface BulkStatus {
 }
 
 export interface ChangeIndicator {
-  type: 'modified' | 'created' | 'deleted';
-  severity: 'low' | 'medium' | 'high';
+  type: ResponseType;
+  severity: SeverityType;
   tooltip: string;
 }
 
@@ -121,19 +77,8 @@ export interface ConflictResolution {
   resolution: Record<string, unknown>;
 }
 
-export interface DraftStorage {
-  version: string;
-  timestamp: Date;
-  drafts: Record<string, DatabaseDraft>;
-  metadata: {
-    totalChanges: number;
-    affectedTables: string[];
-    lastModified: Date;
-  };
-}
-
 export interface BulkOperationError {
-  type: 'validation' | 'conflict' | 'permission' | 'network' | 'server';
+  type: PermisionType;
   message: string;
   operation?: DatabaseOperation;
   details?: Record<string, unknown>;
@@ -149,7 +94,7 @@ export interface ChangePreviewModal {
 export interface BulkOperationLog {
   id: string;
   userId: number;
-  operationType: 'bulk_create' | 'bulk_update' | 'bulk_delete' | 'bulk_mixed';
+  operationType: BulkOperationTypes;
   affectedTables: string[];
   operationCount: number;
   successCount: number;
@@ -161,7 +106,7 @@ export interface BulkOperationLog {
 
 export interface BulkOperationStatus {
   operationId: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
+  status: BulkOperationStatusType;
   progress: number;
   results?: BulkOperationResponse;
 }
@@ -179,7 +124,7 @@ export interface EnhancedTableMetadata {
     bulkOperations?: {
       enabled: boolean;
       maxBatchSize: number;
-      supportedOperations: BulkOperationType[];
+      supportedOperations: BulkOperationTypes[];
     };
   };
 }

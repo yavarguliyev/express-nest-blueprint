@@ -1,12 +1,9 @@
 import { Component, Input, Output, EventEmitter, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { SpacingSliderHelperService, ParsedValue } from './spacing-slider-helper.service';
 
-export interface SpacingChangeEvent {
-  tokenId: string;
-  value: string;
-}
+import { SpacingSliderHelperService } from './spacing-slider-helper.service';
+import { ParsedValue, SpacingChangeEvent } from '../../../../core/interfaces/theme.interface';
 
 @Component({
   selector: 'app-spacing-slider',
@@ -54,11 +51,7 @@ export interface SpacingChangeEvent {
 
         <!-- Unit Selector -->
         <div class="unit-selector-container">
-          <select
-            class="unit-selector"
-            [value]="parsedValue().unit"
-            (change)="onUnitChange($event)"
-          >
+          <select class="unit-selector" [value]="parsedValue().unit" (change)="onUnitChange($event)">
             <option *ngFor="let unit of getAvailableUnits()" [value]="unit">
               {{ unit }}
             </option>
@@ -85,150 +78,148 @@ export interface SpacingChangeEvent {
       <!-- Custom Input -->
       <div class="custom-input-container">
         <label class="custom-label">Custom Value:</label>
-        <input
-          type="text"
-          class="custom-input"
-          [value]="currentValue"
-          (input)="onCustomInput($event)"
-          placeholder="e.g., 1.5rem, 20px, 50%"
-        />
+        <input type="text" class="custom-input" [value]="currentValue" (input)="onCustomInput($event)" placeholder="e.g., 1.5rem, 20px, 50%" />
       </div>
     </div>
   `,
-  styles: [`
-    .spacing-slider {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      padding: 1rem;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      background: var(--surface-color);
-    }
+  styles: [
+    `
+      .spacing-slider {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: var(--surface-color);
+      }
 
-    .value-display {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.5rem;
-      background: var(--background-color);
-      border-radius: 4px;
-    }
+      .value-display {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem;
+        background: var(--background-color);
+        border-radius: 4px;
+      }
 
-    .current-value {
-      font-weight: 600;
-      font-size: 1.1rem;
-      color: var(--primary-color);
-    }
+      .current-value {
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: var(--primary-color);
+      }
 
-    .value-type {
-      font-size: 0.875rem;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
+      .value-type {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
 
-    .controls-container {
-      display: grid;
-      grid-template-columns: 1fr auto auto;
-      gap: 1rem;
-      align-items: center;
-    }
+      .controls-container {
+        display: grid;
+        grid-template-columns: 1fr auto auto;
+        gap: 1rem;
+        align-items: center;
+      }
 
-    .slider-container {
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-    }
+      .slider-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
 
-    .spacing-range {
-      width: 100%;
-      height: 6px;
-      border-radius: 3px;
-      background: var(--border-color);
-      outline: none;
-      cursor: pointer;
-    }
+      .spacing-range {
+        width: 100%;
+        height: 6px;
+        border-radius: 3px;
+        background: var(--border-color);
+        outline: none;
+        cursor: pointer;
+      }
 
-    .range-labels {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.75rem;
-      color: var(--text-secondary);
-    }
+      .range-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+      }
 
-    .numeric-input, .unit-selector, .custom-input {
-      padding: 0.5rem;
-      border: 1px solid var(--border-color);
-      border-radius: 4px;
-      background: var(--background-color);
-      color: var(--text-color);
-    }
+      .numeric-input,
+      .unit-selector,
+      .custom-input {
+        padding: 0.5rem;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        background: var(--background-color);
+        color: var(--text-color);
+      }
 
-    .numeric-input {
-      width: 80px;
-    }
+      .numeric-input {
+        width: 80px;
+      }
 
-    .unit-selector {
-      width: 80px;
-      cursor: pointer;
-    }
+      .unit-selector {
+        width: 80px;
+        cursor: pointer;
+      }
 
-    .presets-container {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
+      .presets-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
 
-    .presets-label {
-      font-size: 0.875rem;
-      font-weight: 500;
-      color: var(--text-secondary);
-    }
+      .presets-label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+      }
 
-    .presets-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-      gap: 0.5rem;
-    }
+      .presets-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+        gap: 0.5rem;
+      }
 
-    .preset-button {
-      padding: 0.5rem;
-      border: 1px solid var(--border-color);
-      border-radius: 4px;
-      background: var(--background-color);
-      color: var(--text-color);
-      cursor: pointer;
-      font-size: 0.75rem;
-      transition: all 0.2s ease;
-    }
+      .preset-button {
+        padding: 0.5rem;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        background: var(--background-color);
+        color: var(--text-color);
+        cursor: pointer;
+        font-size: 0.75rem;
+        transition: all 0.2s ease;
+      }
 
-    .preset-button:hover {
-      background: var(--hover-color);
-    }
+      .preset-button:hover {
+        background: var(--hover-color);
+      }
 
-    .preset-button.active {
-      background: var(--primary-color);
-      color: white;
-      border-color: var(--primary-color);
-    }
+      .preset-button.active {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+      }
 
-    .custom-input-container {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
+      .custom-input-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
 
-    .custom-label {
-      font-size: 0.875rem;
-      font-weight: 500;
-      color: var(--text-secondary);
-    }
+      .custom-label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+      }
 
-    .custom-input {
-      width: 100%;
-    }
-  `]
+      .custom-input {
+        width: 100%;
+      }
+    `
+  ]
 })
 export class SpacingSlider {
   private helper = inject(SpacingSliderHelperService);
@@ -296,7 +287,7 @@ export class SpacingSlider {
   private emitChange (value: string): void {
     this.valueChange.emit({
       tokenId: this.tokenId,
-      value: value,
+      value: value
     });
   }
 }

@@ -1,29 +1,20 @@
-import {
-  Directive,
-  ElementRef,
-  HostListener,
-  inject,
-  Renderer2,
-  OnInit,
-  OnDestroy,
-  Input,
-  effect,
-} from '@angular/core';
-import { AuthService } from '../../core/services/auth.service';
-import { UserRoleHelper } from '../../core/enums/user-roles.enum';
-import { LayoutCustomizationService } from '../../core/services/layout-customization.service';
+import { Directive, ElementRef, HostListener, inject, Renderer2, OnInit, OnDestroy, Input, effect } from '@angular/core';
+
+import { AuthService } from '../../core/services/auth/auth.service';
+import { UserRoleHelper } from '../../core/services/utilities/user-role-utility.service';
+import { LayoutCustomizationService } from '../../core/services/ui/layout-customization.service';
 
 @Directive({
   selector: '[appDraggableResizable]',
-  standalone: true,
+  standalone: true
 })
 export class DraggableResizableDirective implements OnInit, OnDestroy {
+  @Input() appDraggableResizable: string = '';
+
   private el: ElementRef<HTMLElement> = inject(ElementRef) as ElementRef<HTMLElement>;
   private renderer = inject(Renderer2);
   private authService = inject(AuthService);
   private layoutService = inject(LayoutCustomizationService);
-
-  @Input() appDraggableResizable: string = '';
 
   private isDragging = false;
   private isResizing = false;
@@ -40,15 +31,6 @@ export class DraggableResizableDirective implements OnInit, OnDestroy {
 
   private handles: HTMLElement[] = [];
 
-  private getElementId (): string {
-    if (this.appDraggableResizable) return this.appDraggableResizable;
-    const nativeElement = this.el.nativeElement;
-    if (nativeElement.id) return nativeElement.id;
-    const tag = nativeElement.tagName.toLowerCase();
-    const classes = Array.from(nativeElement.classList).join('.').substring(0, 20);
-    return `el-${tag}-${classes}`;
-  }
-
   constructor () {
     effect(() => {
       const positions = this.layoutService.currentPositions();
@@ -61,11 +43,7 @@ export class DraggableResizableDirective implements OnInit, OnDestroy {
         this.renderer.setStyle(this.el.nativeElement, 'top', `${pos.top}px`);
         this.renderer.setStyle(this.el.nativeElement, 'width', `${pos.width}px`);
         this.renderer.setStyle(this.el.nativeElement, 'height', `${pos.height}px`);
-        this.renderer.setStyle(
-          this.el.nativeElement,
-          'z-index',
-          this.isActivated ? '1000000' : `${pos.zIndex}`,
-        );
+        this.renderer.setStyle(this.el.nativeElement, 'z-index', this.isActivated ? '1000000' : `${pos.zIndex}`);
       } else {
         this.renderer.removeStyle(this.el.nativeElement, 'position');
         this.renderer.removeStyle(this.el.nativeElement, 'left');
@@ -89,28 +67,29 @@ export class DraggableResizableDirective implements OnInit, OnDestroy {
     this.removeHandles();
   }
 
-  private setupInteraction (): void {
-    this.renderer.setStyle(this.el.nativeElement, 'cursor', 'move');
-    this.renderer.setStyle(this.el.nativeElement, 'transition', 'none');
-  }
-
   @HostListener('dblclick', ['$event'])
   onDoubleClick (event: MouseEvent): void {
     if (!this.isGlobalAdmin) return;
-
     event.stopPropagation();
-
-    if (!this.isActivated) {
-      this.activate();
-    }
+    if (!this.isActivated) this.activate();
   }
 
   @HostListener('click', ['$event'])
   onClick (event: MouseEvent): void {
     if (!this.isGlobalAdmin) return;
-    if (this.isActivated) {
-      event.stopPropagation();
+
+    const target = event.target as HTMLElement;
+    if (
+      target.tagName === 'BUTTON' ||
+      target.tagName === 'INPUT' ||
+      target.tagName === 'SELECT' ||
+      target.tagName === 'A' ||
+      target.tagName === 'LABEL'
+    ) {
+      return;
     }
+
+    if (this.isActivated) event.stopPropagation();
   }
 
   @HostListener('document:keydown.escape', ['$event'])
@@ -124,28 +103,78 @@ export class DraggableResizableDirective implements OnInit, OnDestroy {
   @HostListener('mousedown', ['$event'])
   onMouseDown (event: MouseEvent): void {
     if (!this.isGlobalAdmin) return;
-
     if (event.button !== 0) return;
 
     if (this.isActivated) {
       event.stopPropagation();
 
       const target = event.target as HTMLElement;
-      if (
-        target.tagName === 'BUTTON' ||
-        target.tagName === 'INPUT' ||
-        target.tagName === 'SELECT' ||
-        target.tagName === 'A'
-      ) {
-        return;
-      }
-
-      if (target.classList.contains('drag-handle') || target.classList.contains('deactivate-btn')) {
-        return;
-      }
+      if (target.tagName === 'BUTTON' || target.tagName === 'INPUT' || target.tagName === 'SELECT' || target.tagName === 'A') return;
+      if (target.classList.contains('drag-handle') || target.classList.contains('deactivate-btn')) return;
 
       this.onDragStart(event);
     }
+  }
+
+  @HostListener('document:mousemove', ['$event'])
+  onMouseMove (event: MouseEvent): void {
+    if (this.isDragging) {
+      const dx = event.clientX - this.startX;
+      const dy = event.clientY - this.startY;
+      this.renderer.setStyle(this.el.nativeElement, 'left', `${this.startLeft + dx}px`);
+      this.renderer.setStyle(this.el.nativeElement, 'top', `${this.startTop + dy}px`);
+    } else if (this.isResizing) {
+      const dx = event.clientX - this.startX;
+      const dy = event.clientY - this.startY;
+
+      switch (this.currentHandle) {
+        case 'br':
+          this.renderer.setStyle(this.el.nativeElement, 'width', `${this.startWidth + dx}px`);
+          this.renderer.setStyle(this.el.nativeElement, 'height', `${this.startHeight + dy}px`);
+          break;
+        case 'tr':
+          this.renderer.setStyle(this.el.nativeElement, 'width', `${this.startWidth + dx}px`);
+          this.renderer.setStyle(this.el.nativeElement, 'height', `${this.startHeight - dy}px`);
+          this.renderer.setStyle(this.el.nativeElement, 'top', `${this.startTop + dy}px`);
+          break;
+        case 'bl':
+          this.renderer.setStyle(this.el.nativeElement, 'width', `${this.startWidth - dx}px`);
+          this.renderer.setStyle(this.el.nativeElement, 'height', `${this.startHeight + dy}px`);
+          this.renderer.setStyle(this.el.nativeElement, 'left', `${this.startLeft + dx}px`);
+          break;
+        case 'tl':
+          this.renderer.setStyle(this.el.nativeElement, 'width', `${this.startWidth - dx}px`);
+          this.renderer.setStyle(this.el.nativeElement, 'height', `${this.startHeight - dy}px`);
+          this.renderer.setStyle(this.el.nativeElement, 'left', `${this.startLeft + dx}px`);
+          this.renderer.setStyle(this.el.nativeElement, 'top', `${this.startTop + dy}px`);
+          break;
+      }
+    }
+  }
+
+  @HostListener('document:mouseup')
+  onMouseUp (): void {
+    if (this.isDragging || this.isResizing) {
+      this.isDragging = false;
+      this.isResizing = false;
+      this.currentHandle = null;
+
+      this.saveCurrentPosition();
+    }
+  }
+
+  private getElementId (): string {
+    if (this.appDraggableResizable) return this.appDraggableResizable;
+    const nativeElement = this.el.nativeElement;
+    if (nativeElement.id) return nativeElement.id;
+    const tag = nativeElement.tagName.toLowerCase();
+    const classes = Array.from(nativeElement.classList).join('.').substring(0, 20);
+    return `el-${tag}-${classes}`;
+  }
+
+  private setupInteraction (): void {
+    this.renderer.setStyle(this.el.nativeElement, 'cursor', 'move');
+    this.renderer.setStyle(this.el.nativeElement, 'transition', 'none');
   }
 
   private activate (): void {
@@ -153,9 +182,7 @@ export class DraggableResizableDirective implements OnInit, OnDestroy {
 
     const element = this.el.nativeElement;
     const currentPos = window.getComputedStyle(element).position;
-    if (currentPos === 'static') {
-      this.renderer.setStyle(element, 'position', 'relative');
-    }
+    if (currentPos === 'static') this.renderer.setStyle(element, 'position', 'relative');
 
     this.renderer.setStyle(element, 'overflow', 'visible');
     this.renderer.setStyle(element, 'outline', '2px dashed var(--primary)');
@@ -169,12 +196,7 @@ export class DraggableResizableDirective implements OnInit, OnDestroy {
 
     const element = this.el.nativeElement;
     const currentPos = element.style.position;
-    if (
-      currentPos === 'relative' &&
-      !this.layoutService.currentPositions().has(this.getElementId())
-    ) {
-      this.renderer.removeStyle(element, 'position');
-    }
+    if (currentPos === 'relative' && !this.layoutService.currentPositions().has(this.getElementId())) this.renderer.removeStyle(element, 'position');
 
     this.renderer.removeStyle(element, 'overflow');
     this.renderer.removeStyle(element, 'outline');
@@ -229,6 +251,7 @@ export class DraggableResizableDirective implements OnInit, OnDestroy {
       this.renderer.setStyle(button, 'transform', 'scale(1.1)');
       this.renderer.setStyle(button, 'filter', 'brightness(1.1)');
     });
+
     this.renderer.listen(button, 'mouseleave', () => {
       this.renderer.setStyle(button, 'transform', 'scale(1)');
       this.renderer.setStyle(button, 'filter', 'brightness(1)');
@@ -242,7 +265,8 @@ export class DraggableResizableDirective implements OnInit, OnDestroy {
 
   private createHandles (): void {
     const positions = ['tl', 'tr', 'bl', 'br'];
-    positions.forEach((pos) => {
+
+    positions.forEach(pos => {
       const handle = this.renderer.createElement('div') as HTMLElement;
       this.renderer.addClass(handle, 'drag-handle');
       this.renderer.addClass(handle, `handle-${pos}`);
@@ -282,7 +306,7 @@ export class DraggableResizableDirective implements OnInit, OnDestroy {
   }
 
   private removeHandles (): void {
-    this.handles.forEach((h) => this.renderer.removeChild(this.el.nativeElement, h));
+    this.handles.forEach(h => this.renderer.removeChild(this.el.nativeElement, h));
     this.handles = [];
   }
 
@@ -323,53 +347,6 @@ export class DraggableResizableDirective implements OnInit, OnDestroy {
     this.startTop = element.offsetTop;
   }
 
-  @HostListener('document:mousemove', ['$event'])
-  onMouseMove (event: MouseEvent): void {
-    if (this.isDragging) {
-      const dx = event.clientX - this.startX;
-      const dy = event.clientY - this.startY;
-      this.renderer.setStyle(this.el.nativeElement, 'left', `${this.startLeft + dx}px`);
-      this.renderer.setStyle(this.el.nativeElement, 'top', `${this.startTop + dy}px`);
-    } else if (this.isResizing) {
-      const dx = event.clientX - this.startX;
-      const dy = event.clientY - this.startY;
-
-      switch (this.currentHandle) {
-        case 'br':
-          this.renderer.setStyle(this.el.nativeElement, 'width', `${this.startWidth + dx}px`);
-          this.renderer.setStyle(this.el.nativeElement, 'height', `${this.startHeight + dy}px`);
-          break;
-        case 'tr':
-          this.renderer.setStyle(this.el.nativeElement, 'width', `${this.startWidth + dx}px`);
-          this.renderer.setStyle(this.el.nativeElement, 'height', `${this.startHeight - dy}px`);
-          this.renderer.setStyle(this.el.nativeElement, 'top', `${this.startTop + dy}px`);
-          break;
-        case 'bl':
-          this.renderer.setStyle(this.el.nativeElement, 'width', `${this.startWidth - dx}px`);
-          this.renderer.setStyle(this.el.nativeElement, 'height', `${this.startHeight + dy}px`);
-          this.renderer.setStyle(this.el.nativeElement, 'left', `${this.startLeft + dx}px`);
-          break;
-        case 'tl':
-          this.renderer.setStyle(this.el.nativeElement, 'width', `${this.startWidth - dx}px`);
-          this.renderer.setStyle(this.el.nativeElement, 'height', `${this.startHeight - dy}px`);
-          this.renderer.setStyle(this.el.nativeElement, 'left', `${this.startLeft + dx}px`);
-          this.renderer.setStyle(this.el.nativeElement, 'top', `${this.startTop + dy}px`);
-          break;
-      }
-    }
-  }
-
-  @HostListener('document:mouseup')
-  onMouseUp (): void {
-    if (this.isDragging || this.isResizing) {
-      this.isDragging = false;
-      this.isResizing = false;
-      this.currentHandle = null;
-
-      this.saveCurrentPosition();
-    }
-  }
-
   private saveCurrentPosition (): void {
     const id = this.getElementId();
     const element = this.el.nativeElement;
@@ -380,7 +357,7 @@ export class DraggableResizableDirective implements OnInit, OnDestroy {
       top: element.offsetTop,
       width: element.offsetWidth,
       height: element.offsetHeight,
-      zIndex: 1000,
+      zIndex: 1000
     });
   }
 }

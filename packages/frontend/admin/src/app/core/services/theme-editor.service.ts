@@ -1,171 +1,94 @@
-import { Injectable, inject, signal, computed, effect } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, map, tap } from 'rxjs';
-import { ThemeService } from './theme.service';
+import { Injectable, inject, computed, effect } from '@angular/core';
+import { Observable } from 'rxjs';
+
+import { ThemeService } from './theme/theme.service';
+import { TokenService } from './theme/token.service';
+import { TokenDraftService } from './theme/token-draft.service';
+import { CssApplicationService } from './theme/css-application.service';
 import { TokenNotificationService } from './token-notification.service';
-import { API_ENDPOINTS } from '../constants/api-endpoints';
-
-export interface CssToken {
-  id: string;
-  tokenName: string;
-  tokenCategory: string;
-  tokenType: string;
-  defaultValue: string;
-  lightModeValue: string | null;
-  darkModeValue: string | null;
-  description: string | null;
-  isCustomizable: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface TokenDraft {
-  id: string;
-  tokenName: string;
-  lightModeValue: string | null;
-  darkModeValue: string | null;
-  defaultValue: string;
-  hasChanges: boolean;
-}
-
-export interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message?: string;
-}
-
-export interface PaginatedResponse<T> {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
+import { SYNC_BOTH_MODES_TOKENS, TOKEN_RELATIONSHIPS, TOKEN_GENERATORS } from '../constants/token.constants';
+import { CssToken, TokenDraft } from '../interfaces/theme.interface';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class ThemeEditorService {
-  private http = inject(HttpClient);
   private themeService = inject(ThemeService);
+  private tokenService = inject(TokenService);
+  private tokenDraftService = inject(TokenDraftService);
+  private cssApplicationService = inject(CssApplicationService);
   private tokenNotificationService = inject(TokenNotificationService);
-  private readonly DRAFT_STORAGE_KEY = 'theme-editor-drafts';
 
-  private _tokens = signal<CssToken[]>([]);
-  private _drafts = signal<Map<string, TokenDraft>>(new Map());
-  private _loading = signal(false);
+  tokens = this.tokenService.tokens;
+  loading = this.tokenService.loading;
+  draftCount = this.tokenDraftService.draftCount;
+  hasDrafts = this.tokenDraftService.hasDrafts;
 
-  tokens = this._tokens.asReadonly();
-  loading = this._loading.asReadonly();
+  constructor () {
+    effect(() => {
+      this.themeService.currentTheme();
+      this.applyCurrentTokens();
+    });
+
+    this.tokenNotificationService.tokenUpdated$.subscribe(event => {
+      if (event.source !== 'theme-editor') this.loadTokens().subscribe();
+    });
+  }
 
   tokensByCategory = computed(() => {
-    const tokens = this._tokens();
+    const tokens = this.tokenService.tokens();
     const grouped: Record<string, CssToken[]> = {};
 
-    tokens.forEach((token) => {
-      if (!grouped[token.tokenCategory]) {
-        grouped[token.tokenCategory] = [];
-      }
+    tokens.forEach(token => {
+      if (!grouped[token.tokenCategory]) grouped[token.tokenCategory] = [];
       grouped[token.tokenCategory]!.push(token);
     });
 
     return grouped;
   });
 
-  draftCount = computed(() => {
-    const drafts = this._drafts();
-    return Array.from(drafts.values()).filter((draft) => draft.hasChanges).length;
-  });
-
-  hasDrafts = computed(() => this.draftCount() > 0);
-
-  constructor () {
-    this.loadDraftsFromStorage();
-
-    effect(() => {
-      this.themeService.currentTheme();
-      this.applyCurrentTokens();
-    });
-
-    this.tokenNotificationService.tokenUpdated$.subscribe((event) => {
-      if (event.source !== 'theme-editor') {
-        this.loadTokens().subscribe();
-      }
-    });
-  }
-
   setTokens (tokens: CssToken[]): void {
-    this._tokens.set(tokens);
+    this.tokenService.setTokens(tokens);
     this.applyCurrentTokens();
   }
 
   hasTokens (): boolean {
-    return this._tokens().length > 0;
+    return this.tokenService.hasTokens();
   }
 
   loadTokens (): Observable<CssToken[]> {
-
-    if (this._tokens().length === 0) { this._loading.set(true); }
-
-    const url = API_ENDPOINTS.ADMIN.CRUD('Database Management', 'css_tokens');
-
-    return this.http
-      .get<ApiResponse<PaginatedResponse<CssToken>>>(url, { params: { limit: '1000' } })
-      .pipe(
-        map((response) => {
-          return response.data.data;
-        }),
-        tap((tokens) => {
-          const sortedTokens = [...tokens].sort((a, b) => (a.tokenName > b.tokenName ? 1 : -1));
-          this._tokens.set(sortedTokens);
-          this._loading.set(false);
-          this.applyCurrentTokens();
-        }),
-      );
+    return this.tokenService.loadTokens();
   }
 
   getTokenValue (tokenId: string, mode?: 'light' | 'dark'): string {
-    const draft = this._drafts().get(tokenId);
-    const token = this._tokens().find((t) => t.id === tokenId);
-
+    const draft = this.tokenDraftService.getDraft(tokenId);
+    const token = this.tokenService.getTokenById(tokenId);
     if (!token) return '';
 
     const currentMode = mode || this.getCurrentThemeFromDocument();
+    const source = draft?.hasChanges ? draft : token;
 
-    if (draft && draft.hasChanges) {
-      if (currentMode === 'light' && draft.lightModeValue) return draft.lightModeValue;
-      if (currentMode === 'dark' && draft.darkModeValue) return draft.darkModeValue;
-      return draft.defaultValue;
-    }
-
-    if (currentMode === 'light' && token.lightModeValue) return token.lightModeValue;
-    if (currentMode === 'dark' && token.darkModeValue) return token.darkModeValue;
-    return token.defaultValue;
+    if (currentMode === 'light' && source.lightModeValue) return source.lightModeValue;
+    if (currentMode === 'dark' && source.darkModeValue) return source.darkModeValue;
+    return source.defaultValue;
   }
 
-  updateTokenDraft (
-    tokenId: string,
-    value: string,
-    mode: 'light' | 'dark' | 'default' = 'default',
-  ): void {
-    const token = this._tokens().find((t) => t.id === tokenId);
+  updateTokenDraft (tokenId: string, value: string, mode: 'light' | 'dark' | 'default' = 'default'): void {
+    const token = this.tokenService.getTokenById(tokenId);
     if (!token) return;
 
-    const currentDrafts = this._drafts();
-    const existingDraft = currentDrafts.get(tokenId) || {
+    const existingDraft = this.tokenDraftService.getDraft(tokenId) || {
       id: tokenId,
       tokenName: token.tokenName,
       lightModeValue: token.lightModeValue,
       darkModeValue: token.darkModeValue,
       defaultValue: token.defaultValue,
-      hasChanges: false,
+      hasChanges: false
     };
 
     const updatedDraft = { ...existingDraft };
 
-    const isToggleToken = token.tokenName.includes('toggle');
-    const isButtonToken = token.tokenName.includes('btn-');
-    const shouldUpdateBothModes = isToggleToken || isButtonToken;
+    const shouldUpdateBothModes = SYNC_BOTH_MODES_TOKENS.some(prefix => token.tokenName.includes(prefix));
 
     if (mode === 'light') {
       updatedDraft.lightModeValue = value;
@@ -184,242 +107,134 @@ export class ThemeEditorService {
       updatedDraft.darkModeValue !== token.darkModeValue ||
       updatedDraft.defaultValue !== token.defaultValue;
 
-    const newDrafts = new Map(currentDrafts);
-    if (updatedDraft.hasChanges) {
-      newDrafts.set(tokenId, updatedDraft);
-    } else {
-      newDrafts.delete(tokenId);
-    }
+    this.tokenDraftService.createOrUpdateDraft(updatedDraft);
+    this.cssApplicationService.applyTokenToCSS(token.tokenName, value);
 
-    this._drafts.set(newDrafts);
-    this.saveDraftsToStorage();
-    this.applyTokenToCSS(token.tokenName, value);
-  }
-
-  private applyTokenToCSS (tokenName: string, value: string): void {
-    if (typeof document !== 'undefined') {
-      document.documentElement.style.setProperty(tokenName, value);
-
-      this.applyRelatedTokens(tokenName, value);
-    }
-  }
-
-  private applyRelatedTokens (tokenName: string, value: string): void {
-    const tokenRelationships: Record<string, string[]> = {
-      '--btn-primary-start': ['--btn-primary-hover-start'],
-      '--btn-primary-end': ['--btn-primary-hover-end'],
-      '--btn-secondary-bg': ['--btn-secondary-hover'],
-    };
-
-    const relatedTokenNames = tokenRelationships[tokenName];
-    if (!relatedTokenNames) return;
-
-    const tokens = this._tokens();
-
-    relatedTokenNames.forEach((relatedTokenName) => {
-      const relatedToken = tokens.find((t) => t.tokenName === relatedTokenName);
-
-      if (relatedToken) {
-        const relatedValue = this.getTokenValue(relatedToken.id);
-        if (relatedValue) {
-          document.documentElement.style.setProperty(relatedTokenName, relatedValue);
-        }
-      } else {
-        const generatedValue = this.generateRelatedTokenValue(tokenName, relatedTokenName, value);
-        if (generatedValue) {
-          document.documentElement.style.setProperty(relatedTokenName, generatedValue);
-        }
-      }
-    });
-  }
-
-  private generateRelatedTokenValue (
-    _baseTokenName: string,
-    relatedTokenName: string,
-    baseValue: string,
-  ): string | null {
-    const generationRules: Record<string, (value: string) => string> = {
-      '--btn-primary-hover-start': (value) => this.adjustColor(value, 15),
-      '--btn-primary-hover-end': (value) => this.adjustColor(value, 15),
-      '--btn-secondary-hover': (value) => this.adjustOpacity(value, 0.15),
-    };
-
-    const generator = generationRules[relatedTokenName];
-    return generator ? generator(baseValue) : null;
-  }
-
-  private adjustOpacity (color: string, newOpacity: number): string {
-    if (color.startsWith('rgba(')) {
-      return color.replace(/,\s*[\d.]+\)$/, `, ${newOpacity})`);
-    }
-    if (color.startsWith('rgb(')) {
-      return color.replace('rgb(', 'rgba(').replace(')', `, ${newOpacity})`);
-    }
-    return color;
+    this.updateRelatedTokens(token.tokenName, value, mode);
   }
 
   applyCurrentTokens (): void {
     if (typeof document === 'undefined') return;
 
-    const tokens = this._tokens();
+    const tokens = this.tokenService.tokens();
     const currentMode = this.getCurrentThemeFromDocument();
 
-    tokens.forEach((token) => {
+    tokens.forEach(token => {
       const value = this.getTokenValue(token.id, currentMode);
-      if (value) {
-        document.documentElement.style.setProperty(token.tokenName, value);
-      }
+      if (value) this.cssApplicationService.applyTokenToCSS(token.tokenName, value);
     });
+  }
 
-    tokens.forEach((token) => {
-      const value = this.getTokenValue(token.id, currentMode);
-      if (value) {
-        this.applyRelatedTokens(token.tokenName, value);
-      }
+  publishDrafts (): Observable<boolean> {
+    const drafts = this.tokenDraftService.getAllDraftsForPublish();
+
+    if (drafts.length === 0) {
+      return new Observable(observer => {
+        observer.next(true);
+        observer.complete();
+      });
+    }
+
+    const updateRequests = drafts.map(draft =>
+      this.tokenService
+        .updateToken(draft.id, {
+          lightModeValue: draft.lightModeValue,
+          darkModeValue: draft.darkModeValue,
+          defaultValue: draft.defaultValue
+        })
+        .toPromise()
+    );
+
+    return new Observable(observer => {
+      Promise.all(updateRequests)
+        .then(() => {
+          this.tokenService.loadTokens().subscribe(() => {
+            this.tokenDraftService.clearDrafts();
+            this.tokenNotificationService.notifyTokensUpdated(
+              drafts.map(d => d.id),
+              'theme-editor'
+            );
+            observer.next(true);
+            observer.complete();
+          });
+        })
+        .catch(error => observer.error(error));
     });
+  }
+
+  resetDrafts (): void {
+    this.tokenDraftService.clearDrafts();
+    this.applyCurrentTokens();
+  }
+
+  getDraft (tokenId: string): TokenDraft | null {
+    return this.tokenDraftService.getDraft(tokenId);
+  }
+
+  hasTokenChanges (tokenId: string): boolean {
+    return this.tokenDraftService.hasTokenChanges(tokenId);
+  }
+
+  getTokensByCategory (category: string): CssToken[] {
+    return this.tokenService.getTokensByCategory(category);
+  }
+
+  getCategories (): string[] {
+    return this.tokenService.getCategories();
+  }
+
+  refreshTokens (): Observable<CssToken[]> {
+    return this.tokenService.loadTokens();
+  }
+
+  hasToken (tokenName: string): boolean {
+    return this.tokenService.hasToken(tokenName);
   }
 
   private getCurrentThemeFromDocument (): 'light' | 'dark' {
     return this.themeService.currentTheme();
   }
 
-  private adjustColor (color: string, percent: number): string {
-    if (color.startsWith('#')) {
-      const hex = color.slice(1);
-      const num = parseInt(hex, 16);
-      const r = Math.min(255, Math.floor((num >> 16) + ((255 - (num >> 16)) * percent) / 100));
-      const g = Math.min(
-        255,
-        Math.floor(((num >> 8) & 0x00ff) + ((255 - ((num >> 8) & 0x00ff)) * percent) / 100),
-      );
-      const b = Math.min(
-        255,
-        Math.floor((num & 0x0000ff) + ((255 - (num & 0x0000ff)) * percent) / 100),
-      );
-      return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
-    }
+  private updateRelatedTokens (tokenName: string, value: string, mode: 'light' | 'dark' | 'default'): void {
+    const relatedTokenNames = TOKEN_RELATIONSHIPS[tokenName];
+    if (!relatedTokenNames) return;
 
-    if (color.startsWith('rgb')) {
-      const matches = color.match(/\d+/g);
-      if (matches && matches.length >= 3) {
-        const r = Math.min(
-          255,
-          parseInt(matches[0]) + Math.floor(((255 - parseInt(matches[0])) * percent) / 100),
-        );
-        const g = Math.min(
-          255,
-          parseInt(matches[1]!) + Math.floor(((255 - parseInt(matches[1]!)) * percent) / 100),
-        );
-        const b = Math.min(
-          255,
-          parseInt(matches[2]!) + Math.floor(((255 - parseInt(matches[2]!)) * percent) / 100),
-        );
-        const a = matches[3] ? parseFloat(matches[3]) : 1;
-        return matches.length > 3 ? `rgba(${r}, ${g}, ${b}, ${a})` : `rgb(${r}, ${g}, ${b})`;
+    relatedTokenNames.forEach(relatedTokenName => {
+      const generator = TOKEN_GENERATORS[relatedTokenName];
+      if (!generator) return;
+
+      const generatedValue = generator(value);
+      const relatedToken = this.tokenService.getTokenByName(relatedTokenName);
+      if (!relatedToken) return;
+
+      const existingDraft = this.tokenDraftService.getDraft(relatedToken.id) || {
+        id: relatedToken.id,
+        tokenName: relatedToken.tokenName,
+        lightModeValue: relatedToken.lightModeValue,
+        darkModeValue: relatedToken.darkModeValue,
+        defaultValue: relatedToken.defaultValue,
+        hasChanges: false
+      };
+
+      const updatedDraft = { ...existingDraft };
+
+      if (mode === 'light') {
+        updatedDraft.lightModeValue = generatedValue;
+      } else if (mode === 'dark') {
+        updatedDraft.darkModeValue = generatedValue;
+      } else {
+        updatedDraft.defaultValue = generatedValue;
+        updatedDraft.lightModeValue = generatedValue;
+        updatedDraft.darkModeValue = generatedValue;
       }
-    }
 
-    return color;
-  }
+      updatedDraft.hasChanges =
+        updatedDraft.lightModeValue !== relatedToken.lightModeValue ||
+        updatedDraft.darkModeValue !== relatedToken.darkModeValue ||
+        updatedDraft.defaultValue !== relatedToken.defaultValue;
 
-  publishDrafts (): Observable<boolean> {
-    const drafts = Array.from(this._drafts().values()).filter((draft) => draft.hasChanges);
-
-    if (drafts.length === 0) {
-      return new Observable((observer) => {
-        observer.next(true);
-        observer.complete();
-      });
-    }
-
-    if (this._tokens().length === 0) { this._loading.set(true); }
-
-    const updateRequests = drafts.map((draft) =>
-      this.http.patch<ApiResponse<CssToken>>(
-        API_ENDPOINTS.ADMIN.CRUD_ID('Database Management', 'css_tokens', draft.id),
-        {
-          lightModeValue: draft.lightModeValue,
-          darkModeValue: draft.darkModeValue,
-          defaultValue: draft.defaultValue,
-        },
-      ),
-    );
-
-    return new Observable((observer) => {
-      Promise.all(updateRequests.map((req) => req.toPromise()))
-        .then(() => {
-          this.loadTokens().subscribe(() => {
-            this.clearDrafts();
-            this._loading.set(false);
-
-            const updatedTokenIds = drafts.map((draft) => draft.id);
-            this.tokenNotificationService.notifyTokensUpdated(updatedTokenIds, 'theme-editor');
-
-            observer.next(true);
-            observer.complete();
-          });
-        })
-        .catch((error) => {
-          this._loading.set(false);
-          observer.error(error);
-        });
+      this.tokenDraftService.createOrUpdateDraft(updatedDraft);
+      this.cssApplicationService.applyTokenToCSS(relatedTokenName, generatedValue);
     });
-  }
-
-  resetDrafts (): void {
-    this._drafts.set(new Map());
-    this.saveDraftsToStorage();
-    this.applyCurrentTokens();
-  }
-
-  private clearDrafts (): void {
-    this._drafts.set(new Map());
-    this.saveDraftsToStorage();
-  }
-
-  getDraft (tokenId: string): TokenDraft | null {
-    return this._drafts().get(tokenId) || null;
-  }
-
-  hasTokenChanges (tokenId: string): boolean {
-    const draft = this._drafts().get(tokenId);
-    return draft ? draft.hasChanges : false;
-  }
-
-  private saveDraftsToStorage (): void {
-    if (typeof window !== 'undefined') {
-      const draftsArray = Array.from(this._drafts().entries());
-      localStorage.setItem(this.DRAFT_STORAGE_KEY, JSON.stringify(draftsArray));
-    }
-  }
-
-  private loadDraftsFromStorage (): void {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem(this.DRAFT_STORAGE_KEY);
-
-      const stored = localStorage.getItem(this.DRAFT_STORAGE_KEY);
-      if (stored) {
-        const draftsArray = JSON.parse(stored) as [string, TokenDraft][];
-        this._drafts.set(new Map(draftsArray));
-      }
-    }
-  }
-
-  getTokensByCategory (category: string): CssToken[] {
-    return this._tokens().filter((token) => token.tokenCategory === category);
-  }
-
-  getCategories (): string[] {
-    const tokens = this._tokens();
-    const categories = new Set(tokens.map((token) => token.tokenCategory));
-    return Array.from(categories).sort();
-  }
-
-  refreshTokens (): Observable<CssToken[]> {
-    return this.loadTokens();
-  }
-
-  hasToken (tokenName: string): boolean {
-    return this._tokens().some((token) => token.tokenName === tokenName);
   }
 }

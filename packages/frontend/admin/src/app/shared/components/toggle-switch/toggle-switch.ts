@@ -6,7 +6,7 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './toggle-switch.html',
-  styleUrl: './toggle-switch.css',
+  styleUrl: './toggle-switch.css'
 })
 export class ToggleSwitch {
   @Input() label: string = '';
@@ -19,8 +19,6 @@ export class ToggleSwitch {
   toggleId = `toggle-${Math.random().toString(36).substr(2, 9)}`;
 
   onToggle (): void {
-    if (!this.disabled) {
-      this.toggle.emit(!this.checked);
-    }
+    if (!this.disabled) this.toggle.emit(!this.checked);
   }
 }

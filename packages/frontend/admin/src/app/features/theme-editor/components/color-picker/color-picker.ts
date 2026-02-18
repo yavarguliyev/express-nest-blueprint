@@ -2,11 +2,7 @@ import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-export interface ColorChangeEvent {
-  tokenId: string;
-  value: string;
-  mode: 'light' | 'dark' | 'default';
-}
+import { ColorChangeEvent } from '../../../../core/interfaces/theme.interface';
 
 @Component({
   selector: 'app-color-picker',
@@ -16,44 +12,16 @@ export interface ColorChangeEvent {
     <div class="color-picker">
       <!-- Mode Tabs -->
       <div class="mode-tabs">
-        <button
-          class="mode-tab"
-          [class.active]="selectedMode() === 'default'"
-          (click)="selectMode('default')"
-        >
-          Default
-        </button>
-        <button
-          class="mode-tab"
-          [class.active]="selectedMode() === 'light'"
-          (click)="selectMode('light')"
-        >
-          Light
-        </button>
-        <button
-          class="mode-tab"
-          [class.active]="selectedMode() === 'dark'"
-          (click)="selectMode('dark')"
-        >
-          Dark
-        </button>
+        <button class="mode-tab" [class.active]="selectedMode() === 'default'" (click)="selectMode('default')">Default</button>
+        <button class="mode-tab" [class.active]="selectedMode() === 'light'" (click)="selectMode('light')">Light</button>
+        <button class="mode-tab" [class.active]="selectedMode() === 'dark'" (click)="selectMode('dark')">Dark</button>
       </div>
 
       <!-- Color Input -->
       <div class="color-input-container">
         <div class="color-preview-wrapper">
-          <input
-            type="color"
-            class="color-input"
-            [value]="getCurrentValue()"
-            (input)="onColorChange($event)"
-            [title]="getCurrentValue()"
-          />
-          <div
-            class="color-preview"
-            [style.background-color]="getCurrentValue()"
-            (click)="triggerColorPicker()"
-          ></div>
+          <input type="color" class="color-input" [value]="getCurrentValue()" (input)="onColorChange($event)" [title]="getCurrentValue()" />
+          <div class="color-preview" [style.background-color]="getCurrentValue()" (click)="triggerColorPicker()"></div>
         </div>
 
         <input
@@ -72,12 +40,7 @@ export interface ColorChangeEvent {
         <div class="presets-label">Quick Colors:</div>
         <div class="preset-colors">
           @for (color of colorPresets; track color) {
-            <button
-              class="preset-color"
-              [style.background-color]="color"
-              [title]="color"
-              (click)="selectPresetColor(color)"
-            ></button>
+            <button class="preset-color" [style.background-color]="color" [title]="color" (click)="selectPresetColor(color)"></button>
           }
         </div>
       </div>
@@ -207,8 +170,8 @@ export interface ColorChangeEvent {
         transform: scale(1.1);
         border-color: var(--primary);
       }
-    `,
-  ],
+    `
+  ]
 })
 export class ColorPicker {
   @Input() tokenId!: string;
@@ -236,8 +199,10 @@ export class ColorPicker {
     '#000080',
     '#808080',
     '#c0c0c0',
-    '#800000',
+    '#800000'
   ];
+
+  triggerColorPicker (): void {}
 
   ngOnInit (): void {
     this.selectedMode.set(this.currentMode === 'light' ? 'light' : 'dark');
@@ -286,14 +251,12 @@ export class ColorPicker {
     this.emitChange(color);
   }
 
-  triggerColorPicker (): void {}
-
   private emitChange (color: string): void {
     const mode = this.selectedMode();
     this.valueChange.emit({
       tokenId: this.tokenId,
       value: color,
-      mode: mode === 'default' ? 'default' : mode,
+      mode: mode === 'default' ? 'default' : mode
     });
   }
 

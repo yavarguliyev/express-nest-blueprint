@@ -1,13 +1,14 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
+
 import { Sidebar } from '../sidebar/sidebar';
 import { Topbar } from '../topbar/topbar';
-import { SidebarService } from '../../../core/services/sidebar.service';
-import { DraftStatusBar, DraftStatusConfig } from '../draft-status-bar/draft-status-bar';
-import { LayoutCustomizationService } from '../../../core/services/layout-customization.service';
-import { computed, signal } from '@angular/core';
-import { ToastService } from '../../../core/services/toast.service';
+import { SidebarService } from '../../../core/services/ui/sidebar.service';
+import { DraftStatusBar } from '../draft-status-bar/draft-status-bar';
+import { DraftStatusConfig } from '../../../core/interfaces/theme.interface';
+import { LayoutCustomizationService } from '../../../core/services/ui/layout-customization.service';
+import { ToastService } from '../../../core/services/ui/toast.service';
 
 @Component({
   selector: 'app-layout',
@@ -19,11 +20,7 @@ import { ToastService } from '../../../core/services/toast.service';
       <div class="main-content" [class.sidebar-collapsed]="isCollapsed()">
         <app-topbar></app-topbar>
 
-        <app-draft-status-bar
-          [config]="layoutDraftConfig()"
-          (saveChanges)="saveLayoutChanges()"
-          (resetChanges)="resetLayoutChanges()"
-        >
+        <app-draft-status-bar [config]="layoutDraftConfig()" (saveChanges)="saveLayoutChanges()" (resetChanges)="resetLayoutChanges()">
         </app-draft-status-bar>
 
         <main class="page-container" [class.sidebar-collapsed]="isCollapsed()">
@@ -59,8 +56,8 @@ import { ToastService } from '../../../core/services/toast.service';
       .page-container.sidebar-collapsed {
         padding-left: calc(80px + 40px);
       }
-    `,
-  ],
+    `
+  ]
 })
 export class Layout {
   private sidebarService = inject(SidebarService);
@@ -79,7 +76,7 @@ export class Layout {
     resetButtonText: 'Reset Layout',
     saveButtonText: 'Save Layout',
     resetButtonIcon: 'settings_backup_restore',
-    saveButtonIcon: 'cloud_upload',
+    saveButtonIcon: 'cloud_upload'
   }));
 
   saveLayoutChanges (): void {

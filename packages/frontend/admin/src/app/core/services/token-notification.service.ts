@@ -1,15 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 
-export interface TokenUpdateEvent {
-  tokenIds?: string[];
-  tokenNames?: string[];
-  source: 'theme-editor' | 'database' | 'api';
-  timestamp: number;
-}
+import { TokenUpdateEvent } from '../interfaces/theme.interface';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class TokenNotificationService {
   private tokenUpdateSubject = new Subject<TokenUpdateEvent>();
@@ -19,27 +14,27 @@ export class TokenNotificationService {
   notifyTokenUpdate (event: Omit<TokenUpdateEvent, 'timestamp'>): void {
     this.tokenUpdateSubject.next({
       ...event,
-      timestamp: Date.now(),
+      timestamp: Date.now()
     });
   }
 
   notifyTokensUpdated (tokenIds: string[], source: TokenUpdateEvent['source']): void {
     this.notifyTokenUpdate({
       tokenIds,
-      source,
+      source
     });
   }
 
   notifyTokenNameUpdated (tokenNames: string[], source: TokenUpdateEvent['source']): void {
     this.notifyTokenUpdate({
       tokenNames,
-      source,
+      source
     });
   }
 
   notifyAllTokensUpdated (source: TokenUpdateEvent['source']): void {
     this.notifyTokenUpdate({
-      source,
+      source
     });
   }
 }

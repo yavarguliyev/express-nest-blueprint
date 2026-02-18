@@ -8,6 +8,7 @@ export class LoadingService {
   private readonly loadingSubject = new BehaviorSubject<{ isLoading: boolean; message?: string }>({
     isLoading: false
   });
+
   public readonly state$ = this.loadingSubject.asObservable();
 
   show (message: string = 'Loading...'): void {

@@ -49,7 +49,8 @@ export class SettingsService {
       }
     }
 
-    return this.getAllSettings();
+    const freshSettings = await this.settingsRepository.findAll();
+    return this.transformToResponse(freshSettings);
   }
 
   async isMaintenanceModeEnabled (): Promise<boolean> {

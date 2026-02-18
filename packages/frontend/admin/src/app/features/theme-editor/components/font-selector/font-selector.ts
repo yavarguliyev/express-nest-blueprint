@@ -2,10 +2,7 @@ import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-export interface FontChangeEvent {
-  tokenId: string;
-  value: string;
-}
+import { FontChangeEvent } from '../../../../core/interfaces/theme.interface';
 
 @Component({
   selector: 'app-font-selector',
@@ -44,9 +41,7 @@ export interface FontChangeEvent {
 
       <!-- Font Preview -->
       <div class="font-preview-container">
-        <div class="font-preview-text" [style.font-family]="currentValue">
-          The quick brown fox jumps over the lazy dog
-        </div>
+        <div class="font-preview-text" [style.font-family]="currentValue">The quick brown fox jumps over the lazy dog</div>
         <div class="font-info">
           <span class="font-name">{{ getFontDisplayName() }}</span>
         </div>
@@ -170,8 +165,8 @@ export interface FontChangeEvent {
       .font-dropdown::-webkit-scrollbar-thumb:hover {
         background: var(--text-muted);
       }
-    `,
-  ],
+    `
+  ]
 })
 export class FontSelector {
   @Input() tokenId!: string;
@@ -187,12 +182,12 @@ export class FontSelector {
       fonts: [
         {
           name: 'System Default',
-          value: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+          value: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
         },
         { name: 'San Francisco (macOS)', value: '-apple-system, BlinkMacSystemFont, sans-serif' },
         { name: 'Segoe UI (Windows)', value: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif' },
-        { name: 'Roboto (Android)', value: 'Roboto, "Helvetica Neue", Arial, sans-serif' },
-      ],
+        { name: 'Roboto (Android)', value: 'Roboto, "Helvetica Neue", Arial, sans-serif' }
+      ]
     },
     {
       category: 'Sans Serif',
@@ -202,8 +197,8 @@ export class FontSelector {
         { name: 'Arial', value: 'Arial, sans-serif' },
         { name: 'Verdana', value: 'Verdana, Geneva, sans-serif' },
         { name: 'Trebuchet MS', value: '"Trebuchet MS", Helvetica, sans-serif' },
-        { name: 'Tahoma', value: 'Tahoma, Geneva, sans-serif' },
-      ],
+        { name: 'Tahoma', value: 'Tahoma, Geneva, sans-serif' }
+      ]
     },
     {
       category: 'Serif',
@@ -211,8 +206,8 @@ export class FontSelector {
         { name: 'Times New Roman', value: '"Times New Roman", Times, serif' },
         { name: 'Georgia', value: 'Georgia, "Times New Roman", serif' },
         { name: 'Garamond', value: 'Garamond, "Times New Roman", serif' },
-        { name: 'Book Antiqua', value: '"Book Antiqua", Palatino, serif' },
-      ],
+        { name: 'Book Antiqua', value: '"Book Antiqua", Palatino, serif' }
+      ]
     },
     {
       category: 'Monospace',
@@ -221,8 +216,8 @@ export class FontSelector {
         { name: 'Menlo', value: 'Menlo, Monaco, "Courier New", monospace' },
         { name: 'Consolas', value: 'Consolas, "Courier New", monospace' },
         { name: 'Courier New', value: '"Courier New", Courier, monospace' },
-        { name: 'Source Code Pro', value: '"Source Code Pro", Monaco, monospace' },
-      ],
+        { name: 'Source Code Pro', value: '"Source Code Pro", Monaco, monospace' }
+      ]
     },
     {
       category: 'Google Fonts (Popular)',
@@ -234,9 +229,9 @@ export class FontSelector {
         { name: 'Poppins', value: '"Poppins", sans-serif' },
         { name: 'Nunito', value: '"Nunito", sans-serif' },
         { name: 'Playfair Display', value: '"Playfair Display", serif' },
-        { name: 'Merriweather', value: '"Merriweather", serif' },
-      ],
-    },
+        { name: 'Merriweather', value: '"Merriweather", serif' }
+      ]
+    }
   ];
 
   ngOnInit (): void {
@@ -254,10 +249,7 @@ export class FontSelector {
   onCustomFontChange (event: Event): void {
     const input = event.target as HTMLInputElement;
     const fontValue = input.value.trim();
-
-    if (fontValue) {
-      this.emitChange(fontValue);
-    }
+    if (fontValue) this.emitChange(fontValue);
   }
 
   enableCustomMode (): void {
@@ -269,15 +261,11 @@ export class FontSelector {
   }
 
   getFontDisplayName (): string {
-    if (this.isCustomFont()) {
-      return 'Custom Font';
-    }
+    if (this.isCustomFont()) return 'Custom Font';
 
     for (const group of this.fontGroups) {
-      const font = group.fonts.find((f) => f.value === this.currentValue);
-      if (font) {
-        return font.name;
-      }
+      const font = group.fonts.find(f => f.value === this.currentValue);
+      if (font) return font.name;
     }
 
     return 'Unknown Font';
@@ -288,13 +276,13 @@ export class FontSelector {
   }
 
   private isPredefinedFont (fontValue: string): boolean {
-    return this.fontGroups.some((group) => group.fonts.some((font) => font.value === fontValue));
+    return this.fontGroups.some(group => group.fonts.some(font => font.value === fontValue));
   }
 
   private emitChange (fontValue: string): void {
     this.valueChange.emit({
       tokenId: this.tokenId,
-      value: fontValue,
+      value: fontValue
     });
   }
 }

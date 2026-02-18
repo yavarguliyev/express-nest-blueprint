@@ -1,9 +1,9 @@
 import { Injectable, signal, effect } from '@angular/core';
 
-export type Theme = 'dark' | 'light';
+import { Theme } from '../../enums/theme.enum';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class ThemeService {
   private readonly THEME_KEY = 'admin-theme-preference';
@@ -12,21 +12,11 @@ export class ThemeService {
   currentTheme = this._currentTheme.asReadonly();
 
   constructor () {
-    effect(() => {
-      this.applyTheme(this._currentTheme());
-    });
-  }
-
-  private getInitialTheme (): Theme {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem(this.THEME_KEY) as Theme;
-      if (stored === 'dark' || stored === 'light') return stored;
-    }
-    return 'dark';
+    effect(() => this.applyTheme(this._currentTheme()));
   }
 
   toggleTheme (): void {
-    const newTheme: Theme = this._currentTheme() === 'dark' ? 'light' : 'dark';
+    const newTheme: Theme = this._currentTheme() === Theme.DARK ? Theme.LIGHT : Theme.DARK;
     this.setTheme(newTheme);
   }
 
@@ -36,11 +26,24 @@ export class ThemeService {
   }
 
   isDarkMode (): boolean {
-    return this._currentTheme() === 'dark';
+    return this._currentTheme() === Theme.DARK;
   }
 
   isLightMode (): boolean {
-    return this._currentTheme() === 'light';
+    return this._currentTheme() === Theme.LIGHT;
+  }
+
+  getThemePreference (): Theme {
+    return this._currentTheme();
+  }
+
+  private getInitialTheme (): Theme {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem(this.THEME_KEY);
+      if (stored === Theme.DARK || stored === Theme.LIGHT) return stored as Theme;
+    }
+
+    return Theme.DARK;
   }
 
   private applyTheme (theme: Theme): void {
@@ -52,12 +55,6 @@ export class ThemeService {
   }
 
   private saveToStorage (theme: Theme): void {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(this.THEME_KEY, theme);
-    }
-  }
-
-  getThemePreference (): Theme {
-    return this._currentTheme();
+    if (typeof window !== 'undefined') localStorage.setItem(this.THEME_KEY, theme);
   }
 }

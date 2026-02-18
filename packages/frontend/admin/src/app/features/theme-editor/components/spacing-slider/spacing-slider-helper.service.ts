@@ -1,18 +1,13 @@
 import { Injectable } from '@angular/core';
 
-export interface ParsedValue {
-  number: number;
-  unit: string;
-}
+import { ParsedValue } from '../../../../core/interfaces/theme.interface';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class SpacingSliderHelperService {
   parseValue (value: string): ParsedValue {
-    if (!value || value === '0') {
-      return { number: 0, unit: 'px' };
-    }
+    if (!value || value === '0') return { number: 0, unit: 'px' };
 
     const match = value.match(/^(-?\d*\.?\d+)(.*)$/);
     if (match) {
@@ -74,13 +69,13 @@ export class SpacingSliderHelperService {
 
   getValueType (value: string): string {
     const parsed = this.parseValue(value);
-    
+
     if (parsed.number === 0) return 'None';
     if (parsed.unit === 'px') return 'Fixed';
     if (parsed.unit === 'rem' || parsed.unit === 'em') return 'Relative';
     if (parsed.unit === '%') return 'Percentage';
     if (parsed.unit === 'vh' || parsed.unit === 'vw') return 'Viewport';
-    
+
     return 'Custom';
   }
 
@@ -102,7 +97,7 @@ export class SpacingSliderHelperService {
           { label: 'SM', value: '0.5rem' },
           { label: 'MD', value: '1rem' },
           { label: 'LG', value: '1.5rem' },
-          { label: 'XL', value: '2rem' },
+          { label: 'XL', value: '2rem' }
         ];
       case 'px':
         return [
@@ -111,7 +106,7 @@ export class SpacingSliderHelperService {
           { label: 'SM', value: '8px' },
           { label: 'MD', value: '16px' },
           { label: 'LG', value: '24px' },
-          { label: 'XL', value: '32px' },
+          { label: 'XL', value: '32px' }
         ];
       case '%':
         return [
@@ -119,14 +114,14 @@ export class SpacingSliderHelperService {
           { label: 'Quarter', value: '25%' },
           { label: 'Half', value: '50%' },
           { label: 'Three Quarters', value: '75%' },
-          { label: 'Full', value: '100%' },
+          { label: 'Full', value: '100%' }
         ];
       default:
         return [
           { label: 'None', value: '0' },
           { label: 'Small', value: `2${unit}` },
           { label: 'Medium', value: `4${unit}` },
-          { label: 'Large', value: `8${unit}` },
+          { label: 'Large', value: `8${unit}` }
         ];
     }
   }

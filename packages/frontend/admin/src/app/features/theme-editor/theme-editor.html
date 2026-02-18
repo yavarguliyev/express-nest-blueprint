@@ -9,7 +9,7 @@
     <div class="header-actions" appDraggableResizable="theme-editor-header-actions">
       <!-- Redesigned Minimalist Theme Toggle -->
       <div class="theme-mode-toggle minimalist">
-        <app-toggle-switch [checked]="isDarkMode()" (toggleChange)="toggleTheme()" size="small">
+        <app-toggle-switch [checked]="isDarkMode()" (toggle)="toggleTheme()" size="small">
         </app-toggle-switch>
       </div>
 

@@ -1,6 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Toast as ToastInterface, ToastService } from '../../../core/services/toast.service';
+
+import { ToastService } from '../../../core/services/ui/toast.service';
+import { Toast as ToastInterface } from '../../../core/interfaces/common.interface';
 
 @Component({
   selector: 'app-toast',
@@ -9,10 +11,7 @@ import { Toast as ToastInterface, ToastService } from '../../../core/services/to
   template: `
     <div class="toast-container">
       <div *ngFor="let toast of toastService.toasts()" class="toast glass" [ngClass]="toast.type">
-        <div
-          class="toast-content"
-          (click)="toast.type !== 'confirm' && toastService.remove(toast.id)"
-        >
+        <div class="toast-content" (click)="toast.type !== 'confirm' && toastService.remove(toast.id)">
           <span class="material-icons toast-icon">
             {{ getIcon(toast.type) }}
           </span>
@@ -151,8 +150,8 @@ import { Toast as ToastInterface, ToastService } from '../../../core/services/to
       .toast-close span {
         font-size: 18px;
       }
-    `,
-  ],
+    `
+  ]
 })
 export class Toast {
   toastService = inject(ToastService);

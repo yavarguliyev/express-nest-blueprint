@@ -2,23 +2,17 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthService } from '../../core/services/auth.service';
 
-interface ErrorResponse {
-  error?: {
-    message?: string;
-  };
-  message?: string;
-}
-
+import { AuthService } from '../../core/services/auth/auth.service';
 import { PasswordInput } from '../../shared/components/password-input/password-input';
+import { ErrorResponse } from '../../core/interfaces/common.interface';
 
 @Component({
   selector: 'app-login',
   standalone: true,
   imports: [CommonModule, FormsModule, PasswordInput],
   templateUrl: './login.html',
-  styleUrl: './login.css',
+  styleUrl: './login.css'
 })
 export class Login {
   private authService = inject(AuthService);
@@ -34,7 +28,7 @@ export class Login {
     this.error.set('');
 
     this.authService.login({ email: this.email, password: this.password }).subscribe({
-      next: (res) => {
+      next: res => {
         if (res.success) {
           this.authService
             .syncProfile()
@@ -52,7 +46,7 @@ export class Login {
       error: (err: ErrorResponse) => {
         this.error.set(err.error?.message || err.message || 'An error occurred during login.');
         this.loading.set(false);
-      },
+      }
     });
   }
 }

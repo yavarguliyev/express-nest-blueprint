@@ -2,33 +2,13 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap, firstValueFrom } from 'rxjs';
-import { LoadingService } from './loading.service';
-import { API_ENDPOINTS } from '../constants/api-endpoints';
 
-export interface User {
-  id: number;
-  email: string;
-  role: string;
-  firstName?: string;
-  lastName?: string;
-  profileImageUrl?: string;
-}
-
-export interface AuthResponse {
-  success: boolean;
-  data: {
-    accessToken: string;
-    user: User;
-  };
-}
-
-export interface LoginCredentials {
-  email: string;
-  password: string;
-}
+import { LoadingService } from '../loading.service';
+import { API_ENDPOINTS } from '../../constants/api.constants';
+import { User, AuthResponse, LoginCredentials } from '../../interfaces/auth.interface';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class AuthService {
   private http = inject(HttpClient);
@@ -39,13 +19,13 @@ export class AuthService {
 
   login (credentials: LoginCredentials): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(API_ENDPOINTS.AUTH.LOGIN, credentials).pipe(
-      tap((response) => {
+      tap(response => {
         if (response.success && response.data.accessToken) {
           localStorage.setItem('admin_token', response.data.accessToken);
           localStorage.setItem('admin_user', JSON.stringify(response.data.user));
           this.currentUser.set(response.data.user);
         }
-      }),
+      })
     );
   }
 
@@ -79,12 +59,8 @@ export class AuthService {
   }
 
   async syncProfile (): Promise<void> {
-    const response = await firstValueFrom(
-      this.http.get<{ data?: User } | User>(`${API_ENDPOINTS.AUTH.PROFILE}?t=${Date.now()}`),
-    );
-
+    const response = await firstValueFrom(this.http.get<{ data?: User } | User>(`${API_ENDPOINTS.AUTH.PROFILE}?t=${Date.now()}`));
     const userData = this.isUserResponse(response) ? response : (response as { data: User }).data;
-
     this.updateCurrentUser(userData);
   }
 
@@ -95,8 +71,8 @@ export class AuthService {
   async uploadAvatar (file: File): Promise<void> {
     const formData = new FormData();
     formData.append('file', file);
-
     this.loadingService.show('Uploading avatar...');
+
     try {
       await firstValueFrom(this.http.post(API_ENDPOINTS.AUTH.UPLOAD_AVATAR, formData));
       await this.syncProfile();
@@ -107,6 +83,7 @@ export class AuthService {
 
   async deleteAvatar (): Promise<void> {
     this.loadingService.show('Removing avatar...');
+
     try {
       await firstValueFrom(this.http.delete(API_ENDPOINTS.AUTH.DELETE_AVATAR));
       await this.syncProfile();

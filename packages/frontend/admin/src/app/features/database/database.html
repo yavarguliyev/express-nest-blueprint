@@ -8,7 +8,7 @@
       <app-toggle-switch
         [label]="'GraphQL Mode'"
         [checked]="useGraphQL()"
-        (toggle)="useGraphQL.set($event); refreshSchema()"
+        (toggle)="onGraphQLToggle($event)"
         style="margin-right: 1.5rem; transform: scale(0.9);"
       ></app-toggle-switch>
       <button class="btn btn-primary" (click)="refreshSchema()" [disabled]="loadingSchema()" title="Force fresh schema" appDraggableResizable="database-refresh-schema-btn">
@@ -267,7 +267,7 @@
                 <app-toggle-switch
                   [checked]="$any(updateFormData()[col.name])"
                   [disabled]="isFieldDisabled(col.name)"
-                  (toggleChange)="updateFormField(col.name, $event)">
+                  (toggle)="updateFormField(col.name, $event)">
                 </app-toggle-switch>
                 <span class="toggle-status-text">{{ updateFormData()[col.name] ? 'Enabled' : 'Disabled' }}</span>
               </div>

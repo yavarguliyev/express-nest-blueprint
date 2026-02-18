@@ -1,42 +1,33 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ThemeEditorService, CssToken } from '../../core/services/theme-editor.service';
-import { ThemeService } from '../../core/services/theme.service';
-import { ToastService } from '../../core/services/toast.service';
+
+import { ThemeEditorService } from '../../core/services/theme-editor.service';
+import { CssToken } from '../../core/interfaces/theme.interface';
+import { ThemeService } from '../../core/services/theme/theme.service';
+import { ToastService } from '../../core/services/ui/toast.service';
 import { ThemeSidebarService } from '../../core/services/theme-sidebar.service';
 import { ToggleSwitch } from '../../shared/components/toggle-switch/toggle-switch';
 import { ColorPicker } from './components/color-picker/color-picker';
 import { FontSelector } from './components/font-selector/font-selector';
 import { SpacingSlider } from './components/spacing-slider/spacing-slider';
-import {
-  DraftStatusBar,
-  DraftStatusConfig,
-} from '../../shared/components/draft-status-bar/draft-status-bar';
+import { DraftStatusBar } from '../../shared/components/draft-status-bar/draft-status-bar';
+import { DraftStatusConfig } from '../../core/interfaces/theme.interface';
 import { DraggableResizableDirective } from '../../shared/directives/draggable-resizable.directive';
 
 @Component({
   selector: 'app-theme-editor',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    ToggleSwitch,
-    ColorPicker,
-    FontSelector,
-    SpacingSlider,
-    DraftStatusBar,
-    DraggableResizableDirective,
-  ],
+  imports: [CommonModule, FormsModule, ToggleSwitch, ColorPicker, FontSelector, SpacingSlider, DraftStatusBar, DraggableResizableDirective],
   templateUrl: './theme-editor.html',
-  styleUrl: './theme-editor.css',
+  styleUrl: './theme-editor.css'
 })
 export class ThemeEditor implements OnInit {
-  themeEditorService = inject(ThemeEditorService);
   private themeService = inject(ThemeService);
   private toastService = inject(ToastService);
-  themeSidebarService = inject(ThemeSidebarService);
 
+  themeEditorService = inject(ThemeEditorService);
+  themeSidebarService = inject(ThemeSidebarService);
   tokens = this.themeEditorService.tokens;
   loading = this.themeEditorService.loading;
   currentTheme = this.themeService.currentTheme;
@@ -58,7 +49,7 @@ export class ThemeEditor implements OnInit {
     resetButtonText: 'Reset',
     saveButtonText: 'Publish Changes',
     resetButtonIcon: 'refresh',
-    saveButtonIcon: 'publish',
+    saveButtonIcon: 'publish'
   }));
 
   currentCategoryTokens = computed(() => {
@@ -67,13 +58,10 @@ export class ThemeEditor implements OnInit {
   });
 
   ngOnInit (): void {
-    if (!this.themeEditorService.hasTokens()) {
-      this.loadTokens();
-    } else {
+    if (!this.themeEditorService.hasTokens()) this.loadTokens();
+    else {
       const categories = this.categories();
-      if (categories.length > 0 && categories[0]) {
-        this.selectedCategory.set(categories[0]);
-      }
+      if (categories.length > 0 && categories[0]) this.selectedCategory.set(categories[0]);
     }
   }
 
@@ -87,7 +75,7 @@ export class ThemeEditor implements OnInit {
       },
       error: () => {
         this.toastService.error('Failed to load theme tokens');
-      },
+      }
     });
   }
 
@@ -108,14 +96,10 @@ export class ThemeEditor implements OnInit {
   }
 
   togglePreview (): void {
-    this.showPreview.update((current) => !current);
+    this.showPreview.update(current => !current);
   }
 
-  onTokenChange (
-    tokenId: string,
-    value: string,
-    mode: 'light' | 'dark' | 'default' = 'default',
-  ): void {
+  onTokenChange (tokenId: string, value: string, mode: 'light' | 'dark' | 'default' = 'default'): void {
     this.themeEditorService.updateTokenDraft(tokenId, value, mode);
   }
 
@@ -129,12 +113,12 @@ export class ThemeEditor implements OnInit {
 
   hasChangesInCategory (category: string): boolean {
     const tokens = this.themeEditorService.getTokensByCategory(category);
-    return tokens.some((token) => this.hasTokenChanges(token.id));
+    return tokens.some(token => this.hasTokenChanges(token.id));
   }
 
   getAffectedCategories (): string[] {
     const categories = this.categories();
-    return categories.filter((category) => this.hasChangesInCategory(category));
+    return categories.filter(category => this.hasChangesInCategory(category));
   }
 
   publishChanges (): void {
@@ -153,7 +137,7 @@ export class ThemeEditor implements OnInit {
       error: () => {
         this.isPublishing.set(false);
         this.toastService.error('Failed to publish theme changes');
-      },
+      }
     });
   }
 
@@ -163,13 +147,10 @@ export class ThemeEditor implements OnInit {
       return;
     }
 
-    this.toastService.confirm(
-      `Reset all ${this.draftCount()} unsaved changes? This cannot be undone.`,
-      () => {
-        this.themeEditorService.resetDrafts();
-        this.toastService.success('All changes have been reset');
-      },
-    );
+    this.toastService.confirm(`Reset all ${this.draftCount()} unsaved changes? This cannot be undone.`, () => {
+      this.themeEditorService.resetDrafts();
+      this.toastService.success('All changes have been reset');
+    });
   }
 
   getCategoryDisplayName (category: string): string {
@@ -179,7 +160,7 @@ export class ThemeEditor implements OnInit {
       typography: 'Typography',
       borders: 'Borders',
       shadows: 'Shadows',
-      gradients: 'Gradients',
+      gradients: 'Gradients'
     };
     return displayNames[category] || category.charAt(0).toUpperCase() + category.slice(1);
   }
@@ -191,7 +172,7 @@ export class ThemeEditor implements OnInit {
       typography: '🔤',
       borders: '⬜',
       shadows: '🌫️',
-      gradients: '🌈',
+      gradients: '🌈'
     };
     return icons[category] || '⚙️';
   }

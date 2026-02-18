@@ -1,15 +1,9 @@
 import { Injectable } from '@angular/core';
 
-export interface ColumnStyleConfig {
-  headerClass: string;
-  cellClass: string;
-  alignment: 'left' | 'center' | 'right';
-  width?: string;
-  minWidth?: string;
-}
+import { ColumnStyleConfig } from '../../interfaces/common.interface';
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class TableStyleService {
   private readonly typeStyles: Record<string, ColumnStyleConfig> = {
@@ -18,55 +12,55 @@ export class TableStyleService {
       cellClass: 'cell-boolean',
       alignment: 'center',
       width: '100px',
-      minWidth: '80px',
+      minWidth: '80px'
     },
     number: {
       headerClass: 'header-number',
       cellClass: 'cell-number',
       alignment: 'right',
       width: '120px',
-      minWidth: '100px',
+      minWidth: '100px'
     },
     integer: {
       headerClass: 'header-number',
       cellClass: 'cell-number',
       alignment: 'right',
       width: '120px',
-      minWidth: '100px',
+      minWidth: '100px'
     },
     string: {
       headerClass: 'header-text',
       cellClass: 'cell-text',
       alignment: 'left',
-      minWidth: '150px',
+      minWidth: '150px'
     },
     text: {
       headerClass: 'header-text',
       cellClass: 'cell-text',
       alignment: 'left',
-      minWidth: '200px',
+      minWidth: '200px'
     },
     email: {
       headerClass: 'header-email',
       cellClass: 'cell-email',
       alignment: 'left',
       width: '250px',
-      minWidth: '200px',
+      minWidth: '200px'
     },
     date: {
       headerClass: 'header-date',
       cellClass: 'cell-date',
       alignment: 'center',
       width: '140px',
-      minWidth: '120px',
+      minWidth: '120px'
     },
     datetime: {
       headerClass: 'header-date',
       cellClass: 'cell-date',
       alignment: 'center',
       width: '180px',
-      minWidth: '160px',
-    },
+      minWidth: '160px'
+    }
   };
 
   private readonly nameStyles: Record<string, ColumnStyleConfig> = {
@@ -75,45 +69,40 @@ export class TableStyleService {
       cellClass: 'cell-id',
       alignment: 'center',
       width: '80px',
-      minWidth: '60px',
+      minWidth: '60px'
     },
     email: {
       headerClass: 'header-email',
       cellClass: 'cell-email',
       alignment: 'left',
       width: '250px',
-      minWidth: '200px',
+      minWidth: '200px'
     },
     profileImageUrl: {
       headerClass: 'header-image',
       cellClass: 'cell-image',
       alignment: 'center',
       width: '120px',
-      minWidth: '100px',
+      minWidth: '100px'
     },
     actions: {
       headerClass: 'header-actions',
       cellClass: 'cell-actions',
       alignment: 'right',
       width: '120px',
-      minWidth: '100px',
-    },
+      minWidth: '100px'
+    }
   };
 
   getColumnStyle (columnName: string, columnType: string): ColumnStyleConfig {
-    if (this.nameStyles[columnName]) {
-      return this.nameStyles[columnName];
-    }
-
-    if (this.typeStyles[columnType]) {
-      return this.typeStyles[columnType];
-    }
+    if (this.nameStyles[columnName]) return this.nameStyles[columnName];
+    if (this.typeStyles[columnType]) return this.typeStyles[columnType];
 
     return {
       headerClass: 'header-default',
       cellClass: 'cell-default',
       alignment: 'left',
-      minWidth: '120px',
+      minWidth: '120px'
     };
   }
 
@@ -130,14 +119,8 @@ export class TableStyleService {
   getColumnStyles (columnName: string, columnType: string): Record<string, string> {
     const style = this.getColumnStyle(columnName, columnType);
     const styles: Record<string, string> = {};
-
-    if (style.width) {
-      styles['width'] = style.width;
-    }
-    if (style.minWidth) {
-      styles['min-width'] = style.minWidth;
-    }
-
+    if (style.width) styles['width'] = style.width;
+    if (style.minWidth) styles['min-width'] = style.minWidth;
     return styles;
   }
 

@@ -56,7 +56,7 @@
             </div>
             <div class="comp-status">
               <span class="status-badge" [ngClass]="comp.status">
-                {{ comp.status === 'up' ? 'Healthy' : 'Failure' }}
+                {{ comp.status === 'healthy' ? 'Healthy' : (comp.status === 'degraded' ? 'Degraded' : 'Failure') }}
               </span>
             </div>
           </div>
