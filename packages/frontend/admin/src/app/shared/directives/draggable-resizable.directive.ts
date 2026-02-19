@@ -12,12 +12,16 @@ export class DraggableResizableDirective implements OnInit, OnDestroy {
   @Input() appDraggableResizable: string = '';
 
   private el: ElementRef<HTMLElement> = inject(ElementRef) as ElementRef<HTMLElement>;
+  private handles: HTMLElement[] = [];
   private renderer = inject(Renderer2);
   private authService = inject(AuthService);
   private layoutService = inject(LayoutCustomizationService);
 
   private isDragging = false;
   private isResizing = false;
+  private isGlobalAdmin = false;
+  private isActivated = false;
+
   private startX = 0;
   private startY = 0;
   private startWidth = 0;
@@ -25,11 +29,6 @@ export class DraggableResizableDirective implements OnInit, OnDestroy {
   private startLeft = 0;
   private startTop = 0;
   private currentHandle: string | null = null;
-
-  private isGlobalAdmin = false;
-  private isActivated = false;
-
-  private handles: HTMLElement[] = [];
 
   constructor () {
     effect(() => {
@@ -77,18 +76,8 @@ export class DraggableResizableDirective implements OnInit, OnDestroy {
   @HostListener('click', ['$event'])
   onClick (event: MouseEvent): void {
     if (!this.isGlobalAdmin) return;
-
     const target = event.target as HTMLElement;
-    if (
-      target.tagName === 'BUTTON' ||
-      target.tagName === 'INPUT' ||
-      target.tagName === 'SELECT' ||
-      target.tagName === 'A' ||
-      target.tagName === 'LABEL'
-    ) {
-      return;
-    }
-
+    if (['BUTTON', 'INPUT', 'SELECT', 'A', 'LABEL'].includes(target.tagName)) return;
     if (this.isActivated) event.stopPropagation();
   }
 
@@ -104,51 +93,46 @@ export class DraggableResizableDirective implements OnInit, OnDestroy {
   onMouseDown (event: MouseEvent): void {
     if (!this.isGlobalAdmin) return;
     if (event.button !== 0) return;
-
     if (this.isActivated) {
       event.stopPropagation();
-
       const target = event.target as HTMLElement;
       if (target.tagName === 'BUTTON' || target.tagName === 'INPUT' || target.tagName === 'SELECT' || target.tagName === 'A') return;
       if (target.classList.contains('drag-handle') || target.classList.contains('deactivate-btn')) return;
-
       this.onDragStart(event);
     }
   }
 
   @HostListener('document:mousemove', ['$event'])
   onMouseMove (event: MouseEvent): void {
-    if (this.isDragging) {
-      const dx = event.clientX - this.startX;
-      const dy = event.clientY - this.startY;
-      this.renderer.setStyle(this.el.nativeElement, 'left', `${this.startLeft + dx}px`);
-      this.renderer.setStyle(this.el.nativeElement, 'top', `${this.startTop + dy}px`);
-    } else if (this.isResizing) {
-      const dx = event.clientX - this.startX;
-      const dy = event.clientY - this.startY;
+    if (!this.isDragging && !this.isResizing) return;
+    const dx = event.clientX - this.startX;
+    const dy = event.clientY - this.startY;
+    if (this.isDragging) this.handleDrag(dx, dy);
+    else if (this.isResizing && this.currentHandle) this.handleResize(dx, dy, this.currentHandle);
+  }
 
-      switch (this.currentHandle) {
-        case 'br':
-          this.renderer.setStyle(this.el.nativeElement, 'width', `${this.startWidth + dx}px`);
-          this.renderer.setStyle(this.el.nativeElement, 'height', `${this.startHeight + dy}px`);
-          break;
-        case 'tr':
-          this.renderer.setStyle(this.el.nativeElement, 'width', `${this.startWidth + dx}px`);
-          this.renderer.setStyle(this.el.nativeElement, 'height', `${this.startHeight - dy}px`);
-          this.renderer.setStyle(this.el.nativeElement, 'top', `${this.startTop + dy}px`);
-          break;
-        case 'bl':
-          this.renderer.setStyle(this.el.nativeElement, 'width', `${this.startWidth - dx}px`);
-          this.renderer.setStyle(this.el.nativeElement, 'height', `${this.startHeight + dy}px`);
-          this.renderer.setStyle(this.el.nativeElement, 'left', `${this.startLeft + dx}px`);
-          break;
-        case 'tl':
-          this.renderer.setStyle(this.el.nativeElement, 'width', `${this.startWidth - dx}px`);
-          this.renderer.setStyle(this.el.nativeElement, 'height', `${this.startHeight - dy}px`);
-          this.renderer.setStyle(this.el.nativeElement, 'left', `${this.startLeft + dx}px`);
-          this.renderer.setStyle(this.el.nativeElement, 'top', `${this.startTop + dy}px`);
-          break;
-      }
+  private handleDrag (dx: number, dy: number): void {
+    this.applyStyles({ left: this.startLeft + dx, top: this.startTop + dy });
+  }
+
+  private handleResize (dx: number, dy: number, handle: string): void {
+    const leftFactor = handle.includes('l') ? 1 : 0;
+    const rightFactor = handle.includes('r') ? 1 : 0;
+    const topFactor = handle.includes('t') ? 1 : 0;
+    const bottomFactor = handle.includes('b') ? 1 : 0;
+
+    this.applyStyles({
+      width: this.startWidth + dx * rightFactor - dx * leftFactor,
+      height: this.startHeight + dy * bottomFactor - dy * topFactor,
+      left: this.startLeft + dx * leftFactor,
+      top: this.startTop + dy * topFactor
+    });
+  }
+
+  private applyStyles (styles: Partial<Record<'width' | 'height' | 'left' | 'top', number>>): void {
+    const el = this.el.nativeElement;
+    for (const [key, value] of Object.entries(styles)) {
+      this.renderer.setStyle(el, key, `${value}px`);
     }
   }
 
@@ -201,7 +185,6 @@ export class DraggableResizableDirective implements OnInit, OnDestroy {
     this.renderer.removeStyle(element, 'overflow');
     this.renderer.removeStyle(element, 'outline');
     this.removeHandles();
-    this.removeDeactivateButton();
   }
 
   private createDeactivateButton (): void {
@@ -260,8 +243,6 @@ export class DraggableResizableDirective implements OnInit, OnDestroy {
     this.renderer.appendChild(this.el.nativeElement, button);
     this.handles.push(button);
   }
-
-  private removeDeactivateButton (): void {}
 
   private createHandles (): void {
     const positions = ['tl', 'tr', 'bl', 'br'];

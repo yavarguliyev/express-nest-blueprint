@@ -18,6 +18,8 @@ services:
   redis-node-1:
     container_name: redis_node_1
     image: redis:7-alpine
+    ports:
+      - "6379:6379"
     command: redis-server --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000 --appendonly yes --requirepass ${REDIS_PASSWORD} --masterauth ${REDIS_PASSWORD}
     env_file:
       - .env
