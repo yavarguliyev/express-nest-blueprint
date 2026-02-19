@@ -14,6 +14,7 @@ import { SpacingSlider } from './components/spacing-slider/spacing-slider';
 import { DraftStatusBar } from '../../shared/components/draft-status-bar/draft-status-bar';
 import { DraftStatusConfig } from '../../core/interfaces/theme.interface';
 import { DraggableResizableDirective } from '../../shared/directives/draggable-resizable.directive';
+import { CATEGORY_DISPLAY_NAMES, CATEGORY_ICONS } from '../../core/constants/token.constants';
 
 @Component({
   selector: 'app-theme-editor',
@@ -39,7 +40,6 @@ export class ThemeEditor implements OnInit {
   showPreview = signal(true);
   isPublishing = signal(false);
   categories = computed(() => this.themeEditorService.getCategories());
-
   draftStatusConfig = computed<DraftStatusConfig>(() => ({
     draftCount: this.draftCount(),
     hasDrafts: this.hasDrafts(),
@@ -51,50 +51,37 @@ export class ThemeEditor implements OnInit {
     resetButtonIcon: 'refresh',
     saveButtonIcon: 'publish'
   }));
-
-  currentCategoryTokens = computed(() => {
-    const category = this.selectedCategory();
-    return this.themeEditorService.getTokensByCategory(category);
-  });
+  currentCategoryTokens = computed(() => this.themeEditorService.getTokensByCategory(this.selectedCategory()));
 
   ngOnInit (): void {
     if (!this.themeEditorService.hasTokens()) this.loadTokens();
-    else {
-      const categories = this.categories();
-      if (categories.length > 0 && categories[0]) this.selectedCategory.set(categories[0]);
-    }
+    else this.selectFirstCategory();
   }
 
   loadTokens (): void {
     this.themeEditorService.loadTokens().subscribe({
-      next: () => {
-        const categories = this.categories();
-        if (categories.length > 0 && categories[0]) {
-          this.selectedCategory.set(categories[0]);
-        }
-      },
-      error: () => {
-        this.toastService.error('Failed to load theme tokens');
-      }
+      next: () => this.selectFirstCategory(),
+      error: () => this.toastService.error('Failed to load theme tokens')
     });
+  }
+
+  private selectFirstCategory (): void {
+    const firstCategory = this.categories()[0];
+    if (firstCategory) this.selectedCategory.set(firstCategory);
   }
 
   selectCategory (category: string): void {
     this.selectedCategory.set(category);
   }
-
   toggleThemeSidebar (): void {
     this.themeSidebarService.toggle();
   }
-
   isDarkMode (): boolean {
     return this.themeService.isDarkMode();
   }
-
   toggleTheme (): void {
     this.themeService.toggleTheme();
   }
-
   togglePreview (): void {
     this.showPreview.update(current => !current);
   }
@@ -112,23 +99,17 @@ export class ThemeEditor implements OnInit {
   }
 
   hasChangesInCategory (category: string): boolean {
-    const tokens = this.themeEditorService.getTokensByCategory(category);
-    return tokens.some(token => this.hasTokenChanges(token.id));
+    return this.themeEditorService.getTokensByCategory(category).some(token => this.hasTokenChanges(token.id));
   }
 
   getAffectedCategories (): string[] {
-    const categories = this.categories();
-    return categories.filter(category => this.hasChangesInCategory(category));
+    return this.categories().filter(category => this.hasChangesInCategory(category));
   }
 
   publishChanges (): void {
-    if (!this.hasDrafts()) {
-      this.toastService.info('No changes to publish');
-      return;
-    }
+    if (!this.hasDrafts()) return this.toastService.info('No changes to publish');
 
     this.isPublishing.set(true);
-
     this.themeEditorService.publishDrafts().subscribe({
       next: () => {
         this.isPublishing.set(false);
@@ -142,10 +123,7 @@ export class ThemeEditor implements OnInit {
   }
 
   resetChanges (): void {
-    if (!this.hasDrafts()) {
-      this.toastService.info('No changes to reset');
-      return;
-    }
+    if (!this.hasDrafts()) return this.toastService.info('No changes to reset');
 
     this.toastService.confirm(`Reset all ${this.draftCount()} unsaved changes? This cannot be undone.`, () => {
       this.themeEditorService.resetDrafts();
@@ -154,45 +132,17 @@ export class ThemeEditor implements OnInit {
   }
 
   getCategoryDisplayName (category: string): string {
-    const displayNames: Record<string, string> = {
-      colors: 'Colors',
-      spacing: 'Spacing',
-      typography: 'Typography',
-      borders: 'Borders',
-      shadows: 'Shadows',
-      gradients: 'Gradients'
-    };
-    return displayNames[category] || category.charAt(0).toUpperCase() + category.slice(1);
+    return CATEGORY_DISPLAY_NAMES[category] || category.charAt(0).toUpperCase() + category.slice(1);
   }
 
   getCategoryIcon (category: string): string {
-    const icons: Record<string, string> = {
-      colors: '🎨',
-      spacing: '📏',
-      typography: '🔤',
-      borders: '⬜',
-      shadows: '🌫️',
-      gradients: '🌈'
-    };
-    return icons[category] || '⚙️';
-  }
-
-  isColorToken (token: CssToken): boolean {
-    return token.tokenType === 'color' || token.tokenCategory === 'colors';
-  }
-
-  isFontToken (token: CssToken): boolean {
-    return token.tokenType === 'font' || token.tokenCategory === 'typography';
-  }
-
-  isSpacingToken (token: CssToken): boolean {
-    return token.tokenType === 'size' || token.tokenCategory === 'spacing';
+    return CATEGORY_ICONS[category] || '⚙️';
   }
 
   getTokenInputType (token: CssToken): 'color' | 'font' | 'spacing' | 'text' {
-    if (this.isColorToken(token)) return 'color';
-    if (this.isFontToken(token)) return 'font';
-    if (this.isSpacingToken(token)) return 'spacing';
+    if (token.tokenType === 'color' || token.tokenCategory === 'colors') return 'color';
+    if (token.tokenType === 'font' || token.tokenCategory === 'typography') return 'font';
+    if (token.tokenType === 'size' || token.tokenCategory === 'spacing') return 'spacing';
     return 'text';
   }
 }

@@ -10,6 +10,7 @@ import { ToastService } from '../../core/services/ui/toast.service';
 import { SettingsService } from '../../core/services/utilities/settings.service';
 import { SettingItem, SettingsUpdateRequest } from '../../core/interfaces/common.interface';
 import { DraggableResizableDirective } from '../../shared/directives/draggable-resizable.directive';
+import { SettingsChangeDetector } from './settings-change-detector.util';
 
 @Component({
   selector: 'app-settings',
@@ -26,40 +27,9 @@ export class Settings implements OnInit {
   originalSettings = signal<SettingItem[]>([]);
   loading = signal(false);
 
-  hasChanges = computed(() => {
-    const current = this.settings();
-    const original = this.originalSettings();
-
-    if (current.length !== original.length) return false;
-
-    return current.some(setting => {
-      const originalSetting = original.find(orig => orig.id === setting.id);
-      return originalSetting && (originalSetting.value !== setting.value || originalSetting.isActive !== setting.isActive);
-    });
-  });
-
-  changedCount = computed(() => {
-    const current = this.settings();
-    const original = this.originalSettings();
-
-    return current.filter(setting => {
-      const originalSetting = original.find(orig => orig.id === setting.id);
-      return originalSetting && (originalSetting.value !== setting.value || originalSetting.isActive !== setting.isActive);
-    }).length;
-  });
-
-  changedSettings = computed(() => {
-    const current = this.settings();
-    const original = this.originalSettings();
-
-    return current
-      .filter(setting => {
-        const originalSetting = original.find(orig => orig.id === setting.id);
-        return originalSetting && (originalSetting.value !== setting.value || originalSetting.isActive !== setting.isActive);
-      })
-      .map(setting => setting.label);
-  });
-
+  hasChanges = computed(() => SettingsChangeDetector.hasChanges(this.settings(), this.originalSettings()));
+  changedCount = computed(() => SettingsChangeDetector.getChangedCount(this.settings(), this.originalSettings()));
+  changedSettings = computed(() => SettingsChangeDetector.getChangedSettings(this.settings(), this.originalSettings()));
   draftStatusConfig = computed<DraftStatusConfig>(() => ({
     draftCount: this.changedCount(),
     hasDrafts: this.hasChanges(),
@@ -93,7 +63,7 @@ export class Settings implements OnInit {
     }
 
     void this.toastService.confirm(`Reset all ${this.changedCount()} unsaved changes? This cannot be undone.`, () => {
-      this.settings.set(JSON.parse(JSON.stringify(this.originalSettings())) as SettingItem[]);
+      this.settings.set(SettingsChangeDetector.cloneSettings(this.originalSettings()));
       void this.toastService.success('All changes have been reset');
     });
   }
@@ -102,12 +72,9 @@ export class Settings implements OnInit {
     try {
       this.loading.set(true);
       const response = await firstValueFrom(this.settingsService.refreshSettings());
-
-      const allowedSettings = ['maintenance_mode', 'debug_logging', 'allow_registration', 'enforce_mfa'];
-      const filteredSettings = response.data.filter(setting => allowedSettings.includes(setting.id));
-
+      const filteredSettings = SettingsChangeDetector.filterAllowedSettings(response.data);
       this.settings.set(filteredSettings);
-      this.originalSettings.set(JSON.parse(JSON.stringify(filteredSettings)) as SettingItem[]);
+      this.originalSettings.set(SettingsChangeDetector.cloneSettings(filteredSettings));
       void this.toastService.success('Settings refreshed successfully');
     } catch {
       void this.toastService.error('Failed to refresh settings');
@@ -120,12 +87,9 @@ export class Settings implements OnInit {
     try {
       this.loading.set(true);
       const response = await firstValueFrom(this.settingsService.loadSettings());
-
-      const allowedSettings = ['maintenance_mode', 'debug_logging', 'allow_registration', 'enforce_mfa'];
-      const filteredSettings = response.data.filter(setting => allowedSettings.includes(setting.id));
-
+      const filteredSettings = SettingsChangeDetector.filterAllowedSettings(response.data);
       this.settings.set(filteredSettings);
-      this.originalSettings.set(JSON.parse(JSON.stringify(filteredSettings)) as SettingItem[]);
+      this.originalSettings.set(SettingsChangeDetector.cloneSettings(filteredSettings));
     } catch {
       void this.toastService.error('Failed to load settings');
     } finally {
@@ -141,29 +105,21 @@ export class Settings implements OnInit {
 
     try {
       this.loading.set(true);
-
       const updateRequest: SettingsUpdateRequest = {
         settings: this.settings().map(setting => ({
-          key: this.mapIdToKey(setting.id),
+          key: setting.id,
           value: setting.value,
           isActive: setting.isActive
         }))
       };
-
       const response = await firstValueFrom(this.settingsService.updateSettings(updateRequest));
-
       this.settings.set(response.data);
-      this.originalSettings.set(JSON.parse(JSON.stringify(response.data)) as SettingItem[]);
-
+      this.originalSettings.set(SettingsChangeDetector.cloneSettings(response.data));
       void this.toastService.success(`Successfully updated settings`);
     } catch {
       void this.toastService.error('Failed to update settings');
     } finally {
       this.loading.set(false);
     }
-  }
-
-  private mapIdToKey (id: string): string {
-    return id;
   }
 }

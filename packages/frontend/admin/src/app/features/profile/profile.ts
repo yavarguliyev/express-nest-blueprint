@@ -11,6 +11,8 @@ import { API_ENDPOINTS } from '../../core/constants/api.constants';
 import { DraggableResizableDirective } from '../../shared/directives/draggable-resizable.directive';
 import { ApiResponse, ErrorResponse } from '../../core/interfaces/common.interface';
 import { ProfileForm } from '../../core/interfaces/auth.interface';
+import { ProfileAvatarService } from './profile-avatar.service';
+import { ProfileSyncService } from './profile-sync.service';
 
 @Component({
   selector: 'app-profile',
@@ -24,21 +26,13 @@ export class Profile implements OnInit, OnDestroy {
   private toastService = inject(ToastService);
   private http = inject(HttpClient);
   private textTransform = inject(TextTransformService);
+  private avatarService = inject(ProfileAvatarService);
+  private syncService = inject(ProfileSyncService);
+  private originalForm: ProfileForm = { firstName: '', lastName: '' };
 
   user = this.authService.currentUser;
   loading = signal(false);
-
-  profileForm: ProfileForm = {
-    firstName: '',
-    lastName: ''
-  };
-
-  private originalForm: ProfileForm = {
-    firstName: '',
-    lastName: ''
-  };
-
-  private visibilityListener?: () => void;
+  profileForm: ProfileForm = { firstName: '', lastName: '' };
 
   constructor () {
     effect(() => {
@@ -48,21 +42,13 @@ export class Profile implements OnInit, OnDestroy {
   }
 
   ngOnInit (): void {
-    const hasValidProfile = this.authService.getCurrentUser();
-
-    if (!hasValidProfile) {
-      const cachedProfile = localStorage.getItem('admin_user');
-      if (!cachedProfile) {
-        void this.authService.syncProfile();
-      }
-    }
-
+    void this.syncService.initializeProfile();
     this.initializeForm();
-    this.setupVisibilityListener();
+    this.syncService.setupVisibilityListener();
   }
 
   ngOnDestroy (): void {
-    if (this.visibilityListener) document.removeEventListener('visibilitychange', this.visibilityListener);
+    this.syncService.cleanupVisibilityListener();
   }
 
   hasChanges (): boolean {
@@ -79,9 +65,7 @@ export class Profile implements OnInit, OnDestroy {
 
   getRoleDisplayName (): string {
     const currentUser = this.user();
-    if (!currentUser || !currentUser.role) {
-      return 'Unknown Role';
-    }
+    if (!currentUser?.role) return 'Unknown Role';
     return UserRoleHelper.getRoleDisplayName(currentUser.role);
   }
 
@@ -89,36 +73,18 @@ export class Profile implements OnInit, OnDestroy {
     const currentUser = this.user();
     if (!currentUser) return 'U';
 
-    const firstName = currentUser.firstName || '';
-    const lastName = currentUser.lastName || '';
+    const { firstName = '', lastName = '', email = '' } = currentUser;
 
-    if (firstName && lastName) {
-      return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
-    } else if (firstName) {
-      return firstName.charAt(0).toUpperCase();
-    } else if (lastName) {
-      return lastName.charAt(0).toUpperCase();
-    }
-
-    const email = currentUser.email || '';
-    if (email) {
-      return email.charAt(0).toUpperCase();
-    }
+    if (firstName && lastName && firstName[0] && lastName[0]) return (firstName[0] + lastName[0]).toUpperCase();
+    if (firstName && firstName[0]) return firstName[0].toUpperCase();
+    if (lastName && lastName[0]) return lastName[0].toUpperCase();
+    if (email && email[0]) return email[0].toUpperCase();
 
     return 'U';
   }
 
   deleteAvatar (): void {
-    this.toastService.confirm('Are you sure you want to remove your profile photo?', (): void => {
-      void (async (): Promise<void> => {
-        try {
-          await this.authService.deleteAvatar();
-          this.toastService.success('Profile photo removed');
-        } catch {
-          this.toastService.error('Failed to remove profile photo');
-        }
-      })();
-    });
+    this.avatarService.deleteAvatar();
   }
 
   async saveProfile (): Promise<void> {
@@ -141,9 +107,7 @@ export class Profile implements OnInit, OnDestroy {
       await this.http.patch<ApiResponse<void>>(API_ENDPOINTS.ADMIN.CRUD_ID('Database Management', 'users', currentUser.id), updateData).toPromise();
 
       this.originalForm = { ...this.profileForm };
-
       await this.authService.syncProfile();
-
       this.toastService.success('Profile information updated successfully');
     } catch (error) {
       const err = error as ErrorResponse;
@@ -159,46 +123,18 @@ export class Profile implements OnInit, OnDestroy {
     const file = input.files?.[0];
 
     if (file) {
-      if (!file.type.match('image.*')) {
-        this.toastService.error('Only image files are allowed');
-        input.value = '';
-        return;
-      }
-
       try {
-        await this.authService.uploadAvatar(file);
-        this.toastService.success('Profile photo updated successfully');
+        await this.avatarService.uploadAvatar(file);
       } catch {
-        this.toastService.error('Failed to upload profile photo');
+        throw new Error('Invalid file type');
       } finally {
         input.value = '';
       }
     }
   }
 
-  private setupVisibilityListener (): void {
-    this.visibilityListener = (): void => {
-      if (!document.hidden) {
-        const lastSync = localStorage.getItem('profile-last-sync');
-        const now = Date.now();
-        const fiveMinutes = 5 * 60 * 1000;
-
-        if (!lastSync || now - parseInt(lastSync) > fiveMinutes) {
-          void this.authService.syncProfile();
-          localStorage.setItem('profile-last-sync', now.toString());
-        }
-      }
-    };
-
-    document.addEventListener('visibilitychange', this.visibilityListener);
-  }
-
   private updateFormFromUser (user: { firstName?: string; lastName?: string }): void {
-    this.profileForm = {
-      firstName: user.firstName || '',
-      lastName: user.lastName || ''
-    };
-
+    this.profileForm = { firstName: user.firstName || '', lastName: user.lastName || '' };
     this.originalForm = { ...this.profileForm };
   }
 

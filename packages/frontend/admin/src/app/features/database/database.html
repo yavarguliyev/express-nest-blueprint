@@ -8,10 +8,10 @@
       <app-toggle-switch
         [label]="'GraphQL Mode'"
         [checked]="useGraphQL()"
-        (toggle)="onGraphQLToggle($event)"
+        (toggle)="delegate.onGraphQLToggleWrapper($event)"
         style="margin-right: 1.5rem; transform: scale(0.9);"
       ></app-toggle-switch>
-      <button class="btn btn-primary" (click)="refreshSchema()" [disabled]="loadingSchema()" title="Force fresh schema" appDraggableResizable="database-refresh-schema-btn">
+      <button class="btn btn-primary" (click)="delegate.refreshSchemaWrapper()" [disabled]="loadingSchema()" title="Force fresh schema" appDraggableResizable="database-refresh-schema-btn">
         <span class="material-icons" [class.spin]="loadingSchema()">hub</span>
         Re-scan Infrastructure
       </button>
@@ -24,7 +24,7 @@
 
   <div class="schema-tree" *ngIf="!loadingSchema() && schema()">
     <div *ngFor="let category of schema() | keyvalue" class="category-block glass" [appDraggableResizable]="'database-category-' + category.key">
-      <div class="category-header" (click)="toggleCategory(category.key)">
+      <div class="category-header" (click)="delegate.toggleCategoryWrapper(category.key)">
         <span class="material-icons chevron" [class.expanded]="expandedCategories()[category.key]">expand_more</span>
         <span class="material-icons category-icon">folder_special</span>
         <span class="category-name">{{ category.key }}</span>
@@ -33,7 +33,7 @@
 
       <div class="tables-list" *ngIf="expandedCategories()[category.key]">
         <div *ngFor="let table of category.value" class="table-node" [class.active]="selectedTable()?.name === table.name">
-          <div class="table-header" (click)="selectTable(table)">
+          <div class="table-header" (click)="delegate.selectTableWrapper(table)">
             <span class="material-icons chevron-sm" [class.expanded]="selectedTable()?.name === table.name">play_arrow</span>
             <span class="material-icons table-icon">table_chart</span>
             <span class="table-name">{{ table.displayName }}</span>
@@ -45,7 +45,7 @@
             <div class="crud-controls">
               <div class="search-box glass">
                 <span class="material-icons search-icon">search</span>
-                <input type="text" [placeholder]="'Search ' + table.displayName + '...'" (input)="onSearch($event)">
+                <input type="text" [placeholder]="'Search ' + table.displayName + '...'" (input)="delegate.onSearchWrapper($event)">
               </div>
               <div class="crud-actions">
                 <button 
@@ -56,7 +56,7 @@
                   <span class="material-icons">add</span>
                   <span>Add Record</span>
                 </button>
-                <button class="btn btn-sm btn-secondary" (click)="refreshTableData()" [disabled]="loadingData()" title="Refresh table data">
+                <button class="btn btn-sm btn-secondary" (click)="delegate.refreshTableDataWrapper()" [disabled]="loadingData()" title="Refresh table data">
                   <span class="material-icons" [class.spin]="loadingData()">refresh</span>
                 </button>
                 <div class="crud-stats text-muted">
@@ -78,11 +78,11 @@
                 <thead>
                   <tr>
                     <th *ngFor="let col of table.columns" 
-                        [class]="getHeaderClasses(col.name, col.type)"
-                        [ngStyle]="getColumnStyles(col.name, col.type)">
-                      <span>{{ getFieldDisplayName(col.name) }}</span>
+                        [class]="delegate.getHeaderClassesWrapper(col.name, col.type)"
+                        [ngStyle]="delegate.getColumnStylesWrapper(col.name, col.type)">
+                      <span>{{ delegate.getFieldDisplayNameWrapper(col.name) }}</span>
                     </th>
-                    <th *ngIf="hasAnyActions()" class="header-actions text-center" style="width: 160px; min-width: 160px;">
+                    <th *ngIf="delegate.hasAnyActionsWrapper(selectedTable())" class="header-actions text-center" style="width: 160px; min-width: 160px;">
                       <span>ACTIONS</span>
                     </th>
                   </tr>
@@ -90,44 +90,44 @@
                 <tbody>
                   <tr *ngFor="let row of tableData()" 
                       class="crud-row" 
-                      [class.has-draft-changes]="hasRecordDraft(getNumberValue(row, 'id'))"
-                      [class.marked-for-deletion]="isRecordMarkedForDeletion(getNumberValue(row, 'id'))">
+                      [class.has-draft-changes]="delegate.hasRecordDraftWrapper(selectedTable(), delegate.getNumberValueWrapper(row, 'id'))"
+                      [class.marked-for-deletion]="delegate.isRecordMarkedForDeletionWrapper(selectedTable(), delegate.getNumberValueWrapper(row, 'id'))">
                     <td *ngFor="let col of table.columns" 
-                        [class]="getCellClasses(col.name, col.type)"
-                        [ngStyle]="getColumnStyles(col.name, col.type)">
+                        [class]="delegate.getCellClassesWrapper(col.name, col.type)"
+                        [ngStyle]="delegate.getColumnStylesWrapper(col.name, col.type)">
                       
                       <!-- Draft change indicator -->
-                      <span *ngIf="hasRecordDraft(getNumberValue(row, 'id')) && col === table.columns[0]" 
+                      <span *ngIf="delegate.hasRecordDraftWrapper(selectedTable(), delegate.getNumberValueWrapper(row, 'id')) && col === table.columns[0]" 
                             class="change-indicator" 
-                            [class.delete-indicator]="isRecordMarkedForDeletion(getNumberValue(row, 'id'))"
-                            [title]="isRecordMarkedForDeletion(getNumberValue(row, 'id')) ? 'This record is marked for deletion' : 'This record has unsaved changes'">
+                            [class.delete-indicator]="delegate.isRecordMarkedForDeletionWrapper(selectedTable(), delegate.getNumberValueWrapper(row, 'id'))"
+                            [title]="delegate.isRecordMarkedForDeletionWrapper(selectedTable(), delegate.getNumberValueWrapper(row, 'id')) ? 'This record is marked for deletion' : 'This record has unsaved changes'">
                       </span>
                       <!-- Boolean toggle switch -->
                       <div *ngIf="col.type === 'boolean'">
                         <app-toggle-switch 
                           [checked]="getBooleanValue(row, col.name)" 
-                          [disabled]="isSensitiveField(col.name) && !canModifySensitiveFields()"
+                          [disabled]="delegate.isSensitiveFieldWrapper(col.name) && !delegate.canModifySensitiveFieldsWrapper()"
                           (toggle)="updateBooleanValue(row, col, $event)"
                           size="medium">
                         </app-toggle-switch>
                       </div>
 
                       <!-- Profile Image with click functionality -->
-                      <div *ngIf="isImageUrl(col.name)" class="avatar-cell" (click)="handleImageClick(row, col.name)">
+                      <div *ngIf="delegate.isImageUrlWrapper(col.name)" class="avatar-cell" (click)="handleImageClick(row, col.name)">
                         <div *ngIf="row[col.name]" class="profile-image-container">
                           <img [src]="row[col.name]" class="cell-img" [title]="'Click to view full image'">
                         </div>
                         <div *ngIf="!row[col.name]" class="logo-sm glow" [title]="'Click for image info'">
-                          <span class="user-initials">{{ getUserInitials(row) }}</span>
+                          <span class="user-initials">{{ delegate.getUserInitialsWrapper(row) }}</span>
                         </div>
                       </div>
 
                       <!-- All other values (including dates) -->
-                      <span *ngIf="!isImageUrl(col.name) && col.type !== 'boolean'" class="cell-content">
-                        {{ formatValue(row[col.name], col) }}
+                      <span *ngIf="!delegate.isImageUrlWrapper(col.name) && col.type !== 'boolean'" class="cell-content">
+                        {{ delegate.formatValueWrapper(row[col.name], col) }}
                       </span>
                     </td>
-                    <td *ngIf="hasAnyActions()" class="cell-actions text-center" style="width: 160px;">
+                    <td *ngIf="delegate.hasAnyActionsWrapper(selectedTable())" class="cell-actions text-center" style="width: 160px;">
                       <app-action-buttons
                         [updateConfig]="{ 
                           show: selectedTable()?.actions?.update !== false, 
@@ -136,18 +136,18 @@
                         }"
                         [deleteConfig]="{ 
                           show: selectedTable()?.actions?.delete !== false, 
-                          disabled: !canDeleteRecord(), 
-                          tooltip: canDeleteRecord() ? 'Purge Record' : 'Delete restricted to Global Administrators' 
+                          disabled: !delegate.canDeleteRecordWrapper(), 
+                          tooltip: delegate.canDeleteRecordWrapper() ? 'Purge Record' : 'Delete restricted to Global Administrators' 
                         }"
-                        (updateClick)="updateRecord(getNumberValue(row, 'id'))"
-                        (deleteClick)="deleteRecord(getNumberValue(row, 'id'))"
+                        (updateClick)="updateRecord(delegate.getNumberValueWrapper(row, 'id'))"
+                        (deleteClick)="deleteRecord(delegate.getNumberValueWrapper(row, 'id'))"
                         size="medium">
                       </app-action-buttons>
                     </td>
                   </tr>
                   
                   <tr *ngIf="tableData().length === 0 && !loadingData()">
-                    <td [attr.colspan]="table.columns.length + (hasAnyActions() ? 1 : 0)" class="empty-cell">
+                    <td [attr.colspan]="table.columns.length + (delegate.hasAnyActionsWrapper(selectedTable()) ? 1 : 0)" class="empty-cell">
                       No entities found in this sector.
                     </td>
                   </tr>
@@ -157,16 +157,16 @@
 
             <div class="pagination-footer">
               <div class="pagination-controls">
-                <button class="page-btn" (click)="changePage(page() - 1)" [disabled]="page() <= 1">
+                <button class="page-btn" (click)="delegate.changePageWrapper(page() - 1)" [disabled]="page() <= 1">
                   <span class="material-icons">chevron_left</span>
                 </button>
                 <button *ngFor="let p of pages" 
                         class="page-btn" 
                         [class.active]="p === page()"
-                        (click)="changePage(p)">
+                        (click)="delegate.changePageWrapper(p)">
                   {{ p }}
                 </button>
-                <button class="page-btn" (click)="changePage(page() + 1)" [disabled]="page() >= totalPages">
+                <button class="page-btn" (click)="delegate.changePageWrapper(page() + 1)" [disabled]="page() >= totalPages">
                   <span class="material-icons">chevron_right</span>
                 </button>
               </div>
@@ -185,56 +185,56 @@
   </app-draft-status-bar>
 
   <!-- Update Modal -->
-  <div class="modal-overlay" *ngIf="showUpdateModal()" (click)="closeUpdateModal()">
+  <div class="modal-overlay" *ngIf="delegate.showUpdateModalWrapper()" (click)="delegate.closeUpdateModalWrapper()">
     <div class="modal-content glass" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h3>{{ getModalTitle() }}</h3>
-        <button class="close-btn" (click)="closeUpdateModal()">
+        <h3>{{ delegate.getModalTitleWrapper() }}</h3>
+        <button class="close-btn" (click)="delegate.closeUpdateModalWrapper()">
           <span class="material-icons">close</span>
         </button>
       </div>
       
       <div class="modal-body" *ngIf="selectedTable()">
         <!-- Changes summary -->
-        <div *ngIf="hasFormChanges()" class="changes-summary">
+        <div *ngIf="delegate.hasFormChangesWrapper()" class="changes-summary">
           <h4>Changes to be applied:</h4>
           <ul>
-            <li *ngFor="let field of getChangedFields()">
-              <strong>{{ getFieldDisplayName(field.name) }}:</strong>
-              <span class="old-value">{{ formatFieldValue(field.oldValue) }}</span>
+            <li *ngFor="let field of delegate.getChangedFieldsWrapper()">
+              <strong>{{ delegate.getFieldDisplayNameWrapper(field.name) }}:</strong>
+              <span class="old-value">{{ delegate.formatFieldValueWrapper(field.oldValue) }}</span>
               →
-              <span class="new-value">{{ formatFieldValue(field.newValue) }}</span>
+              <span class="new-value">{{ delegate.formatFieldValueWrapper(field.newValue) }}</span>
             </li>
           </ul>
         </div>
         
         <div class="form-container">
           <ng-container *ngFor="let col of selectedTable()!.columns">
-            <div class="form-field" *ngIf="col.editable && !isFieldExcluded(col.name) && col.type !== 'boolean'">
+            <div class="form-field" *ngIf="col.editable && !delegate.isFieldExcludedWrapper(col.name, modal.selectedRecord()) && col.type !== 'boolean'">
               <label class="field-label">
-                {{ getFieldDisplayName(col.name) }}
-                <span *ngIf="modalMode() === 'update' && isFieldChanged(col.name)" class="field-changed-indicator" title="Field has been modified">●</span>
+                {{ delegate.getFieldDisplayNameWrapper(col.name) }}
+                <span *ngIf="delegate.modalModeWrapper() === 'update' && delegate.isFieldChangedWrapper(col.name)" class="field-changed-indicator" title="Field has been modified">●</span>
               </label>
               
               <!-- Role dropdown (special case) -->
               <select 
                 *ngIf="col.name === 'role'"
                 class="form-input role-select"
-                [class.disabled]="isFieldDisabled(col.name)"
-                [class.invalid]="isRoleInvalid()"
-                [class.changed]="isFieldChanged(col.name)"
-                [disabled]="isFieldDisabled(col.name)"
-                [(ngModel)]="updateFormData()[col.name]"
-                (ngModelChange)="updateFormField(col.name, $event)">
+                [class.disabled]="delegate.isFieldDisabledWrapper(col.name, selectedTable(), modal.modalMode())"
+                [class.invalid]="delegate.isRoleInvalidWrapper()"
+                [class.changed]="delegate.isFieldChangedWrapper(col.name)"
+                [disabled]="delegate.isFieldDisabledWrapper(col.name, selectedTable(), modal.modalMode())"
+                [(ngModel)]="delegate.updateFormDataWrapper()[col.name]"
+                (ngModelChange)="delegate.updateFormFieldWrapper(col.name, $event)">
                 <option value="">Select Role</option>
-                <option *ngFor="let role of getAvailableRoles()" 
+                <option *ngFor="let role of delegate.getAvailableRolesWrapper()" 
                         [value]="role.value">
                   {{ role.label }}
                 </option>
               </select>
               
               <!-- Role validation message -->
-              <div *ngIf="col.name === 'role' && isRoleInvalid()" class="validation-message">
+              <div *ngIf="col.name === 'role' && delegate.isRoleInvalidWrapper()" class="validation-message">
                 Please select a valid role
               </div>
               
@@ -243,43 +243,43 @@
                 *ngIf="(col.type === 'string' || col.type === 'text') && col.name !== 'role'"
                 type="text"
                 class="form-input"
-                [class.disabled]="isFieldDisabled(col.name)"
-                [class.changed]="isFieldChanged(col.name)"
-                [disabled]="isFieldDisabled(col.name)"
-                [value]="updateFormData()[col.name] || ''"
-                (input)="updateFormField(col.name, $any($event.target).value)"
-                [placeholder]="'Enter ' + getFieldDisplayName(col.name)">
+                [class.disabled]="delegate.isFieldDisabledWrapper(col.name, selectedTable(), modal.modalMode())"
+                [class.changed]="delegate.isFieldChangedWrapper(col.name)"
+                [disabled]="delegate.isFieldDisabledWrapper(col.name, selectedTable(), modal.modalMode())"
+                [value]="delegate.updateFormDataWrapper()[col.name] || ''"
+                (input)="delegate.updateFormFieldWrapper(col.name, $any($event.target).value)"
+                [placeholder]="'Enter ' + delegate.getFieldDisplayNameWrapper(col.name)">
               
               <!-- Number inputs -->
               <input 
                 *ngIf="col.type === 'number' || col.type === 'integer'"
                 type="number"
                 class="form-input"
-                [class.disabled]="isFieldDisabled(col.name)"
-                [class.changed]="isFieldChanged(col.name)"
-                [disabled]="isFieldDisabled(col.name)"
-                [value]="updateFormData()[col.name] || ''"
-                (input)="updateFormField(col.name, +$any($event.target).value)"
-                [placeholder]="'Enter ' + getFieldDisplayName(col.name)">
+                [class.disabled]="delegate.isFieldDisabledWrapper(col.name, selectedTable(), modal.modalMode())"
+                [class.changed]="delegate.isFieldChangedWrapper(col.name)"
+                [disabled]="delegate.isFieldDisabledWrapper(col.name, selectedTable(), modal.modalMode())"
+                [value]="delegate.updateFormDataWrapper()[col.name] || ''"
+                (input)="delegate.updateFormFieldWrapper(col.name, +$any($event.target).value)"
+                [placeholder]="'Enter ' + delegate.getFieldDisplayNameWrapper(col.name)">
 
               <!-- Boolean Toggle Switch -->
               <div *ngIf="col.type === 'boolean'" class="toggle-field-wrapper">
                 <app-toggle-switch
-                  [checked]="$any(updateFormData()[col.name])"
-                  [disabled]="isFieldDisabled(col.name)"
-                  (toggle)="updateFormField(col.name, $event)">
+                  [checked]="$any(delegate.updateFormDataWrapper()[col.name])"
+                  [disabled]="delegate.isFieldDisabledWrapper(col.name, selectedTable(), modal.modalMode())"
+                  (toggle)="delegate.updateFormFieldWrapper(col.name, $event)">
                 </app-toggle-switch>
-                <span class="toggle-status-text">{{ updateFormData()[col.name] ? 'Enabled' : 'Disabled' }}</span>
+                <span class="toggle-status-text">{{ delegate.updateFormDataWrapper()[col.name] ? 'Enabled' : 'Disabled' }}</span>
               </div>
             </div>
           </ng-container>
 
           <!-- Injected password field specifically for account/identity creation -->
-          <div *ngIf="modalMode() === 'create' && updateFormData()['password'] !== undefined && !isFieldInMetadata('password')" class="form-field">
+          <div *ngIf="delegate.modalModeWrapper() === 'create' && delegate.updateFormDataWrapper()['password'] !== undefined && !delegate.isFieldInMetadataWrapper('password', selectedTable())" class="form-field">
             <label class="field-label">Security Key (Password)</label>
             <app-password-input
-              [value]="$any(updateFormData()['password'] || '')"
-              (valueChange)="updateFormField('password', $event)"
+              [value]="$any(delegate.updateFormDataWrapper()['password'] || '')"
+              (valueChange)="delegate.updateFormFieldWrapper('password', $event)"
               [showGenerate]="true"
               (generate)="generatePassword()"
               placeholder="Enter or generate security key">
@@ -289,14 +289,14 @@
       </div>
       
       <div class="modal-footer">
-        <button class="btn btn-secondary" (click)="closeUpdateModal()">Cancel</button>
+        <button class="btn btn-secondary" (click)="delegate.closeUpdateModalWrapper()">Cancel</button>
         <button class="btn btn-primary" 
-                [class.disabled]="isFormInvalid()"
-                [disabled]="isFormInvalid()"
-                [title]="modalMode() === 'update' ? getUpdateButtonTooltip() : 'Create New Record'"
+                [class.disabled]="delegate.isFormInvalidWrapper(delegate.hasFormChangesWrapper())"
+                [disabled]="delegate.isFormInvalidWrapper(delegate.hasFormChangesWrapper())"
+                [title]="delegate.modalModeWrapper() === 'update' ? delegate.getUpdateButtonTooltipWrapper(delegate.hasFormChangesWrapper(), delegate.getChangedFieldsWrapper().length) : 'Create New Record'"
                 (click)="submitForm()">
-          <span class="material-icons">{{ getSubmitButtonIcon() }}</span>
-          {{ getSubmitButtonText() }}
+          <span class="material-icons">{{ delegate.getSubmitButtonIconWrapper() }}</span>
+          {{ delegate.getSubmitButtonTextWrapper(delegate.hasFormChangesWrapper()) }}
         </button>
       </div>
     </div>

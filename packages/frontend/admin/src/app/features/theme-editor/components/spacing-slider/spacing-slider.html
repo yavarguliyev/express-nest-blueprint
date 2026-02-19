@@ -1,0 +1,71 @@
+<div class="spacing-slider">
+  <!-- Value Display -->
+  <div class="value-display">
+    <span class="current-value">{{ currentValue }}</span>
+    <span class="value-type">{{ getValueType() }}</span>
+  </div>
+
+  <!-- Slider and Input Controls -->
+  <div class="controls-container">
+    <!-- Numeric Slider -->
+    <div class="slider-container">
+      <input
+        type="range"
+        class="spacing-range"
+        [min]="getMinValue()"
+        [max]="getMaxValue()"
+        [step]="getStepValue()"
+        [value]="parsedValue().number"
+        (input)="onSliderChange($event)"
+      />
+      <div class="range-labels">
+        <span class="range-min">{{ getMinValue() }}</span>
+        <span class="range-max">{{ getMaxValue() }}</span>
+      </div>
+    </div>
+
+    <!-- Numeric Input -->
+    <div class="numeric-input-container">
+      <input
+        type="number"
+        class="numeric-input"
+        [min]="getMinValue()"
+        [max]="getMaxValue()"
+        [step]="getStepValue()"
+        [value]="parsedValue().number"
+        (input)="onNumericChange($event)"
+      />
+    </div>
+
+    <!-- Unit Selector -->
+    <div class="unit-selector-container">
+      <select class="unit-selector" [value]="parsedValue().unit" (change)="onUnitChange($event)">
+        <option *ngFor="let unit of getAvailableUnits()" [value]="unit">
+          {{ unit }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Preset Values -->
+  <div class="presets-container">
+    <div class="presets-label">Quick Values:</div>
+    <div class="presets-grid">
+      <button
+        *ngFor="let preset of getPresetValues()"
+        type="button"
+        class="preset-button"
+        [class.active]="currentValue === preset.value"
+        (click)="selectPreset(preset.value)"
+      >
+        {{ preset.label }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Custom Input -->
+  <div class="custom-input-container">
+    <label class="custom-label">Custom Value:</label>
+    <input type="text" class="custom-input" [value]="currentValue" (input)="onCustomInput($event)" placeholder="e.g., 1.5rem, 20px, 50%" />
+  </div>
+</div>

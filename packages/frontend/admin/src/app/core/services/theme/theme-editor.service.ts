@@ -6,7 +6,9 @@ import { TokenService } from './token.service';
 import { TokenDraftService } from './token-draft.service';
 import { CssApplicationService } from './css-application.service';
 import { TokenNotificationService } from './token-notification.service';
-import { SYNC_BOTH_MODES_TOKENS, TOKEN_RELATIONSHIPS, TOKEN_GENERATORS } from '../../constants/token.constants';
+import { TokenRelationshipHandler } from './token-relationship-handler.service';
+import { TokenDraftFactory } from './token-draft-factory.util';
+import { SYNC_BOTH_MODES_TOKENS } from '../../constants/token.constants';
 import { CssToken, TokenDraft } from '../../interfaces/theme.interface';
 
 @Injectable({
@@ -18,6 +20,7 @@ export class ThemeEditorService {
   private tokenDraftService = inject(TokenDraftService);
   private cssApplicationService = inject(CssApplicationService);
   private tokenNotificationService = inject(TokenNotificationService);
+  private relationshipHandler = inject(TokenRelationshipHandler);
 
   tokens = this.tokenService.tokens;
   loading = this.tokenService.loading;
@@ -47,17 +50,16 @@ export class ThemeEditorService {
     return grouped;
   });
 
+  hasTokens = (): boolean => this.tokenService.hasTokens();
+  loadTokens = (): Observable<CssToken[]> => this.tokenService.loadTokens();
+  getDraft = (tokenId: string): TokenDraft | null => this.tokenDraftService.getDraft(tokenId);
+  hasTokenChanges = (tokenId: string): boolean => this.tokenDraftService.hasTokenChanges(tokenId);
+  getTokensByCategory = (category: string): CssToken[] => this.tokenService.getTokensByCategory(category);
+  getCategories = (): string[] => this.tokenService.getCategories();
+
   setTokens (tokens: CssToken[]): void {
     this.tokenService.setTokens(tokens);
     this.applyCurrentTokens();
-  }
-
-  hasTokens (): boolean {
-    return this.tokenService.hasTokens();
-  }
-
-  loadTokens (): Observable<CssToken[]> {
-    return this.tokenService.loadTokens();
   }
 
   getTokenValue (tokenId: string, mode?: 'light' | 'dark'): string {
@@ -65,7 +67,7 @@ export class ThemeEditorService {
     const token = this.tokenService.getTokenById(tokenId);
     if (!token) return '';
 
-    const currentMode = mode || this.getCurrentThemeFromDocument();
+    const currentMode = mode || this.themeService.currentTheme();
     const source = draft?.hasChanges ? draft : token;
 
     if (currentMode === 'light' && source.lightModeValue) return source.lightModeValue;
@@ -77,47 +79,24 @@ export class ThemeEditorService {
     const token = this.tokenService.getTokenById(tokenId);
     if (!token) return;
 
-    const existingDraft = this.tokenDraftService.getDraft(tokenId) || {
-      id: tokenId,
-      tokenName: token.tokenName,
-      lightModeValue: token.lightModeValue,
-      darkModeValue: token.darkModeValue,
-      defaultValue: token.defaultValue,
-      hasChanges: false
-    };
-
-    const updatedDraft = { ...existingDraft };
-
+    const existingDraft = this.tokenDraftService.getDraft(tokenId);
     const shouldUpdateBothModes = SYNC_BOTH_MODES_TOKENS.some(prefix => token.tokenName.includes(prefix));
 
-    if (mode === 'light') {
-      updatedDraft.lightModeValue = value;
-      if (shouldUpdateBothModes) updatedDraft.darkModeValue = value;
-    } else if (mode === 'dark') {
-      updatedDraft.darkModeValue = value;
-      if (shouldUpdateBothModes) updatedDraft.lightModeValue = value;
-    } else {
-      updatedDraft.defaultValue = value;
-      updatedDraft.lightModeValue = value;
-      updatedDraft.darkModeValue = value;
-    }
-
-    updatedDraft.hasChanges =
-      updatedDraft.lightModeValue !== token.lightModeValue ||
-      updatedDraft.darkModeValue !== token.darkModeValue ||
-      updatedDraft.defaultValue !== token.defaultValue;
+    let updatedDraft = TokenDraftFactory.createOrGetDraft(token, existingDraft);
+    updatedDraft = TokenDraftFactory.updateDraftValue(updatedDraft, value, mode, shouldUpdateBothModes);
+    updatedDraft = TokenDraftFactory.markChanges(updatedDraft, token);
 
     this.tokenDraftService.createOrUpdateDraft(updatedDraft);
     this.cssApplicationService.applyTokenToCSS(token.tokenName, value);
 
-    this.updateRelatedTokens(token.tokenName, value, mode);
+    this.relationshipHandler.updateRelatedTokens(token.tokenName, value, mode);
   }
 
   applyCurrentTokens (): void {
     if (typeof document === 'undefined') return;
 
     const tokens = this.tokenService.tokens();
-    const currentMode = this.getCurrentThemeFromDocument();
+    const currentMode = this.themeService.currentTheme();
 
     tokens.forEach(token => {
       const value = this.getTokenValue(token.id, currentMode);
@@ -127,7 +106,6 @@ export class ThemeEditorService {
 
   publishDrafts (): Observable<boolean> {
     const drafts = this.tokenDraftService.getAllDraftsForPublish();
-
     if (drafts.length === 0) {
       return new Observable(observer => {
         observer.next(true);
@@ -165,76 +143,5 @@ export class ThemeEditorService {
   resetDrafts (): void {
     this.tokenDraftService.clearDrafts();
     this.applyCurrentTokens();
-  }
-
-  getDraft (tokenId: string): TokenDraft | null {
-    return this.tokenDraftService.getDraft(tokenId);
-  }
-
-  hasTokenChanges (tokenId: string): boolean {
-    return this.tokenDraftService.hasTokenChanges(tokenId);
-  }
-
-  getTokensByCategory (category: string): CssToken[] {
-    return this.tokenService.getTokensByCategory(category);
-  }
-
-  getCategories (): string[] {
-    return this.tokenService.getCategories();
-  }
-
-  refreshTokens (): Observable<CssToken[]> {
-    return this.tokenService.loadTokens();
-  }
-
-  hasToken (tokenName: string): boolean {
-    return this.tokenService.hasToken(tokenName);
-  }
-
-  private getCurrentThemeFromDocument (): 'light' | 'dark' {
-    return this.themeService.currentTheme();
-  }
-
-  private updateRelatedTokens (tokenName: string, value: string, mode: 'light' | 'dark' | 'default'): void {
-    const relatedTokenNames = TOKEN_RELATIONSHIPS[tokenName];
-    if (!relatedTokenNames) return;
-
-    relatedTokenNames.forEach(relatedTokenName => {
-      const generator = TOKEN_GENERATORS[relatedTokenName];
-      if (!generator) return;
-
-      const generatedValue = generator(value);
-      const relatedToken = this.tokenService.getTokenByName(relatedTokenName);
-      if (!relatedToken) return;
-
-      const existingDraft = this.tokenDraftService.getDraft(relatedToken.id) || {
-        id: relatedToken.id,
-        tokenName: relatedToken.tokenName,
-        lightModeValue: relatedToken.lightModeValue,
-        darkModeValue: relatedToken.darkModeValue,
-        defaultValue: relatedToken.defaultValue,
-        hasChanges: false
-      };
-
-      const updatedDraft = { ...existingDraft };
-
-      if (mode === 'light') {
-        updatedDraft.lightModeValue = generatedValue;
-      } else if (mode === 'dark') {
-        updatedDraft.darkModeValue = generatedValue;
-      } else {
-        updatedDraft.defaultValue = generatedValue;
-        updatedDraft.lightModeValue = generatedValue;
-        updatedDraft.darkModeValue = generatedValue;
-      }
-
-      updatedDraft.hasChanges =
-        updatedDraft.lightModeValue !== relatedToken.lightModeValue ||
-        updatedDraft.darkModeValue !== relatedToken.darkModeValue ||
-        updatedDraft.defaultValue !== relatedToken.defaultValue;
-
-      this.tokenDraftService.createOrUpdateDraft(updatedDraft);
-      this.cssApplicationService.applyTokenToCSS(relatedTokenName, generatedValue);
-    });
   }
 }

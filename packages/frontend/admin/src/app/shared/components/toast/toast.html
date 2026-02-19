@@ -1,0 +1,18 @@
+<div class="toast-container">
+  <div *ngFor="let toast of toastService.toasts()" class="toast glass" [ngClass]="toast.type">
+    <div class="toast-content" (click)="toast.type !== 'confirm' && toastService.remove(toast.id)">
+      <span class="material-icons toast-icon">
+        {{ getIcon(toast.type) }}
+      </span>
+      <span class="toast-message">{{ toast.message }}</span>
+      <button class="toast-close" (click)="handleCancel(toast)">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <div *ngIf="toast.type === 'confirm'" class="toast-actions">
+      <button class="action-btn cancel" (click)="handleCancel(toast)">ABORT</button>
+      <button class="action-btn confirm" (click)="handleConfirm(toast)">PROCEED</button>
+    </div>
+  </div>
+</div>
