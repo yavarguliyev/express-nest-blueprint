@@ -77,5 +77,5 @@ import { LoadingService } from '../../../core/services/ui/loading.service';
   ]
 })
 export class LoadingComponent {
-  constructor(public readonly loadingService: LoadingService) {}
+  constructor (public readonly loadingService: LoadingService) {}
 }

@@ -49,11 +49,11 @@ export class DatabaseDraftService {
     return Array.from(categories);
   });
 
-  constructor() {
+  constructor () {
     this._drafts.set(DraftStorageUtility.loadDrafts());
   }
 
-  createDraft(operation: DatabaseOperation, originalData: Record<string, unknown> | null): void {
+  createDraft (operation: DatabaseOperation, originalData: Record<string, unknown> | null): void {
     const draftId = DraftOperationsUtility.generateDraftId(operation.category, operation.table, operation.recordId);
     const draft = DraftOperationsUtility.createDraftObject(operation, originalData, draftId);
     const newDrafts = new Map(this._drafts());
@@ -63,7 +63,7 @@ export class DatabaseDraftService {
     this.saveDrafts();
   }
 
-  updateDraft(draftId: string, data: Record<string, unknown>): void {
+  updateDraft (draftId: string, data: Record<string, unknown>): void {
     const currentDrafts = this._drafts();
     const existingDraft = currentDrafts.get(draftId);
 
@@ -86,28 +86,28 @@ export class DatabaseDraftService {
     this.saveDrafts();
   }
 
-  deleteDraft(draftId: string): void {
+  deleteDraft (draftId: string): void {
     const newDrafts = new Map(this._drafts());
     newDrafts.delete(draftId);
     this._drafts.set(newDrafts);
     this.saveDrafts();
   }
 
-  getDraft(draftId: string): DatabaseDraft | null {
+  getDraft (draftId: string): DatabaseDraft | null {
     return this._drafts().get(draftId) || null;
   }
 
-  hasDraftChanges(draftId: string): boolean {
+  hasDraftChanges (draftId: string): boolean {
     const draft = this._drafts().get(draftId);
     return draft ? draft.hasChanges : false;
   }
 
-  getDraftForRecord(category: string, table: string, recordId: number | string): DatabaseDraft | null {
+  getDraftForRecord (category: string, table: string, recordId: number | string): DatabaseDraft | null {
     const draftId = DraftOperationsUtility.generateDraftId(category, table, recordId);
     return this.getDraft(draftId);
   }
 
-  publishDrafts(): Observable<BulkOperationResponse> {
+  publishDrafts (): Observable<BulkOperationResponse> {
     const allDrafts = Array.from(this._drafts().values()).filter(draft => draft.hasChanges);
 
     if (allDrafts.length === 0) {
@@ -134,12 +134,12 @@ export class DatabaseDraftService {
       );
   }
 
-  resetDrafts(): void {
+  resetDrafts (): void {
     this._drafts.set(new Map());
     this.saveDrafts();
   }
 
-  validateDrafts(): Observable<ValidationResult> {
+  validateDrafts (): Observable<ValidationResult> {
     const allDrafts = Array.from(this._drafts().values()).filter(draft => draft.hasChanges);
 
     if (allDrafts.length === 0) {
@@ -157,7 +157,7 @@ export class DatabaseDraftService {
       .pipe(map(response => response.data));
   }
 
-  private handlePublishSuccess(bulkResponse: BulkOperationResponse, operations: DatabaseOperation[]): void {
+  private handlePublishSuccess (bulkResponse: BulkOperationResponse, operations: DatabaseOperation[]): void {
     if (!bulkResponse.success || !bulkResponse.results) return;
 
     const cssTokenOperations = operations.filter(op => op.table === 'css_tokens');
@@ -179,7 +179,7 @@ export class DatabaseDraftService {
     if (cssTokenOperations.length > 0) this.tokenNotificationService.notifyAllTokensUpdated('database');
   }
 
-  private saveDrafts(): void {
+  private saveDrafts (): void {
     DraftStorageUtility.saveDrafts(this._drafts(), this.draftCount(), this.affectedTables());
   }
 }

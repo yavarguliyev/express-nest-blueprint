@@ -11,15 +11,15 @@ import { ApiResponse, SettingItem, SettingsUpdateRequest } from '../../interface
 export class SettingsService {
   private http = inject(HttpClient);
 
-  loadSettings(): Observable<ApiResponse<SettingItem[]>> {
+  loadSettings (): Observable<ApiResponse<SettingItem[]>> {
     return this.http.get<ApiResponse<SettingItem[]>>(API_ENDPOINTS.SETTINGS.GET_ALL);
   }
 
-  updateSettings(updateRequest: SettingsUpdateRequest): Observable<ApiResponse<SettingItem[]>> {
+  updateSettings (updateRequest: SettingsUpdateRequest): Observable<ApiResponse<SettingItem[]>> {
     return this.http.put<ApiResponse<SettingItem[]>>(API_ENDPOINTS.SETTINGS.UPDATE, updateRequest);
   }
 
-  refreshSettings(): Observable<ApiResponse<SettingItem[]>> {
+  refreshSettings (): Observable<ApiResponse<SettingItem[]>> {
     return this.loadSettings();
   }
 }

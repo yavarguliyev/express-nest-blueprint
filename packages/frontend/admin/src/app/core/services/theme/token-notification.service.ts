@@ -11,28 +11,28 @@ export class TokenNotificationService {
 
   tokenUpdated$ = this.tokenUpdateSubject.asObservable();
 
-  notifyTokenUpdate(event: Omit<TokenUpdateEvent, 'timestamp'>): void {
+  notifyTokenUpdate (event: Omit<TokenUpdateEvent, 'timestamp'>): void {
     this.tokenUpdateSubject.next({
       ...event,
       timestamp: Date.now()
     });
   }
 
-  notifyTokensUpdated(tokenIds: string[], source: TokenUpdateEvent['source']): void {
+  notifyTokensUpdated (tokenIds: string[], source: TokenUpdateEvent['source']): void {
     this.notifyTokenUpdate({
       tokenIds,
       source
     });
   }
 
-  notifyTokenNameUpdated(tokenNames: string[], source: TokenUpdateEvent['source']): void {
+  notifyTokenNameUpdated (tokenNames: string[], source: TokenUpdateEvent['source']): void {
     this.notifyTokenUpdate({
       tokenNames,
       source
     });
   }
 
-  notifyAllTokensUpdated(source: TokenUpdateEvent['source']): void {
+  notifyAllTokensUpdated (source: TokenUpdateEvent['source']): void {
     this.notifyTokenUpdate({
       source
     });

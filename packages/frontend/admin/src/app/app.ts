@@ -19,7 +19,7 @@ export class App implements OnInit {
   private themeEditorService = inject(ThemeEditorService);
   private authService = inject(AuthService);
 
-  ngOnInit(): void {
+  ngOnInit (): void {
     if (this.authService.isLoggedIn()) {
       this.themeEditorService.loadTokens().subscribe({
         next: () => {

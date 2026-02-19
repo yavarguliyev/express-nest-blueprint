@@ -126,11 +126,11 @@ export class Layout {
     saveButtonIcon: 'cloud_upload'
   }));
 
-  toggleMobileMenu(): void {
+  toggleMobileMenu (): void {
     this.mobileMenuOpen.update(open => !open);
   }
 
-  closeMobileMenu(): void {
+  closeMobileMenu (): void {
     this.mobileMenuOpen.set(false);
   }
 

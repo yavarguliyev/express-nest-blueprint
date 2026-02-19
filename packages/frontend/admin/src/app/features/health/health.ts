@@ -19,13 +19,13 @@ export class Health implements OnInit {
   loading = signal(true);
   error = signal('');
 
-  ngOnInit(): void {
+  ngOnInit (): void {
     if (window.location.pathname.includes('/health')) {
       this.refresh();
     }
   }
 
-  refresh(): void {
+  refresh (): void {
     this.loading.set(true);
     this.error.set('');
     this.dashboardService.getHealth().subscribe({
@@ -40,7 +40,7 @@ export class Health implements OnInit {
     });
   }
 
-  forceRefresh(): void {
+  forceRefresh (): void {
     this.loading.set(true);
     this.error.set('');
     this.dashboardService.refreshHealth().subscribe({

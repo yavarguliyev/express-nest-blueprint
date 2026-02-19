@@ -30,7 +30,7 @@ export class DatabaseTableService {
   totalPages = computed(() => this.pagination.calculateTotalPages(this.total(), this.limit));
   pages = computed(() => this.pagination.generatePageNumbers(this.page(), this.totalPages()));
 
-  constructor() {
+  constructor () {
     this.searchSubject.pipe(debounceTime(400), distinctUntilChanged()).subscribe(query => {
       this.searchQuery.set(query);
       this.page.set(1);
@@ -38,7 +38,7 @@ export class DatabaseTableService {
     });
   }
 
-  loadSchema(isRefresh = false): void {
+  loadSchema (isRefresh = false): void {
     this.loadingSchema.set(true);
     this.dbFacade.loadSchema().subscribe({
       next: res => {
@@ -57,17 +57,17 @@ export class DatabaseTableService {
     });
   }
 
-  onGraphQLToggle(useGraphQL: boolean): void {
+  onGraphQLToggle (useGraphQL: boolean): void {
     this.useGraphQL.set(useGraphQL);
     this.dbFacade.setStrategy(useGraphQL);
     this.loadSchema(true);
   }
 
-  toggleCategory(category: string): void {
+  toggleCategory (category: string): void {
     this.expandedCategories.update(prev => ({ ...prev, [category]: !prev[category] }));
   }
 
-  selectTable(table: TableMetadata): void {
+  selectTable (table: TableMetadata): void {
     if (this.selectedTable()?.name === table.name) {
       this.selectedTable.set(null);
       this.tableData.set([]);
@@ -79,7 +79,7 @@ export class DatabaseTableService {
     this.loadTableData();
   }
 
-  loadTableData(onComplete?: () => void): void {
+  loadTableData (onComplete?: () => void): void {
     const table = this.selectedTable();
     if (!table) return;
     this.loadingData.set(true);
@@ -105,7 +105,7 @@ export class DatabaseTableService {
     });
   }
 
-  refreshTableData(): void {
+  refreshTableData (): void {
     const table = this.selectedTable();
     if (!table) return;
     this.loadingData.set(true);
@@ -134,18 +134,18 @@ export class DatabaseTableService {
     });
   }
 
-  onSearch(event: Event): void {
+  onSearch (event: Event): void {
     const query = (event.target as HTMLInputElement).value;
     this.searchSubject.next(query);
   }
 
-  changePage(newPage: number): void {
+  changePage (newPage: number): void {
     if (!this.pagination.isValidPageChange(newPage, this.totalPages())) return;
     this.page.set(newPage);
     this.loadTableData();
   }
 
-  setupScrollIndicators(container: ElementRef<HTMLDivElement>): void {
+  setupScrollIndicators (container: ElementRef<HTMLDivElement>): void {
     if (!container) return;
 
     const element = container.nativeElement;
@@ -161,7 +161,7 @@ export class DatabaseTableService {
     window.addEventListener('resize', updateScrollIndicators);
   }
 
-  resetTableScroll(container: ElementRef<HTMLDivElement> | undefined): void {
+  resetTableScroll (container: ElementRef<HTMLDivElement> | undefined): void {
     setTimeout(() => {
       if (container) {
         container.nativeElement.scrollLeft = 0;

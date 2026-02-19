@@ -17,7 +17,7 @@ export class ModalService {
   readonly content = this.modalContent.asReadonly();
   readonly data = this.modalData.asReadonly();
 
-  open<T = unknown, R = unknown>(content: TemplateRef<T> | Type<T>, config: ModalConfig<T> = {}): ModalRef<T, R> {
+  open<T = unknown, R = unknown> (content: TemplateRef<T> | Type<T>, config: ModalConfig<T> = {}): ModalRef<T, R> {
     const defaultConfig: ModalConfig<T> = {
       size: 'medium',
       closeOnBackdropClick: true,
@@ -41,7 +41,7 @@ export class ModalService {
     };
   }
 
-  close<R = unknown>(result?: R): void {
+  close<R = unknown> (result?: R): void {
     this.isOpen.set(false);
     this.modalContent.set(null);
     this.modalConfig.set(null);
@@ -56,11 +56,11 @@ export class ModalService {
     }
   }
 
-  onClose<R = unknown>(callback: (result?: R) => void): void {
+  onClose<R = unknown> (callback: (result?: R) => void): void {
     this.closeCallback = callback as (result?: unknown) => void;
   }
 
-  handleBackdropClick(): void {
+  handleBackdropClick (): void {
     if (this.modalConfig()?.closeOnBackdropClick) this.close();
   }
 
@@ -68,11 +68,11 @@ export class ModalService {
     if (event.key === 'Escape') this.close();
   };
 
-  private setupEscapeListener(): void {
+  private setupEscapeListener (): void {
     document.addEventListener('keydown', this.escapeListener);
   }
 
-  private removeEscapeListener(): void {
+  private removeEscapeListener (): void {
     document.removeEventListener('keydown', this.escapeListener);
   }
 }

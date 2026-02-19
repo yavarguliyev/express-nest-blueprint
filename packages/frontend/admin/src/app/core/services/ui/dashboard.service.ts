@@ -11,23 +11,23 @@ import { DashboardResponse, HealthStatus } from '../../interfaces/dashboard.inte
 export class DashboardService {
   private http = inject(HttpClient);
 
-  getMetrics(): Observable<DashboardResponse> {
+  getMetrics (): Observable<DashboardResponse> {
     return this.http
       .get<{ success: boolean; data: DashboardResponse }>(API_ENDPOINTS.ADMIN.DASHBOARD_METRICS)
       .pipe(map((res: { success: boolean; data: DashboardResponse }) => res.data));
   }
 
-  getHealth(): Observable<HealthStatus> {
+  getHealth (): Observable<HealthStatus> {
     return this.http
       .get<{ success: boolean; data: HealthStatus }>(API_ENDPOINTS.ADMIN.HEALTH)
       .pipe(map((res: { success: boolean; data: HealthStatus }) => res.data));
   }
 
-  refreshMetrics(): Observable<DashboardResponse> {
+  refreshMetrics (): Observable<DashboardResponse> {
     return this.getMetrics();
   }
 
-  refreshHealth(): Observable<HealthStatus> {
+  refreshHealth (): Observable<HealthStatus> {
     return this.getHealth();
   }
 }

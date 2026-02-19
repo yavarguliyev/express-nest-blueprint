@@ -57,47 +57,47 @@ export class Dashboard implements OnInit {
     }
   };
 
-  ngOnInit(): void {
+  ngOnInit (): void {
     if (!window.location.pathname.includes('/dashboard')) return;
 
     this.refreshData();
   }
 
-  getDisplayMetrics(): DashboardMetric[] {
+  getDisplayMetrics (): DashboardMetric[] {
     return this.data()?.metrics || [];
   }
 
-  getMetricIcon(name: string): string {
+  getMetricIcon (name: string): string {
     return this.metricConfigs[name]?.icon || 'info';
   }
 
-  getMetricIconClass(name: string): string {
+  getMetricIconClass (name: string): string {
     return this.metricConfigs[name]?.iconClass || 'users-icon';
   }
 
-  getMetricIconStyle(name: string): string {
+  getMetricIconStyle (name: string): string {
     return this.metricConfigs[name]?.iconStyle || '';
   }
 
-  getMetricFormat(name: string): string {
+  getMetricFormat (name: string): string {
     return this.metricConfigs[name]?.format || '1.0-0';
   }
 
-  getMetricTrendClass(name: string, value: number): string {
+  getMetricTrendClass (name: string, value: number): string {
     if (name === 'CPU Usage' && value > 80) return 'warning';
     if (name === 'Memory Usage' && value > 500) return 'warning';
     if (name === 'Kafka Under Replication Usage' && value > 0) return 'negative';
     return 'positive';
   }
 
-  getMetricTrendIcon(name: string): string {
+  getMetricTrendIcon (name: string): string {
     if (name === 'Total Users') return 'trending_up';
     if (name === 'Total HTTP Requests') return '';
     if (name === 'Database Usage' || name === 'Redis Usage' || name === 'Storage Usage') return 'check_circle';
     return '';
   }
 
-  getMetricTrendText(name: string, value: number): string {
+  getMetricTrendText (name: string, value: number): string {
     if (name === 'Total Users') return '+12% vs last month';
     if (name === 'Memory Usage') return `${((value / 1024) * 100).toFixed(1)}% of 1GB`;
     if (name === 'Total HTTP Requests') return `${Math.floor(value / 60)}/min`;
@@ -106,12 +106,12 @@ export class Dashboard implements OnInit {
     return '';
   }
 
-  getChartBarWidth(value: number, data: Array<{ label: string; value: number }>): number {
+  getChartBarWidth (value: number, data: Array<{ label: string; value: number }>): number {
     const maxValue = Math.max(...data.map(d => d.value));
     return maxValue > 0 ? (value / maxValue) * 100 : 0;
   }
 
-  getAlertIcon(type: string): string {
+  getAlertIcon (type: string): string {
     const icons: Record<string, string> = {
       info: 'info',
       warning: 'warning',
@@ -121,7 +121,7 @@ export class Dashboard implements OnInit {
     return icons[type] || 'info';
   }
 
-  refreshData(): void {
+  refreshData (): void {
     this.loading.set(true);
     this.error.set('');
 

@@ -25,7 +25,7 @@ export class Login {
   error = signal('');
   loading = signal(false);
 
-  onSubmit(): void {
+  onSubmit (): void {
     this.loading.set(true);
     this.error.set('');
 
