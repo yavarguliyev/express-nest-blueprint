@@ -68,3 +68,17 @@ export interface ErrorResponse {
   error?: { message?: string };
   message?: string;
 }
+
+export interface ModalConfig<T = unknown> {
+  title?: string;
+  size?: 'small' | 'medium' | 'large' | 'full';
+  closeOnBackdropClick?: boolean;
+  closeOnEscape?: boolean;
+  showCloseButton?: boolean;
+  data?: T;
+}
+
+export interface ModalRef<T = unknown, R = unknown> {
+  close: (result?: R) => void;
+  updateData: (data: T) => void;
+}

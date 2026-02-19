@@ -2,11 +2,11 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-import { ThemeEditorService } from '../../core/services/theme-editor.service';
+import { ThemeEditorService } from '../../core/services/theme/theme-editor.service';
 import { CssToken } from '../../core/interfaces/theme.interface';
 import { ThemeService } from '../../core/services/theme/theme.service';
 import { ToastService } from '../../core/services/ui/toast.service';
-import { ThemeSidebarService } from '../../core/services/theme-sidebar.service';
+import { ThemeSidebarService } from '../../core/services/theme/theme-sidebar.service';
 import { ToggleSwitch } from '../../shared/components/toggle-switch/toggle-switch';
 import { ColorPicker } from './components/color-picker/color-picker';
 import { FontSelector } from './components/font-selector/font-selector';
@@ -57,7 +57,7 @@ export class ThemeEditor implements OnInit {
     return this.themeEditorService.getTokensByCategory(category);
   });
 
-  ngOnInit (): void {
+  ngOnInit(): void {
     if (!this.themeEditorService.hasTokens()) this.loadTokens();
     else {
       const categories = this.categories();
@@ -65,7 +65,7 @@ export class ThemeEditor implements OnInit {
     }
   }
 
-  loadTokens (): void {
+  loadTokens(): void {
     this.themeEditorService.loadTokens().subscribe({
       next: () => {
         const categories = this.categories();
@@ -79,49 +79,49 @@ export class ThemeEditor implements OnInit {
     });
   }
 
-  selectCategory (category: string): void {
+  selectCategory(category: string): void {
     this.selectedCategory.set(category);
   }
 
-  toggleThemeSidebar (): void {
+  toggleThemeSidebar(): void {
     this.themeSidebarService.toggle();
   }
 
-  isDarkMode (): boolean {
+  isDarkMode(): boolean {
     return this.themeService.isDarkMode();
   }
 
-  toggleTheme (): void {
+  toggleTheme(): void {
     this.themeService.toggleTheme();
   }
 
-  togglePreview (): void {
+  togglePreview(): void {
     this.showPreview.update(current => !current);
   }
 
-  onTokenChange (tokenId: string, value: string, mode: 'light' | 'dark' | 'default' = 'default'): void {
+  onTokenChange(tokenId: string, value: string, mode: 'light' | 'dark' | 'default' = 'default'): void {
     this.themeEditorService.updateTokenDraft(tokenId, value, mode);
   }
 
-  getTokenValue (tokenId: string, mode?: 'light' | 'dark'): string {
+  getTokenValue(tokenId: string, mode?: 'light' | 'dark'): string {
     return this.themeEditorService.getTokenValue(tokenId, mode);
   }
 
-  hasTokenChanges (tokenId: string): boolean {
+  hasTokenChanges(tokenId: string): boolean {
     return this.themeEditorService.hasTokenChanges(tokenId);
   }
 
-  hasChangesInCategory (category: string): boolean {
+  hasChangesInCategory(category: string): boolean {
     const tokens = this.themeEditorService.getTokensByCategory(category);
     return tokens.some(token => this.hasTokenChanges(token.id));
   }
 
-  getAffectedCategories (): string[] {
+  getAffectedCategories(): string[] {
     const categories = this.categories();
     return categories.filter(category => this.hasChangesInCategory(category));
   }
 
-  publishChanges (): void {
+  publishChanges(): void {
     if (!this.hasDrafts()) {
       this.toastService.info('No changes to publish');
       return;
@@ -141,7 +141,7 @@ export class ThemeEditor implements OnInit {
     });
   }
 
-  resetChanges (): void {
+  resetChanges(): void {
     if (!this.hasDrafts()) {
       this.toastService.info('No changes to reset');
       return;
@@ -153,7 +153,7 @@ export class ThemeEditor implements OnInit {
     });
   }
 
-  getCategoryDisplayName (category: string): string {
+  getCategoryDisplayName(category: string): string {
     const displayNames: Record<string, string> = {
       colors: 'Colors',
       spacing: 'Spacing',
@@ -165,7 +165,7 @@ export class ThemeEditor implements OnInit {
     return displayNames[category] || category.charAt(0).toUpperCase() + category.slice(1);
   }
 
-  getCategoryIcon (category: string): string {
+  getCategoryIcon(category: string): string {
     const icons: Record<string, string> = {
       colors: '🎨',
       spacing: '📏',
@@ -177,19 +177,19 @@ export class ThemeEditor implements OnInit {
     return icons[category] || '⚙️';
   }
 
-  isColorToken (token: CssToken): boolean {
+  isColorToken(token: CssToken): boolean {
     return token.tokenType === 'color' || token.tokenCategory === 'colors';
   }
 
-  isFontToken (token: CssToken): boolean {
+  isFontToken(token: CssToken): boolean {
     return token.tokenType === 'font' || token.tokenCategory === 'typography';
   }
 
-  isSpacingToken (token: CssToken): boolean {
+  isSpacingToken(token: CssToken): boolean {
     return token.tokenType === 'size' || token.tokenCategory === 'spacing';
   }
 
-  getTokenInputType (token: CssToken): 'color' | 'font' | 'spacing' | 'text' {
+  getTokenInputType(token: CssToken): 'color' | 'font' | 'spacing' | 'text' {
     if (this.isColorToken(token)) return 'color';
     if (this.isFontToken(token)) return 'font';
     if (this.isSpacingToken(token)) return 'spacing';

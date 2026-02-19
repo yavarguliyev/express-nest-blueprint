@@ -71,7 +71,7 @@ import { Toast as ToastInterface } from '../../../core/interfaces/common.interfa
 
       .toast-actions {
         display: flex;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        border-top: 1px solid var(--border-light);
       }
 
       .action-btn {
@@ -88,16 +88,16 @@ import { Toast as ToastInterface } from '../../../core/interfaces/common.interfa
       }
 
       .action-btn:hover {
-        background: rgba(255, 255, 255, 0.05);
+        background: var(--border-light);
       }
 
       .action-btn.confirm {
         color: var(--toast-text-color);
-        border-left: 1px solid rgba(255, 255, 255, 0.3);
+        border-left: 1px solid var(--border);
       }
 
       .action-btn.confirm:hover {
-        background: rgba(255, 255, 255, 0.1);
+        background: var(--border-strong);
       }
 
       @keyframes toast-in {

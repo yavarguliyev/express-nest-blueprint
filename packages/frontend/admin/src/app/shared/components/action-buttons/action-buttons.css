@@ -28,7 +28,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  background: linear-gradient(135deg, var(--border-strong), var(--border-light));
   border-radius: inherit;
   transition: opacity 0.3s ease;
   opacity: 0;
@@ -40,7 +40,7 @@
 
 .action-btn .material-icons {
   font-size: inherit;
-  color: white;
+  color: var(--toast-text-color);
   transition: transform 0.2s ease;
 }
 
@@ -65,14 +65,14 @@
 
 /* Delete Button - Red Gradient (matching your image) */
 .delete-btn {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  border: 1px solid #ef4444;
-  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+  background: var(--gradient-danger);
+  border: 1px solid var(--danger);
+  box-shadow: 0 4px 15px var(--status-error-glow, rgba(239, 68, 68, 0.3));
 }
 
 .delete-btn:hover {
-  background: linear-gradient(135deg, #dc2626, #b91c1c);
-  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+  background: linear-gradient(135deg, var(--danger), var(--status-error-dark, #b91c1c));
+  box-shadow: 0 6px 20px var(--status-error-glow, rgba(239, 68, 68, 0.4));
   transform: translateY(-2px);
 }
 

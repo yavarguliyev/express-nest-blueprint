@@ -1,0 +1,22 @@
+@if (modalService.isModalOpen()) {
+  <div class="modal-overlay" (click)="handleBackdropClick()">
+    <div class="modal-content glass" [ngClass]="getSizeClass()" (click)="stopPropagation($event)">
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h3>{{ modalService.config()?.title || 'Modal' }}</h3>
+        @if (modalService.config()?.showCloseButton) {
+          <button class="close-btn" (click)="closeModal()">
+            <span class="material-icons">close</span>
+          </button>
+        }
+      </div>
+
+      <!-- Modal Body - Content Projection -->
+      <div class="modal-body">
+        <ng-container #contentContainer>
+          <ng-content></ng-content>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+}

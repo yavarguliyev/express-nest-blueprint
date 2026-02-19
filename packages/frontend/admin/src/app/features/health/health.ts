@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-import { DashboardService } from '../../core/services/dashboard.service';
+import { DashboardService } from '../../core/services/ui/dashboard.service';
 import { DraggableResizableDirective } from '../../shared/directives/draggable-resizable.directive';
 import { HealthStatus } from '../../core/interfaces/dashboard.interface';
 
@@ -19,13 +19,13 @@ export class Health implements OnInit {
   loading = signal(true);
   error = signal('');
 
-  ngOnInit (): void {
+  ngOnInit(): void {
     if (window.location.pathname.includes('/health')) {
       this.refresh();
     }
   }
 
-  refresh (): void {
+  refresh(): void {
     this.loading.set(true);
     this.error.set('');
     this.dashboardService.getHealth().subscribe({
@@ -40,7 +40,7 @@ export class Health implements OnInit {
     });
   }
 
-  forceRefresh (): void {
+  forceRefresh(): void {
     this.loading.set(true);
     this.error.set('');
     this.dashboardService.refreshHealth().subscribe({

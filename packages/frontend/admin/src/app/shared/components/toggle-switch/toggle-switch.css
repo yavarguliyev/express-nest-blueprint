@@ -51,7 +51,7 @@
   background: var(--toggle-handle); /* Use CSS variable for handle color */
   border-radius: 40px;
   transition-duration: 0.3s;
-  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.281);
+  box-shadow: 2px 2px 10px var(--shadow-darker, rgba(0, 0, 0, 0.281));
 }
 
 /* Checked state - knob moves to right */
@@ -115,7 +115,7 @@
 /* HOVER EFFECTS */
 .toggle-switch:hover:not(.disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 15px var(--shadow-light, rgba(0, 0, 0, 0.2));
 }
 
 [data-theme="dark"] .toggle-switch:hover:not(.disabled) {
@@ -124,4 +124,18 @@
 
 [data-theme="light"] .toggle-switch:hover:not(.disabled) {
   box-shadow: 0 4px 15px var(--primary-glow); /* Use CSS variable for glow */
+}
+
+
+/* Mobile alignment fix */
+@media (max-width: 768px) {
+  .toggle-switch-container {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .toggle-label {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
 }

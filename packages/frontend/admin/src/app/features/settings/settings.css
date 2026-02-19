@@ -1,6 +1,7 @@
 
 .settings-page {
-  padding-bottom: 40px;
+  --page-accent: var(--settings-accent);
+  --page-accent-glow: rgba(124, 58, 237, 0.3);
 }
 
 /* Settings-specific container */
@@ -30,7 +31,6 @@
   align-items: center;
   justify-content: space-between;
   padding: 20px;
-  background: rgba(255, 255, 255, 0.02);
   border-radius: 12px;
   border: 1px solid var(--border);
 }
@@ -83,4 +83,39 @@
   font-weight: 500;
   min-width: 50px;
   text-align: right;
+}
+
+/* ============================================
+   RESPONSIVE - MOBILE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .settings-container {
+    margin: 0 !important;
+  }
+
+  .settings-section {
+    padding: 20px !important;
+  }
+
+  .setting-item {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+    padding: 16px !important;
+  }
+
+  .setting-info {
+    width: 100% !important;
+  }
+
+  .setting-action {
+    width: 100% !important;
+    justify-content: flex-start !important;
+  }
+
+  .toggle-group {
+    width: 100% !important;
+    justify-content: flex-start !important;
+  }
 }

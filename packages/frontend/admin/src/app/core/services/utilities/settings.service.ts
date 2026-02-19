@@ -2,8 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-import { API_ENDPOINTS } from '../constants/api.constants';
-import { ApiResponse, SettingItem, SettingsUpdateRequest } from '../interfaces/common.interface';
+import { API_ENDPOINTS } from '../../constants/api.constants';
+import { ApiResponse, SettingItem, SettingsUpdateRequest } from '../../interfaces/common.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -11,15 +11,15 @@ import { ApiResponse, SettingItem, SettingsUpdateRequest } from '../interfaces/c
 export class SettingsService {
   private http = inject(HttpClient);
 
-  loadSettings (): Observable<ApiResponse<SettingItem[]>> {
+  loadSettings(): Observable<ApiResponse<SettingItem[]>> {
     return this.http.get<ApiResponse<SettingItem[]>>(API_ENDPOINTS.SETTINGS.GET_ALL);
   }
 
-  updateSettings (updateRequest: SettingsUpdateRequest): Observable<ApiResponse<SettingItem[]>> {
+  updateSettings(updateRequest: SettingsUpdateRequest): Observable<ApiResponse<SettingItem[]>> {
     return this.http.put<ApiResponse<SettingItem[]>>(API_ENDPOINTS.SETTINGS.UPDATE, updateRequest);
   }
 
-  refreshSettings (): Observable<ApiResponse<SettingItem[]>> {
+  refreshSettings(): Observable<ApiResponse<SettingItem[]>> {
     return this.loadSettings();
   }
 }

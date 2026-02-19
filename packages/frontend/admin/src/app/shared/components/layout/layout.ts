@@ -16,9 +16,17 @@ import { ToastService } from '../../../core/services/ui/toast.service';
   imports: [CommonModule, RouterOutlet, Sidebar, Topbar, DraftStatusBar],
   template: `
     <div class="app-layout">
-      <app-sidebar></app-sidebar>
+      <!-- Mobile Overlay -->
+      <div class="mobile-sidebar-overlay" [class.active]="mobileMenuOpen()" (click)="closeMobileMenu()"></div>
+
+      <!-- Sidebar with mobile state -->
+      <app-sidebar [mobileOpen]="mobileMenuOpen()"></app-sidebar>
+
       <div class="main-content" [class.sidebar-collapsed]="isCollapsed()">
-        <app-topbar></app-topbar>
+        <app-topbar 
+          [mobileMenuOpen]="mobileMenuOpen()"
+          (toggleMobileMenu)="toggleMobileMenu()">
+        </app-topbar>
 
         <app-draft-status-bar [config]="layoutDraftConfig()" (saveChanges)="saveLayoutChanges()" (resetChanges)="resetLayoutChanges()">
         </app-draft-status-bar>
@@ -36,6 +44,7 @@ import { ToastService } from '../../../core/services/ui/toast.service';
         min-height: 100vh;
         background-color: var(--bg-deep);
         overflow: visible !important;
+        position: relative;
       }
       .main-content {
         flex: 1;
@@ -56,6 +65,43 @@ import { ToastService } from '../../../core/services/ui/toast.service';
       .page-container.sidebar-collapsed {
         padding-left: calc(80px + 40px);
       }
+
+      /* Mobile sidebar overlay */
+      .mobile-sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 10001;
+        display: none;
+      }
+
+      .mobile-sidebar-overlay.active {
+        display: block;
+      }
+
+      /* Responsive breakpoints */
+      @media (max-width: 768px) {
+        .page-container {
+          padding: 80px 16px 40px 16px !important;
+        }
+
+        .page-container.sidebar-collapsed {
+          padding: 80px 16px 40px 16px !important;
+        }
+      }
+
+      @media (min-width: 769px) and (max-width: 1024px) {
+        .page-container {
+          padding: 0 24px 24px calc(220px + 40px);
+        }
+        
+        .page-container.sidebar-collapsed {
+          padding-left: calc(70px + 40px);
+        }
+      }
     `
   ]
 })
@@ -66,6 +112,7 @@ export class Layout {
 
   isCollapsed = this.sidebarService.isCollapsed;
   isSaving = signal(false);
+  mobileMenuOpen = signal(false);
 
   layoutDraftConfig = computed<DraftStatusConfig>(() => ({
     draftCount: this.layoutService.draftCount(),
@@ -78,6 +125,14 @@ export class Layout {
     resetButtonIcon: 'settings_backup_restore',
     saveButtonIcon: 'cloud_upload'
   }));
+
+  toggleMobileMenu(): void {
+    this.mobileMenuOpen.update(open => !open);
+  }
+
+  closeMobileMenu(): void {
+    this.mobileMenuOpen.set(false);
+  }
 
   saveLayoutChanges (): void {
     this.isSaving.set(true);

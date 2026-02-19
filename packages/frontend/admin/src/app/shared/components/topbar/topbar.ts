@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router, NavigationEnd } from '@angular/router';
 import { filter, map } from 'rxjs/operators';
@@ -23,6 +23,10 @@ export class Topbar {
   private sidebarService = inject(SidebarService);
   private userUtility = inject(UserUtilityService);
   private router = inject(Router);
+
+  // Mobile menu state
+  mobileMenuOpen = input<boolean>(false);
+  toggleMobileMenu = output<void>();
 
   user = this.authService.currentUser;
   currentPageName = signal('Dashboard');

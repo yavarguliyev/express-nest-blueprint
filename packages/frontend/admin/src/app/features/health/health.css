@@ -1,11 +1,12 @@
 
 .health-page {
-  padding-bottom: 40px;
+  --page-accent: var(--health-accent);
+  --page-accent-glow: var(--health-accent-glow);
 }
 
 /* Health-specific gradient styling for text content only */
 .timestamp {
-  background: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) !important;
+  background: var(--gradient-primary) !important;
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
   background-clip: text !important;
@@ -17,7 +18,7 @@
   -webkit-background-clip: unset !important;
   -webkit-text-fill-color: unset !important;
   background-clip: unset !important;
-  color: #000000 !important;
+  color: var(--solid-text-color) !important;
 }
 
 /* Tag styling with more visible backgrounds and gradient text */
@@ -32,69 +33,69 @@
 }
 
 .tag.info {
-  background: rgba(59, 130, 246, 0.25) !important;
-  border-color: rgba(59, 130, 246, 0.5) !important;
+  background: var(--tag-info-bg) !important;
+  border-color: var(--tag-info-border) !important;
   color: transparent !important;
-  background-image: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) !important;
+  background-image: var(--gradient-primary) !important;
   background-clip: text !important;
   -webkit-background-clip: text !important;
-  box-shadow: 0 0 8px rgba(59, 130, 246, 0.3) !important;
+  box-shadow: 0 0 8px var(--tag-info-shadow) !important;
 }
 
 .tag.success {
-  background: rgba(16, 185, 129, 0.25) !important;
-  border-color: rgba(16, 185, 129, 0.5) !important;
+  background: var(--tag-success-bg) !important;
+  border-color: var(--tag-success-border) !important;
   color: transparent !important;
-  background-image: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) !important;
+  background-image: var(--gradient-primary) !important;
   background-clip: text !important;
   -webkit-background-clip: text !important;
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.3) !important;
+  box-shadow: 0 0 8px var(--tag-success-shadow) !important;
 }
 
 .tag.warn {
-  background: rgba(245, 158, 11, 0.25) !important;
-  border-color: rgba(245, 158, 11, 0.5) !important;
+  background: var(--tag-warning-bg) !important;
+  border-color: var(--tag-warning-border) !important;
   color: transparent !important;
-  background-image: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) !important;
+  background-image: var(--gradient-primary) !important;
   background-clip: text !important;
   -webkit-background-clip: text !important;
-  box-shadow: 0 0 8px rgba(245, 158, 11, 0.3) !important;
+  box-shadow: 0 0 8px var(--tag-warning-shadow) !important;
 }
 
 /* Light mode - more visible backgrounds with black text */
 [data-theme="light"] .tag.info {
-  background: rgba(59, 130, 246, 0.15) !important;
-  border-color: rgba(59, 130, 246, 0.4) !important;
-  color: #000000 !important;
+  background: var(--tag-info-bg) !important;
+  border-color: var(--tag-info-border) !important;
+  color: var(--solid-text-color) !important;
   background-image: none !important;
   background-clip: unset !important;
   -webkit-background-clip: unset !important;
-  box-shadow: 0 0 4px rgba(59, 130, 246, 0.2) !important;
+  box-shadow: 0 0 4px var(--tag-info-shadow) !important;
 }
 
 [data-theme="light"] .tag.success {
-  background: rgba(16, 185, 129, 0.15) !important;
-  border-color: rgba(16, 185, 129, 0.4) !important;
-  color: #000000 !important;
+  background: var(--tag-success-bg) !important;
+  border-color: var(--tag-success-border) !important;
+  color: var(--solid-text-color) !important;
   background-image: none !important;
   background-clip: unset !important;
   -webkit-background-clip: unset !important;
-  box-shadow: 0 0 4px rgba(16, 185, 129, 0.2) !important;
+  box-shadow: 0 0 4px var(--tag-success-shadow) !important;
 }
 
 [data-theme="light"] .tag.warn {
-  background: rgba(245, 158, 11, 0.15) !important;
-  border-color: rgba(245, 158, 11, 0.4) !important;
-  color: #000000 !important;
+  background: var(--tag-warning-bg) !important;
+  border-color: var(--tag-warning-border) !important;
+  color: var(--solid-text-color) !important;
   background-image: none !important;
   background-clip: unset !important;
   -webkit-background-clip: unset !important;
-  box-shadow: 0 0 4px rgba(245, 158, 11, 0.2) !important;
+  box-shadow: 0 0 4px var(--tag-warning-shadow) !important;
 }
 
 /* Component names get gradient styling */
 .comp-name {
-  background: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) !important;
+  background: var(--gradient-primary) !important;
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
   background-clip: text !important;
@@ -106,12 +107,12 @@
   -webkit-background-clip: unset !important;
   -webkit-text-fill-color: unset !important;
   background-clip: unset !important;
-  color: #000000 !important;
+  color: var(--solid-text-color) !important;
 }
 
 /* Component icons get gradient styling */
 .comp-icon .material-icons {
-  background: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) !important;
+  background: var(--gradient-primary) !important;
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
   background-clip: text !important;
@@ -122,12 +123,12 @@
   -webkit-background-clip: unset !important;
   -webkit-text-fill-color: unset !important;
   background-clip: unset !important;
-  color: #000000 !important;
+  color: var(--solid-text-color) !important;
 }
 
 /* Last check time gets gradient styling */
 .last-check {
-  background: linear-gradient(81deg, #CE1BFB 10.86%, #35E6CC 89.96%) !important;
+  background: var(--gradient-primary) !important;
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
   background-clip: text !important;
@@ -139,7 +140,7 @@
   -webkit-background-clip: unset !important;
   -webkit-text-fill-color: unset !important;
   background-clip: unset !important;
-  color: #000000 !important;
+  color: var(--solid-text-color) !important;
 }
 
 /* Health-specific grid layout */
@@ -230,7 +231,7 @@
 .components-card h3 {
   font-size: 1.1rem;
   margin-bottom: 24px;
-  color: var(--page-accent);
+  color: var(--page-accent, var(--primary));
   font-weight: 600;
 }
 
@@ -240,15 +241,15 @@
   justify-content: space-between;
   padding: 20px 24px;
   border-bottom: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--bg-subtle);
 }
 
 .card-header h3 {
   margin: 0;
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--page-accent);
-  text-shadow: 0 0 8px rgba(217, 119, 6, 0.2);
+  color: var(--page-accent, var(--primary));
+  text-shadow: 0 0 8px var(--page-accent-glow, var(--primary-glow));
 }
 
 .badge {
@@ -262,10 +263,10 @@
 }
 
 .badge.info {
-  background: linear-gradient(135deg, var(--page-accent), var(--secondary));
+  background: linear-gradient(135deg, var(--page-accent, var(--primary)), var(--secondary));
   color: white;
   -webkit-text-fill-color: white !important;
-  border: 1px solid var(--page-accent);
+  border: 1px solid var(--page-accent, var(--primary));
 }
 
 .components-list {
@@ -280,14 +281,14 @@
   align-items: center;
   gap: 16px;
   padding: 16px;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--bg-subtle);
   border-radius: 12px;
   border: 1px solid transparent;
   transition: all 0.2s;
 }
 
 .comp-item:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-subtle-hover);
   border-color: var(--border);
 }
 
@@ -295,11 +296,11 @@
   width: 40px;
   height: 40px;
   border-radius: 10px;
-  background: rgba(217, 119, 6, 0.1);
+  background: var(--page-accent-glow, var(--primary-glow));
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--page-accent);
+  color: var(--page-accent, var(--primary));
 }
 
 .comp-info {
@@ -320,8 +321,8 @@
   font-weight: 700;
 }
 
-.status-badge.up { background: rgba(16, 185, 129, 0.1); color: var(--success); }
-.status-badge.down { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+.status-badge.up { background: var(--status-success-bg); color: var(--success); }
+.status-badge.down { background: var(--status-error-bg); color: var(--danger); }
 
 .console {
   background: var(--console-bg);
@@ -344,3 +345,53 @@
 
 .spin { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ============================================
+   RESPONSIVE - MOBILE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .diagnostics-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+
+  .overall-status {
+    padding: 30px 20px !important;
+  }
+
+  .components-card {
+    padding: 20px !important;
+  }
+
+  .card-header {
+    padding: 16px 20px !important;
+  }
+
+  .components-list {
+    gap: 12px !important;
+    padding: 0 !important;
+  }
+
+  .comp-item {
+    padding: 14px !important;
+  }
+
+  .status-visual {
+    width: 100px !important;
+    height: 100px !important;
+  }
+
+  .status-icon {
+    font-size: 48px !important;
+  }
+
+  .status-value {
+    font-size: 1.75rem !important;
+  }
+
+  .console {
+    padding: 16px 20px !important;
+    font-size: 0.8rem !important;
+  }
+}

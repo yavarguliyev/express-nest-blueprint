@@ -39,26 +39,26 @@
   justify-content: center;
   padding: 4px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
   transition: all 0.3s ease;
 }
 
 .theme-toggle:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: var(--bg-subtle-hover);
+  border-color: var(--border-strong);
   transform: translateY(-1px);
 }
 
 /* Light mode theme toggle styling */
 [data-theme='light'] .theme-toggle {
-  background: rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
 }
 
 [data-theme='light'] .theme-toggle:hover {
-  background: rgba(0, 0, 0, 0.08);
-  border-color: rgba(0, 0, 0, 0.2);
+  background: var(--bg-subtle-hover);
+  border-color: var(--border-strong);
 }
 
 .user-profile {
@@ -88,5 +88,91 @@
 .user-avatar .user-initials {
   font-size: 0.9rem;
   font-weight: 800;
-  color: #fff;
+  color: var(--toast-text-color);
+}
+
+
+/* ============================================
+   RESPONSIVE - MOBILE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .topbar-container {
+    margin: 20px 16px !important;
+    padding: 0 16px !important;
+    height: 60px !important;
+  }
+
+  .topbar-container.sidebar-collapsed {
+    margin: 20px 16px !important;
+  }
+
+  .breadcrumb {
+    font-size: 0.85rem !important;
+  }
+
+  .user-actions {
+    gap: 12px !important;
+  }
+
+  .user-avatar {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  /* Show mobile menu button */
+  .mobile-menu-btn {
+    display: flex !important;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .topbar-container {
+    margin-left: calc(220px + 40px) !important;
+  }
+
+  .topbar-container.sidebar-collapsed {
+    margin-left: calc(70px + 40px) !important;
+  }
+}
+
+/* Mobile menu button - hidden on desktop */
+.mobile-menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+
+.mobile-menu-btn:hover {
+  background: var(--bg-subtle-hover);
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+
+.mobile-menu-btn.active {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.mobile-menu-btn.active:hover {
+  background: var(--primary);
+  opacity: 0.9;
+}
+
+.mobile-menu-btn .material-icons {
+  font-size: 20px;
+  color: var(--text-main);
+  transition: color 0.3s ease;
+}
+
+.mobile-menu-btn.active .material-icons {
+  color: var(--toast-text-color);
 }

@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 
@@ -19,6 +19,9 @@ export class Sidebar {
   private router = inject(Router);
   private sidebarService = inject(SidebarService);
   private userUtility = inject(UserUtilityService);
+
+  // Input for mobile menu state
+  mobileOpen = input<boolean>(false);
 
   user = this.authService.currentUser;
   isCollapsed = this.sidebarService.isCollapsed;

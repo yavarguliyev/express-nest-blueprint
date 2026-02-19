@@ -1,3 +1,8 @@
+/* ============================================
+   RESPONSIVE DESIGN IMPORT
+   ============================================ */
+@import './app/shared/styles/responsive.css';
+
 :root {
   /* Dark Mode Colors (Default) */
   --primary: #00d2ff;
@@ -8,14 +13,20 @@
   --bg-deep: #050a14;
   --bg-card: rgba(15, 25, 45, 0.7);
   --bg-sidebar: rgba(10, 20, 35, 0.9);
+  --bg-subtle: rgba(255, 255, 255, 0.02);
+  --bg-subtle-hover: rgba(255, 255, 255, 0.05);
+  --bg-expansion: rgba(15, 23, 42, 0.3);
   --text-main: #e2e8f0;
   --text-muted: #94a3b8;
   --border: rgba(255, 255, 255, 0.1);
+  --border-light: rgba(255, 255, 255, 0.05);
+  --border-strong: rgba(255, 255, 255, 0.2);
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
+  --info: #3b82f6;
   --console-bg: #000;
-  --console-text: #e2e8f0;
+  --console-text: var(--text-main);
   --sidebar-width: 260px;
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
@@ -24,30 +35,75 @@
   --btn-primary-end: rgb(255, 45, 139);
   --btn-primary-hover-start: #d63dfc;
   --btn-primary-hover-end: #4ae9d1;
+  --btn-secondary-bg: var(--bg-card);
+  --btn-secondary-hover: var(--bg-deep);
+  --btn-secondary-border: var(--border);
 
   /* Page-Specific Accent Colors */
-  --dashboard-accent: #1e40af;
-  --database-accent: #059669;
-  --health-accent: #d97706;
-  --settings-accent: #7c3aed;
-  --profile-accent: #0d9488;
+  --dashboard-accent: #1e40af; /* Dashboard page - Blue accent for analytics/data focus */
+  --database-accent: #059669; /* Database page - Green accent for data management */
+  --health-accent: #d97706; /* Health page - Amber accent for monitoring/alerts */
+  --settings-accent: #7c3aed; /* Settings page - Purple accent for configuration */
+  --profile-accent: #0d9488; /* Profile page - Teal accent for user identity */
+  --theme-editor-accent: #ec4899; /* Theme editor page - Pink accent for customization */
+  
+  /* Page-Specific Accent Glow Colors */
+  --dashboard-accent-glow: rgba(30, 64, 175, 0.3);
+  --database-accent-glow: rgba(5, 150, 105, 0.3);
+  --health-accent-glow: rgba(217, 119, 6, 0.3);
+  --settings-accent-glow: rgba(124, 58, 237, 0.3);
+  --profile-accent-glow: rgba(13, 148, 136, 0.3);
+  --theme-editor-accent-glow: rgba(236, 72, 153, 0.3);
+  
+  /* Dashboard-Specific Icon Backgrounds */
+  --dashboard-users-icon-bg: rgba(30, 64, 175, 0.1);
+  --dashboard-memory-icon-bg: rgba(16, 185, 129, 0.1);
+  --dashboard-requests-icon-bg: rgba(157, 80, 187, 0.1);
+  --dashboard-cpu-icon-bg: rgba(245, 158, 11, 0.1);
+  
+  /* Status Pill Colors */
+  --status-pill-up-bg: rgba(16, 185, 129, 0.1);
+  --status-pill-up-border: rgba(16, 185, 129, 0.3);
+  --status-pill-down-bg: rgba(239, 68, 68, 0.1);
+  --status-pill-down-border: rgba(239, 68, 68, 0.3);
+  
+  /* Alert Colors */
+  --alert-info-bg: rgba(59, 130, 246, 0.05);
+  --alert-info-icon-bg: rgba(59, 130, 246, 0.1);
+  --alert-warning-bg: rgba(245, 158, 11, 0.05);
+  --alert-warning-icon-bg: rgba(245, 158, 11, 0.1);
+  --alert-error-bg: rgba(239, 68, 68, 0.05);
+  --alert-error-icon-bg: rgba(239, 68, 68, 0.1);
+  
+  /* Chart Tag Background */
+  --chart-tag-bg: rgba(30, 64, 175, 0.1);
 
   /* Gradient System - Uses button color variables for consistency */
-  --gradient-primary: linear-gradient(81deg, var(--btn-primary-start) 10.86%, var(--btn-primary-end) 89.96%);
+  --gradient-primary: linear-gradient(81deg, var(--btn-primary-start, rgb(11, 92, 255)) 10.86%, var(--btn-primary-end, rgb(255, 45, 139)) 89.96%);
+  --gradient-warm: linear-gradient(81deg, #f253ba -2%, #ff6c80 29.96%, #fff94f 63.99%);
+  --gradient-cool: linear-gradient(100deg, #00bad4 7.72%, #2194ff 118.76%);
+  --gradient-success: linear-gradient(100deg, #00d426 7.72%, #21fff2 118.76%);
+  --gradient-purple: linear-gradient(85deg, #a05dfe 3.63%, #5ecbde 29.42%);
+  --gradient-danger: linear-gradient(113deg, #ea1d62 5.37%, #f2944f 108.05%);
+  --gradient-multi: linear-gradient(41deg, #00bad4 7.72%, #2194ff 55.76%, #a05dfe 93.63%);
+  --gradient-overlay-light: linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(255, 255, 255, 0.03) 100%);
+  --gradient-overlay-dark: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.64) 69.03%, #000 96.4%);
+  
+  /* Legacy gradient names for backward compatibility */
   --linear1: var(--gradient-primary);
-  --linear2: linear-gradient(81deg, #f253ba -2%, #ff6c80 29.96%, #fff94f 63.99%);
-  --linear3: linear-gradient(100deg, #00bad4 7.72%, #2194ff 118.76%);
-  --linear4: linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(255, 255, 255, 0.03) 100%);
-  --linear5: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.64) 69.03%, #000 96.4%);
-  --linear6: linear-gradient(85deg, #a05dfe 3.63%, #5ecbde 29.42%);
-  --linear7: linear-gradient(113deg, #ea1d62 5.37%, #f2944f 108.05%);
-  --linear8: linear-gradient(100deg, #00d426 7.72%, #21fff2 118.76%);
-  --linear9: linear-gradient(41deg, #00bad4 7.72%, #2194ff 55.76%, #a05dfe 93.63%);
+  --linear2: var(--gradient-warm);
+  --linear3: var(--gradient-cool);
+  --linear4: var(--gradient-overlay-light);
+  --linear5: var(--gradient-overlay-dark);
+  --linear6: var(--gradient-purple);
+  --linear7: var(--gradient-danger);
+  --linear8: var(--gradient-success);
+  --linear9: var(--gradient-multi);
 
   /* Text Hierarchy */
-  --text-primary: #e2e8f0;
-  --text-secondary: #94a3b8;
-  --text-accent: var(--page-accent, var(--primary));
+  --text-primary: var(--text-main);
+  --text-secondary: var(--text-muted);
+  --text-accent: var(--primary);
 
   /* Gradient Text Color (for dark mode) */
   --gradient-text-color: transparent;
@@ -66,8 +122,81 @@
   --toast-border-warning: rgba(245, 158, 11, 0.3);
   --toast-border-confirm: rgba(157, 80, 187, 0.3);
   --toast-border-info: rgba(59, 130, 246, 0.3);
+  
+  /* Tag Colors - Used for status tags across pages */
+  --tag-info-bg: rgba(59, 130, 246, 0.25);
+  --tag-info-border: rgba(59, 130, 246, 0.5);
+  --tag-info-shadow: rgba(59, 130, 246, 0.3);
+  --tag-success-bg: rgba(16, 185, 129, 0.25);
+  --tag-success-border: rgba(16, 185, 129, 0.5);
+  --tag-success-shadow: rgba(16, 185, 129, 0.3);
+  --tag-warning-bg: rgba(245, 158, 11, 0.25);
+  --tag-warning-border: rgba(245, 158, 11, 0.5);
+  --tag-warning-shadow: rgba(245, 158, 11, 0.3);
+  
+  /* Status Badge Colors */
+  --status-success-bg: rgba(16, 185, 129, 0.1);
+  --status-error-bg: rgba(239, 68, 68, 0.1);
+  
+  /* Shadow Colors */
+  --shadow-dark: rgba(0, 0, 0, 0.2);
+  --shadow-darker: rgba(0, 0, 0, 0.5);
+  --shadow-light: rgba(0, 0, 0, 0.4);
+  --shadow-danger: rgba(239, 68, 68, 0.4);
+  
+  /* Form Input Colors */
+  --input-invalid-shadow: rgba(239, 68, 68, 0.2);
+  --input-changed-border: rgba(245, 158, 11, 0.4);
+  --input-changed-shadow: rgba(245, 158, 11, 0.1);
+  
+  /* Draft/Change Indicators */
+  --draft-changes-bg: rgba(245, 158, 11, 0.05);
+  --draft-changes-hover-bg: rgba(245, 158, 11, 0.1);
+  --draft-summary-bg: rgba(245, 158, 11, 0.08);
+  --marked-deletion-bg: rgba(220, 38, 38, 0.05);
+  --marked-deletion-hover-bg: rgba(220, 38, 38, 0.1);
+  
+  /* Button Secondary Border */
+  --btn-secondary-border-light: rgba(255, 255, 255, 0.15);
+  --btn-secondary-border-hover: rgba(255, 255, 255, 0.25);
+  
+  /* Scrollbar Colors */
+  --scrollbar-track-bg: var(--border-light);
+  
+  /* Modal Colors */
+  --modal-overlay-bg: rgba(0, 0, 0, 0.8);
+  --modal-bg-start: rgba(15, 23, 42, 0.95);
+  --modal-bg-end: rgba(30, 41, 59, 0.95);
+  --modal-border: rgba(79, 172, 254, 0.2);
+  --modal-border-subtle: rgba(79, 172, 254, 0.15);
+  --modal-header-bg-start: rgba(79, 172, 254, 0.08);
+  --modal-header-bg-end: rgba(139, 92, 246, 0.05);
+  --modal-footer-bg-start: rgba(15, 23, 42, 0.8);
+  --modal-footer-bg-end: rgba(30, 41, 59, 0.6);
+  
+  /* Table Colors */
+  --table-border: var(--border-light);
+  --table-header-border: rgba(79, 172, 254, 0.2);
+  --table-header-bg-start: rgba(79, 172, 254, 0.05);
+  --table-header-bg-end: rgba(139, 92, 246, 0.03);
+  --table-scrollbar-border: rgba(79, 172, 254, 0.3);
+  
   /* Page-Specific Glow Effects */
+  /* These glow variables are set dynamically by each page component */
+  /* Pages should define: --page-accent and --page-accent-glow in their root selector */
   --page-accent-glow: rgba(0, 210, 255, 0.3);
+  
+  /* Light Mode Specific Variables (defaults for light theme) */
+  --table-row-bg: rgba(255, 255, 255, 0.6);
+  --table-row-hover-bg: rgba(255, 255, 255, 0.9);
+  --input-light-bg: rgba(255, 255, 255, 1);
+  --input-light-shadow: rgba(0, 0, 0, 0.06);
+  --input-light-placeholder: rgba(17, 24, 39, 0.5);
+  --input-light-role-select-bg: rgba(255, 255, 255, 0.98);
+  --input-light-role-select-border: rgba(0, 0, 0, 0.12);
+  --input-changed-border-light: rgba(217, 119, 6, 0.4);
+  --input-changed-shadow-light: rgba(217, 119, 6, 0.1);
+  --draft-summary-bg-light: rgba(217, 119, 6, 0.08);
 }
 
 /* Light Mode Colors */
@@ -80,19 +209,67 @@
   --bg-deep: #f9fafb;
   --bg-card: rgba(255, 255, 255, 0.98);
   --bg-sidebar: rgba(255, 255, 255, 0.98);
+  --bg-subtle: rgba(0, 0, 0, 0.02);
+  --bg-subtle-hover: rgba(0, 0, 0, 0.04);
+  --bg-expansion: rgba(248, 250, 252, 0.5);
   --text-main: #111827;
   --text-muted: #4b5563;
   --border: rgba(0, 0, 0, 0.08);
+  --border-light: rgba(0, 0, 0, 0.04);
+  --border-strong: rgba(0, 0, 0, 0.15);
   --success: #059669;
   --warning: #d97706;
   --danger: #dc2626;
+  --info: #2563eb;
   --console-bg: #ffffff;
-  --console-text: #111827;
+  --console-text: var(--text-main);
   --gradient-text-color: #000000;
+  
+  /* Light Mode Tag Colors */
+  --tag-info-bg: rgba(59, 130, 246, 0.15);
+  --tag-info-border: rgba(59, 130, 246, 0.4);
+  --tag-info-shadow: rgba(59, 130, 246, 0.2);
+  --tag-success-bg: rgba(16, 185, 129, 0.15);
+  --tag-success-border: rgba(16, 185, 129, 0.4);
+  --tag-success-shadow: rgba(16, 185, 129, 0.2);
+  --tag-warning-bg: rgba(245, 158, 11, 0.15);
+  --tag-warning-border: rgba(245, 158, 11, 0.4);
+  --tag-warning-shadow: rgba(245, 158, 11, 0.2);
+  
+  /* Light Mode Modal Colors */
+  --modal-overlay-bg: rgba(0, 0, 0, 0.6);
+  --modal-bg-start: rgba(255, 255, 255, 0.98);
+  --modal-bg-end: rgba(248, 250, 252, 0.95);
+  --modal-border: rgba(0, 0, 0, 0.15);
+  --shadow-darker: rgba(0, 0, 0, 0.15);
+  --shadow-light: rgba(0, 0, 0, 0.25);
+  
+  /* Light Mode Table Colors */
+  --table-border: var(--border);
+  --table-header-border: rgba(0, 102, 204, 0.3);
+  --table-header-bg-start: rgba(0, 102, 204, 0.08);
+  --table-header-bg-end: rgba(124, 58, 237, 0.05);
+  --table-row-bg: rgba(255, 255, 255, 0.6);
+  --table-row-hover-bg: rgba(255, 255, 255, 0.9);
+  
+  /* Button Colors */
   --btn-primary-start: #1d4ed8;
   --btn-primary-end: #3b82f6;
   --btn-primary-hover-start: #2563eb;
   --btn-primary-hover-end: #60a5fa;
+  --btn-secondary-bg: var(--bg-card);
+  --btn-secondary-hover: var(--bg-deep);
+  --btn-secondary-border: var(--border);
+  
+  /* Light Mode Form Input Colors */
+  --input-light-bg: rgba(255, 255, 255, 1);
+  --input-light-shadow: rgba(0, 0, 0, 0.06);
+  --input-light-placeholder: rgba(17, 24, 39, 0.5);
+  --input-light-role-select-bg: rgba(255, 255, 255, 0.98);
+  --input-light-role-select-border: rgba(0, 0, 0, 0.12);
+  --input-changed-border-light: rgba(217, 119, 6, 0.4);
+  --input-changed-shadow-light: rgba(217, 119, 6, 0.1);
+  --draft-summary-bg-light: rgba(217, 119, 6, 0.08);
 }
 
 /* Dark Mode Explicit */
@@ -108,16 +285,22 @@
   --text-main: #e2e8f0;
   --text-muted: #94a3b8;
   --border: rgba(255, 255, 255, 0.1);
+  --border-light: rgba(255, 255, 255, 0.05);
+  --border-strong: rgba(255, 255, 255, 0.2);
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
+  --info: #3b82f6;
   --console-bg: #000;
-  --console-text: #e2e8f0;
+  --console-text: var(--text-main);
   --gradient-text-color: transparent;
   --btn-primary-start: rgb(11, 92, 255);
   --btn-primary-end: rgb(255, 45, 139);
   --btn-primary-hover-start: #d63dfc;
   --btn-primary-hover-end: #4ae9d1;
+  --btn-secondary-bg: var(--bg-card);
+  --btn-secondary-hover: var(--bg-deep);
+  --btn-secondary-border: var(--border);
 }
 
 * {
@@ -137,10 +320,25 @@ body {
     color 0.3s ease;
 }
 
+/* Prevent body scroll when modal is open */
+body.modal-open {
+  overflow: hidden;
+  height: 100vh;
+}
+
 [class$='-page'] {
   background-color: var(--bg-deep);
   min-height: 100vh;
   width: 100%;
+  padding-bottom: 40px;
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+
+/* Ensure first child of page has no top margin */
+[class$='-page'] > *:first-child {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
 }
 
 [data-theme='dark'] body {
@@ -268,8 +466,16 @@ th.header-text {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 30px;
+  margin-bottom: 8px;
+  margin-top: 0;
   padding: 0 4px;
+  padding-top: 0;
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    padding: 0 !important;
+  }
 }
 
 .header-content {
@@ -450,6 +656,40 @@ button.btn-secondary:hover:not(:disabled),
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
 }
 
+.glass-subtle {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+[data-theme='light'] .glass-subtle {
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid var(--border-light);
+}
+
+/* Utility class for common border patterns */
+.border-light {
+  border: 1px solid var(--border-light);
+}
+
+.border-standard {
+  border: 1px solid var(--border);
+}
+
+.border-strong {
+  border: 1px solid var(--border-strong);
+}
+
+/* Utility class for common transition */
+.transition-smooth {
+  transition: all 0.2s ease;
+}
+
+.transition-transform {
+  transition: transform 0.3s ease;
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -517,4 +757,169 @@ button.btn-secondary:hover:not(:disabled),
   background: #fff;
   border-color: var(--page-accent, var(--primary));
   box-shadow: 0 0 10px var(--page-accent-glow, var(--primary-glow));
+}
+
+
+/* ============================================
+   GLOBAL RESPONSIVE RULES
+   ============================================ */
+
+@media (max-width: 768px) {
+  body {
+    overflow-x: hidden !important;
+  }
+
+  [class$='-page'] {
+    padding-bottom: 60px !important;
+  }
+
+  /* AGGRESSIVE MOBILE ALIGNMENT FIX */
+  /* Force page-header and all children to have zero padding/margin */
+  .page-header,
+  .page-header *,
+  [class*="page-header"],
+  [class*="page-header"] * {
+    box-sizing: border-box !important;
+  }
+
+  .page-header {
+    padding: 0 20px !important;
+    margin: 0 0 20px 0 !important;
+    width: 100% !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+  }
+
+  .header-content,
+  .header-actions {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  .header-content h2 {
+    font-size: 1.5rem !important;
+    line-height: 1.3 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .header-content p {
+    font-size: 0.85rem !important;
+    line-height: 1.4 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .header-content h2,
+  .header-content p,
+  .header-content *,
+  .header-actions *,
+  .header-actions app-toggle-switch,
+  .header-actions .btn {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  /* CRITICAL: Remove inline styles from toggle switch */
+  .header-actions app-toggle-switch {
+    margin-right: 0 !important;
+    transform: none !important;
+    padding: 0 !important;
+  }
+
+  .header-actions .toggle-switch-container {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .header-actions .toggle-label {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+  }
+
+  .header-actions {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+
+  .header-actions .btn {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 12px 20px !important;
+    font-size: 0.9rem !important;
+  }
+
+  .header-actions app-toggle-switch {
+    width: 100% !important;
+  }
+
+  .toggle-switch-container {
+    width: 100% !important;
+    justify-content: space-between !important;
+  }
+
+  /* Add consistent 20px padding to all main content containers */
+  .stats-grid,
+  .dashboard-grid,
+  .charts-section,
+  .alerts-section,
+  .health-overview,
+  .recent-alerts,
+  .profile-content,
+  .settings-content,
+  .theme-editor-content {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+
+  /* Schema tree container - no padding (category blocks handle their own) */
+  .schema-tree {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  /* Category blocks stick to edges (full width, no border radius) */
+  .category-block {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+  }
+
+  /* Add 20px padding to content inside category blocks */
+  .category-header {
+    padding: 1rem 20px !important;
+  }
+
+  .table-header {
+    padding: 0.75rem 20px !important;
+  }
+
+  .crud-expansion {
+    padding: 1rem 20px !important;
+  }
+
+  .crud-controls {
+    padding: 0 !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .search-box {
+    padding: 8px 16px !important;
+  }
+
+  /* Tables list inside category blocks */
+  .tables-list {
+    padding: 0.5rem 20px 1.5rem 20px !important;
+  }
 }

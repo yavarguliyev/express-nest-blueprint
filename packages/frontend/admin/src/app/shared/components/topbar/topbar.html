@@ -4,6 +4,14 @@
   </div>
 
   <div class="user-actions">
+    <!-- Mobile Menu Button (only visible on mobile) -->
+    <button class="mobile-menu-btn" 
+            [class.active]="mobileMenuOpen()"
+            (click)="toggleMobileMenu.emit()" 
+            aria-label="Toggle menu">
+      <span class="material-icons">{{ mobileMenuOpen() ? 'close' : 'menu' }}</span>
+    </button>
+
     <!-- Theme Toggle -->
     <div class="theme-toggle" appDraggableResizable="topbar-theme-toggle">
       <app-toggle-switch 

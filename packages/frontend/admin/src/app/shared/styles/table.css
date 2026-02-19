@@ -20,8 +20,8 @@
 .crud-table td {
   padding: 14px 20px;
   white-space: nowrap;
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-right: 1px solid var(--table-border);
+  border-bottom: 1px solid var(--table-border);
   vertical-align: middle;
   min-width: 120px;
 }
@@ -37,8 +37,8 @@
   text-transform: uppercase;
   letter-spacing: 1.2px;
   color: var(--primary);
-  border-bottom: 2px solid rgba(79, 172, 254, 0.2);
-  background: linear-gradient(135deg, rgba(79, 172, 254, 0.05), rgba(139, 92, 246, 0.03));
+  border-bottom: 2px solid var(--table-header-border);
+  background: linear-gradient(135deg, var(--table-header-bg-start), var(--table-header-bg-end));
   position: sticky;
   top: 0;
   z-index: 10;
@@ -62,39 +62,39 @@
 
 /* Light Mode */
 [data-theme="light"] .crud-table th {
-  background: linear-gradient(135deg, rgba(0, 102, 204, 0.08), rgba(124, 58, 237, 0.05));
+  background: linear-gradient(135deg, var(--table-header-bg-start), var(--table-header-bg-end));
   color: var(--primary);
-  border-bottom: 2px solid rgba(0, 102, 204, 0.3);
+  border-bottom: 2px solid var(--table-header-border);
 }
 
 [data-theme="light"] .crud-table td {
-  color: #0f172a;
-  border-right: 1px solid rgba(0, 0, 0, 0.08);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  color: var(--text-main);
+  border-right: 1px solid var(--table-border);
+  border-bottom: 1px solid var(--table-border);
 }
 
 [data-theme="light"] .crud-row {
-  background: rgba(255, 255, 255, 0.6);
+  background: var(--table-row-bg);
 }
 
 [data-theme="light"] .crud-row:hover {
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--table-row-hover-bg);
 }
 
 /* Scrollbar */
 .table-scroll-container::-webkit-scrollbar { height: 8px; }
 .table-scroll-container::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-subtle-hover);
   border-radius: 4px;
   margin: 0 12px;
 }
 .table-scroll-container::-webkit-scrollbar-thumb {
-  background: linear-gradient(90deg, var(--primary), #8b5cf6);
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
   border-radius: 4px;
-  border: 1px solid rgba(79, 172, 254, 0.3);
+  border: 1px solid var(--table-scrollbar-border);
 }
 .table-scroll-container::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(90deg, #0ea5e9, var(--primary));
+  background: linear-gradient(90deg, var(--primary), var(--primary));
   box-shadow: 0 0 8px var(--primary-glow);
 }
 

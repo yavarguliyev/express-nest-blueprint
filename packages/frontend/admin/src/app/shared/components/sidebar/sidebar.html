@@ -1,4 +1,4 @@
-<div class="sidebar-container glass-premium" [class.collapsed]="isCollapsed()" appDraggableResizable>
+<div class="sidebar-container glass-premium" [class.collapsed]="isCollapsed()" [class.mobile-open]="mobileOpen()" appDraggableResizable>
   <!-- Toggle Button -->
   <button class="sidebar-toggle" (click)="toggleSidebar()" [title]="isCollapsed() ? 'Expand Sidebar' : 'Collapse Sidebar'" appDraggableResizable="sidebar-toggle-btn">
     <span class="material-icons">{{ isCollapsed() ? 'menu_open' : 'menu' }}</span>

@@ -10,9 +10,9 @@
   justify-content: space-between;
   align-items: center;
   z-index: 1000;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 -2px 8px var(--shadow-light, rgba(0, 0, 0, 0.1));
   backdrop-filter: blur(8px);
-  color: var(--draft-status-text, white);
+  color: var(--draft-status-text, var(--toast-text-color));
   font-size: 0.875rem;
 }
 
@@ -30,14 +30,14 @@
 
 .draft-icon {
   font-size: 1rem;
-  color: var(--draft-status-icon, white);
+  color: var(--draft-status-icon, var(--toast-text-color));
 }
 
 .draft-count {
   font-weight: 600;
   font-size: 16px;
-  color: var(--draft-count-text, white);
-  background: var(--draft-count-bg, rgba(255, 255, 255, 0.2));
+  color: var(--draft-count-text, var(--toast-text-color));
+  background: var(--draft-count-bg, var(--border-strong));
   padding: 2px 8px;
   border-radius: 12px;
   min-width: 24px;
@@ -45,7 +45,7 @@
 }
 
 .draft-label {
-  color: var(--draft-status-text, white);
+  color: var(--draft-status-text, var(--toast-text-color));
   font-weight: 500;
 }
 
@@ -53,13 +53,13 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  color: var(--draft-status-muted, rgba(255, 255, 255, 0.9));
+  color: var(--draft-status-muted, var(--text-main));
   font-size: 0.875rem;
 }
 
 .item-count {
   font-weight: 600;
-  color: var(--draft-status-text, white);
+  color: var(--draft-status-text, var(--toast-text-color));
 }
 
 .draft-actions {
@@ -96,13 +96,13 @@
 .draft-status-bar .btn-secondary {
   background: var(--btn-secondary-bg) !important;
   color: var(--secondary) !important;
-  border: 2px solid rgba(255, 255, 255, 0.15) !important;
+  border: 2px solid var(--border-light) !important;
 }
 
 .draft-status-bar .btn-secondary:hover:not(:disabled) {
   background: var(--btn-secondary-hover) !important;
-  color: white !important;
-  border-color: rgba(255, 255, 255, 0.25) !important;
+  color: var(--toast-text-color) !important;
+  border-color: var(--border-strong) !important;
   transform: translateY(-2px) !important;
 }
 
@@ -110,13 +110,13 @@
 .draft-status-bar .reset-btn {
   background: var(--btn-secondary-bg) !important;
   color: var(--secondary) !important;
-  border: 2px solid rgba(255, 255, 255, 0.15) !important;
+  border: 2px solid var(--border-light) !important;
 }
 
 .draft-status-bar .reset-btn:hover:not(:disabled) {
   background: var(--btn-secondary-hover) !important;
-  color: white !important;
-  border-color: rgba(255, 255, 255, 0.25) !important;
+  color: var(--toast-text-color) !important;
+  border-color: var(--border-strong) !important;
   transform: translateY(-2px) !important;
 }
 
@@ -129,8 +129,8 @@
 .spinner {
   width: 14px;
   height: 14px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top: 2px solid white;
+  border: 2px solid var(--border);
+  border-top: 2px solid var(--toast-text-color);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }

@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { AuthService } from '../../core/services/auth/auth.service';
-import { ThemeEditorService } from '../../core/services/theme-editor.service';
+import { ThemeEditorService } from '../../core/services/theme/theme-editor.service';
 import { PasswordInput } from '../../shared/components/password-input/password-input';
 import { ErrorResponse } from '../../core/interfaces/common.interface';
 
@@ -25,7 +25,7 @@ export class Login {
   error = signal('');
   loading = signal(false);
 
-  onSubmit (): void {
+  onSubmit(): void {
     this.loading.set(true);
     this.error.set('');
 
@@ -37,7 +37,7 @@ export class Login {
             next: () => {
               // Apply tokens to CSS
               this.themeEditorService.applyCurrentTokens();
-              
+
               // Then sync profile and navigate
               this.authService
                 .syncProfile()

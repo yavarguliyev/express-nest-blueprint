@@ -1,9 +1,12 @@
 .theme-editor-page {
+  --page-accent: var(--theme-editor-accent);
+  --page-accent-glow: rgba(236, 72, 153, 0.3);
   display: flex;
   flex-direction: column;
   height: 100vh;
   font-family: var(--font-family);
-  padding-bottom: 40px;
+  padding-top: 0;
+  margin-top: 0;
 }
 
 /* Action Buttons - Use consistent btn classes */
@@ -21,11 +24,11 @@
 
 /* Force button text color to be visible */
 .header-actions .btn-primary {
-  color: white !important;
+  color: var(--toast-text-color) !important;
 }
 
 .header-actions .btn-primary * {
-  color: white !important;
+  color: var(--toast-text-color) !important;
 }
 
 /* Theme Mode Toggle with Text and Icons */
@@ -67,10 +70,7 @@
   transition: all 0.3s ease;
 }
 
-.theme-editor-content.with-preview {
-  grid-template-columns: 280px 1fr 400px;
-}
-
+/* No special grid needed - flexbox handles it */
 .theme-editor-content.with-preview .theme-sidebar.collapsed {
   width: 80px;
 }
@@ -127,7 +127,7 @@
 }
 
 .sidebar-toggle:hover .material-icons {
-  color: white;
+  color: var(--toast-text-color);
 }
 
 .category-nav {
@@ -188,12 +188,12 @@
 
 .category-item:hover {
   color: var(--text-main);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--border-light);
 }
 
 [data-theme='light'] .category-item:hover {
   color: var(--text-main);
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--border-light);
 }
 
 .category-item.active {
@@ -362,7 +362,7 @@
   background: linear-gradient(
     135deg,
     var(--bg-card),
-    var(--warning-glow, rgba(251, 191, 36, 0.05))
+    var(--warning-glow, var(--primary-glow))
   );
 }
 
@@ -646,50 +646,41 @@
 }
 
 @media (max-width: 768px) {
-  .theme-editor-header {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: flex-start;
+  /* Token card specific mobile adjustments */
+  .token-name {
+    font-size: 0.8rem !important;
   }
 
-  .header-actions {
-    width: 100%;
-    justify-content: space-between;
+  .token-description {
+    font-size: 0.7rem !important;
   }
 
-  .theme-editor-content {
-    flex-direction: column;
+  .category-title {
+    font-size: 1.25rem !important;
   }
 
-  .theme-sidebar {
-    width: 100%;
-    max-height: 200px;
-    overflow-y: auto;
+  .category-description {
+    font-size: 0.8rem !important;
   }
 
-  .theme-sidebar.collapsed {
-    width: 100%;
-    max-height: 80px;
+  .category-icon {
+    font-size: 1rem !important;
   }
 
-  .category-list {
-    flex-direction: row;
-    overflow-x: auto;
-    gap: 0.5rem;
-    padding-bottom: 0.5rem;
+  .category-name {
+    font-size: 0.85rem !important;
   }
 
-  .category-item {
-    white-space: nowrap;
-    min-width: auto;
+  .empty-category {
+    height: 200px !important;
   }
 
-  .preview-panel {
-    width: 100%;
-    max-height: 300px;
+  .empty-icon {
+    font-size: 2rem !important;
   }
 
-  .tokens-grid {
-    grid-template-columns: 1fr;
+  .loading-tokens,
+  .loading-categories {
+    font-size: 0.8rem !important;
   }
 }
