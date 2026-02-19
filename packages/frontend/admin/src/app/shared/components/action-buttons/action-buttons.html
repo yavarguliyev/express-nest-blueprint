@@ -2,7 +2,7 @@
   <!-- Update Button -->
   <button 
     *ngIf="updateConfig.show"
-    class="action-btn update-btn" 
+    class="action-btn update-btn btn-primary" 
     [class.disabled]="updateConfig.disabled"
     [title]="updateConfig.tooltip || 'Update Record'"
     (click)="onUpdate()">

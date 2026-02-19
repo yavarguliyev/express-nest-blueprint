@@ -19,6 +19,7 @@ export class PasswordInput {
   @Input() disabled: boolean = false;
   @Input() showGenerate: boolean = false;
   @Input() generateTitle: string = 'Synthesize high-entropy password';
+  @Input() autocomplete: string = 'current-password';
 
   @Output() valueChange = new EventEmitter<string>();
   @Output() generate = new EventEmitter<void>();

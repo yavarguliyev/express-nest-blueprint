@@ -58,21 +58,9 @@
   pointer-events: none;
 }
 
-/* Update Button - Primary Blue Gradient */
+/* Update Button - Uses centralized btn-primary styles */
 .update-btn {
-  background: linear-gradient(81deg, var(--btn-primary-start) 10.86%, var(--btn-primary-end) 89.96%);
-  border: 1px solid var(--btn-primary-start);
-  box-shadow: 0 4px 15px var(--primary-glow);
-}
-
-.update-btn:hover {
-  background: linear-gradient(81deg, var(--btn-primary-hover-start, var(--btn-primary-start)) 10.86%, var(--btn-primary-hover-end, var(--btn-primary-end)) 89.96%);
-  box-shadow: 0 6px 20px var(--primary-glow);
-  transform: translateY(-2px);
-}
-
-.update-btn:active {
-  transform: translateY(-1px) scale(0.95);
+  /* Inherits from global .btn-primary */
 }
 
 /* Delete Button - Red Gradient (matching your image) */

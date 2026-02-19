@@ -2,6 +2,7 @@
   /* Dark Mode Colors (Default) */
   --primary: #00d2ff;
   --primary-glow: rgba(0, 210, 255, 0.4);
+  --primary-active-bg: rgba(206, 27, 251, 0.1);
   --secondary: #9d50bb;
   --secondary-glow: rgba(157, 80, 187, 0.4);
   --bg-deep: #050a14;
@@ -18,11 +19,11 @@
   --sidebar-width: 260px;
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
-  /* Button Colors */
-  --btn-primary-start: #ce1bfb;
-  --btn-primary-end: #35e6cc;
-  --btn-primary-hover-start: #d63bfc;
-  --btn-primary-hover-end: #4ef0d6;
+  /* Button Colors - Match Database Values */
+  --btn-primary-start: rgb(11, 92, 255);
+  --btn-primary-end: rgb(255, 45, 139);
+  --btn-primary-hover-start: #d63dfc;
+  --btn-primary-hover-end: #4ae9d1;
 
   /* Page-Specific Accent Colors */
   --dashboard-accent: #1e40af;
@@ -31,8 +32,8 @@
   --settings-accent: #7c3aed;
   --profile-accent: #0d9488;
 
-  /* Gradient System */
-  --gradient-primary: linear-gradient(81deg, #ce1bfb 10.86%, #35e6cc 89.96%);
+  /* Gradient System - Uses button color variables for consistency */
+  --gradient-primary: linear-gradient(81deg, var(--btn-primary-start) 10.86%, var(--btn-primary-end) 89.96%);
   --linear1: var(--gradient-primary);
   --linear2: linear-gradient(81deg, #f253ba -2%, #ff6c80 29.96%, #fff94f 63.99%);
   --linear3: linear-gradient(100deg, #00bad4 7.72%, #2194ff 118.76%);
@@ -73,6 +74,7 @@
 [data-theme='light'] {
   --primary: #1d4ed8;
   --primary-glow: rgba(29, 78, 216, 0.3);
+  --primary-active-bg: rgba(29, 78, 216, 0.1);
   --secondary: #7c3aed;
   --secondary-glow: rgba(124, 58, 237, 0.3);
   --bg-deep: #f9fafb;
@@ -97,6 +99,7 @@
 [data-theme='dark'] {
   --primary: #00d2ff;
   --primary-glow: rgba(0, 210, 255, 0.4);
+  --primary-active-bg: rgba(206, 27, 251, 0.1);
   --secondary: #9d50bb;
   --secondary-glow: rgba(157, 80, 187, 0.4);
   --bg-deep: #050a14;
@@ -111,10 +114,10 @@
   --console-bg: #000;
   --console-text: #e2e8f0;
   --gradient-text-color: transparent;
-  --btn-primary-start: #ce1bfb;
-  --btn-primary-end: #35e6cc;
-  --btn-primary-hover-start: #d63bfc;
-  --btn-primary-hover-end: #4ef0d6;
+  --btn-primary-start: rgb(11, 92, 255);
+  --btn-primary-end: rgb(255, 45, 139);
+  --btn-primary-hover-start: #d63dfc;
+  --btn-primary-hover-end: #4ae9d1;
 }
 
 * {
@@ -299,7 +302,7 @@ th.header-text {
 .search-box:focus-within {
   border: 1px solid transparent;
   border-image: var(--gradient-primary) 1;
-  box-shadow: 0 0 0 2px rgba(206, 27, 251, 0.2);
+  box-shadow: 0 0 0 2px var(--primary-glow);
 }
 
 .page-btn.active {
@@ -316,7 +319,7 @@ th.header-text {
 .nav-item.active {
   border-left: 3px solid transparent;
   border-image: var(--gradient-primary) 1;
-  background: rgba(206, 27, 251, 0.1);
+  background: var(--primary-active-bg);
 }
 
 .nav-item:hover:not(.active) {
@@ -324,15 +327,48 @@ th.header-text {
   border-image: var(--gradient-primary) 1;
 }
 
+/* Primary Button - Centralized Styles */
 .btn.btn-primary,
 button.btn-primary,
 .btn-primary {
-  background: linear-gradient(81deg, var(--btn-primary-start) 10.86%, var(--btn-primary-end) 89.96%);
+  background: linear-gradient(81deg, var(--btn-primary-start) 10.86%, var(--btn-primary-end) 89.96%) !important;
   color: white !important;
   -webkit-text-fill-color: white !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border: 0px solid transparent !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.btn.btn-primary:hover:not(:disabled),
+button.btn-primary:hover:not(:disabled),
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px) !important;
+  background: linear-gradient(81deg, var(--btn-primary-hover-start, var(--btn-primary-start)) 10.86%, var(--btn-primary-hover-end, var(--btn-primary-end)) 89.96%) !important;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5) !important;
+  scale: 1.02 !important;
+}
+
+.btn.btn-primary:active:not(:disabled),
+button.btn-primary:active:not(:disabled),
+.btn-primary:active:not(:disabled) {
+  transform: translateY(-1px) !important;
+}
+
+.btn.btn-primary:disabled,
+button.btn-primary:disabled,
+.btn-primary:disabled,
+.btn.btn-primary.disabled,
+button.btn-primary.disabled,
+.btn-primary.disabled {
+  opacity: 0.3 !important;
+  cursor: not-allowed !important;
+  background: linear-gradient(81deg, var(--btn-primary-start), var(--btn-primary-end)) !important;
+  box-shadow: none !important;
+  transform: none !important;
+  scale: 1 !important;
+}
+
+/* Secondary Button - Centralized Styles */
 .btn.btn-secondary,
 button.btn-secondary,
 .btn-secondary {
@@ -340,16 +376,6 @@ button.btn-secondary,
   color: var(--text-main) !important;
   -webkit-text-fill-color: var(--text-main) !important;
   border: 1px solid var(--border) !important;
-}
-
-.btn.btn-primary:hover:not(:disabled),
-button.btn-primary:hover:not(:disabled),
-.btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  background: linear-gradient(81deg, var(--btn-primary-hover-start, var(--btn-primary-start)) 10.86%, var(--btn-primary-hover-end, var(--btn-primary-end)) 89.96%);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
-  transition: all 0.2s ease;
-  scale: 1.02;
 }
 
 .btn.btn-secondary:hover:not(:disabled),

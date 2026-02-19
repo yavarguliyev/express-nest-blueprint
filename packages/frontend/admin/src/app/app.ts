@@ -3,6 +3,7 @@ import { RouterOutlet } from '@angular/router';
 import { Toast } from './shared/components/toast/toast';
 import { LoadingComponent } from './shared/components/loading/loading.component';
 import { ThemeEditorService } from './core/services/theme-editor.service';
+import { AuthService } from './core/services/auth/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -16,13 +17,23 @@ import { ThemeEditorService } from './core/services/theme-editor.service';
 })
 export class App implements OnInit {
   private themeEditorService = inject(ThemeEditorService);
+  private authService = inject(AuthService);
 
   ngOnInit (): void {
-    this.themeEditorService.loadTokens().subscribe({
-      next: () => {},
-      error: () => {
-        this.themeEditorService.applyCurrentTokens();
-      },
-    });
+    if (this.authService.isLoggedIn()) {
+      this.themeEditorService.loadTokens().subscribe({
+        next: () => {
+          // Tokens loaded and applied successfully
+          this.themeEditorService.applyCurrentTokens();
+        },
+        error: () => {
+          // If loading fails, apply default tokens from CSS
+          this.themeEditorService.applyCurrentTokens();
+        },
+      });
+    } else {
+      // Not logged in, apply default tokens from CSS
+      this.themeEditorService.applyCurrentTokens();
+    }
   }
 }

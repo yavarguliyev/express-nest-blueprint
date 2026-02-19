@@ -751,50 +751,6 @@ html body .btn-secondary:hover {
   transform: translateY(-2px) !important;
 }
 
-.btn-primary {
-  background: linear-gradient(
-    81deg,
-    var(--btn-primary-start) 10.86%,
-    var(--btn-primary-end) 89.96%
-  ) !important;
-  color: white;
-  border: 0px solid transparent;
-  box-shadow: 0 8px 25px var(--primary-glow);
-}
-
-html body .btn-primary:hover {
-  transform: translateY(-2px) !important;
-  background: linear-gradient(
-    81deg,
-    var(--btn-primary-hover-start, var(--btn-primary-start)) 10.86%,
-    var(--btn-primary-hover-end, var(--btn-primary-end)) 89.96%
-  ) !important;
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5) !important;
-  border-color: transparent !important;
-  scale: 1.02 !important;
-}
-
-.btn-primary:active {
-  transform: translateY(-1px);
-}
-
-.btn-primary.disabled,
-.btn-primary:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-  background: linear-gradient(81deg, var(--btn-primary-start), var(--btn-primary-end));
-  box-shadow: none;
-  transform: none;
-}
-
-.btn-primary.disabled:hover,
-.btn-primary:disabled:hover {
-  background: linear-gradient(81deg, var(--btn-primary-start), var(--btn-primary-end)) !important;
-  opacity: 0.3 !important;
-  box-shadow: none !important;
-  transform: none !important;
-}
-
 @keyframes fadeIn {
   from {
     opacity: 0;

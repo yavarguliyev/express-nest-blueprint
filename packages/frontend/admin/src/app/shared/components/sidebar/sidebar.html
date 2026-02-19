@@ -33,7 +33,7 @@
   </nav>
 
   <div class="sidebar-footer">
-    <button (click)="logout()" class="logout-btn" [title]="isCollapsed() ? 'Logout' : ''" appDraggableResizable="sidebar-logout-btn">
+    <button (click)="logout()" class="logout-btn btn-primary" [title]="isCollapsed() ? 'Logout' : ''" appDraggableResizable="sidebar-logout-btn">
       <span class="material-icons">logout</span>
       @if (!isCollapsed()) {
         <span>Logout</span>

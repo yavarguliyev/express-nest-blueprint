@@ -106,53 +106,6 @@
   transform: translateY(-2px) !important;
 }
 
-.draft-status-bar .btn-primary {
-  background: linear-gradient(
-    81deg,
-    var(--btn-primary-start) 10.86%,
-    var(--btn-primary-end) 89.96%
-  ) !important;
-  color: white !important;
-  border: 0px solid transparent !important;
-  box-shadow: 0 8px 25px var(--primary-glow);
-}
-
-.draft-status-bar .btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px) !important;
-  background: linear-gradient(
-    81deg,
-    var(--btn-primary-hover-start, var(--btn-primary-start)) 10.86%,
-    var(--btn-primary-hover-end, var(--btn-primary-end)) 89.96%
-  ) !important;
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5) !important;
-  border-color: transparent !important;
-  scale: 1.02 !important;
-}
-
-.draft-status-bar .btn-primary:active {
-  transform: translateY(-1px);
-}
-
-.draft-status-bar .btn-secondary:disabled,
-.draft-status-bar .btn-primary:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.draft-status-bar .btn-primary:disabled {
-  background: linear-gradient(81deg, var(--btn-primary-start), var(--btn-primary-end)) !important;
-}
-
-.draft-status-bar .btn-primary:disabled:hover {
-  background: linear-gradient(81deg, var(--btn-primary-start), var(--btn-primary-end)) !important;
-  opacity: 0.3;
-  box-shadow: none;
-  transform: none;
-  scale: 1 !important;
-}
-
 /* Additional specificity for reset button */
 .draft-status-bar .reset-btn {
   background: var(--btn-secondary-bg) !important;
