@@ -5,6 +5,8 @@ import { TableMetadata, Schema } from '../../interfaces/database.interface';
 import { DatabaseFacadeService } from './database-facade.service';
 import { ToastService } from '../ui/toast.service';
 import { PaginationService } from '../ui/pagination.service';
+import { TableDataLoader } from './helpers/table-data-loader';
+import { ScrollManager } from './helpers/scroll-manager';
 
 @Injectable({
   providedIn: 'root'
@@ -14,15 +16,14 @@ export class DatabaseTableService {
   private toastService = inject(ToastService);
   private pagination = inject(PaginationService);
   private searchSubject = new Subject<string>();
+  private dataLoader = new TableDataLoader(this.dbFacade, this.toastService);
+  private scrollManager = new ScrollManager();
 
   useGraphQL = signal(false);
   schema = signal<Schema | null>(null);
   loadingSchema = signal(true);
-  loadingData = signal(false);
   expandedCategories = signal<{ [key: string]: boolean }>({});
   selectedTable = signal<TableMetadata | null>(null);
-  tableData = signal<Record<string, unknown>[]>([]);
-  total = signal(0);
   page = signal(1);
   limit = 10;
   searchQuery = signal('');
@@ -36,6 +37,18 @@ export class DatabaseTableService {
       this.page.set(1);
       this.loadTableData();
     });
+  }
+
+  get loadingData (): typeof this.dataLoader.loadingData {
+    return this.dataLoader.loadingData;
+  }
+
+  get tableData (): typeof this.dataLoader.tableData {
+    return this.dataLoader.tableData;
+  }
+
+  get total (): typeof this.dataLoader.total {
+    return this.dataLoader.total;
   }
 
   loadSchema (isRefresh = false): void {
@@ -82,56 +95,13 @@ export class DatabaseTableService {
   loadTableData (onComplete?: () => void): void {
     const table = this.selectedTable();
     if (!table) return;
-    this.loadingData.set(true);
-
-    this.dbFacade.loadTableData(table, this.page(), this.limit, this.searchQuery()).subscribe({
-      next: res => {
-        const responseData = res.data;
-        if (responseData?.data) {
-          this.tableData.set(responseData.data);
-          this.total.set(responseData.total || responseData.data.length);
-        } else {
-          this.tableData.set([]);
-          this.total.set(0);
-        }
-
-        this.loadingData.set(false);
-        if (onComplete) onComplete();
-      },
-      error: () => {
-        this.toastService.error(`Failed to load ${table.name} data.`);
-        this.loadingData.set(false);
-      }
-    });
+    this.dataLoader.loadData(table, this.page(), this.limit, this.searchQuery(), onComplete);
   }
 
   refreshTableData (): void {
     const table = this.selectedTable();
     if (!table) return;
-    this.loadingData.set(true);
-
-    this.dbFacade.loadTableData(table, this.page(), this.limit, this.searchQuery()).subscribe({
-      next: res => {
-        if (res.success) {
-          const responseData = res.data;
-          if (responseData?.data) {
-            this.tableData.set(responseData.data);
-            this.total.set(responseData.total || responseData.data.length);
-          } else {
-            this.tableData.set([]);
-            this.total.set(0);
-          }
-
-          this.toastService.success('Table data refreshed successfully');
-        } else {
-          this.toastService.error(res.message || `Failed to refresh ${table.name} data.`);
-        }
-        this.loadingData.set(false);
-      },
-      error: () => {
-        this.loadingData.set(false);
-      }
-    });
+    this.dataLoader.refreshData(table, this.page(), this.limit, this.searchQuery());
   }
 
   onSearch (event: Event): void {
@@ -146,26 +116,10 @@ export class DatabaseTableService {
   }
 
   setupScrollIndicators (container: ElementRef<HTMLDivElement>): void {
-    if (!container) return;
-
-    const element = container.nativeElement;
-    const updateScrollIndicators = (): void => {
-      const { scrollLeft, scrollWidth, clientWidth } = element;
-      element.classList.remove('scrolled-left', 'scrolled-right');
-      if (scrollLeft > 0) element.classList.add('scrolled-left');
-      if (scrollLeft < scrollWidth - clientWidth - 1) element.classList.add('scrolled-right');
-    };
-
-    setTimeout(updateScrollIndicators, 100);
-    element.addEventListener('scroll', updateScrollIndicators);
-    window.addEventListener('resize', updateScrollIndicators);
+    this.scrollManager.setupScrollIndicators(container);
   }
 
   resetTableScroll (container: ElementRef<HTMLDivElement> | undefined): void {
-    setTimeout(() => {
-      if (container) {
-        container.nativeElement.scrollLeft = 0;
-      }
-    }, 100);
+    this.scrollManager.resetTableScroll(container);
   }
 }

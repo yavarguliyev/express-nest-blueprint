@@ -1,77 +1,36 @@
-import { QueueEvents, Job } from 'bullmq';
-import {
-  CRUD_TABLE_METADATA_KEY,
-  CrudRepository,
-  CrudTableOptions,
-  Injectable,
-  RepositoryEntry,
-  JwtPayload,
-  NotFoundException,
-  BaseRepository,
-  parseId,
-  QueueManager,
-  RedisService,
-  CacheService
-} from '@config/libs';
+import { Injectable, JwtPayload, NotFoundException } from '@config/libs';
 
-import { TableMetadata, ColumnMetadata } from '@modules/admin/interfaces/admin.interface';
-import { UsersRepository } from '@modules/users/users.repository';
-import { CssFilesRepository } from '@modules/themes/repositories/css-files.repository';
-import { CssTokensRepository } from '@modules/themes/repositories/css-tokens.repository';
-import { CssRulesRepository } from '@modules/themes/repositories/css-rules.repository';
-import { ThemeVersionsRepository } from '@modules/themes/repositories/theme-versions.repository';
-import { TokenUsageRepository } from '@modules/themes/repositories/token-usage.repository';
-import { CssGradientsRepository } from '@modules/themes/repositories/css-gradients.repository';
-import { CssBackupsRepository } from '@modules/themes/repositories/css-backups.repository';
-import { CssAuditLogRepository } from '@modules/themes/repositories/css-audit-log.repository';
+import { TableMetadata } from '@modules/admin/interfaces/admin.interface';
+import { CreateOperations } from './crud-operations/create-operations';
+import { ReadOperations } from './crud-operations/read-operations';
+import { UpdateOperations } from './crud-operations/update-operations';
+import { DeleteOperations } from './crud-operations/delete-operations';
+import { RepositoryManager } from './crud-operations/repository-manager';
+import { RepositoryRegistrar } from './crud-operations/repository-registrar';
+import { QueueManagerHelper } from './crud-operations/queue-manager-helper';
+import { SchemaBuilder } from './crud-operations/schema-builder';
+import { CacheInvalidator } from './crud-operations/cache-invalidator';
 
 @Injectable()
 export class AdminCrudService {
-  private repositories = new Map<string, RepositoryEntry>();
-  private queueEventsMap = new Map<string, QueueEvents>();
-
   constructor (
-    private readonly queueManager: QueueManager,
-    private readonly redisService: RedisService,
-    private readonly cacheService: CacheService,
-    usersRepository: UsersRepository,
-    cssFilesRepository: CssFilesRepository,
-    cssTokensRepository: CssTokensRepository,
-    cssRulesRepository: CssRulesRepository,
-    themeVersionsRepository: ThemeVersionsRepository,
-    tokenUsageRepository: TokenUsageRepository,
-    cssGradientsRepository: CssGradientsRepository,
-    cssBackupsRepository: CssBackupsRepository,
-    cssAuditLogRepository: CssAuditLogRepository
+    private readonly repositoryManager: RepositoryManager,
+    private readonly queueHelper: QueueManagerHelper,
+    private readonly schemaBuilder: SchemaBuilder,
+    private readonly cacheInvalidator: CacheInvalidator,
+    private readonly createOps: CreateOperations,
+    private readonly readOps: ReadOperations,
+    private readonly updateOps: UpdateOperations,
+    private readonly deleteOps: DeleteOperations,
+    repositoryRegistrar: RepositoryRegistrar
   ) {
-    this.registerRepository(usersRepository, UsersRepository);
-    this.registerRepository(cssFilesRepository, CssFilesRepository);
-    this.registerRepository(cssTokensRepository, CssTokensRepository);
-    this.registerRepository(cssRulesRepository, CssRulesRepository);
-    this.registerRepository(themeVersionsRepository, ThemeVersionsRepository);
-    this.registerRepository(tokenUsageRepository, TokenUsageRepository);
-    this.registerRepository(cssGradientsRepository, CssGradientsRepository);
-    this.registerRepository(cssBackupsRepository, CssBackupsRepository);
-    this.registerRepository(cssAuditLogRepository, CssAuditLogRepository);
+    repositoryRegistrar.registerAll(this.repositoryManager);
   }
 
   getTableSchema (): Record<string, TableMetadata[]> {
-    const schema: Record<string, TableMetadata[]> = {};
-
-    for (const [, { metadata }] of this.repositories) {
-      if (!schema[metadata.category]) schema[metadata.category] = [];
-
-      schema[metadata.category]?.push({
-        category: metadata.category,
-        name: metadata.name,
-        displayName: metadata.displayName || metadata.name,
-        tableName: metadata.name,
-        columns: this.getTableColumns(metadata.name),
-        actions: metadata.actions || { create: true, update: true, delete: true }
-      });
-    }
-
-    return schema;
+    return this.schemaBuilder.buildTableSchema(this.repositoryManager.getAllRepositories(), (repos, name) =>
+      this.readOps.getTableColumns(repos, name)
+    );
   }
 
   async getTableData (
@@ -82,48 +41,37 @@ export class AdminCrudService {
     search?: string,
     t?: string
   ): Promise<{ data: unknown[]; total: number }> {
-    const page = pageNum ? parseInt(pageNum, 10) : 1;
-    const limit = limitNum ? parseInt(limitNum, 10) : 10;
     const key = `${category}:${name}`;
-    const entry = this.repositories.get(key);
-
-    if (!entry) throw new NotFoundException(`Table ${category}:${name}${t ?? ''} not found`);
-    return entry.repository.retrieveDataWithPagination!(page, limit, search);
+    const entry = this.repositoryManager.getRepository(key);
+    return this.readOps.getTableData(entry, category, name, pageNum, limitNum, search, t);
   }
 
   async getTableDataByName (name: string, pageNum?: string, limitNum?: string, search?: string): Promise<{ data: unknown[]; total: number }> {
-    const page = pageNum ? parseInt(pageNum, 10) : 1;
-    const limit = limitNum ? parseInt(limitNum, 10) : 10;
-    const entry = this.findRepositoryByName(name);
-    if (!entry) throw new NotFoundException(`Table ${name} not found`);
-    return entry.repository.retrieveDataWithPagination!(page, limit, search);
+    const entry = this.readOps.findRepositoryByName(this.repositoryManager.getAllRepositories(), name);
+    return this.readOps.getTableDataByName(entry, name, pageNum, limitNum, search);
   }
 
   async getTableRecord (category: string, name: string, id: string | number): Promise<unknown> {
     const key = `${category}:${name}`;
-    const entry = this.repositories.get(key);
-    if (!entry || !entry.repository.findById) throw new NotFoundException(`Table ${category}:${name} not found or unsupported`);
-    const parsedId = parseId(id);
-    return entry.repository.findById(parsedId);
+    const entry = this.repositoryManager.getRepository(key);
+    return this.readOps.getTableRecord(entry, category, name, id);
   }
 
   async createTableRecord (category: string, name: string, data: unknown, currentUser?: JwtPayload, bypassQueue = false): Promise<unknown> {
-    const entry = this.repositories.get(`${category}:${name}`);
-    if (!entry || !entry.repository.create) throw new NotFoundException(`Table ${category}:${name} not found or unsupported`);
+    const entry = this.repositoryManager.getRepository(`${category}:${name}`);
+    if (!entry) throw new NotFoundException(`Table ${category}:${name} not found or unsupported`);
 
-    if (entry.metadata.commandQueue && !bypassQueue) {
-      const jobName = entry.metadata.operationMapping?.['create'] || `${entry.metadata.name}.create`;
-      const queue = this.queueManager.createQueue(entry.metadata.commandQueue);
-      const job = await queue.add(jobName, { data, currentUser });
-
-      const result = (await this.waitForJobCompletion(entry.metadata.commandQueue, job)) as { id: number; userId: number };
-      await this.invalidateCache(entry.metadata, result?.id || result?.userId);
-      return result;
-    }
-
-    const result = (await entry.repository.create(data)) as { id?: string | number; userId?: string | number };
-    await this.invalidateCache(entry.metadata, result?.id || result?.userId);
-    return result;
+    return this.createOps.execute(
+      entry.repository,
+      entry.metadata,
+      category,
+      name,
+      data,
+      currentUser,
+      bypassQueue,
+      (queueName, job) => this.queueHelper.waitForJobCompletion(queueName, job),
+      (metadata, id) => this.cacheInvalidator.invalidateCache(metadata, id)
+    );
   }
 
   async updateTableRecord (
@@ -134,26 +82,21 @@ export class AdminCrudService {
     currentUser?: JwtPayload,
     bypassQueue = false
   ): Promise<unknown> {
-    const entry = this.repositories.get(`${category}:${name}`);
-    if (!entry || !entry.repository.update) throw new NotFoundException(`Table ${category}:${name} not found or unsupported`);
+    const entry = this.repositoryManager.getRepository(`${category}:${name}`);
+    if (!entry) throw new NotFoundException(`Table ${category}:${name} not found or unsupported`);
 
-    if (entry.metadata.commandQueue && !bypassQueue) {
-      const jobName = entry.metadata.operationMapping?.['update'] || `${entry.metadata.name}.update`;
-      const queue = this.queueManager.createQueue(entry.metadata.commandQueue);
-      const job = await queue.add(jobName, { userId: id, data, currentUser });
-
-      await this.waitForJobCompletion(entry.metadata.commandQueue, job);
-      await this.invalidateCache(entry.metadata, id);
-      return { success: true, id };
-    }
-
-    const repository = entry.repository as BaseRepository<unknown>;
-    const parsedId = parseId(id);
-    const result = await repository.update(parsedId, data, undefined, undefined, currentUser);
-
-    await this.invalidateCache(entry.metadata, id);
-
-    return result;
+    return this.updateOps.execute(
+      entry.repository,
+      entry.metadata,
+      category,
+      name,
+      id,
+      data,
+      currentUser,
+      bypassQueue,
+      (queueName, job) => this.queueHelper.waitForJobCompletion(queueName, job),
+      (metadata, recordId) => this.cacheInvalidator.invalidateCache(metadata, recordId)
+    );
   }
 
   async deleteTableRecord (
@@ -163,73 +106,23 @@ export class AdminCrudService {
     currentUser?: JwtPayload,
     bypassQueue = false
   ): Promise<{ success: boolean }> {
-    const entry = this.repositories.get(`${category}:${name}`);
-    if (!entry || !entry.repository.delete) throw new NotFoundException(`Table ${category}:${name} not found or unsupported`);
+    const entry = this.repositoryManager.getRepository(`${category}:${name}`);
+    if (!entry) throw new NotFoundException(`Table ${category}:${name} not found or unsupported`);
 
-    if (entry.metadata.commandQueue && !bypassQueue) {
-      const jobName = entry.metadata.operationMapping?.['delete'] || `${entry.metadata.name}.delete`;
-      const queue = this.queueManager.createQueue(entry.metadata.commandQueue);
-      const job = await queue.add(jobName, { userId: id, currentUser });
-
-      await this.waitForJobCompletion(entry.metadata.commandQueue, job);
-      await this.invalidateCache(entry.metadata, id);
-
-      return { success: true };
-    }
-
-    const repository = entry.repository as BaseRepository<unknown>;
-    const parsedId = parseId(id);
-    const success = await repository.delete(parsedId, undefined, currentUser);
-    if (success) await this.invalidateCache(entry.metadata, id);
-
-    return { success };
+    return this.deleteOps.execute(
+      entry.repository,
+      entry.metadata,
+      category,
+      name,
+      id,
+      currentUser,
+      bypassQueue,
+      (queueName, job) => this.queueHelper.waitForJobCompletion(queueName, job),
+      (metadata, recordId) => this.cacheInvalidator.invalidateCache(metadata, recordId)
+    );
   }
 
   async close (): Promise<void> {
-    for (const queueEvents of this.queueEventsMap.values()) {
-      await queueEvents.close();
-    }
-
-    this.queueEventsMap.clear();
-  }
-
-  private registerRepository (repository: CrudRepository, repositoryClass: object): void {
-    const metadata = Reflect.getMetadata(CRUD_TABLE_METADATA_KEY, repositoryClass) as CrudTableOptions | undefined;
-    if (!metadata) return;
-    const key = `${metadata.category}:${metadata.name}`;
-    this.repositories.set(key, { repository, metadata });
-  }
-
-  private findRepositoryByName (name: string): RepositoryEntry | undefined {
-    for (const [, entry] of this.repositories) {
-      if (entry.metadata.name === name) return entry;
-    }
-
-    return undefined;
-  }
-
-  private getTableColumns (tableName: string): ColumnMetadata[] {
-    const entry = this.findRepositoryByName(tableName);
-    if (!entry || !entry.repository.getColumnMetadata) return [];
-    return entry.repository.getColumnMetadata() as ColumnMetadata[];
-  }
-
-  private async waitForJobCompletion (queueName: string, job: Job): Promise<unknown> {
-    const queueNameWithHash = queueName.startsWith('{') ? queueName : `{${queueName}}`;
-
-    let queueEvents = this.queueEventsMap.get(queueNameWithHash);
-
-    if (!queueEvents) {
-      queueEvents = new QueueEvents(queueNameWithHash, { connection: this.redisService.getClient() });
-      this.queueEventsMap.set(queueNameWithHash, queueEvents);
-    }
-
-    return await job.waitUntilFinished(queueEvents, 60000);
-  }
-
-  private async invalidateCache (metadata: CrudTableOptions, id?: string | number): Promise<void> {
-    if (!metadata.cacheConfig) return;
-    if (metadata.cacheConfig.prefix) await this.cacheService.invalidateTags([metadata.cacheConfig.prefix]);
-    if (id && metadata.cacheConfig.detailKey) await this.cacheService.delete(metadata.cacheConfig.detailKey(id));
+    await this.queueHelper.close();
   }
 }

@@ -38,3 +38,5 @@ export type CrudRepository = Partial<
       retrieveDataWithPagination: (page: number, limit: number, search?: string) => Promise<{ data: unknown[]; total: number }>;
     }
 >;
+
+export type JoinType = 'INNER' | 'LEFT' | 'RIGHT' | 'FULL';

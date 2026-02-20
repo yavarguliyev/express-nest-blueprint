@@ -1,0 +1,38 @@
+<div class="font-selector">
+  <!-- Font Family Dropdown -->
+  <div class="font-dropdown-container">
+    <select class="font-dropdown" [value]="currentValue" (change)="onFontChange($event)">
+      @for (fontGroup of fontGroups; track fontGroup.category) {
+        <optgroup [label]="fontGroup.category">
+          @for (font of fontGroup.fonts; track font.value) {
+            <option [value]="font.value" [style.font-family]="font.value">
+              {{ font.name }}
+            </option>
+          }
+        </optgroup>
+      }
+    </select>
+  </div>
+
+  <!-- Custom Font Input -->
+  <div class="custom-font-container">
+    <input
+      type="text"
+      class="custom-font-input"
+      [value]="isCustomFont() ? currentValue : ''"
+      [style.font-family]="currentValue"
+      (input)="onCustomFontChange($event)"
+      (focus)="enableCustomMode()"
+      placeholder="Enter custom font family..."
+      [class.active]="isCustomFont()"
+    />
+  </div>
+
+  <!-- Font Preview -->
+  <div class="font-preview-container">
+    <div class="font-preview-text" [style.font-family]="currentValue">The quick brown fox jumps over the lazy dog</div>
+    <div class="font-info">
+      <span class="font-name">{{ getFontDisplayName() }}</span>
+    </div>
+  </div>
+</div>

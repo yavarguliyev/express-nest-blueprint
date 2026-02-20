@@ -1,0 +1,36 @@
+<div class="color-picker">
+  <!-- Mode Tabs -->
+  <div class="mode-tabs">
+    <button class="mode-tab" [class.active]="selectedMode() === 'default'" (click)="selectMode('default')">Default</button>
+    <button class="mode-tab" [class.active]="selectedMode() === 'light'" (click)="selectMode('light')">Light</button>
+    <button class="mode-tab" [class.active]="selectedMode() === 'dark'" (click)="selectMode('dark')">Dark</button>
+  </div>
+
+  <!-- Color Input -->
+  <div class="color-input-container">
+    <div class="color-preview-wrapper">
+      <input type="color" class="color-input" [value]="getCurrentValue()" (input)="onColorChange($event)" [title]="getCurrentValue()" />
+      <div class="color-preview" [style.background-color]="getCurrentValue()" (click)="triggerColorPicker()"></div>
+    </div>
+
+    <input
+      type="text"
+      class="color-text-input"
+      [value]="getCurrentValue()"
+      (input)="onTextChange($event)"
+      (blur)="validateColor($event)"
+      placeholder="#000000"
+      pattern="^#[0-9A-Fa-f]{6}$"
+    />
+  </div>
+
+  <!-- Color Presets -->
+  <div class="color-presets">
+    <div class="presets-label">Quick Colors:</div>
+    <div class="preset-colors">
+      @for (color of colorPresets; track color) {
+        <button class="preset-color" [style.background-color]="color" [title]="color" (click)="selectPresetColor(color)"></button>
+      }
+    </div>
+  </div>
+</div>

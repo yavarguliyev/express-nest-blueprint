@@ -27,6 +27,7 @@ export class DocumentBuilder {
       ...this.config.securitySchemes,
       [name]: options
     };
+
     return this;
   }
 
@@ -42,6 +43,7 @@ export class DocumentBuilder {
       ...this.config.securitySchemes,
       [name]: options
     };
+
     return this;
   }
 

@@ -1,12 +1,15 @@
 import { ColumnMapping, QueryWithPaginationOptions } from '../../domain/interfaces/database/query-builder.interface';
+import { WhereBuilder } from './query-builder/where-builder';
 
 export class QueryBuilder<T> {
   private tableName: string;
   private columnMappings: ColumnMapping;
+  private whereBuilder: WhereBuilder;
 
   constructor (tableName: string, columnMappings: ColumnMapping = {}) {
     this.tableName = tableName;
     this.columnMappings = columnMappings;
+    this.whereBuilder = new WhereBuilder(columnMappings);
   }
 
   buildSelectQuery (columns: string[], options: QueryWithPaginationOptions = {}): { query: string; params: unknown[] } {
@@ -15,7 +18,7 @@ export class QueryBuilder<T> {
     const params: unknown[] = [];
     let paramIndex = 1;
 
-    const whereConditions = this.buildWhereConditions(options, params, paramIndex);
+    const whereConditions = this.whereBuilder.buildWhereConditions(options, params, paramIndex);
     if (whereConditions.conditions.length > 0) {
       query += ` WHERE ${whereConditions.conditions.join(' AND ')}`;
       paramIndex = whereConditions.paramIndex;
@@ -38,10 +41,6 @@ export class QueryBuilder<T> {
     }
 
     return { query, params };
-  }
-
-  static buildDatabaseSizeQuery (): string {
-    return 'SELECT pg_database_size(current_database()) as size';
   }
 
   buildInsertQuery<K extends keyof T> (data: Record<string, unknown>, returningColumns?: K[]): { query: string; params: unknown[] } {
@@ -108,10 +107,14 @@ export class QueryBuilder<T> {
     const params: unknown[] = [];
     const paramIndex = 1;
 
-    const whereConditions = this.buildWhereConditions(options, params, paramIndex);
+    const whereConditions = this.whereBuilder.buildWhereConditions(options, params, paramIndex);
     if (whereConditions.conditions.length > 0) query += ` WHERE ${whereConditions.conditions.join(' AND ')}`;
 
     return { query, params };
+  }
+
+  static buildDatabaseSizeQuery (): string {
+    return 'SELECT pg_database_size(current_database()) as size';
   }
 
   private mapColumns (columns: string[]): string {
@@ -121,43 +124,5 @@ export class QueryBuilder<T> {
         return mapping ? `${mapping} as "${col}"` : col;
       })
       .join(', ');
-  }
-
-  private buildWhereConditions (
-    options: QueryWithPaginationOptions,
-    params: unknown[],
-    startParamIndex: number
-  ): { conditions: string[]; paramIndex: number } {
-    const conditions: string[] = [];
-    let paramIndex = startParamIndex;
-
-    if (options.where && !Array.isArray(options.where) && Object.keys(options.where).length > 0) {
-      Object.entries(options.where).forEach(([key, value]) => {
-        const dbColumn = this.columnMappings[key] || key;
-        conditions.push(`${dbColumn} = $${paramIndex++}`);
-        params.push(value);
-      });
-    }
-
-    if (options.where && Array.isArray(options.where)) {
-      options.where.forEach(condition => {
-        const dbColumn = this.columnMappings[condition.field] || condition.field;
-        conditions.push(`${dbColumn} ${condition.operator} $${paramIndex++}`);
-        params.push(condition.value);
-      });
-    }
-
-    if (options.search && options.search.fields.length > 0 && options.search.term) {
-      const searchConditions = options.search.fields.map(field => {
-        const dbColumn = this.columnMappings[field] || field;
-        return `LOWER(${dbColumn}) LIKE LOWER($${paramIndex})`;
-      });
-
-      conditions.push(`(${searchConditions.join(' OR ')})`);
-      params.push(`%${options.search.term}%`);
-      paramIndex++;
-    }
-
-    return { conditions, paramIndex };
   }
 }

@@ -3,341 +3,143 @@ import { Directive, ElementRef, HostListener, inject, Renderer2, OnInit, OnDestr
 import { AuthService } from '../../core/services/auth/auth.service';
 import { UserRoleHelper } from '../../core/services/utilities/user-role-utility.service';
 import { LayoutCustomizationService } from '../../core/services/ui/layout-customization.service';
+import { ButtonCreator } from './helpers/button-creator';
+import { HandleCreator } from './helpers/handle-creator';
+import { DragResizeHandler } from './helpers/drag-resize-handler';
+import { PositionManager } from './helpers/position-manager';
+import { EventHandler } from './helpers/event-handler';
+import { ActivationManager } from './helpers/activation-manager';
+import { INTERACTIVE_TAGS } from '../../core/constants/api.constants';
 
-@Directive({
-  selector: '[appDraggableResizable]',
-  standalone: true
-})
+@Directive({ selector: '[appDraggableResizable]', standalone: true })
 export class DraggableResizableDirective implements OnInit, OnDestroy {
-  @Input() appDraggableResizable: string = '';
+  @Input() appDraggableResizable = '';
 
-  private el: ElementRef<HTMLElement> = inject(ElementRef) as ElementRef<HTMLElement>;
-  private handles: HTMLElement[] = [];
+  private isAdmin = false;
+  private el = inject(ElementRef) as ElementRef<HTMLElement>;
   private renderer = inject(Renderer2);
-  private authService = inject(AuthService);
-  private layoutService = inject(LayoutCustomizationService);
-
-  private isDragging = false;
-  private isResizing = false;
-  private isGlobalAdmin = false;
-  private isActivated = false;
-
-  private startX = 0;
-  private startY = 0;
-  private startWidth = 0;
-  private startHeight = 0;
-  private startLeft = 0;
-  private startTop = 0;
-  private currentHandle: string | null = null;
+  private auth = inject(AuthService);
+  private layout = inject(LayoutCustomizationService);
+  private dragResize = new DragResizeHandler(this.renderer);
+  private posManager = new PositionManager(this.renderer);
+  private events = new EventHandler();
+  private activation = new ActivationManager(this.renderer, new ButtonCreator(this.renderer), new HandleCreator(this.renderer));
 
   constructor () {
     effect(() => {
-      const positions = this.layoutService.currentPositions();
-      const id = this.getElementId();
-      const pos = positions.get(id);
-
-      if (pos) {
-        this.renderer.setStyle(this.el.nativeElement, 'position', 'absolute');
-        this.renderer.setStyle(this.el.nativeElement, 'left', `${pos.left}px`);
-        this.renderer.setStyle(this.el.nativeElement, 'top', `${pos.top}px`);
-        this.renderer.setStyle(this.el.nativeElement, 'width', `${pos.width}px`);
-        this.renderer.setStyle(this.el.nativeElement, 'height', `${pos.height}px`);
-        this.renderer.setStyle(this.el.nativeElement, 'z-index', this.isActivated ? '1000000' : `${pos.zIndex}`);
-      } else {
-        this.renderer.removeStyle(this.el.nativeElement, 'position');
-        this.renderer.removeStyle(this.el.nativeElement, 'left');
-        this.renderer.removeStyle(this.el.nativeElement, 'top');
-        this.renderer.removeStyle(this.el.nativeElement, 'width');
-        this.renderer.removeStyle(this.el.nativeElement, 'height');
-        this.renderer.removeStyle(this.el.nativeElement, 'z-index');
-      }
+      const pos = this.layout.currentPositions().get(this.getId());
+      if (pos) this.posManager.applyPosition(this.el.nativeElement, pos, this.activation.activated);
+      else this.posManager.clearPosition(this.el.nativeElement);
     });
   }
 
   ngOnInit (): void {
-    const user = this.authService.getCurrentUser();
+    const user = this.auth.getCurrentUser();
     if (user && UserRoleHelper.isGlobalAdmin(user.role)) {
-      this.isGlobalAdmin = true;
-      this.setupInteraction();
+      this.isAdmin = true;
+      this.setCursor();
     }
   }
 
   ngOnDestroy (): void {
-    this.removeHandles();
+    this.activation.removeHandles(this.el.nativeElement);
   }
 
-  @HostListener('dblclick', ['$event'])
-  onDoubleClick (event: MouseEvent): void {
-    if (!this.isGlobalAdmin) return;
-    event.stopPropagation();
-    if (!this.isActivated) this.activate();
-  }
-
-  @HostListener('click', ['$event'])
-  onClick (event: MouseEvent): void {
-    if (!this.isGlobalAdmin) return;
-    const target = event.target as HTMLElement;
-    if (['BUTTON', 'INPUT', 'SELECT', 'A', 'LABEL'].includes(target.tagName)) return;
-    if (this.isActivated) event.stopPropagation();
-  }
-
-  @HostListener('document:keydown.escape', ['$event'])
-  onEscapeKey (event: KeyboardEvent): void {
-    if (this.isActivated) {
-      event.preventDefault();
-      this.deactivate();
-    }
-  }
-
-  @HostListener('mousedown', ['$event'])
-  onMouseDown (event: MouseEvent): void {
-    if (!this.isGlobalAdmin) return;
-    if (event.button !== 0) return;
-    if (this.isActivated) {
-      event.stopPropagation();
-      const target = event.target as HTMLElement;
-      if (target.tagName === 'BUTTON' || target.tagName === 'INPUT' || target.tagName === 'SELECT' || target.tagName === 'A') return;
-      if (target.classList.contains('drag-handle') || target.classList.contains('deactivate-btn')) return;
-      this.onDragStart(event);
-    }
-  }
-
-  @HostListener('document:mousemove', ['$event'])
-  onMouseMove (event: MouseEvent): void {
-    if (!this.isDragging && !this.isResizing) return;
-    const dx = event.clientX - this.startX;
-    const dy = event.clientY - this.startY;
-    if (this.isDragging) this.handleDrag(dx, dy);
-    else if (this.isResizing && this.currentHandle) this.handleResize(dx, dy, this.currentHandle);
-  }
-
-  private handleDrag (dx: number, dy: number): void {
-    this.applyStyles({ left: this.startLeft + dx, top: this.startTop + dy });
-  }
-
-  private handleResize (dx: number, dy: number, handle: string): void {
-    const leftFactor = handle.includes('l') ? 1 : 0;
-    const rightFactor = handle.includes('r') ? 1 : 0;
-    const topFactor = handle.includes('t') ? 1 : 0;
-    const bottomFactor = handle.includes('b') ? 1 : 0;
-
-    this.applyStyles({
-      width: this.startWidth + dx * rightFactor - dx * leftFactor,
-      height: this.startHeight + dy * bottomFactor - dy * topFactor,
-      left: this.startLeft + dx * leftFactor,
-      top: this.startTop + dy * topFactor
-    });
-  }
-
-  private applyStyles (styles: Partial<Record<'width' | 'height' | 'left' | 'top', number>>): void {
-    const el = this.el.nativeElement;
-    for (const [key, value] of Object.entries(styles)) {
-      this.renderer.setStyle(el, key, `${value}px`);
-    }
-  }
-
-  @HostListener('document:mouseup')
-  onMouseUp (): void {
-    if (this.isDragging || this.isResizing) {
-      this.isDragging = false;
-      this.isResizing = false;
-      this.currentHandle = null;
-
-      this.saveCurrentPosition();
-    }
-  }
-
-  private getElementId (): string {
-    if (this.appDraggableResizable) return this.appDraggableResizable;
-    const nativeElement = this.el.nativeElement;
-    if (nativeElement.id) return nativeElement.id;
-    const tag = nativeElement.tagName.toLowerCase();
-    const classes = Array.from(nativeElement.classList).join('.').substring(0, 20);
-    return `el-${tag}-${classes}`;
-  }
-
-  private setupInteraction (): void {
+  private setCursor (): void {
     this.renderer.setStyle(this.el.nativeElement, 'cursor', 'move');
     this.renderer.setStyle(this.el.nativeElement, 'transition', 'none');
   }
 
+  private isInteractive (target: HTMLElement): boolean {
+    return INTERACTIVE_TAGS.includes(target.tagName) || target.classList.contains('drag-handle') || target.classList.contains('deactivate-btn');
+  }
+
+  @HostListener('dblclick', ['$event']) onDblClick (e: MouseEvent): void {
+    if (this.isAdmin && !this.activation.activated) {
+      e.stopPropagation();
+      this.activate();
+    }
+  }
+
+  @HostListener('click', ['$event']) onClick (e: MouseEvent): void {
+    if (this.isAdmin && !this.isInteractive(e.target as HTMLElement) && this.activation.activated) e.stopPropagation();
+  }
+
+  @HostListener('document:keydown.escape', ['$event']) onEscape (e: KeyboardEvent): void {
+    if (this.activation.activated) {
+      e.preventDefault();
+      this.deactivate();
+    }
+  }
+
+  @HostListener('mousedown', ['$event']) onMouseDown (e: MouseEvent): void {
+    if (!this.isAdmin || e.button !== 0 || !this.activation.activated) return;
+    e.stopPropagation();
+    if (!this.isInteractive(e.target as HTMLElement)) this.startDrag(e);
+  }
+
+  @HostListener('document:mousemove', ['$event'])
+  onMouseMove (e: MouseEvent): void {
+    if (!this.events.isActive()) return;
+    const { dx, dy } = this.events.getDelta(e);
+    const { left, top } = this.events.getStartPosition();
+    if (this.events.dragging) this.dragResize.handleDrag(this.el.nativeElement, dx, dy, left, top);
+    else if (this.events.handle) this.handleResize(dx, dy);
+  }
+
+  @HostListener('document:mouseup') onMouseUp (): void {
+    if (!this.events.isActive()) return;
+    this.events.stop();
+    this.savePosition();
+  }
+
+  private handleResize (dx: number, dy: number): void {
+    const handle = this.events.handle;
+    if (!handle) return;
+    const d = this.events.getStartDimensions();
+    this.dragResize.handleResize(this.el.nativeElement, dx, dy, handle, d.width, d.height, d.left, d.top);
+  }
+
+  private getId (): string {
+    const el = this.el.nativeElement;
+    return this.appDraggableResizable || el.id || `el-${el.tagName.toLowerCase()}-${Array.from(el.classList).join('.').slice(0, 20)}`;
+  }
+
   private activate (): void {
-    this.isActivated = true;
-
-    const element = this.el.nativeElement;
-    const currentPos = window.getComputedStyle(element).position;
-    if (currentPos === 'static') this.renderer.setStyle(element, 'position', 'relative');
-
-    this.renderer.setStyle(element, 'overflow', 'visible');
-    this.renderer.setStyle(element, 'outline', '2px dashed var(--primary)');
-
-    this.createHandles();
-    this.createDeactivateButton();
+    this.activation.activate(
+      this.el.nativeElement,
+      () => this.deactivate(),
+      (e, h) => this.startResize(e, h)
+    );
   }
 
   private deactivate (): void {
-    this.isActivated = false;
-
-    const element = this.el.nativeElement;
-    const currentPos = element.style.position;
-    if (currentPos === 'relative' && !this.layoutService.currentPositions().has(this.getElementId())) this.renderer.removeStyle(element, 'position');
-
-    this.renderer.removeStyle(element, 'overflow');
-    this.renderer.removeStyle(element, 'outline');
-    this.removeHandles();
+    this.activation.deactivate(this.el.nativeElement, this.layout.currentPositions().has(this.getId()));
   }
 
-  private createDeactivateButton (): void {
-    const button = this.renderer.createElement('button') as HTMLElement;
-    this.renderer.addClass(button, 'deactivate-btn');
-    this.renderer.setStyle(button, 'position', 'absolute');
-    this.renderer.setStyle(button, 'top', '4px');
-    this.renderer.setStyle(button, 'right', '4px');
-    this.renderer.setStyle(button, 'width', '24px');
-    this.renderer.setStyle(button, 'height', '24px');
-    this.renderer.setStyle(button, 'background', 'var(--danger)', 1);
-    this.renderer.setStyle(button, 'color', 'var(--white, #ffffff)', 1);
-    this.renderer.setStyle(button, 'border', '2px solid var(--white, #ffffff)', 1);
-    this.renderer.setStyle(button, 'border-radius', '4px');
-    this.renderer.setStyle(button, 'cursor', 'pointer');
-    this.renderer.setStyle(button, 'z-index', '1000000');
-    this.renderer.setStyle(button, 'display', 'flex');
-    this.renderer.setStyle(button, 'align-items', 'center');
-    this.renderer.setStyle(button, 'justify-content', 'center');
-    this.renderer.setStyle(button, 'font-size', '16px');
-    this.renderer.setStyle(button, 'font-family', 'Arial, sans-serif');
-    this.renderer.setStyle(button, 'font-weight', '900');
-    this.renderer.setStyle(button, 'line-height', '1');
-    this.renderer.setStyle(button, 'padding', '0');
-    this.renderer.setStyle(button, 'pointer-events', 'auto');
-    this.renderer.setStyle(button, 'box-shadow', '0 2px 8px var(--primary-glow)');
-    this.renderer.setStyle(button, 'transition', 'all 0.15s ease-in-out');
-    this.renderer.setStyle(button, 'box-sizing', 'border-box');
-
-    const xSpan =
-      '<span style="color: var(--white, #ffffff) !important; font-weight: 900 !important; font-size: 16px !important; font-family: Arial, sans-serif !important; text-shadow: 0 0 2px var(--primary-glow) !important; line-height: 1 !important; display: block !important;">X</span>';
-    button.innerHTML = xSpan;
-    button.title = 'Exit draggable mode (ESC)';
-
-    this.renderer.listen(button, 'click', (e: MouseEvent) => {
-      e.stopPropagation();
-      e.preventDefault();
-      this.deactivate();
-    });
-
-    this.renderer.listen(button, 'contextmenu', (e: MouseEvent) => {
-      e.stopPropagation();
-      e.preventDefault();
-    });
-
-    this.renderer.listen(button, 'mouseenter', () => {
-      this.renderer.setStyle(button, 'transform', 'scale(1.1)');
-      this.renderer.setStyle(button, 'filter', 'brightness(1.1)');
-    });
-
-    this.renderer.listen(button, 'mouseleave', () => {
-      this.renderer.setStyle(button, 'transform', 'scale(1)');
-      this.renderer.setStyle(button, 'filter', 'brightness(1)');
-    });
-
-    this.renderer.appendChild(this.el.nativeElement, button);
-    this.handles.push(button);
+  private startDrag (e: MouseEvent): void {
+    e.preventDefault();
+    e.stopPropagation();
+    this.posManager.initializeDragPosition(this.el.nativeElement);
+    this.events.startDrag(e, this.el.nativeElement);
   }
 
-  private createHandles (): void {
-    const positions = ['tl', 'tr', 'bl', 'br'];
-
-    positions.forEach(pos => {
-      const handle = this.renderer.createElement('div') as HTMLElement;
-      this.renderer.addClass(handle, 'drag-handle');
-      this.renderer.addClass(handle, `handle-${pos}`);
-      this.renderer.setStyle(handle, 'position', 'absolute');
-      this.renderer.setStyle(handle, 'width', '10px');
-      this.renderer.setStyle(handle, 'height', '10px');
-      this.renderer.setStyle(handle, 'background', 'var(--primary)');
-      this.renderer.setStyle(handle, 'z-index', '1001');
-
-      switch (pos) {
-        case 'tl':
-          this.renderer.setStyle(handle, 'top', '-5px');
-          this.renderer.setStyle(handle, 'left', '-5px');
-          this.renderer.setStyle(handle, 'cursor', 'nwse-resize');
-          break;
-        case 'tr':
-          this.renderer.setStyle(handle, 'top', '-5px');
-          this.renderer.setStyle(handle, 'right', '-5px');
-          this.renderer.setStyle(handle, 'cursor', 'nesw-resize');
-          break;
-        case 'bl':
-          this.renderer.setStyle(handle, 'bottom', '-5px');
-          this.renderer.setStyle(handle, 'left', '-5px');
-          this.renderer.setStyle(handle, 'cursor', 'nesw-resize');
-          break;
-        case 'br':
-          this.renderer.setStyle(handle, 'bottom', '-5px');
-          this.renderer.setStyle(handle, 'right', '-5px');
-          this.renderer.setStyle(handle, 'cursor', 'nwse-resize');
-          break;
-      }
-
-      this.renderer.listen(handle, 'mousedown', (e: MouseEvent) => this.onResizeStart(e, pos));
-      this.renderer.appendChild(this.el.nativeElement, handle);
-      this.handles.push(handle);
-    });
+  private startResize (e: MouseEvent, handle: string): void {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+    this.events.startResize(e, handle, this.el.nativeElement);
   }
 
-  private removeHandles (): void {
-    this.handles.forEach(h => this.renderer.removeChild(this.el.nativeElement, h));
-    this.handles = [];
-  }
-
-  private onDragStart (event: MouseEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
-
-    const element = this.el.nativeElement;
-    if (element.style.position !== 'absolute') {
-      const rect = element.getBoundingClientRect();
-      this.renderer.setStyle(element, 'position', 'absolute');
-      this.renderer.setStyle(element, 'left', `${rect.left}px`);
-      this.renderer.setStyle(element, 'top', `${rect.top}px`);
-      this.renderer.setStyle(element, 'width', `${rect.width}px`);
-      this.renderer.setStyle(element, 'height', `${rect.height}px`);
-      this.renderer.setStyle(element, 'z-index', '1000');
-    }
-
-    this.isDragging = true;
-    this.startX = event.clientX;
-    this.startY = event.clientY;
-    this.startLeft = element.offsetLeft;
-    this.startTop = element.offsetTop;
-  }
-
-  private onResizeStart (event: MouseEvent, handle: string): void {
-    if (event.button !== 0) return;
-    event.preventDefault();
-    event.stopPropagation();
-    this.isResizing = true;
-    this.currentHandle = handle;
-    this.startX = event.clientX;
-    this.startY = event.clientY;
-    const element = this.el.nativeElement;
-    this.startWidth = element.offsetWidth;
-    this.startHeight = element.offsetHeight;
-    this.startLeft = element.offsetLeft;
-    this.startTop = element.offsetTop;
-  }
-
-  private saveCurrentPosition (): void {
-    const id = this.getElementId();
-    const element = this.el.nativeElement;
-
-    this.layoutService.updatePosition(id, {
+  private savePosition (): void {
+    const el = this.el.nativeElement;
+    const id = this.getId();
+    this.layout.updatePosition(id, {
       elementId: id,
-      left: element.offsetLeft,
-      top: element.offsetTop,
-      width: element.offsetWidth,
-      height: element.offsetHeight,
+      left: el.offsetLeft,
+      top: el.offsetTop,
+      width: el.offsetWidth,
+      height: el.offsetHeight,
       zIndex: 1000
     });
   }

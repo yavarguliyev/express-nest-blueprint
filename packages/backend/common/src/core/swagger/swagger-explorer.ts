@@ -1,133 +1,82 @@
-import { getMetadataStorage } from 'class-validator';
-
-import { REQUIRE_AUTH_KEY, ROLES_KEY, IS_PUBLIC_KEY } from '../decorators/auth.decorator';
-import { CONTROLLER_METADATA } from '../decorators/controller.decorator';
-import { PARAM_METADATA } from '../decorators/param.decorators';
-import { CONTROLLER_REGISTRY } from '../decorators/register-controller-class.decorator';
-import { ROUTE_METADATA } from '../decorators/route.decorators';
-import { GUARDS_METADATA } from '../decorators/middleware.decorators';
-import { API_SECURITY_KEY } from '../decorators/swagger.decorators';
-import { RouteMetadata, ParamMetadata } from '../../domain/interfaces/nest/nest-core.interface';
-import { OpenAPISchema, SwaggerConfig, OpenAPIObject, OpenAPIOperation } from '../../domain/interfaces/infra/swagger-config.interface';
+import { ControllerExplorer } from './explorers/controller-explorer';
+import { RouteExplorer } from './explorers/route-explorer';
+import { MetadataExtractor } from './explorers/metadata-extractor';
+import { SchemaGenerator } from './explorers/schema-generator';
+import { OperationBuilder } from './explorers/operation-builder';
+import { ParamMetadata } from '../../domain/interfaces/nest/nest-core.interface';
+import { SwaggerConfig, OpenAPIObject, OpenAPIOperation } from '../../domain/interfaces/infra/swagger-config.interface';
 import { Constructor } from '../../domain/types/common/util.type';
 
 export class SwaggerExplorer {
-  private readonly schemas: Record<string, OpenAPISchema> = {};
+  private readonly controllerExplorer = new ControllerExplorer();
+  private readonly routeExplorer = new RouteExplorer();
+  private readonly metadataExtractor = new MetadataExtractor();
+  private readonly schemaGenerator = new SchemaGenerator();
+  private readonly operationBuilder: OperationBuilder;
+
+  constructor () {
+    this.operationBuilder = new OperationBuilder(this.metadataExtractor, this.schemaGenerator, this.routeExplorer);
+  }
 
   explore (config: SwaggerConfig): OpenAPIObject {
     const paths: Record<string, Record<string, OpenAPIOperation>> = {};
+    const controllers = this.controllerExplorer.exploreControllers();
+    controllers.forEach(controllerInfo => this.processController(controllerInfo, paths));
+    return this.buildOpenAPIObject(config, paths);
+  }
 
-    CONTROLLER_REGISTRY.forEach((controller: Constructor) => {
-      const controllerMetadata = Reflect.getMetadata(CONTROLLER_METADATA, controller) as { path: string };
-      const basePath = controllerMetadata?.path || '';
-      const controllerRequiresAuth = Reflect.getMetadata(REQUIRE_AUTH_KEY, controller) as boolean;
-      const controllerIsPublic = Reflect.getMetadata(IS_PUBLIC_KEY, controller) as boolean;
+  private processController (
+    controllerInfo: {
+      controller: Constructor;
+      basePath: string;
+      requiresAuth: boolean;
+      isPublic: boolean;
+      methods: string[];
+    },
+    paths: Record<string, Record<string, OpenAPIOperation>>
+  ): void {
+    const { controller, basePath, requiresAuth, isPublic, methods } = controllerInfo;
+    const prototype = controller.prototype as object;
+    methods.forEach(methodName => this.processMethod(controller, prototype, methodName, basePath, requiresAuth, isPublic, paths));
+  }
 
-      const prototype = controller.prototype as object;
-      const methods = Object.getOwnPropertyNames(prototype).filter(m => m !== 'constructor');
-
-      methods.forEach(methodName => {
-        const routes = (Reflect.getMetadata(ROUTE_METADATA, prototype, methodName) || []) as RouteMetadata[];
-        const params = (Reflect.getMetadata(PARAM_METADATA, prototype, methodName) || []) as ParamMetadata[];
-        const paramTypes = (Reflect.getMetadata('design:paramtypes', prototype, methodName) || []) as Constructor[];
-
-        routes.forEach(route => {
-          const fullPath = this.normalizePath(basePath, route.path);
-          const httpMethod = route.method.toLowerCase();
-
-          if (!paths[fullPath]) paths[fullPath] = {};
-
-          const operation: OpenAPIOperation = {
-            summary: this.humanize(methodName),
-            operationId: `${controller.name}_${methodName}`,
-            tags: [this.humanize(controller.name.replace('Controller', ''))],
-            responses: {
-              '200': { description: 'Successful operation' },
-              '400': { description: 'Bad Request' },
-              '401': { description: 'Unauthorized' },
-              '403': { description: 'Forbidden' },
-              '500': { description: 'Internal Server Error' }
-            },
-            parameters: []
-          };
-
-          const methodRequiresAuth = Reflect.getMetadata(REQUIRE_AUTH_KEY, prototype, methodName) as boolean;
-          const methodIsPublic = Reflect.getMetadata(IS_PUBLIC_KEY, prototype, methodName) as boolean;
-          const roles = Reflect.getMetadata(ROLES_KEY, prototype, methodName) as string[];
-
-          let requiresAuth = false;
-
-          if (methodIsPublic) requiresAuth = false;
-          else if (methodRequiresAuth) requiresAuth = true;
-          else if (controllerIsPublic) requiresAuth = false;
-          else if (controllerRequiresAuth) requiresAuth = true;
-
-          if (requiresAuth || roles) operation.security = [{ bearerAuth: [] }];
-
-          const classGuards = (Reflect.getMetadata(GUARDS_METADATA, controller) || []) as Constructor[];
-          const methodGuards = (Reflect.getMetadata(GUARDS_METADATA, prototype, methodName) || []) as Constructor[];
-          const allGuards = [...classGuards, ...methodGuards];
-
-          if (allGuards.some(g => g.name === 'HeaderAuthGuard')) {
-           operation.security = [...(operation.security || []), { 'health-key': [] }];
-          }
-
-          const methodSecurity = Reflect.getMetadata(API_SECURITY_KEY, prototype, methodName) as Record<string, string[]>[];
-          const controllerSecurity = Reflect.getMetadata(API_SECURITY_KEY, controller) as Record<string, string[]>[];
-
-          if (methodSecurity || controllerSecurity) {
-            operation.security = [...(operation.security || []), ...(methodSecurity || []), ...(controllerSecurity || [])];
-          }
-
-          params.forEach(param => {
-            const type: Constructor | undefined = paramTypes[param.index];
-            if (param.type === 'body') {
-              operation.requestBody = {
-                required: true,
-                content: {
-                  'application/json': { schema: this.getSchemaForType(type) }
-                }
-              };
-            } else if (param.type === 'query') {
-              if (param.data && typeof param.data === 'string') {
-                operation.parameters?.push({
-                  name: param.data,
-                  in: 'query',
-                  required: false,
-                  schema: { type: 'string' }
-                });
-              } else if (type && (type as unknown) !== Object) {
-                const schema = this.getSchemaForType(type);
-                if (schema.$ref) {
-                  const schemaName = schema.$ref.split('/').pop()!;
-                  const properties = this.schemas[schemaName]?.properties || {};
-
-                  Object.keys(properties).forEach(prop => {
-                    const propSchema = properties[prop]!;
-                    operation.parameters?.push({
-                      name: prop,
-                      in: 'query',
-                      required: (this.schemas[schemaName]?.required || []).includes(prop),
-                      schema: '$ref' in propSchema ? { type: 'object' } : propSchema
-                    });
-                  });
-                }
-              }
-            } else if (param.type === 'param') {
-              operation.parameters?.push({
-                name: (param.data as string) || 'id',
-                in: 'path',
-                required: true,
-                schema: { type: 'string' }
-              });
-            }
-          });
-
-          paths[fullPath][httpMethod] = operation;
-        });
-      });
+  private processMethod (
+    controller: Constructor,
+    prototype: object,
+    methodName: string,
+    basePath: string,
+    controllerRequiresAuth: boolean,
+    controllerIsPublic: boolean,
+    paths: Record<string, Record<string, OpenAPIOperation>>
+  ): void {
+    const routeInfos = this.routeExplorer.exploreRoutes(prototype, methodName);
+    routeInfos.forEach(routeInfo => {
+      this.processRoute(controller, prototype, methodName, basePath, controllerRequiresAuth, controllerIsPublic, routeInfo, paths);
     });
+  }
 
+  private processRoute (
+    controller: Constructor,
+    prototype: object,
+    methodName: string,
+    basePath: string,
+    controllerRequiresAuth: boolean,
+    controllerIsPublic: boolean,
+    routeInfo: {
+      route: { path: string; method: string };
+      params: ParamMetadata[];
+      paramTypes: Constructor[];
+    },
+    paths: Record<string, Record<string, OpenAPIOperation>>
+  ): void {
+    const fullPath = this.routeExplorer.normalizePath(basePath, routeInfo.route.path);
+    const httpMethod = routeInfo.route.method.toLowerCase();
+    if (!paths[fullPath]) paths[fullPath] = {};
+    const operation = this.operationBuilder.createOperation(controller, prototype, methodName, controllerRequiresAuth, controllerIsPublic, routeInfo);
+    paths[fullPath][httpMethod] = operation;
+  }
+
+  private buildOpenAPIObject (config: SwaggerConfig, paths: Record<string, Record<string, OpenAPIOperation>>): OpenAPIObject {
     return {
       openapi: '3.0.0',
       info: {
@@ -137,7 +86,7 @@ export class SwaggerExplorer {
       },
       paths,
       components: {
-        schemas: this.schemas,
+        schemas: this.schemaGenerator.getSchemas(),
         securitySchemes: {
           bearerAuth: {
             type: 'http',
@@ -148,57 +97,5 @@ export class SwaggerExplorer {
         }
       }
     };
-  }
-
-  private getSchemaForType (type: Constructor | undefined): OpenAPISchema | { $ref: string } {
-    if (!type || (type as unknown) === Object || (type as unknown) === String || (type as unknown) === Number || (type as unknown) === Boolean) {
-      return { type: (type as unknown) === Number ? 'number' : (type as unknown) === Boolean ? 'boolean' : 'string' };
-    }
-
-    const name = type.name;
-    if (this.schemas[name]) return { $ref: `#/components/schemas/${name}` };
-
-    const schema: OpenAPISchema = { type: 'object', properties: {}, required: [] };
-    const metadataStorage = getMetadataStorage();
-    const targetMetadata = metadataStorage.getTargetValidationMetadatas(type, '', false, false);
-
-    targetMetadata.forEach((meta: { type: string; propertyName: string; constraints?: unknown[] }) => {
-      const prop = meta.propertyName;
-      if (!schema.properties) schema.properties = {};
-
-      if (!schema.properties[prop]) {
-        const propSchema: OpenAPISchema = { type: 'string' };
-
-        if (meta.type === 'isBoolean') propSchema.type = 'boolean';
-        if (meta.type === 'isNumber') propSchema.type = 'number';
-        if (meta.type === 'isEmail') propSchema.format = 'email';
-        if (meta.type === 'isEnum') {
-          const enumValues = meta.constraints?.[0];
-          propSchema.enum = typeof enumValues === 'object' && enumValues !== null ? Object.values(enumValues) : (enumValues as unknown[]);
-        }
-
-        schema.properties[prop] = propSchema;
-      }
-
-      if (meta.type === 'isNotEmpty' && !schema.required?.includes(prop)) schema.required?.push(prop);
-    });
-
-    if (schema.required && schema.required.length === 0) delete schema.required;
-
-    this.schemas[name] = schema;
-    return { $ref: `#/components/schemas/${name}` };
-  }
-
-  private normalizePath (base: string, path: string): string {
-    const combined = `/${base}/${path}`.replace(/\/+/g, '/');
-    const result = (combined.length > 1 && combined.endsWith('/')) ? combined.slice(0, -1) : combined;
-    return result.replace(/:([a-zA-Z0-9_]+)/g, '{$1}');
-  }
-
-  private humanize (str: string): string {
-    return str
-      .replace(/([A-Z])/g, ' $1')
-      .replace(/^./, s => s.toUpperCase())
-      .trim();
   }
 }

@@ -1,3 +1,4 @@
+import { JoinType } from '../../types/database/database.type';
 import { DatabaseType } from '../../enums/database/database.enum';
 
 export interface DatabaseAdapter<T = unknown> extends DatabaseConnection {
@@ -35,4 +36,10 @@ export interface DatabaseModuleOptions {
 export interface QueryResult<T = unknown> {
   rowCount: number;
   rows: T[];
+}
+
+export interface JoinClause {
+  type: JoinType;
+  table: string;
+  on: string;
 }

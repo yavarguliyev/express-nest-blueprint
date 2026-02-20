@@ -37,3 +37,5 @@ export const BULK_OPERATION_TYPES = {
   UPDATE: 'update',
   DELETE: 'delete'
 } as const;
+
+export const INTERACTIVE_TAGS = ['BUTTON', 'INPUT', 'SELECT', 'A', 'LABEL'];

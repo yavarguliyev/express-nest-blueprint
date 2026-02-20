@@ -7,34 +7,21 @@ import {
   QueryBuilder,
   HealthCheckStatus,
   nowISO,
-  bytesToMB,
   mapOverall,
   KafkaService,
   MetricsService,
-  METRIC_CONFIG,
   HealthComponentName,
   PromMetric,
-  HEALTH_REGISTRY,
-  DASHBOARD_CHARTS,
-  ALERT_TEMPLATES,
-  HealthRegistryItem,
-  AlertTemplate,
   HealthCheckResult,
-  DashboardChartConfig,
-  QueueStatus,
-  ComputeStatus,
   BaseHealthComponent,
   HealthComponentStatus
 } from '@config/libs';
 
-import {
-  ChartData,
-  DashboardMetric,
-  DashboardAlert,
-  DashboardMetricsResponse,
-  DashboardMetricsContext
-} from '@modules/admin/interfaces/admin.interface';
+import { DashboardMetricsResponse, DashboardMetricsContext } from '@modules/admin/interfaces/admin.interface';
 import { UsersRepository } from '@modules/users/users.repository';
+import { DashboardMetricsBuilder } from '@modules/admin/services/metrics/dashboard-metrics';
+import { MetricResolver } from '@modules/admin/services/metrics/metric-resolver';
+import { MetricCalculators } from '@modules/admin/services/metrics/metric-calculators';
 
 @Injectable()
 export class AdminMetricsService {
@@ -45,7 +32,10 @@ export class AdminMetricsService {
     private readonly storageService: StorageService,
     private readonly healthService: HealthService,
     private readonly kafkaService: KafkaService,
-    private readonly metricsService: MetricsService
+    private readonly metricsService: MetricsService,
+    private readonly dashboardBuilder: DashboardMetricsBuilder,
+    private readonly metricResolver: MetricResolver,
+    private readonly metricCalculators: MetricCalculators
   ) {}
 
   public async getHealthStatus (): Promise<HealthCheckStatus> {
@@ -98,97 +88,11 @@ export class AdminMetricsService {
 
     const context: DashboardMetricsContext = { rawMetrics, healthResult, kafkaMetrics, dbQueryResults, getVal };
 
-    const metrics: DashboardMetric[] = (Object.values(HEALTH_REGISTRY) as HealthRegistryItem[]).map(
-      (reg): DashboardMetric => ({
-        name: reg.name,
-        value: this.resolveMetricValue(reg, context),
-        unit: reg.unit ?? '',
-        timestamp
-      })
+    return this.dashboardBuilder.buildDashboardMetrics(
+      context,
+      (reg, ctx) => this.metricResolver.resolveMetricValue(reg, ctx),
+      (config, metrics) => this.metricCalculators.resolveChartData(config, metrics),
+      metrics => this.metricCalculators.generateAlerts(metrics)
     );
-
-    const charts: ChartData[] = (Object.values(DASHBOARD_CHARTS) as DashboardChartConfig[]).map(
-      (config): ChartData => ({
-        title: config.title,
-        type: config.type,
-        data: this.resolveChartData(config, rawMetrics)
-      })
-    );
-
-    return { metrics, charts, alerts: this.generateAlerts(metrics) };
-  }
-
-  private resolveChartData (config: DashboardChartConfig, rawMetrics: PromMetric[]): { label: string; value: number }[] {
-    const metric = rawMetrics.find((m): boolean => m.name === config.metric);
-    if (!metric) return [];
-
-    if (config.metric === METRIC_CONFIG.NAMES.HTTP_DURATION) {
-      return metric.values
-        .slice(0, 5)
-        .map((v): { label: string; value: number } => ({ label: `${String(v.labels?.['le'] || 'inf')}s`, value: v.value }));
-    }
-
-    if (config.metric === METRIC_CONFIG.NAMES.HTTP_TOTAL) {
-      const stats = metric.values
-        .filter((v): boolean => (v.labels?.['path'] as string)?.startsWith('/api'))
-        .reduce((acc: Record<string, number>, v): Record<string, number> => {
-          const status = String(v.labels?.['status'] || 'unk');
-          acc[status] = (acc[status] || 0) + v.value;
-          return acc;
-        }, {});
-
-      return Object.entries(stats).map(([label, value]): { label: string; value: number } => ({ label, value }));
-    }
-
-    return [];
-  }
-
-  private generateAlerts (metrics: DashboardMetric[]): DashboardAlert[] {
-    const ts = nowISO();
-    const t = ALERT_TEMPLATES.THRESHOLD_EXCEEDED as AlertTemplate;
-    const s = ALERT_TEMPLATES.SYSTEM_STABLE as AlertTemplate;
-
-    const alerts = (Object.values(HEALTH_REGISTRY) as HealthRegistryItem[])
-      .filter((r): boolean => !!(r.threshold && (metrics.find((m): boolean => m.name === r.name)?.value || 0) > r.threshold))
-      .map(
-        (r): DashboardAlert => ({
-          header: t.header,
-          title: t.title(r.name),
-          type: 'warning' as const,
-          timestamp: ts,
-          message: t.message(r.name, metrics.find((m): boolean => m.name === r.name)!.value, r.unit || '', r.precision)
-        })
-      );
-
-    return alerts.length ? alerts : [{ header: s.header, title: s.title(''), message: s.message('', 0, ''), type: 'info' as const, timestamp: ts }];
-  }
-
-  private resolveMetricValue (reg: HealthRegistryItem, ctx: DashboardMetricsContext): number {
-    switch (reg.key) {
-      case 'database':
-        return bytesToMB(parseInt(String(ctx.dbQueryResults.rows[0]?.size || '0'), 10));
-      case 'redis':
-        return bytesToMB(ctx.getVal<number>(2, 0));
-      case 'storage':
-        return bytesToMB(ctx.getVal<number>(3, 0));
-      case 'kafka':
-        return reg.name.includes('Usage') ? ctx.kafkaMetrics.messagesInPerSec : ctx.kafkaMetrics.underReplicatedPartitions;
-      case 'users':
-        return ctx.getVal<number>(1, 0);
-      case 'queues':
-        return (ctx.healthResult.components.queues as QueueStatus)?.items?.length || 0;
-      case 'compute workers':
-        return (ctx.healthResult.components['compute workers'] as ComputeStatus)?.pendingJobsCount || 0;
-      case 'CPU':
-        return this.metricsService.getCpuUsagePercentage();
-      default:
-        if (reg.promMetric) {
-          const metric = ctx.rawMetrics.find((m): boolean => m.name === reg.promMetric);
-          if (reg.key === 'Memory') return bytesToMB(metric?.values[0]?.value || 0);
-          return metric?.values.reduce((sum: number, v): number => sum + v.value, 0) || 0;
-        }
-
-        return 0;
-    }
   }
 }

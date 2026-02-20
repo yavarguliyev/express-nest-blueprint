@@ -7,14 +7,18 @@ import {
   QueryPaginationOptionsResults,
   QueryWithPaginationOptions
 } from '../../domain/interfaces/database/query-builder.interface';
-import { NotFoundException } from '../../domain/exceptions/http-exceptions';
 import { DatabaseAdapter } from '../../domain/interfaces/database/database.interface';
 import { JwtPayload } from '../../domain/interfaces/auth/jwt.interface';
-import { convertValueToSearchableString } from '../../domain/helpers/utility-functions.helper';
+import { QueryMethods } from './repository-extensions/query-methods';
+import { TransactionMethods } from './repository-extensions/transaction-methods';
+import { CrudOperations } from './repository-extensions/crud-operations';
 
 @Injectable()
 export abstract class BaseRepository<T> {
   protected queryBuilder: QueryBuilder<T>;
+  private queryMethods: QueryMethods<T>;
+  private transactionMethods: TransactionMethods<T>;
+  private crudOperations: CrudOperations<T>;
 
   constructor (
     protected readonly databaseService: DatabaseService,
@@ -22,6 +26,9 @@ export abstract class BaseRepository<T> {
     columnMappings: ColumnMapping = {}
   ) {
     this.queryBuilder = new QueryBuilder(tableName, columnMappings);
+    this.queryMethods = new QueryMethods<T>();
+    this.transactionMethods = new TransactionMethods<T>();
+    this.crudOperations = new CrudOperations<T>();
   }
 
   protected abstract getSelectColumns(): string[];
@@ -32,107 +39,56 @@ export abstract class BaseRepository<T> {
   }
 
   getSearchableFields (): string[] {
-    const allFields = this.getSelectColumns();
-    const excludeFields = ['id', 'password', 'passwordHash', 'password_hash', 'createdAt', 'updatedAt', 'created_at', 'updated_at'];
-    return allFields.filter(field => !excludeFields.includes(field));
+    return this.queryMethods.getSearchableFields(this.getSelectColumns());
   }
 
   getColumnMetadata (): Array<{ name: string; type: string; required: boolean; editable: boolean }> {
-    const columns = this.getSelectColumns();
-    return columns.map(columnName => ({
-      name: columnName,
-      type: this.inferColumnType(columnName),
-      required: this.isColumnRequired(columnName),
-      editable: this.isColumnEditable(columnName)
-    }));
+    return this.queryMethods.getColumnMetadata(
+      this.getSelectColumns.bind(this),
+      this.inferColumnType.bind(this),
+      this.isColumnRequired.bind(this),
+      this.isColumnEditable.bind(this)
+    );
   }
 
   protected inferColumnType (columnName: string): string {
-    if (columnName === 'id') return 'number';
-    if (columnName.includes('Date') || columnName.includes('At')) return 'datetime';
-    if (columnName.startsWith('is') || columnName.includes('Active') || columnName.includes('Verified')) return 'boolean';
-    return 'string';
+    return this.queryMethods.inferColumnType(columnName);
   }
 
   protected isColumnRequired (columnName: string): boolean {
-    const optionalFields = ['profileImageUrl', 'lastLogin'];
-    return !optionalFields.includes(columnName);
+    return this.queryMethods.isColumnRequired(columnName);
   }
 
   protected isColumnEditable (columnName: string): boolean {
-    const nonEditableFields = ['id', 'createdAt', 'updatedAt', 'lastLogin'];
-    return !nonEditableFields.includes(columnName);
+    return this.queryMethods.isColumnEditable(columnName);
   }
 
   async retrieveDataWithPagination (page: number, limit: number, search?: string): Promise<{ data: unknown[]; total: number }> {
-    let data: unknown[] = [];
-    let total = 0;
-
-    if (this.findWithPagination) {
-      const result = await this.findWithPagination({ page, limit });
-      data = result.data;
-      total = result.total;
-
-      if (search && search.trim()) {
-        data = this.applySearch(data, search.trim());
-        total = data.length;
-        data = this.paginateArray(data, page, limit);
-      }
-    } else if (this.findAll) {
-      const offset = (page - 1) * limit;
-      data = await this.findAll({ limit, offset });
-      total = data.length;
-
-      if (search && search.trim()) {
-        data = this.applySearch(data, search.trim());
-        total = data.length;
-        data = this.paginateArray(data, page, limit);
-      }
-    } else throw new NotFoundException('Repository does not support data retrieval');
-
-    await this.applyPostProcessing(data);
-
-    return { data, total };
+    return this.queryMethods.retrieveDataWithPagination(
+      page,
+      limit,
+      search,
+      this.findWithPagination?.bind(this),
+      this.findAll?.bind(this),
+      this.applyPostProcessing.bind(this),
+      this.getSearchableFields.bind(this)
+    );
   }
 
   async findAll (options: QueryWithPaginationOptions = {}, connection?: DatabaseAdapter): Promise<T[]> {
-    const columns = this.getSelectColumns();
-    const { query, params } = this.queryBuilder.buildSelectQuery(columns, options);
-
-    const db = connection || this.databaseService.getReadConnection();
-    const result = await db.query<T>(query, params);
-
-    return result.rows;
+    return this.crudOperations.findAll(this.queryBuilder, this.databaseService, this.getSelectColumns.bind(this), options, connection);
   }
 
   async findById (id: string | number, connection?: DatabaseAdapter): Promise<T | null> {
-    const columns = this.getSelectColumns();
-    const { query, params } = this.queryBuilder.buildSelectQuery(columns, { where: { id } });
-
-    const db = connection || this.databaseService.getReadConnection();
-    const result = await db.query<T>(query, params);
-
-    return (result.rows[0] as T) || null;
+    return this.crudOperations.findById(this.queryBuilder, this.databaseService, this.getSelectColumns.bind(this), id, connection);
   }
 
   async findOne (where: Record<string, unknown>, connection?: DatabaseAdapter): Promise<T | null> {
-    const columns = this.getSelectColumns();
-    const { query, params } = this.queryBuilder.buildSelectQuery(columns, { where });
-
-    const db = connection || this.databaseService.getReadConnection();
-    const result = await db.query<T>(query, params);
-
-    return (result.rows[0] as T) || null;
+    return this.crudOperations.findOne(this.queryBuilder, this.databaseService, this.getSelectColumns.bind(this), where, connection);
   }
 
   async create<K extends keyof T> (data: Partial<T>, returningColumns?: K[], connection?: DatabaseAdapter): Promise<Pick<T, K> | null> {
-    const columnsToReturn = returningColumns ?? (this.getSelectColumns() as K[]);
-    const { query, params } = this.queryBuilder.buildInsertQuery(data as Record<string, unknown>, columnsToReturn);
-
-    const db = connection || this.databaseService.getWriteConnection();
-    const result = await db.query<Pick<T, K>>(query, params);
-
-    return (result.rows[0] as T) ?? null;
+    return this.crudOperations.create(this.queryBuilder, this.databaseService, this.getSelectColumns.bind(this), data, returningColumns, connection);
   }
 
   async update<K extends keyof T> (
@@ -142,85 +98,40 @@ export abstract class BaseRepository<T> {
     connection?: DatabaseAdapter,
     _currentUser?: JwtPayload
   ): Promise<Pick<T, K> | null> {
-    const columnsToReturn = returningColumns ?? (this.getSelectColumns() as K[]);
-    const { query, params } = this.queryBuilder.buildUpdateQuery(id, data as Record<string, unknown>, columnsToReturn.map(String));
-
-    void _currentUser;
-
-    const db = connection || this.databaseService.getWriteConnection();
-    const result = await db.query<T>(query, params);
-
-    return (result.rows[0] as T) || null;
+    return this.crudOperations.update(
+      this.queryBuilder,
+      this.databaseService,
+      this.getSelectColumns.bind(this),
+      id,
+      data,
+      returningColumns,
+      connection,
+      _currentUser
+    );
   }
 
   async delete (id: string | number, connection?: DatabaseAdapter, _currentUser?: JwtPayload): Promise<boolean> {
-    const { query, params } = this.queryBuilder.buildDeleteQuery(id);
-
-    const db = connection || this.databaseService.getWriteConnection();
-    const result = await db.query(query, params);
-
-    void _currentUser;
-
-    return result.rowCount > 0;
+    return this.crudOperations.delete(this.queryBuilder, this.databaseService, id, connection, _currentUser);
   }
 
   async count (options: QueryWithPaginationOptions = {}, connection?: DatabaseAdapter): Promise<number> {
-    const { query, params } = this.queryBuilder.buildCountQuery(options);
-
-    const db = connection || this.databaseService.getReadConnection();
-    const result = await db.query<{ count: string }>(query, params);
-
-    return parseInt(result.rows[0]?.count as string, 10);
+    return this.crudOperations.count(this.queryBuilder, this.databaseService, options, connection);
   }
 
   async findWithPagination (
     options: QueryWithPaginationOptions & { page: number; limit: number },
     connection?: DatabaseAdapter
   ): Promise<QueryPaginationOptionsResults<T>> {
-    const { page, limit, ...queryOptions } = options;
-
-    const offset = (page - 1) * limit;
-    const total = await this.count(queryOptions, connection);
-    const data = await this.findAll({ ...queryOptions, limit, offset }, connection);
-    const totalPages = Math.ceil(total / limit);
-
-    return { data, total, page, limit, totalPages };
+    return this.transactionMethods.findWithPagination(options, connection, this.count.bind(this), this.findAll.bind(this));
   }
 
   async findAllWithPagination (options: QueryAllWithPaginationOptions, connection?: DatabaseAdapter): Promise<QueryPaginationOptionsResults<T>> {
-    const { page, limit, search, searchFields, where, orderBy, orderDirection } = options;
-
-    const queryOptions: QueryWithPaginationOptions = {
-      orderBy: orderBy || 'id',
-      orderDirection: orderDirection || 'ASC'
-    };
-
-    if (where) queryOptions.where = where;
-    if (search && searchFields && searchFields.length > 0) queryOptions.search = { fields: searchFields, term: search };
-
-    return this.findWithPagination({ ...queryOptions, page, limit }, connection);
-  }
-
-  private applySearch (data: unknown[], searchTerm: string): unknown[] {
-    if (!searchTerm || !data.length) return data;
-
-    const lowerSearchTerm = searchTerm.toLowerCase();
-    const searchableFields = this.getSearchableFields();
-
-    return data.filter(record => {
-      if (!record || typeof record !== 'object') return false;
-
-      return searchableFields.some(field => {
-        const value = (record as Record<string, unknown>)[field];
-        if (value === null || value === undefined) return false;
-        return convertValueToSearchableString(value).toLowerCase().includes(lowerSearchTerm);
-      });
-    });
-  }
-
-  private paginateArray (data: unknown[], page: number, limit: number): unknown[] {
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    return data.slice(startIndex, endIndex);
+    return this.transactionMethods.findAllWithPagination(
+      options,
+      connection,
+      this.count.bind(this),
+      this.findAll.bind(this),
+      this.findWithPagination.bind(this)
+    );
   }
 }

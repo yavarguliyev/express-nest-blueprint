@@ -11,7 +11,6 @@ import { LayoutPosition, LayoutCustomization } from '../../interfaces/common.int
 export class LayoutCustomizationService {
   private http = inject(HttpClient);
   private STORAGE_KEY = 'admin_layout_customization';
-
   private originalPositions = signal<Map<string, LayoutPosition>>(new Map());
   public currentPositions = signal<Map<string, LayoutPosition>>(new Map());
 
@@ -19,78 +18,9 @@ export class LayoutCustomizationService {
     this.loadFromLocalStorage();
   }
 
-  hasDrafts = computed(() => {
-    const original = this.originalPositions();
-    const current = this.currentPositions();
-
-    if (original.size !== current.size) return true;
-
-    for (const [key, currentPos] of current.entries()) {
-      const originalPos = original.get(key);
-      if (!originalPos) return true;
-
-      if (
-        originalPos.left !== currentPos.left ||
-        originalPos.top !== currentPos.top ||
-        originalPos.width !== currentPos.width ||
-        originalPos.height !== currentPos.height
-      ) {
-        return true;
-      }
-    }
-
-    return false;
-  });
-
-  draftCount = computed(() => {
-    const original = this.originalPositions();
-    const current = this.currentPositions();
-
-    let count = 0;
-    for (const [key, currentPos] of current.entries()) {
-      const originalPos = original.get(key);
-      if (!originalPos) {
-        count++;
-        continue;
-      }
-
-      if (
-        originalPos.left !== currentPos.left ||
-        originalPos.top !== currentPos.top ||
-        originalPos.width !== currentPos.width ||
-        originalPos.height !== currentPos.height
-      ) {
-        count++;
-      }
-    }
-
-    return count;
-  });
-
-  changedElements = computed(() => {
-    const original = this.originalPositions();
-    const current = this.currentPositions();
-    const changed: string[] = [];
-
-    for (const [key, currentPos] of current.entries()) {
-      const originalPos = original.get(key);
-      if (!originalPos) {
-        changed.push(key);
-        continue;
-      }
-
-      if (
-        originalPos.left !== currentPos.left ||
-        originalPos.top !== currentPos.top ||
-        originalPos.width !== currentPos.width ||
-        originalPos.height !== currentPos.height
-      ) {
-        changed.push(key);
-      }
-    }
-
-    return changed;
-  });
+  changedElements = computed(() => this.computeChangedKeys());
+  draftCount = computed(() => this.changedElements().length);
+  hasDrafts = computed(() => this.draftCount() > 0);
 
   updatePosition (elementId: string, position: LayoutPosition): void {
     this.currentPositions.update(positions => {
@@ -121,11 +51,7 @@ export class LayoutCustomizationService {
 
   initialize (customization: LayoutCustomization): void {
     const positionsMap = new Map<string, LayoutPosition>();
-
-    customization.positions.forEach(pos => {
-      positionsMap.set(pos.elementId, pos);
-    });
-
+    customization.positions.forEach(pos => positionsMap.set(pos.elementId, pos));
     this.originalPositions.set(positionsMap);
     this.currentPositions.set(new Map(positionsMap));
   }
@@ -141,9 +67,7 @@ export class LayoutCustomizationService {
     if (saved) {
       const data = JSON.parse(saved) as LayoutPosition[];
       const positionsMap = new Map<string, LayoutPosition>();
-
       data.forEach(pos => positionsMap.set(pos.elementId, pos));
-
       this.originalPositions.set(positionsMap);
       this.currentPositions.set(new Map(positionsMap));
     }
@@ -152,5 +76,26 @@ export class LayoutCustomizationService {
   private saveToLocalStorage (): void {
     const positions = Array.from(this.originalPositions().values());
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(positions));
+  }
+
+  private isSamePosition (a: LayoutPosition, b: LayoutPosition): boolean {
+    return a.left === b.left && a.top === b.top && a.width === b.width && a.height === b.height;
+  }
+
+  private computeChangedKeys (): string[] {
+    const original = this.originalPositions();
+    const current = this.currentPositions();
+    const changed: string[] = [];
+
+    for (const [key, currentPos] of current.entries()) {
+      const originalPos = original.get(key);
+      if (!originalPos || !this.isSamePosition(originalPos, currentPos)) changed.push(key);
+    }
+
+    for (const key of original.keys()) {
+      if (!current.has(key)) changed.push(key);
+    }
+
+    return changed;
   }
 }

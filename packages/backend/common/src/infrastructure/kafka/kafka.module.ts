@@ -1,5 +1,3 @@
-import { logLevel } from 'kafkajs';
-
 import { KafkaService } from './kafka.service';
 import { KafkaExplorer } from './kafka-explorer';
 import { ConfigService } from '../config/config.service';
@@ -8,6 +6,7 @@ import { Module } from '../../core/decorators/module.decorator';
 import { KAFKA_OPTIONS } from '../../core/decorators/kafka.decorators';
 import { KafkaModuleOptions } from '../../domain/interfaces/infra/kafka.interface';
 import { DynamicModule } from '../../domain/interfaces/module/module.interface';
+import { createKafkaOptions, createKafkaInitializer, createKafkaSubscriberInitializer } from './kafka-config.helper';
 
 @Module({
   providers: [KafkaService],
@@ -22,22 +21,7 @@ export class KafkaModule {
         {
           provide: KAFKA_OPTIONS as symbol,
           useFactory: ((configService: ConfigService) => {
-            if (options) return options;
-
-            const brokers = configService.get<string>('KAFKA_BROKERS', 'localhost:29092').split(',');
-            const clientId = configService.get<string>('KAFKA_CLIENT_ID', 'express-nest-blueprint');
-            const groupId = configService.get<string>('KAFKA_GROUP_ID', 'express-nest-blueprint-group');
-
-            return {
-              config: {
-                clientId,
-                brokers,
-                logLevel: logLevel.INFO
-              },
-              consumerConfig: {
-                groupId
-              }
-            };
+            return createKafkaOptions(configService, options);
           }) as (...args: unknown[]) => unknown,
           inject: [ConfigService]
         },
@@ -45,25 +29,12 @@ export class KafkaModule {
         KafkaExplorer,
         {
           provide: 'KAFKA_INITIALIZER',
-          useFactory: ((kafkaService: KafkaService, lifecycleService: LifecycleService) => {
-            return (): Promise<void> => {
-              if (lifecycleService) {
-                lifecycleService.registerShutdownHandler({
-                  name: 'Kafka Service',
-                  disconnect: () => kafkaService.disconnect()
-                });
-              }
-
-              return kafkaService.connect();
-            };
-          }) as (...args: unknown[]) => unknown,
+          useFactory: createKafkaInitializer as (...args: unknown[]) => unknown,
           inject: [KafkaService, LifecycleService]
         },
         {
           provide: 'KAFKA_SUBSCRIBER_INITIALIZER',
-          useFactory: ((kafkaExplorer: KafkaExplorer) => {
-            return (): Promise<void> => kafkaExplorer.explore();
-          }) as (...args: unknown[]) => unknown,
+          useFactory: createKafkaSubscriberInitializer as (...args: unknown[]) => unknown,
           inject: [KafkaExplorer]
         }
       ],

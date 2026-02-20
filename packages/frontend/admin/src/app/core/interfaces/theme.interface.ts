@@ -72,3 +72,13 @@ export interface DraftStatusConfig {
   resetButtonIcon?: string;
   saveButtonIcon?: string;
 }
+
+export interface FontOption {
+  name: string;
+  value: string;
+}
+
+export interface FontGroup {
+  category: string;
+  fonts: FontOption[];
+}

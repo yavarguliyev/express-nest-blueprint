@@ -1,4 +1,4 @@
-import { ApiControllerOptions } from '../../interfaces/api/api.interface';
+import { ApiControllerOptions } from 'domain/types/api/api-http.type';
 import { Constructor } from '../../types/common/util.type';
 import { CONTROLLER_METADATA } from '../../../core/decorators/controller.decorator';
 import { INJECTABLE_METADATA } from '../../../core/decorators/injectable.decorator';
