@@ -1,4 +1,4 @@
-import { DatabaseService, KafkaService, KAFKA_TOPICS, BadRequestException, InternalServerErrorException, JwtPayload } from '@config/libs';
+import { KAFKA_TOPICS, BadRequestException, InternalServerErrorException, JwtPayload, DatabaseService, KafkaService } from '@config/libs';
 
 import { UsersRepository } from '@modules/users/users.repository';
 import { UpdateUserDto } from '@modules/users/dtos/update-user.dto';
@@ -16,7 +16,7 @@ export class UpdateHandler {
       if (!existingUser) throw new BadRequestException(`User with ID ${userId} not found`);
 
       if (data.email && data.email !== existingUser.email) {
-        const userWithEmail = await this.usersRepository.findByEmail(data.email, transaction);
+        const userWithEmail = await this.usersRepository.findByEmail({ email: data.email, connection: transaction });
         if (userWithEmail) throw new BadRequestException(`User with email ${data.email} already exists`);
       }
 

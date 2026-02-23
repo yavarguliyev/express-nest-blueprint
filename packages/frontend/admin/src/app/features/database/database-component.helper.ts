@@ -76,7 +76,7 @@ export class DatabaseComponentHelper {
   }
 
   getSubmitButtonText (mode: 'create' | 'update', hasChanges: boolean): string {
-    return this.dbForm.getSubmitButtonText(mode, hasChanges);
+    return this.dbForm.getSubmitButtonText({ mode, hasChanges });
   }
 
   getSubmitButtonIcon (mode: 'create' | 'update'): string {

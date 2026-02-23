@@ -14,7 +14,7 @@ export class Logger {
   private static winstonLogger: winston.Logger;
   private context?: string | undefined;
 
-  constructor (context?: string) {
+  constructor(context?: string) {
     this.context = context;
 
     if (!Logger.winstonLogger) {
@@ -22,14 +22,64 @@ export class Logger {
     }
   }
 
-  static setSettingsService (settingsService: { isDebugLoggingEnabled(): Promise<boolean> }): void {
+  static setSettingsService(settingsService: { isDebugLoggingEnabled(): Promise<boolean> }): void {
     Logger.settingsService = settingsService;
   }
 
-  private static getFormat (): winston.Logform.Format {
-    if (ConfigService.isProduction()) {
-      return winston.format.combine(winston.format.timestamp(), winston.format.json());
+  static setGlobalOptions(options: Partial<LoggerOptions>): void {
+    Logger.globalOptions = { ...Logger.globalOptions, ...options };
+    Logger.initializeWinston();
+  }
+
+  async verbose(message: string, context?: string): Promise<void> {
+    if (await this.shouldLog(LogLevel.VERBOSE)) Logger.winstonLogger.verbose(message, { context: context || this.context });
+  }
+
+  static log(message: string, context?: string): void {
+    void new Logger(context).log(message);
+  }
+
+  static error(message: string, trace?: string, context?: string): void {
+    void new Logger(context).error(message, trace);
+  }
+
+  static warn(message: string, context?: string): void {
+    void new Logger(context).warn(message);
+  }
+
+  static debug(message: string, context?: string): void {
+    void new Logger(context).debug(message);
+  }
+
+  static verbose(message: string, context?: string): void {
+    void new Logger(context).verbose(message);
+  }
+
+  async log(message: string, context?: string): Promise<void> {
+    if (await this.shouldLog(LogLevel.LOG)) Logger.winstonLogger.info(message, { context: context || this.context });
+  }
+
+  async error(message: string, trace?: string, context?: string): Promise<void> {
+    if (await this.shouldLog(LogLevel.ERROR)) {
+      const errorContext = context || this.context;
+
+      if (trace) Logger.winstonLogger.error(message, { context: errorContext, stack: trace });
+      else Logger.winstonLogger.error(message, { context: errorContext });
     }
+  }
+
+  async warn(message: string, context?: string): Promise<void> {
+    if (await this.shouldLog(LogLevel.WARN)) Logger.winstonLogger.warn(message, { context: context || this.context });
+  }
+
+  async debug(message: string, context?: string): Promise<void> {
+    if (await this.shouldLog(LogLevel.DEBUG)) Logger.winstonLogger.debug(message, { context: context || this.context });
+  }
+
+  private static getWinstonLevel = (logLevel: LogLevel): string => levelMap[logLevel] ?? 'info';
+
+  private static getFormat(): winston.Logform.Format {
+    if (ConfigService.isProduction()) return winston.format.combine(winston.format.timestamp(), winston.format.json());
 
     return winston.format.combine(
       winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
@@ -48,7 +98,7 @@ export class Logger {
     );
   }
 
-  private static initializeWinston (): void {
+  private static initializeWinston(): void {
     const logLevel = Logger.getWinstonLevel(Logger.globalOptions.logLevel || LogLevel.LOG);
     const format = this.getFormat();
 
@@ -59,11 +109,7 @@ export class Logger {
     });
   }
 
-  private static getWinstonLevel (logLevel: LogLevel): string {
-    return levelMap[logLevel] ?? 'info';
-  }
-
-  private async shouldLog (level: LogLevel): Promise<boolean> {
+  private async shouldLog(level: LogLevel): Promise<boolean> {
     const baseCheck = level <= (Logger.globalOptions.logLevel || LogLevel.LOG);
 
     if (level === LogLevel.DEBUG || level === LogLevel.VERBOSE) {
@@ -78,66 +124,5 @@ export class Logger {
     }
 
     return baseCheck;
-  }
-
-  static setGlobalOptions (options: Partial<LoggerOptions>): void {
-    Logger.globalOptions = { ...Logger.globalOptions, ...options };
-    Logger.initializeWinston();
-  }
-
-  async log (message: string, context?: string): Promise<void> {
-    if (await this.shouldLog(LogLevel.LOG)) {
-      Logger.winstonLogger.info(message, { context: context || this.context });
-    }
-  }
-
-  async error (message: string, trace?: string, context?: string): Promise<void> {
-    if (await this.shouldLog(LogLevel.ERROR)) {
-      const errorContext = context || this.context;
-
-      if (trace) {
-        Logger.winstonLogger.error(message, { context: errorContext, stack: trace });
-      } else {
-        Logger.winstonLogger.error(message, { context: errorContext });
-      }
-    }
-  }
-
-  async warn (message: string, context?: string): Promise<void> {
-    if (await this.shouldLog(LogLevel.WARN)) {
-      Logger.winstonLogger.warn(message, { context: context || this.context });
-    }
-  }
-
-  async debug (message: string, context?: string): Promise<void> {
-    if (await this.shouldLog(LogLevel.DEBUG)) {
-      Logger.winstonLogger.debug(message, { context: context || this.context });
-    }
-  }
-
-  async verbose (message: string, context?: string): Promise<void> {
-    if (await this.shouldLog(LogLevel.VERBOSE)) {
-      Logger.winstonLogger.verbose(message, { context: context || this.context });
-    }
-  }
-
-  static log (message: string, context?: string): void {
-    void new Logger(context).log(message);
-  }
-
-  static error (message: string, trace?: string, context?: string): void {
-    void new Logger(context).error(message, trace);
-  }
-
-  static warn (message: string, context?: string): void {
-    void new Logger(context).warn(message);
-  }
-
-  static debug (message: string, context?: string): void {
-    void new Logger(context).debug(message);
-  }
-
-  static verbose (message: string, context?: string): void {
-    void new Logger(context).verbose(message);
   }
 }

@@ -6,25 +6,29 @@ import { BadRequestException } from '../../../domain/exceptions/http-exceptions'
 
 @Injectable()
 export class BullMQService {
-  constructor (private readonly queueManager: QueueManager) {}
+  constructor (private readonly queueManager?: QueueManager) {}
 
   async addJob<T = unknown> (queueName: string, data: T, options?: JobsOptions): Promise<Job> {
+    if (!this.queueManager) throw new BadRequestException('Queue manager is not available');
     const queue = this.queueManager.getQueue(queueName);
     if (!queue) throw new BadRequestException(`Queue ${queueName} not found`);
     return await queue.add('job', data, options);
   }
 
   getQueue (queueName: string): Queue | undefined {
+    if (!this.queueManager) return undefined;
     return this.queueManager.getQueue(queueName);
   }
 
   async getJobCounts (queueName: string): Promise<{ [index: string]: number }> {
+    if (!this.queueManager) throw new BadRequestException('Queue manager is not available');
     const queue = this.queueManager.getQueue(queueName);
     if (!queue) throw new BadRequestException(`Queue ${queueName} not found`);
     return await queue.getJobCounts();
   }
 
   async closeAllQueues (): Promise<void> {
+    if (!this.queueManager) return;
     const queueMap = this.queueManager.getQueues();
     const closePromises = Array.from(queueMap.values()).map(queue => queue.close());
     await Promise.all(closePromises);

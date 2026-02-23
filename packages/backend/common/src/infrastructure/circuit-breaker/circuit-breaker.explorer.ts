@@ -8,35 +8,32 @@ import { CircuitBreakerOptions } from '../../domain/interfaces/infra/infra-commo
 
 @Injectable()
 export class CircuitBreakerExplorer {
-  constructor (private readonly circuitBreakerService: CircuitBreakerService) {}
+  constructor(private readonly circuitBreakerService: CircuitBreakerService) {}
 
-  explore (): void {
+  explore(): void {
     const services = Container.getInstance().getServices();
 
     for (const [token, entry] of services) {
       if (entry.type !== 'class') continue;
 
-      const instance = Container.getInstance().resolve({ provide: token }) as Record<string, unknown>;
-      if (!instance) continue;
+      const resolved = Container.getInstance().resolve({ provide: token });
+      if (!resolved || typeof resolved !== 'object') continue;
 
-      const prototype = Object.getPrototypeOf(instance) as Record<string, unknown>;
+      const instance = resolved as Record<string, unknown>;
+      const prototype = Object.getPrototypeOf(instance) as Record<string, unknown> | null;
       if (!prototype) continue;
 
       const propertyNames = Object.getOwnPropertyNames(prototype);
 
       for (const propertyName of propertyNames) {
         if (propertyName === 'constructor') continue;
-
         const options = Reflect.getMetadata(CIRCUIT_BREAKER_METADATA, prototype, propertyName) as CircuitBreakerOptions | undefined;
-
-        if (options) {
-          this.patchMethod(instance, propertyName, options);
-        }
+        if (options) this.patchMethod(instance, propertyName, options);
       }
     }
   }
 
-  private patchMethod (instance: Record<string, unknown>, propertyName: string, options: CircuitBreakerOptions): void {
+  private patchMethod(instance: Record<string, unknown>, propertyName: string, options: CircuitBreakerOptions): void {
     const originalMethod = instance[propertyName] as (...args: unknown[]) => Promise<unknown>;
     const circuitKey = options.key || `${instance.constructor.name}.${propertyName}`;
     const circuitBreakerService = this.circuitBreakerService;

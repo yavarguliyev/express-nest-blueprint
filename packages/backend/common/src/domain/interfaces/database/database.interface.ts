@@ -1,5 +1,5 @@
-import { JoinType } from '../../types/database/database.type';
 import { DatabaseType } from '../../enums/database/database.enum';
+import { JoinType } from '../../types/database/database.type';
 
 export interface DatabaseAdapter<T = unknown> extends DatabaseConnection {
   query<R = T>(sql: string, params?: unknown[]): Promise<QueryResult<R>>;

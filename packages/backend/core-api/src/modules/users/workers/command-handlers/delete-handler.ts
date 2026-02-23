@@ -1,4 +1,4 @@
-import { KafkaService, KAFKA_TOPICS, BadRequestException, InternalServerErrorException, JwtPayload } from '@config/libs';
+import { KAFKA_TOPICS, BadRequestException, InternalServerErrorException, JwtPayload, KafkaService } from '@config/libs';
 
 import { UsersRepository } from '@modules/users/users.repository';
 

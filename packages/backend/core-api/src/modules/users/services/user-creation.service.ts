@@ -1,11 +1,17 @@
-import { Queue } from 'bullmq';
-import { Injectable, JobResponseDto, JobStatus } from '@config/libs';
+import { Injectable, InternalServerErrorException, JobResponseDto, JobStatus } from '@config/libs';
 
-import { CreateUserDto } from '@modules/users/dtos/create-user.dto';
+import { CreateUserParams } from '@modules/users/interfaces/user-services.interface';
 
 @Injectable()
 export class UserCreationService {
-  async create (commandQueue: Queue, createUserDto: CreateUserDto): Promise<JobResponseDto> {
+  private resolveJobId (jobId: string | number | undefined): string {
+    if (typeof jobId !== 'string') throw new InternalServerErrorException('Invalid queue job id generated for user creation');
+    return jobId;
+  }
+
+  async create (params: CreateUserParams): Promise<JobResponseDto> {
+    const { commandQueue, createUserDto } = params;
+
     const job = await commandQueue.add('user.create', {
       command: 'CREATE',
       data: createUserDto,
@@ -13,7 +19,7 @@ export class UserCreationService {
     });
 
     return {
-      jobId: job.id as string,
+      jobId: this.resolveJobId(job.id),
       status: JobStatus.PENDING,
       message: 'User creation queued'
     };

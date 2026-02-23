@@ -1,9 +1,9 @@
 import { GraphQLFieldConfig, GraphQLOutputType, GraphQLFieldConfigArgumentMap, GraphQLInputType, GraphQLNonNull, GraphQLString } from 'graphql';
 
 import { Container } from '../../container/container';
-import { GUARDS_METADATA } from '../../decorators/middleware.decorators';
 import { AuthGuard } from '../../guards/auth.guard';
 import { RolesGuard } from '../../guards/roles.guard';
+import { GUARDS_METADATA } from '../../decorators/middleware.decorators';
 import { FIELD_METADATA } from '../../../domain/constants/web/web.const';
 import { getErrorMessage } from '../../../domain/helpers/utility-functions.helper';
 import { AuthenticatedRequest } from '../../../domain/interfaces/auth/jwt.interface';
@@ -16,12 +16,12 @@ export class FieldConfigBuilder {
   private container: Container;
   private resolveType: (typeInput: unknown) => GraphQLOutputType | GraphQLInputType;
 
-  constructor (container: Container, resolveType: (typeInput: unknown) => GraphQLOutputType | GraphQLInputType) {
+  constructor(container: Container, resolveType: (typeInput: unknown) => GraphQLOutputType | GraphQLInputType) {
     this.container = container;
     this.resolveType = resolveType;
   }
 
-  createFieldConfig (
+  createFieldConfig(
     ResolverClass: Constructor,
     resolverInstance: object,
     methodName: string,
@@ -41,7 +41,7 @@ export class FieldConfigBuilder {
     };
   }
 
-  private async executeGuards (
+  private async executeGuards(
     ResolverClass: Constructor,
     methodName: string,
     context: unknown,
@@ -65,13 +65,14 @@ export class FieldConfigBuilder {
     }
   }
 
-  private collectGuards (ResolverClass: Constructor, methodName: string): Constructor<CanActivate>[] {
+  private collectGuards(ResolverClass: Constructor, methodName: string): Constructor<CanActivate>[] {
     const classGuards = (Reflect.getMetadata(GUARDS_METADATA, ResolverClass) || []) as Constructor<CanActivate>[];
     const methodGuards = (Reflect.getMetadata(GUARDS_METADATA, ResolverClass.prototype as object, methodName) || []) as Constructor<CanActivate>[];
+
     return [AuthGuard, RolesGuard, ...classGuards, ...methodGuards];
   }
 
-  private buildMethodArgs (args: ArgMetadata[], resolverArgs: Record<string, unknown>, context: unknown): unknown[] {
+  private buildMethodArgs(args: ArgMetadata[], resolverArgs: Record<string, unknown>, context: unknown): unknown[] {
     const { req } = context as GraphQLContext;
 
     return args
@@ -83,15 +84,17 @@ export class FieldConfigBuilder {
       });
   }
 
-  private buildArgsObject (typeFunc: TypeFunc, resolverArgs: Record<string, unknown>): Record<string, unknown> {
+  private buildArgsObject(typeFunc: TypeFunc, resolverArgs: Record<string, unknown>): Record<string, unknown> {
     const argsType = typeFunc();
     const fieldMetadata = (Reflect.getMetadata(FIELD_METADATA, argsType as object) || []) as FieldMetadata[];
     const argsObj: Record<string, unknown> = {};
+
     for (const field of fieldMetadata) argsObj[field.name] = resolverArgs[field.name];
+
     return argsObj;
   }
 
-  private buildArgs (args: ArgMetadata[]): GraphQLFieldConfigArgumentMap {
+  private buildArgs(args: ArgMetadata[]): GraphQLFieldConfigArgumentMap {
     const graphqlArgs: GraphQLFieldConfigArgumentMap = {};
     for (const arg of args) {
       if (arg.isArgs && arg.typeFunc) this.addArgsTypeFields(arg.typeFunc, graphqlArgs);
@@ -101,7 +104,7 @@ export class FieldConfigBuilder {
     return graphqlArgs;
   }
 
-  private addArgsTypeFields (typeFunc: TypeFunc, graphqlArgs: GraphQLFieldConfigArgumentMap): void {
+  private addArgsTypeFields(typeFunc: TypeFunc, graphqlArgs: GraphQLFieldConfigArgumentMap): void {
     const argsType = typeFunc();
     const fieldMetadata = (Reflect.getMetadata(FIELD_METADATA, argsType as object) || []) as FieldMetadata[];
 
@@ -113,8 +116,9 @@ export class FieldConfigBuilder {
     }
   }
 
-  private addSingleArg (arg: ArgMetadata, graphqlArgs: GraphQLFieldConfigArgumentMap): void {
+  private addSingleArg(arg: ArgMetadata, graphqlArgs: GraphQLFieldConfigArgumentMap): void {
     const type = arg.typeFunc ? this.resolveType(arg.typeFunc) : GraphQLString;
+
     graphqlArgs[arg.name!] = {
       type: arg.nullable ? (type as GraphQLInputType) : new GraphQLNonNull(type as GraphQLInputType)
     };

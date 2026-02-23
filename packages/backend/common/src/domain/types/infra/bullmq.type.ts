@@ -11,3 +11,5 @@ export type JobPayload = DataProcessingJobData | ReportJobData;
 export type JobDataType = Job<JobPayload>;
 
 export type ReportType = 'analytics' | 'financial' | 'sales';
+
+export type KeyGenerator = string | ((...args: unknown[]) => string);

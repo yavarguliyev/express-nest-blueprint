@@ -1,21 +1,12 @@
-import { Injectable, nowISO, HEALTH_REGISTRY, DASHBOARD_CHARTS, HealthRegistryItem, DashboardChartConfig, PromMetric } from '@config/libs';
+import { Injectable, nowISO, HEALTH_REGISTRY, DASHBOARD_CHARTS, HealthRegistryItem, DashboardChartConfig } from '@config/libs';
 
-import {
-  ChartData,
-  DashboardMetric,
-  DashboardAlert,
-  DashboardMetricsResponse,
-  DashboardMetricsContext
-} from '@modules/admin/interfaces/admin.interface';
+import { DashboardMetricResolver } from '@modules/admin/interfaces/admin-dashboard-metrics.interface';
+import { ChartData, DashboardMetric, DashboardMetricsResponse } from '@modules/admin/interfaces/admin.interface';
 
 @Injectable()
 export class DashboardMetricsBuilder {
-  public buildDashboardMetrics (
-    context: DashboardMetricsContext,
-    resolveMetricValue: (reg: HealthRegistryItem, ctx: DashboardMetricsContext) => number,
-    resolveChartData: (config: DashboardChartConfig, rawMetrics: PromMetric[]) => { label: string; value: number }[],
-    generateAlerts: (metrics: DashboardMetric[]) => DashboardAlert[]
-  ): DashboardMetricsResponse {
+  buildDashboardMetrics (params: DashboardMetricResolver): DashboardMetricsResponse {
+    const { context, resolveMetricValue, resolveChartData, generateAlerts } = params;
     const timestamp = nowISO();
 
     const metrics: DashboardMetric[] = (Object.values(HEALTH_REGISTRY) as HealthRegistryItem[]).map(

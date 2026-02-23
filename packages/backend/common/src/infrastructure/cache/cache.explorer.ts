@@ -6,39 +6,47 @@ import { CacheOptions, InvalidateCacheOptions } from '../../domain/interfaces/in
 
 @Injectable()
 export class CacheExplorer {
-  constructor (private readonly cacheService: CacheService) {}
+  constructor(private readonly cacheService: CacheService) {}
 
-  explore (): void {
+  explore(): void {
     const services = Container.getInstance().getServices();
     for (const [token, entry] of services) {
       if (entry.type !== 'class') continue;
 
-      const instance = Container.getInstance().resolve({ provide: token }) as Record<string, unknown>;
-      const proto = Object.getPrototypeOf(instance) as unknown;
+      const resolved = Container.getInstance().resolve({ provide: token });
+      if (!resolved || typeof resolved !== 'object') continue;
+      const instance = resolved as Record<string, unknown>;
+      const proto = Object.getPrototypeOf(instance) as Record<string, unknown> | null;
       if (!proto) continue;
 
       const methods = Object.getOwnPropertyNames(proto);
       for (const methodName of methods) {
         if (methodName === 'constructor') continue;
 
-        const method = (proto as Record<string, unknown>)[methodName];
+        const method = proto[methodName];
         if (typeof method !== 'function') continue;
 
         const cacheMetadata = Reflect.getMetadata(CACHE_METADATA, method) as (CacheOptions & { methodName: string }) | undefined;
         if (cacheMetadata) this.patchCacheMethod(instance, methodName, cacheMetadata);
 
-        const invalidateMetadata = Reflect.getMetadata(INVALIDATE_CACHE_METADATA, method) as (InvalidateCacheOptions & { methodName: string }) | undefined;
+        const invalidateMetadata = Reflect.getMetadata(INVALIDATE_CACHE_METADATA, method) as
+          | (InvalidateCacheOptions & { methodName: string })
+          | undefined;
+
         if (invalidateMetadata) this.patchInvalidationMethod(instance, methodName, invalidateMetadata);
       }
     }
   }
 
-  private patchCacheMethod (instance: Record<string, unknown>, methodName: string, options: CacheOptions): void {
+  private patchCacheMethod(instance: Record<string, unknown>, methodName: string, options: CacheOptions): void {
     const originalMethod = instance[methodName] as (...args: unknown[]) => Promise<unknown>;
     const cacheService = this.cacheService;
 
     instance[methodName] = async function (...args: unknown[]): Promise<unknown> {
-      const cacheKey = typeof options.key === 'function' ? options.key(...args) : options.key ?? `${instance.constructor.name}:${methodName}:${JSON.stringify(args)}`;
+      const cacheKey =
+        typeof options.key === 'function'
+          ? options.key(...args)
+          : (options.key ?? `${instance.constructor.name}:${methodName}:${JSON.stringify(args)}`);
       const cachedResult = await cacheService.get(cacheKey);
 
       if (cachedResult !== null) return cachedResult;
@@ -50,7 +58,7 @@ export class CacheExplorer {
     };
   }
 
-  private patchInvalidationMethod (instance: Record<string, unknown>, methodName: string, options: InvalidateCacheOptions): void {
+  private patchInvalidationMethod(instance: Record<string, unknown>, methodName: string, options: InvalidateCacheOptions): void {
     const originalMethod = instance[methodName] as (...args: unknown[]) => Promise<unknown>;
     const cacheService = this.cacheService;
 

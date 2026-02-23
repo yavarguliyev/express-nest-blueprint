@@ -19,3 +19,8 @@ export interface KafkaSubscribeOptions {
   topic: string | RegExp;
   fromBeginning?: boolean;
 }
+
+export interface KafkaSubscriberMetadata {
+  methodName: string;
+  options: KafkaSubscribeOptions;
+}

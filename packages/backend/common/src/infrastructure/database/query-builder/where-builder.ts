@@ -1,9 +1,10 @@
-import { ColumnMapping, QueryWithPaginationOptions } from '../../../domain/interfaces/database/query-builder.interface';
+import { ColumnMapping } from '../../../domain/interfaces/database/database-common.interface';
+import { QueryWithPaginationOptions } from '../../../domain/interfaces/database/query-builder.interface';
 
 export class WhereBuilder {
-  constructor (private columnMappings: ColumnMapping) {}
+  constructor(private columnMappings: ColumnMapping) {}
 
-  buildWhereConditions (
+  buildWhereConditions(
     options: QueryWithPaginationOptions,
     params: unknown[],
     startParamIndex: number
@@ -26,7 +27,7 @@ export class WhereBuilder {
     return { conditions, paramIndex };
   }
 
-  private buildObjectConditions (
+  private buildObjectConditions(
     options: QueryWithPaginationOptions,
     params: unknown[],
     startParamIndex: number
@@ -45,7 +46,7 @@ export class WhereBuilder {
     return { conditions, paramIndex };
   }
 
-  private buildArrayConditions (
+  private buildArrayConditions(
     options: QueryWithPaginationOptions,
     params: unknown[],
     startParamIndex: number
@@ -64,7 +65,7 @@ export class WhereBuilder {
     return { conditions, paramIndex };
   }
 
-  private buildSearchConditions (
+  private buildSearchConditions(
     options: QueryWithPaginationOptions,
     params: unknown[],
     startParamIndex: number

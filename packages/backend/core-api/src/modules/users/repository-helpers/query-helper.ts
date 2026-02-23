@@ -1,4 +1,4 @@
-import { DatabaseService, DatabaseAdapter, QueryAllWithPaginationOptions } from '@config/libs';
+import { DatabaseAdapter, QueryAllWithPaginationOptions, DatabaseService } from '@config/libs';
 
 import { FindUsersQueryDto } from '@modules/users/dtos/find-users-query.dto';
 

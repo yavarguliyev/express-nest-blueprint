@@ -25,7 +25,7 @@ export class MetricsService {
   private prevCpuUsage = process.cpuUsage();
   private prevTime = process.hrtime.bigint();
 
-  constructor () {
+  constructor() {
     const { NAMES: N, LABELS: L, BUCKETS: B } = METRIC_CONFIG;
     collectDefaultMetrics({ register, eventLoopMonitoringPrecision: 10 });
     gcStats(register)();
@@ -46,60 +46,27 @@ export class MetricsService {
     };
   }
 
-  public getMetrics (res: Response): Promise<string> {
+  getRegistry = (): typeof register => register;
+  incRequests = (m: string, p: string, s: string): void => this.metrics.httpTotal.inc({ method: m, path: p, status: s });
+  observeDuration = (m: string, p: string, s: string, d: number): void => this.metrics.httpDuration.observe({ method: m, path: p, status: s }, d);
+  incActiveRequests = (): void => this.metrics.activeReqs.inc();
+  decActiveRequests = (): void => this.metrics.activeReqs.dec();
+  recordCacheOperation = (o: string, r: string): void => this.metrics.cacheTotal.inc({ operation: o, result: r });
+  updateCacheHitRatio = (r: number): void => this.metrics.cacheRatio.set(r);
+  observeDatabaseQuery = (q: string, t: string, d: number): void => this.metrics.dbDuration.observe({ query_type: q, table: t }, d);
+  setDatabaseConnections = (c: number): void => this.metrics.dbActive.set(c);
+  recordKafkaMessage = (t: string, g: string, r: string): void => this.metrics.kafkaTotal.inc({ topic: t, consumer_group: g, result: r });
+  observeKafkaProcessing = (t: string, g: string, d: number): void => this.metrics.kafkaDuration.observe({ topic: t, consumer_group: g }, d);
+  recordS3Operation = (o: string, r: string): void => this.metrics.s3Total.inc({ operation: o, result: r });
+  observeS3Operation = (o: string, d: number): void => this.metrics.s3Duration.observe({ operation: o }, d);
+  getMetricsAsJSON = async (): Promise<PromMetric[]> => (await register.getMetricsAsJSON()) as unknown as PromMetric[];
+
+  getMetrics(res: Response): Promise<string> {
     res.set('Content-Type', register.contentType);
     return register.metrics();
   }
 
-  public incRequests (m: string, p: string, s: string): void {
-    this.metrics.httpTotal.inc({ method: m, path: p, status: s });
-  }
-
-  public observeDuration (m: string, p: string, s: string, d: number): void {
-    this.metrics.httpDuration.observe({ method: m, path: p, status: s }, d);
-  }
-
-  public incActiveRequests (): void {
-    this.metrics.activeReqs.inc();
-  }
-
-  public decActiveRequests (): void {
-    this.metrics.activeReqs.dec();
-  }
-
-  public recordCacheOperation (o: string, r: string): void {
-    this.metrics.cacheTotal.inc({ operation: o, result: r });
-  }
-
-  public updateCacheHitRatio (r: number): void {
-    this.metrics.cacheRatio.set(r);
-  }
-
-  public observeDatabaseQuery (q: string, t: string, d: number): void {
-    this.metrics.dbDuration.observe({ query_type: q, table: t }, d);
-  }
-
-  public setDatabaseConnections (c: number): void {
-    this.metrics.dbActive.set(c);
-  }
-
-  public recordKafkaMessage (t: string, g: string, r: string): void {
-    this.metrics.kafkaTotal.inc({ topic: t, consumer_group: g, result: r });
-  }
-
-  public observeKafkaProcessing (t: string, g: string, d: number): void {
-    this.metrics.kafkaDuration.observe({ topic: t, consumer_group: g }, d);
-  }
-
-  public recordS3Operation (o: string, r: string): void {
-    this.metrics.s3Total.inc({ operation: o, result: r });
-  }
-
-  public observeS3Operation (o: string, d: number): void {
-    this.metrics.s3Duration.observe({ operation: o }, d);
-  }
-
-  public getCpuUsagePercentage (): number {
+  getCpuUsagePercentage(): number {
     const currCpu = process.cpuUsage();
     const currTime = process.hrtime.bigint();
 
@@ -113,13 +80,5 @@ export class MetricsService {
     this.prevTime = currTime;
 
     return parseFloat(cpuPercent.toFixed(2));
-  }
-
-  public getRegistry (): typeof register {
-    return register;
-  }
-
-  public async getMetricsAsJSON (): Promise<PromMetric[]> {
-    return (await register.getMetricsAsJSON()) as unknown as PromMetric[];
   }
 }

@@ -1,10 +1,6 @@
 import { INJECTABLE_METADATA } from './injectable.decorator';
-import {
-  KAFKA_SUBSCRIBER_METADATA,
-  KAFKA_ON_MESSAGE_METADATA,
-  KAFKA_SUBSCRIBER_REGISTRY,
-  KafkaSubscriberMetadata
-} from '../../domain/constants/infra/kafka.const';
+import { KAFKA_SUBSCRIBER_METADATA, KAFKA_ON_MESSAGE_METADATA, KAFKA_SUBSCRIBER_REGISTRY } from '../../domain/constants/infra/kafka.const';
+import { KafkaSubscriberMetadata } from 'domain/interfaces/infra/kafka.interface';
 import { KafkaSubscribeOptions } from '../../domain/interfaces/infra/kafka.interface';
 import { Constructor } from '../../domain/types/common/util.type';
 
@@ -14,7 +10,7 @@ export const Subscriber = (): ClassDecorator => {
   return (target: object): void => {
     Reflect.defineMetadata(KAFKA_SUBSCRIBER_METADATA, true, target);
     Reflect.defineMetadata(INJECTABLE_METADATA, true, target);
-    KAFKA_SUBSCRIBER_REGISTRY.push(target as unknown as Constructor);
+    KAFKA_SUBSCRIBER_REGISTRY.push(target as Constructor);
   };
 };
 

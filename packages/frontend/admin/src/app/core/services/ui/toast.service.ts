@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 
-import { Toast } from '../../interfaces/common.interface';
+import { ShowToastOptions, Toast } from '../../interfaces/common.interface';
 import { ToastType } from '../../enums/toast-type.enum';
 
 @Injectable({
@@ -11,7 +11,8 @@ export class ToastService {
 
   toasts = signal<Toast[]>([]);
 
-  show (message: string, type: ToastType = ToastType.INFO, duration: number = 4000, onConfirm?: () => void, onCancel?: () => void): void {
+  show (options: ShowToastOptions): void {
+    const { message, type = ToastType.INFO, duration = 4000, onConfirm, onCancel } = options;
     const id = this.counter++;
     const toast: Toast = {
       id,
@@ -28,23 +29,23 @@ export class ToastService {
   }
 
   success (message: string, duration?: number): void {
-    this.show(message, ToastType.SUCCESS, duration);
+    this.show({ message, type: ToastType.SUCCESS, ...(duration !== undefined ? { duration } : {}) });
   }
 
   error (message: string, duration?: number): void {
-    this.show(message, ToastType.ERROR, duration);
+    this.show({ message, type: ToastType.ERROR, ...(duration !== undefined ? { duration } : {}) });
   }
 
   info (message: string, duration?: number): void {
-    this.show(message, ToastType.INFO, duration);
+    this.show({ message, type: ToastType.INFO, ...(duration !== undefined ? { duration } : {}) });
   }
 
   warning (message: string, duration?: number): void {
-    this.show(message, ToastType.WARNING, duration);
+    this.show({ message, type: ToastType.WARNING, ...(duration !== undefined ? { duration } : {}) });
   }
 
   confirm (message: string, onConfirm: () => void, onCancel?: () => void): void {
-    this.show(message, ToastType.CONFIRM, 0, onConfirm, onCancel);
+    this.show({ message, type: ToastType.CONFIRM, duration: 0, onConfirm, ...(onCancel ? { onCancel } : {}) });
   }
 
   remove (id: number): void {

@@ -25,7 +25,7 @@ export class DatabaseModalManagerService {
   }
 
   openUpdateModal (table: TableMetadata, record: Record<string, unknown>): void {
-    const formData = this.dbForm.prepareFormData(table, record);
+    const formData = this.dbForm.prepareFormData({ table, record });
     this.modalMode.set('update');
     this.selectedRecord.set(record);
     this.updateFormData.set(formData);
@@ -56,7 +56,12 @@ export class DatabaseModalManagerService {
     } else {
       const record = this.selectedRecord();
       if (!record) return false;
-      return this.dbForm.validateAndSubmitUpdate(table, record, this.updateFormData(), this.originalFormData());
+      return this.dbForm.validateAndSubmitUpdate({
+        table,
+        record,
+        currentData: this.updateFormData(),
+        originalData: this.originalFormData()
+      });
     }
   }
 }

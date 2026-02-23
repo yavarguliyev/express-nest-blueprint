@@ -15,7 +15,8 @@ export class GraphQLApplication {
 
   applyMiddleware (app: Express, path = '/graphql'): void {
     const schema = this.schemaBuilder.build();
-    app.all(path, createHandler({ schema, context: (req, res) => ({ req, res }) }));
+    const graphqlHandler = createHandler({ schema, context: (req, res) => ({ req, res }) }) as unknown as (req: Request, res: Response) => void;
+    app.all(path, graphqlHandler);
   }
 
   destroy (): void {

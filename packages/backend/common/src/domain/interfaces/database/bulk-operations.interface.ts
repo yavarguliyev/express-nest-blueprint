@@ -1,13 +1,26 @@
-import { BulkOperationLogType, BulkOperationType, ConflictResolutionStrategy, ConflictType } from '../../types/database/database.type';
 import { OperationStatus } from '../../types/common/status.type';
-import { IdType } from '../../types/common/util.type';
+import { BulkOperationType, ConflictType, BulkOperationLogType, ConflictResolutionStrategy } from '../../types/database/database.type';
+import { JwtPayload } from '../auth/jwt.interface';
+import {
+  WithTable,
+  WithRecordId,
+  WithOperation,
+  WithSuccess,
+  OperationCounts,
+  WithValidity,
+  WithConflictedFields,
+  ExecutionCounts
+} from '../common/base.interface';
 
-export interface DatabaseOperation {
+export interface DatabaseOperation extends WithTable, WithRecordId {
   type: BulkOperationType;
-  table: string;
   category: string;
-  recordId?: IdType;
   data?: Record<string, unknown>;
+}
+
+export interface BulkOperationRequestWithUser {
+  operations: DatabaseOperation[];
+  user: JwtPayload;
 }
 
 export interface BulkOperationRequest {
@@ -15,56 +28,38 @@ export interface BulkOperationRequest {
   validateOnly?: boolean;
 }
 
-export interface OperationResult {
-  operation: DatabaseOperation;
-  success: boolean;
+export interface OperationResult extends WithOperation, WithSuccess {
   error?: string;
   data?: unknown;
 }
 
-export interface OperationSummary {
-  total: number;
-  successful: number;
-  failed: number;
-}
-
-export interface BulkOperationResponse {
-  success: boolean;
+export interface BulkOperationResponse extends WithSuccess {
   results: OperationResult[];
-  summary: OperationSummary;
+  summary: OperationCounts;
   jobId?: string;
 }
 
-export interface ValidationResult {
-  valid: boolean;
+export interface ValidationResult extends WithValidity {
   validationResults: ValidationItem[];
   conflicts: ConflictItem[];
 }
 
-export interface ValidationItem {
-  operation: DatabaseOperation;
-  valid: boolean;
+export interface ValidationItem extends WithOperation, WithValidity {
   warnings: string[];
 }
 
-export interface ConflictItem {
-  recordId: IdType;
-  table: string;
+export interface ConflictItem extends WithTable, WithRecordId, WithConflictedFields {
   conflictType: ConflictType;
   lastModified?: string;
   modifiedBy?: string;
-  conflictedFields?: string[];
   details: string;
 }
 
-export interface BulkOperationLog {
+export interface BulkOperationLog extends ExecutionCounts {
   id: string;
   userId: number;
   operationType: BulkOperationLogType;
   affectedTables: string[];
-  operationCount: number;
-  successCount: number;
-  failureCount: number;
   executionTime: number;
   timestamp: Date;
   details: OperationResult[];

@@ -6,7 +6,6 @@ import { MetricsService } from '../metrics/metrics.service';
 import { Inject, Injectable } from '../../core/decorators/injectable.decorator';
 import { KAFKA_OPTIONS } from '../../core/decorators/kafka.decorators';
 import { KafkaMessagePayload, KafkaModuleOptions, KafkaSubscribeOptions } from '../../domain/interfaces/infra/kafka.interface';
-import { getErrorMessage } from '../../domain/helpers/utility-functions.helper';
 import { KafkaMessageHandler } from '../../domain/types/infra/kafka.type';
 import { KafkaProducer } from './kafka-producer';
 import { KafkaConsumer } from './kafka-consumer';
@@ -24,7 +23,7 @@ export class KafkaService {
 
   private connectionPromise: Promise<void> | null = null;
 
-  constructor (
+  constructor(
     @Inject(KAFKA_OPTIONS) private options: KafkaModuleOptions,
     private readonly configService: ConfigService,
     private readonly metricsService: MetricsService
@@ -53,7 +52,7 @@ export class KafkaService {
     this.kafkaMetrics = new KafkaMetrics(this.kafka);
   }
 
-  async connect (): Promise<void> {
+  async connect(): Promise<void> {
     if (this.connectionPromise) return this.connectionPromise;
 
     this.connectionPromise = (async (): Promise<void> => {
@@ -69,31 +68,31 @@ export class KafkaService {
     return this.connectionPromise;
   }
 
-  async disconnect (): Promise<void> {
+  async disconnect(): Promise<void> {
     await this.kafkaProducer.disconnect();
     await this.kafkaConsumer.disconnect();
   }
 
-  async produce<T = unknown> (payload: KafkaMessagePayload<T>): Promise<void> {
+  async produce<T = unknown>(payload: KafkaMessagePayload<T>): Promise<void> {
     await this.kafkaProducer.produce(payload);
   }
 
-  async subscribe (options: KafkaSubscribeOptions, handler: KafkaMessageHandler<unknown>): Promise<void> {
+  async subscribe(options: KafkaSubscribeOptions, handler: KafkaMessageHandler<unknown>): Promise<void> {
     await this.kafkaConsumer.subscribe(options, handler);
   }
 
-  async start (): Promise<void> {
+  async start(): Promise<void> {
     if (!this.isWorkerRole || this.kafkaConsumer.isConsumerRunning()) return;
     if (!this.kafkaConsumer.isConnected()) await this.connect();
     this.kafkaConsumer.setRunning(true);
     this.runConsumer();
   }
 
-  async getKafkaMetrics (): Promise<{ messagesInPerSec: number; underReplicatedPartitions: number }> {
+  async getKafkaMetrics(): Promise<{ messagesInPerSec: number; underReplicatedPartitions: number }> {
     return this.kafkaMetrics.getKafkaMetrics();
   }
 
-  private createKafkaInstance (): Kafka {
+  private createKafkaInstance(): Kafka {
     const kafkaLogger = (): ((entry: LogEntry) => void) => {
       return (entry: LogEntry): void => {
         const { label, level, log } = entry;
@@ -124,19 +123,12 @@ export class KafkaService {
     });
   }
 
-  private runConsumer (): void {
+  private runConsumer(): void {
     const consumer = this.kafkaConsumer.getConsumer();
     const handlers = this.kafkaConsumer.getHandlers();
 
     void consumer
-      .run({
-        eachMessage: async payload => {
-          await this.messageProcessor.processMessage(payload, handlers);
-        }
-      })
-      .catch(error => {
-        this.kafkaConsumer.setRunning(false);
-        Logger.error('Kafka Consumer run error', getErrorMessage(error), 'KafkaService');
-      });
+      .run({ eachMessage: async payload => await this.messageProcessor.processMessage(payload, handlers) })
+      .catch(() => this.kafkaConsumer.setRunning(false));
   }
 }

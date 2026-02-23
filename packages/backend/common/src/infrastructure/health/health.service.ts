@@ -19,7 +19,7 @@ import { DatabaseStatus, KafkaStatus, StorageStatus } from '../../domain/types/h
 
 @Injectable()
 export class HealthService {
-  constructor (
+  constructor(
     private readonly databaseService: DatabaseService,
     private readonly redisService: RedisService,
     private readonly queueManager: QueueManager,
@@ -28,11 +28,9 @@ export class HealthService {
     private readonly storageService: StorageService
   ) {}
 
-  checkLive (): LiveCheckResult {
-    return { status: 'up', timestamp: new Date().toISOString() };
-  }
+  checkLive = (): LiveCheckResult => ({ status: 'up', timestamp: new Date().toISOString() });
 
-  async checkReady (): Promise<ReadyCheckResult> {
+  async checkReady(): Promise<ReadyCheckResult> {
     const dbStatus = this.checkDatabase();
     const redisStatus = await this.checkRedis();
     const kafkaStatus = await this.checkKafka();
@@ -51,7 +49,7 @@ export class HealthService {
     };
   }
 
-  async checkHealth (): Promise<HealthCheckResult> {
+  async checkHealth(): Promise<HealthCheckResult> {
     const dbStatus = this.checkDatabase();
     const redisStatus = await this.checkRedis();
     const queueStatus = await this.checkQueues();
@@ -75,7 +73,7 @@ export class HealthService {
     };
   }
 
-  private checkCompute (): ComputeStatus {
+  private checkCompute(): ComputeStatus {
     try {
       return { status: 'up', ...this.computeService.getStatus() };
     } catch (error) {
@@ -83,7 +81,7 @@ export class HealthService {
     }
   }
 
-  private checkDatabase (): DatabaseStatus {
+  private checkDatabase(): DatabaseStatus {
     try {
       const adapter = this.databaseService.getConnection();
       const connected = adapter.isConnected();
@@ -93,7 +91,7 @@ export class HealthService {
     }
   }
 
-  private async checkRedis (): Promise<RedisStatus> {
+  private async checkRedis(): Promise<RedisStatus> {
     try {
       const redis = this.redisService.getClient();
       await redis.ping();
@@ -103,7 +101,7 @@ export class HealthService {
     }
   }
 
-  private async checkQueues (): Promise<QueueStatus> {
+  private async checkQueues(): Promise<QueueStatus> {
     try {
       const queues = this.queueManager.getAllQueues();
       const health = [];
@@ -119,7 +117,7 @@ export class HealthService {
     }
   }
 
-  private async checkKafka (): Promise<KafkaStatus> {
+  private async checkKafka(): Promise<KafkaStatus> {
     try {
       await this.kafkaService.connect();
       return { status: 'up' };
@@ -128,7 +126,7 @@ export class HealthService {
     }
   }
 
-  private async checkStorage (): Promise<StorageStatus> {
+  private async checkStorage(): Promise<StorageStatus> {
     try {
       await this.storageService.exists('.health-check');
       return { status: 'up' };

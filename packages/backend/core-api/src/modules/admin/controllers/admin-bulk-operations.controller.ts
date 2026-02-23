@@ -1,17 +1,18 @@
 import {
-  ApiController,
   BaseController,
   Body,
   Get,
   Post,
   Query,
-  UserRoles,
   Roles,
   CurrentUser,
+  ApiController,
+  UserRoles,
   JwtPayload,
   BulkOperationRequest,
   BulkOperationResponse,
   ValidationResult,
+  BadRequestException,
   DatabaseOperation
 } from '@config/libs';
 
@@ -24,22 +25,37 @@ export class AdminBulkOperationsController extends BaseController {
     super({ path: '/admin/bulk-operations' });
   }
 
+  private isDatabaseOperation (value: unknown): value is DatabaseOperation {
+    if (!value || typeof value !== 'object') return false;
+    return 'type' in value && 'category' in value && 'table' in value;
+  }
+
   @Post()
   async executeBulkOperations (
     @Body() request: BulkOperationRequest,
     @CurrentUser() user: JwtPayload,
     @Query('wait') wait?: string
   ): Promise<BulkOperationResponse> {
-    return this.bulkOperationsService.processBulkOperations(request.operations, user, wait === 'true' || wait === '1');
+    return this.bulkOperationsService.processBulkOperations({ operations: request.operations, user, wait: wait === 'true' || wait === '1' });
   }
 
   @Post('validate')
   validateBulkOperations (@Body() request: BulkOperationRequest): ValidationResult {
-    return this.bulkOperationsService.validateOperations(request.operations);
+    return this.bulkOperationsService.validateOperations({ operations: request.operations });
   }
 
   @Get('conflicts')
   async checkConflicts (@Query('operations') operations: string): Promise<{ conflicts: unknown[] }> {
-    return this.bulkOperationsService.detectConflicts(JSON.parse(operations) as DatabaseOperation[]);
+    let parsedOperations: unknown;
+    try {
+      parsedOperations = JSON.parse(operations);
+    } catch {
+      throw new BadRequestException('Invalid operations payload');
+    }
+
+    if (!Array.isArray(parsedOperations)) throw new BadRequestException('Operations payload must be an array');
+    if (!parsedOperations.every(operation => this.isDatabaseOperation(operation))) throw new BadRequestException('Invalid operation payload');
+
+    return this.bulkOperationsService.detectConflicts({ operations: parsedOperations });
   }
 }

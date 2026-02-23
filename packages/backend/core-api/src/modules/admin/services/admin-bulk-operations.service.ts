@@ -1,18 +1,25 @@
 import { Job, QueueEvents } from 'bullmq';
 import {
-  getErrorMessage,
   Injectable,
+  getErrorMessage,
   DatabaseOperation,
   BulkOperationResponse,
   ValidationResult,
   ValidationItem,
   ConflictItem,
-  JwtPayload,
   QueueManager,
-  RedisService
+  RedisService,
+  isBulkOperationResponse,
+  sanitizeOperationData
 } from '@config/libs';
 
 import { AdminCrudService } from '@modules/admin/services/admin-crud.service';
+import { ConflictDetectionResult } from '@modules/admin/interfaces/admin.interface';
+import {
+  DetectConflictsParams,
+  ProcessBulkOperationsParams,
+  ValidateOperationsParams
+} from '@modules/admin/interfaces/admin-bulk-operations.interface';
 
 @Injectable()
 export class AdminBulkOperationsService {
@@ -24,59 +31,53 @@ export class AdminBulkOperationsService {
     private readonly redisService: RedisService
   ) {}
 
-  validateOperations (operations: DatabaseOperation[]): ValidationResult {
-    const validationResults: ValidationItem[] = [];
+  validateOperations (params: ValidateOperationsParams): ValidationResult {
+    const { operations } = params;
     const conflicts: ConflictItem[] = [];
 
-    for (const operation of operations) {
+    const requirements: Record<string, (keyof DatabaseOperation)[]> = {
+      create: ['data'],
+      update: ['recordId', 'data'],
+      delete: ['recordId']
+    };
+
+    const validationResults: ValidationItem[] = operations.map(operation => {
       try {
-        const warnings: string[] = [];
+        const warnings =
+          requirements[operation.type]
+            ?.filter(field => !operation[field])
+            .map(field => `${field === 'recordId' ? 'Record ID' : 'Data'} is required for ${operation.type} operations`) ?? [];
 
-        if (operation.type === 'update' && !operation.recordId) {
-          validationResults.push({ operation, valid: false, warnings: ['Record ID is required for update operations'] });
-          continue;
-        }
-
-        if (operation.type === 'delete' && !operation.recordId) {
-          validationResults.push({ operation, valid: false, warnings: ['Record ID is required for delete operations'] });
-          continue;
-        }
-
-        if (operation.type === 'create' && !operation.data) {
-          validationResults.push({ operation, valid: false, warnings: ['Data is required for create operations'] });
-          continue;
-        }
-
-        if (operation.type === 'update' && !operation.data) {
-          validationResults.push({ operation, valid: false, warnings: ['Data is required for update operations'] });
-          continue;
-        }
-
-        validationResults.push({ operation, valid: true, warnings });
+        return { operation, valid: warnings.length === 0, warnings };
       } catch (error) {
-        validationResults.push({ operation, valid: false, warnings: [getErrorMessage(error)] });
+        return { operation, valid: false, warnings: [getErrorMessage(error)] };
       }
-    }
+    });
 
     return {
-      valid: validationResults.every(result => result.valid),
+      valid: validationResults.every(r => r.valid),
       validationResults,
       conflicts
     };
   }
 
-  async processBulkOperations (operations: DatabaseOperation[], user: JwtPayload, wait = false): Promise<BulkOperationResponse> {
+  async processBulkOperations (params: ProcessBulkOperationsParams): Promise<BulkOperationResponse> {
+    const { operations, user, wait = false } = params;
     if (operations.length === 0) return { success: true, results: [], summary: { total: 0, successful: 0, failed: 0 } };
 
     const sanitizedOperations = operations.map(op => ({
       ...op,
-      data: op.data ? this.sanitizeData(op.data) : undefined
+      data: op.data ? sanitizeOperationData(op.data) : undefined
     }));
 
     const queue = this.queueManager.createQueue('admin-commands');
     const job = await queue.add('admin.bulk.execute', { operations: sanitizedOperations, user });
 
-    if (wait) return (await this.waitForJobCompletion('admin-commands', job)) as BulkOperationResponse;
+    if (wait) {
+      const result = await this.waitForJobCompletion('admin-commands', job);
+      if (!isBulkOperationResponse(result)) throw new Error('Unexpected bulk operation response');
+      return result;
+    }
 
     const response: BulkOperationResponse = {
       success: true,
@@ -92,17 +93,24 @@ export class AdminBulkOperationsService {
     return response;
   }
 
-  async detectConflicts (operations: DatabaseOperation[]): Promise<{ conflicts: ConflictItem[] }> {
+  async detectConflicts (params: DetectConflictsParams): Promise<ConflictDetectionResult> {
+    const { operations } = params;
     const conflicts: ConflictItem[] = [];
 
     for (const operation of operations) {
+      if (typeof operation.recordId !== 'string' && typeof operation.recordId !== 'number') continue;
+
       if (operation.type === 'update' || operation.type === 'delete') {
         try {
-          const existingRecord = await this.adminCrudService.getTableRecord(operation.category, operation.table, operation.recordId!);
+          const existingRecord = await this.adminCrudService.getTableRecord({
+            category: operation.category,
+            name: operation.table,
+            id: operation.recordId
+          });
 
           if (!existingRecord) {
             conflicts.push({
-              recordId: operation.recordId!,
+              recordId: operation.recordId,
               table: operation.table,
               conflictType: 'constraint_violation',
               details: 'Record not found'
@@ -110,7 +118,7 @@ export class AdminBulkOperationsService {
           }
         } catch (error) {
           conflicts.push({
-            recordId: operation.recordId!,
+            recordId: operation.recordId,
             table: operation.table,
             conflictType: 'constraint_violation',
             details: getErrorMessage(error)
@@ -132,16 +140,5 @@ export class AdminBulkOperationsService {
     }
 
     return await job.waitUntilFinished(queueEvents, 60000);
-  }
-
-  private sanitizeData (data: Record<string, unknown>): Record<string, unknown> {
-    const sanitizedData = { ...data };
-
-    if ('updated_at' in sanitizedData) delete sanitizedData['updated_at'];
-    if ('updatedAt' in sanitizedData) delete sanitizedData['updatedAt'];
-    if ('created_at' in sanitizedData) delete sanitizedData['created_at'];
-    if ('createdAt' in sanitizedData) delete sanitizedData['createdAt'];
-
-    return sanitizedData;
   }
 }

@@ -1,6 +1,6 @@
 import { BULLMQ_PROCESSOR_METADATA, BULLMQ_JOB_HANDLER_METADATA, BULLMQ_PROCESSOR_REGISTRY } from '../../domain/constants/infra/bullmq.const';
+import { JobOptions, QueueMetadata } from '../../domain/interfaces/infra/bullmq.interface';
 import { Constructor } from '../../domain/types/common/util.type';
-import { JobHandlerOptions, QueueMetadata } from '../../domain/interfaces/infra/bullmq.interface';
 
 export const QUEUE_NAME_METADA = '{compute-queue}';
 export const QUEUE_METADATA = 'bullmq:queue';
@@ -20,7 +20,7 @@ export const Processor = (queueName: string): ClassDecorator => {
   };
 };
 
-export const OnJob = (jobName: string, options?: JobHandlerOptions): MethodDecorator => {
+export const OnJob = (jobName: string, options?: JobOptions): MethodDecorator => {
   return (target: object, propertyKey: string | symbol): void => {
     const existingHandlers = (Reflect.getMetadata(BULLMQ_JOB_HANDLER_METADATA, target.constructor) || []) as unknown[];
     existingHandlers.push({ methodName: propertyKey, jobName, options });

@@ -26,10 +26,7 @@ export class StaticAssetsSetup {
     if (adminBaseUrl && adminPath) {
       expressApp.use(adminBaseUrl, express.static(adminPath));
       expressApp.use(`${adminBaseUrl}/*`, (_req: Request, res: Response) => {
-        const indexPath = join(adminPath, 'index.html');
-        res.sendFile(indexPath, err => {
-          if (err) res.status(500).send('Internal Server Error: Missing static assets');
-        });
+        res.sendFile(join(adminPath, 'index.html'), err => err && res.status(500).send('Internal Server Error: Missing static assets'));
       });
     }
 

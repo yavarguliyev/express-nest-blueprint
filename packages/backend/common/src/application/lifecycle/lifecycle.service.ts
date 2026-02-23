@@ -12,32 +12,18 @@ export class LifecycleService {
 
   private shutdownHandlers: GracefulShutDownServiceConfig[] = [];
   private httpServer: http.Server | null = null;
-  private workerStarter?: () => void;
   private isShuttingDown = false;
+  private workerStarter?: () => void;
 
-  constructor (private readonly configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) {}
 
-  registerShutdownHandler (handler: GracefulShutDownServiceConfig): void {
-    this.shutdownHandlers.push(handler);
-  }
+  registerShutdownHandler = (handler: GracefulShutDownServiceConfig): void => void this.shutdownHandlers.push(handler);
+  registerWorkerStarter = (starter: () => void): void => void (this.workerStarter = starter);
+  getShutdownHandlers = (): GracefulShutDownServiceConfig[] => [...this.shutdownHandlers];
+  setHttpServer = (server: http.Server): void => void (this.httpServer = server);
+  startWorkers = (): void => this.workerStarter?.();
 
-  registerWorkerStarter (starter: () => void): void {
-    this.workerStarter = starter;
-  }
-
-  startWorkers (): void {
-    if (this.workerStarter) this.workerStarter();
-  }
-
-  setHttpServer (server: http.Server): void {
-    this.httpServer = server;
-  }
-
-  getShutdownHandlers (): GracefulShutDownServiceConfig[] {
-    return [...this.shutdownHandlers];
-  }
-
-  async executeGracefulShutdown (): Promise<void> {
+  async executeGracefulShutdown(): Promise<void> {
     if (this.isShuttingDown) return;
     this.isShuttingDown = true;
     this.logHandlers();
@@ -45,11 +31,11 @@ export class LifecycleService {
     await shutdownService.shutDown(this.httpServer || undefined);
   }
 
-  private logHandlers (): void {
+  private logHandlers(): void {
     this.shutdownHandlers.forEach((h, i) => void this.logger.log(`Handler ${i + 1}: ${h.name}`));
   }
 
-  private createShutdownService (): GracefulShutdownService {
+  private createShutdownService(): GracefulShutdownService {
     return new GracefulShutdownService(this.shutdownHandlers, {
       shutdownTimeout: this.configService.get<number>('SHUT_DOWN_TIMER', 15000),
       maxRetries: this.configService.get<number>('SHUTDOWN_RETRIES', 3),

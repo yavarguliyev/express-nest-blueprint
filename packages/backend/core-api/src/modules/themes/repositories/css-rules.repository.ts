@@ -1,7 +1,16 @@
-import { BaseRepository, CircuitBreaker, CrudTable, DatabaseService, Injectable, QueryAllWithPaginationOptions, DatabaseAdapter, CIRCUIT_BREAKER_KEYS } from '@config/libs';
+import {
+  CircuitBreaker,
+  CrudTable,
+  Injectable,
+  QueryAllWithPaginationOptions,
+  CIRCUIT_BREAKER_KEYS,
+  BaseRepository,
+  DatabaseService
+} from '@config/libs';
 
 import { FindCssQueryDto } from '@modules/themes/dtos/find-css-audit-log.dto';
 import { CssRuleEntity } from '@modules/themes/interfaces/theme.interface';
+import { FileIdParams, SelectorParams, ThemeParams } from '@modules/themes/types/theme.type';
 
 @CrudTable({ category: 'Database Management', name: 'css_rules', displayName: 'CSS Rules', actions: { create: false, update: false, delete: false } })
 @Injectable()
@@ -57,15 +66,18 @@ export class CssRulesRepository extends BaseRepository<CssRuleEntity> {
     return { cssRules: result.data, total: result.total };
   }
 
-  async findByFileId (fileId: string, connection?: DatabaseAdapter): Promise<CssRuleEntity[]> {
+  async findByFileId (params: FileIdParams): Promise<CssRuleEntity[]> {
+    const { fileId, connection } = params;
     return this.findAll({ where: { fileId }, orderBy: 'ruleOrder', orderDirection: 'ASC' }, connection);
   }
 
-  async findBySelector (selector: string, connection?: DatabaseAdapter): Promise<CssRuleEntity[]> {
+  async findBySelector (params: SelectorParams): Promise<CssRuleEntity[]> {
+    const { selector, connection } = params;
     return this.findAll({ where: { selector } }, connection);
   }
 
-  async findByTheme (appliesToTheme: string, connection?: DatabaseAdapter): Promise<CssRuleEntity[]> {
+  async findByTheme (params: ThemeParams): Promise<CssRuleEntity[]> {
+    const { appliesToTheme, connection } = params;
     return this.findAll({ where: { appliesToTheme } }, connection);
   }
 }

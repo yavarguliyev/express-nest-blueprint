@@ -1,15 +1,22 @@
-import { Injectable, JwtPayload, NotFoundException } from '@config/libs';
+import { Injectable, NotFoundException, QueueManagerHelper, TableDataResult, WithSuccess, CacheInvalidator, RepositoryManager } from '@config/libs';
 
-import { TableMetadata } from '@modules/admin/interfaces/admin.interface';
-import { CreateOperations } from './crud-operations/create-operations';
-import { ReadOperations } from './crud-operations/read-operations';
-import { UpdateOperations } from './crud-operations/update-operations';
-import { DeleteOperations } from './crud-operations/delete-operations';
-import { RepositoryManager } from './crud-operations/repository-manager';
-import { RepositoryRegistrar } from './crud-operations/repository-registrar';
-import { QueueManagerHelper } from './crud-operations/queue-manager-helper';
-import { SchemaBuilder } from './crud-operations/schema-builder';
-import { CacheInvalidator } from './crud-operations/cache-invalidator';
+import {
+  CreateTableOperation,
+  DeleteTableOperation,
+  TableDataByNameOperationParams,
+  TableDataByNameParams,
+  TableDataParams,
+  TableMetadata,
+  TableRecordParams,
+  UpdateTableOperation
+} from '@modules/admin/interfaces/admin.interface';
+import { CreateOperations } from '@modules/admin/services/crud-operations/operations/create-operations';
+import { ReadOperations } from '@modules/admin/services/crud-operations/operations/read-operations';
+import { UpdateOperations } from '@modules/admin/services/crud-operations/operations/update-operations';
+import { DeleteOperations } from '@modules/admin/services/crud-operations/operations/delete-operations';
+import { RepositoryRegistrar } from '@modules/admin/services/crud-operations/repository-registrar';
+import { SchemaBuilder } from '@modules/admin/services/crud-operations/schema-builder';
+import { BaseOperationParams } from '@modules/admin/interfaces/admin-crud.interface';
 
 @Injectable()
 export class AdminCrudService {
@@ -33,93 +40,105 @@ export class AdminCrudService {
     );
   }
 
-  async getTableData (
-    category: string,
-    name: string,
-    pageNum?: string,
-    limitNum?: string,
-    search?: string,
-    t?: string
-  ): Promise<{ data: unknown[]; total: number }> {
+  async getTableData (params: TableDataParams): Promise<TableDataResult> {
+    const { category, name, pageNum, limitNum, search, t } = params;
     const key = `${category}:${name}`;
     const entry = this.repositoryManager.getRepository(key);
-    return this.readOps.getTableData(entry, category, name, pageNum, limitNum, search, t);
+    const queryParams: TableDataParams = {
+      category,
+      name,
+      pageNum,
+      limitNum,
+      search,
+      ...(entry ? { entry } : {}),
+      ...(t ? { t } : {})
+    };
+
+    return this.readOps.getTableData(queryParams);
   }
 
-  async getTableDataByName (name: string, pageNum?: string, limitNum?: string, search?: string): Promise<{ data: unknown[]; total: number }> {
+  async getTableDataByName (params: TableDataByNameParams): Promise<TableDataResult> {
+    const { name, pageNum, limitNum, search } = params;
     const entry = this.readOps.findRepositoryByName(this.repositoryManager.getAllRepositories(), name);
-    return this.readOps.getTableDataByName(entry, name, pageNum, limitNum, search);
+    const queryParams: TableDataByNameOperationParams = { name, pageNum, limitNum, search, ...(entry ? { entry } : {}) };
+    return this.readOps.getTableDataByName(queryParams);
   }
 
-  async getTableRecord (category: string, name: string, id: string | number): Promise<unknown> {
+  async getTableRecord (params: TableRecordParams): Promise<unknown> {
+    const { category, name, id } = params;
     const key = `${category}:${name}`;
     const entry = this.repositoryManager.getRepository(key);
-    return this.readOps.getTableRecord(entry, category, name, id);
+    return this.readOps.getTableRecord({ category, name, id, ...(entry ? { entry } : {}) });
   }
 
-  async createTableRecord (category: string, name: string, data: unknown, currentUser?: JwtPayload, bypassQueue = false): Promise<unknown> {
+  async createTableRecord (params: CreateTableOperation): Promise<unknown> {
+    const { category, name, data, currentUser, bypassQueue = false } = params;
+
     const entry = this.repositoryManager.getRepository(`${category}:${name}`);
     if (!entry) throw new NotFoundException(`Table ${category}:${name} not found or unsupported`);
 
-    return this.createOps.execute(
-      entry.repository,
-      entry.metadata,
+    const { repository, metadata } = entry;
+
+    const operationParams: BaseOperationParams = {
+      repository,
+      metadata,
       category,
       name,
       data,
-      currentUser,
       bypassQueue,
-      (queueName, job) => this.queueHelper.waitForJobCompletion(queueName, job),
-      (metadata, id) => this.cacheInvalidator.invalidateCache(metadata, id)
-    );
+      waitForJobCompletion: this.queueHelper.waitForJobCompletion.bind(this.queueHelper),
+      invalidateCache: this.cacheInvalidator.invalidateCache.bind(this.cacheInvalidator),
+      ...(currentUser ? { currentUser } : {})
+    };
+
+    return this.createOps.execute(operationParams);
   }
 
-  async updateTableRecord (
-    category: string,
-    name: string,
-    id: string | number,
-    data: Record<string, unknown>,
-    currentUser?: JwtPayload,
-    bypassQueue = false
-  ): Promise<unknown> {
+  async updateTableRecord (params: UpdateTableOperation): Promise<unknown> {
+    const { category, name, id, data, currentUser, bypassQueue = false } = params;
+
     const entry = this.repositoryManager.getRepository(`${category}:${name}`);
     if (!entry) throw new NotFoundException(`Table ${category}:${name} not found or unsupported`);
 
-    return this.updateOps.execute(
-      entry.repository,
-      entry.metadata,
+    const { repository, metadata } = entry;
+
+    const operationParams: BaseOperationParams = {
+      repository,
+      metadata,
       category,
       name,
       id,
       data,
-      currentUser,
       bypassQueue,
-      (queueName, job) => this.queueHelper.waitForJobCompletion(queueName, job),
-      (metadata, recordId) => this.cacheInvalidator.invalidateCache(metadata, recordId)
-    );
+      waitForJobCompletion: this.queueHelper.waitForJobCompletion.bind(this.queueHelper),
+      invalidateCache: this.cacheInvalidator.invalidateCache.bind(this.cacheInvalidator),
+      ...(currentUser ? { currentUser } : {})
+    };
+
+    return this.updateOps.execute(operationParams);
   }
 
-  async deleteTableRecord (
-    category: string,
-    name: string,
-    id: string | number,
-    currentUser?: JwtPayload,
-    bypassQueue = false
-  ): Promise<{ success: boolean }> {
+  async deleteTableRecord (params: DeleteTableOperation): Promise<WithSuccess> {
+    const { category, name, id, currentUser, bypassQueue = false } = params;
+
     const entry = this.repositoryManager.getRepository(`${category}:${name}`);
     if (!entry) throw new NotFoundException(`Table ${category}:${name} not found or unsupported`);
 
-    return this.deleteOps.execute(
-      entry.repository,
-      entry.metadata,
+    const { repository, metadata } = entry;
+
+    const operationParams: BaseOperationParams = {
+      repository,
+      metadata,
       category,
       name,
       id,
-      currentUser,
       bypassQueue,
-      (queueName, job) => this.queueHelper.waitForJobCompletion(queueName, job),
-      (metadata, recordId) => this.cacheInvalidator.invalidateCache(metadata, recordId)
-    );
+      waitForJobCompletion: this.queueHelper.waitForJobCompletion.bind(this.queueHelper),
+      invalidateCache: this.cacheInvalidator.invalidateCache.bind(this.cacheInvalidator),
+      ...(currentUser ? { currentUser } : {})
+    };
+
+    return this.deleteOps.execute(operationParams);
   }
 
   async close (): Promise<void> {

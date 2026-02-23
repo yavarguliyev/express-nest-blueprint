@@ -6,7 +6,7 @@ import { DashboardMetricsContext } from '@modules/admin/interfaces/admin.interfa
 export class MetricResolver {
   constructor (private readonly metricsService: MetricsService) {}
 
-  public resolveMetricValue (reg: HealthRegistryItem, ctx: DashboardMetricsContext): number {
+  resolveMetricValue (reg: HealthRegistryItem, ctx: DashboardMetricsContext): number {
     if (reg.key === 'database') return this.resolveDatabaseMetric(ctx);
     if (reg.key === 'redis') return this.resolveRedisMetric(ctx);
     if (reg.key === 'storage') return this.resolveStorageMetric(ctx);

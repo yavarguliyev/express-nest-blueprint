@@ -95,14 +95,9 @@ export const convertValueToSearchableString = (value: unknown): string => {
 
   if (typeof value === 'object' && value !== null) {
     if (value.toString !== Object.prototype.toString) return (value as { toString(): string }).toString();
-
     const obj = value as Record<string, unknown>;
     const searchableProps = ['name', 'title', 'label', 'value', 'text', 'description'];
-
-    for (const prop of searchableProps) {
-      if (prop in obj && typeof obj[prop] === 'string') return obj[prop];
-    }
-
+    for (const prop of searchableProps) if (prop in obj && typeof obj[prop] === 'string') return obj[prop];
     return '';
   }
 
@@ -119,6 +114,10 @@ export const parseId = (id: string | number): string | number => {
   if (!isNaN(parsed)) return parsed;
 
   return id;
+};
+
+export const hasProfileImageUrl = (item: unknown): item is { profileImageUrl?: string } => {
+  return typeof item === 'object' && item !== null && 'profileImageUrl' in item;
 };
 
 export const bytesToMB = (bytes: number): number => Math.round((bytes / 1024 / 1024) * 100) / 100;

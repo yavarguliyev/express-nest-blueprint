@@ -1,4 +1,4 @@
-import { KAFKA_TOPICS, KafkaMessagePayload, OnMessage, Subscriber, RedisService, CACHE_KEYS, Logger } from '@config/libs';
+import { OnMessage, Subscriber, KAFKA_TOPICS, KafkaMessagePayload, CACHE_KEYS, RedisService, Logger } from '@config/libs';
 
 import { UserEventPayload } from '@modules/users/interfaces/users-event-payload.interface';
 

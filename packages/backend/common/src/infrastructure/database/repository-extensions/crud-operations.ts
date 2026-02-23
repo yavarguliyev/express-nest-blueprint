@@ -5,15 +5,14 @@ import { QueryBuilder } from '../query-builder';
 import { DatabaseService } from '../database.service';
 
 export class CrudOperations<T> {
-  async findAll (
+  async findAll(
     queryBuilder: QueryBuilder<T>,
     databaseService: DatabaseService,
     getSelectColumns: () => string[],
     options: QueryWithPaginationOptions = {},
     connection?: DatabaseAdapter
   ): Promise<T[]> {
-    const columns = getSelectColumns();
-    const { query, params } = queryBuilder.buildSelectQuery(columns, options);
+    const { query, params } = queryBuilder.buildSelectQuery(getSelectColumns(), options);
 
     const db = connection || databaseService.getReadConnection();
     const result = await db.query<T>(query, params);
@@ -21,15 +20,14 @@ export class CrudOperations<T> {
     return result.rows;
   }
 
-  async findById (
+  async findById(
     queryBuilder: QueryBuilder<T>,
     databaseService: DatabaseService,
     getSelectColumns: () => string[],
     id: string | number,
     connection?: DatabaseAdapter
   ): Promise<T | null> {
-    const columns = getSelectColumns();
-    const { query, params } = queryBuilder.buildSelectQuery(columns, { where: { id } });
+    const { query, params } = queryBuilder.buildSelectQuery(getSelectColumns(), { where: { id } });
 
     const db = connection || databaseService.getReadConnection();
     const result = await db.query<T>(query, params);
@@ -37,15 +35,14 @@ export class CrudOperations<T> {
     return (result.rows[0] as T) || null;
   }
 
-  async findOne (
+  async findOne(
     queryBuilder: QueryBuilder<T>,
     databaseService: DatabaseService,
     getSelectColumns: () => string[],
     where: Record<string, unknown>,
     connection?: DatabaseAdapter
   ): Promise<T | null> {
-    const columns = getSelectColumns();
-    const { query, params } = queryBuilder.buildSelectQuery(columns, { where });
+    const { query, params } = queryBuilder.buildSelectQuery(getSelectColumns(), { where });
 
     const db = connection || databaseService.getReadConnection();
     const result = await db.query<T>(query, params);
@@ -53,7 +50,7 @@ export class CrudOperations<T> {
     return (result.rows[0] as T) || null;
   }
 
-  async create<K extends keyof T> (
+  async create<K extends keyof T>(
     queryBuilder: QueryBuilder<T>,
     databaseService: DatabaseService,
     getSelectColumns: () => string[],
@@ -61,8 +58,7 @@ export class CrudOperations<T> {
     returningColumns?: K[],
     connection?: DatabaseAdapter
   ): Promise<Pick<T, K> | null> {
-    const columnsToReturn = returningColumns ?? (getSelectColumns() as K[]);
-    const { query, params } = queryBuilder.buildInsertQuery(data as Record<string, unknown>, columnsToReturn);
+    const { query, params } = queryBuilder.buildInsertQuery(data as Record<string, unknown>, returningColumns ?? (getSelectColumns() as K[]));
 
     const db = connection || databaseService.getWriteConnection();
     const result = await db.query<Pick<T, K>>(query, params);
@@ -70,7 +66,7 @@ export class CrudOperations<T> {
     return (result.rows[0] as T) ?? null;
   }
 
-  async update<K extends keyof T> (
+  async update<K extends keyof T>(
     queryBuilder: QueryBuilder<T>,
     databaseService: DatabaseService,
     getSelectColumns: () => string[],
@@ -91,7 +87,7 @@ export class CrudOperations<T> {
     return (result.rows[0] as T) || null;
   }
 
-  async delete (
+  async delete(
     queryBuilder: QueryBuilder<T>,
     databaseService: DatabaseService,
     id: string | number,
@@ -108,7 +104,7 @@ export class CrudOperations<T> {
     return result.rowCount > 0;
   }
 
-  async count (
+  async count(
     queryBuilder: QueryBuilder<T>,
     databaseService: DatabaseService,
     options: QueryWithPaginationOptions = {},

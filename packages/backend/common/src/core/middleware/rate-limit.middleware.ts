@@ -2,11 +2,11 @@ import { Request, Response, NextFunction } from 'express';
 
 import { Injectable } from '../decorators/injectable.decorator';
 import { EXCLUDED_PATHS } from '../../domain/constants/nest/middleware.const';
-import { getErrorMessage } from '../../domain/helpers/utility-functions.helper';
 import { NestMiddleware } from '../../domain/interfaces/nest/middleware.interface';
+import { getErrorMessage } from '../../domain/helpers/utility-functions.helper';
 import { ConfigService } from '../../infrastructure/config/config.service';
-import { ThrottlerService } from '../../infrastructure/throttler/throttler.service';
 import { Logger } from '../../infrastructure/logger/logger.service';
+import { ThrottlerService } from '../../infrastructure/throttler/throttler.service';
 
 @Injectable()
 export class RateLimitMiddleware implements NestMiddleware {
@@ -38,7 +38,7 @@ export class RateLimitMiddleware implements NestMiddleware {
     const currentLimit = isAdminPath ? this.adminLimit : this.defaultLimit;
 
     this.throttlerService
-      .checkRateLimit(String(key), currentLimit, this.ttl)
+      .checkRateLimit({ key: String(key), limit: currentLimit, ttl: this.ttl })
       .then(result => {
         res.setHeader('X-RateLimit-Limit', currentLimit);
         res.setHeader('X-RateLimit-Remaining', result.remaining);

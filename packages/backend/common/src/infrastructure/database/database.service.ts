@@ -11,9 +11,24 @@ export class DatabaseService {
   private isClosing = false;
   private isClosed = false;
 
-  constructor (private readonly metricsService: MetricsService) {}
+  constructor(private readonly metricsService: MetricsService) {}
 
-  async addConnection (name: string, config: DatabaseConfig, isReadOnly = false): Promise<void> {
+  getWriteConnection = (name = 'default'): DatabaseAdapter => this.getConnection(name);
+  getConnectionNames = (): string[] => Array.from(this.adapters.keys());
+
+  getConnection(name?: string): DatabaseAdapter {
+    if (!name && this.defaultAdapter) return this.defaultAdapter;
+    if (name && this.adapters.has(name)) return this.adapters.get(name)!;
+    throw new InternalServerErrorException(`Database connection '${name || 'default'}' not found`);
+  }
+
+  getReadConnection(name = 'default'): DatabaseAdapter {
+    const readKey = `${name}_read`;
+    if (this.adapters.has(readKey)) return this.adapters.get(readKey)!;
+    return this.getConnection(name);
+  }
+
+  async addConnection(name: string, config: DatabaseConfig, isReadOnly = false): Promise<void> {
     const AdapterClass = DATABASE_ADAPTER_MAP[config.type];
     if (!AdapterClass) return;
 
@@ -26,24 +41,7 @@ export class DatabaseService {
     if (!isReadOnly && !this.defaultAdapter) this.defaultAdapter = adapter;
   }
 
-  getConnection (name?: string): DatabaseAdapter {
-    if (!name && this.defaultAdapter) return this.defaultAdapter;
-    if (name && this.adapters.has(name)) return this.adapters.get(name)!;
-
-    throw new InternalServerErrorException(`Database connection '${name || 'default'}' not found`);
-  }
-
-  getReadConnection (name = 'default'): DatabaseAdapter {
-    const readKey = `${name}_read`;
-    if (this.adapters.has(readKey)) return this.adapters.get(readKey)!;
-    return this.getConnection(name);
-  }
-
-  getWriteConnection (name = 'default'): DatabaseAdapter {
-    return this.getConnection(name);
-  }
-
-  async closeAllConnections (): Promise<void> {
+  async closeAllConnections(): Promise<void> {
     if (this.isClosing || this.isClosed) return;
 
     this.isClosing = true;
@@ -58,9 +56,5 @@ export class DatabaseService {
     } finally {
       this.isClosing = false;
     }
-  }
-
-  getConnectionNames (): string[] {
-    return Array.from(this.adapters.keys());
   }
 }

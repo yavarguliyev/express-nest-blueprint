@@ -20,10 +20,8 @@ export abstract class BaseBootstrap {
   ) {}
 
   protected abstract onBindDependencies(app: NestApplication): Promise<void> | void;
-
-  getOptions (): BootstrapOptions {
-    return this.options;
-  }
+  protected getAppName = (): AppName => this.options.appName ?? AppName.MAIN;
+  getOptions = (): BootstrapOptions => this.options;
 
   async start (): Promise<void> {
     try {
@@ -46,13 +44,8 @@ export abstract class BaseBootstrap {
     }
   }
 
-  protected getAppName (): AppName {
-    return this.options.appName ?? AppName.MAIN;
-  }
-
   protected async bootstrapApi (app: NestApplication): Promise<void> {
-    const configService = app.get(ConfigService);
-    const { port, host } = this.resolveServerConfig(configService);
+    const { port, host } = this.resolveServerConfig(app.get(ConfigService));
 
     SwaggerSetup.setup(app);
     GraphQLSetup.setup(app);
@@ -65,8 +58,7 @@ export abstract class BaseBootstrap {
   }
 
   protected async bootstrapWorker (app: NestApplication): Promise<void> {
-    const configService = app.get(ConfigService);
-    const { port, host } = this.resolveServerConfig(configService);
+    const { port, host } = this.resolveServerConfig(app.get(ConfigService));
 
     const server = await app.listen(port, host);
 
@@ -75,8 +67,7 @@ export abstract class BaseBootstrap {
   }
 
   protected resolveAppRole (config: ConfigService): AppRoles {
-    const roleEnv = config.get<string>('APP_ROLE', AppRoles.API) || '';
-    return roleEnv.trim().toUpperCase() as AppRoles;
+    return (config.get<string>('APP_ROLE', AppRoles.API) || '').trim().toUpperCase() as AppRoles;
   }
 
   protected resolveServerConfig (config: ConfigService): { port: number; host: string } {

@@ -1,4 +1,19 @@
-import { ApiController, BaseController, Body, Delete, Get, Param, Patch, Post, Query, CurrentUser, JwtPayload, Roles, UserRoles } from '@config/libs';
+import {
+  BaseController,
+  Body,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  CurrentUser,
+  Roles,
+  ApiController,
+  JwtPayload,
+  UserRoles,
+  TableDataResult
+} from '@config/libs';
 
 import { TableMetadata } from '@modules/admin/interfaces/admin.interface';
 import { AdminCrudService } from '@modules/admin/services/admin-crud.service';
@@ -22,8 +37,8 @@ export class AdminCrudController extends BaseController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('search') search?: string
-  ): Promise<{ data: unknown[]; total: number }> {
-    return this.adminCrudService.getTableData(category, name, page, limit, search);
+  ): Promise<TableDataResult> {
+    return this.adminCrudService.getTableData({ category, name, pageNum: page, limitNum: limit, search });
   }
 
   @Get('/:name')
@@ -32,13 +47,13 @@ export class AdminCrudController extends BaseController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('search') search?: string
-  ): Promise<{ data: unknown[]; total: number }> {
-    return this.adminCrudService.getTableDataByName(name, page, limit, search);
+  ): Promise<TableDataResult> {
+    return this.adminCrudService.getTableDataByName({ name, pageNum: page, limitNum: limit, search });
   }
 
   @Get('/:category/:name/:id')
   async getTableRecord (@Param('category') category: string, @Param('name') name: string, @Param('id') id: string): Promise<unknown> {
-    return this.adminCrudService.getTableRecord(category, name, id);
+    return this.adminCrudService.getTableRecord({ category, name, id });
   }
 
   @Post('/:category/:name')
@@ -48,7 +63,7 @@ export class AdminCrudController extends BaseController {
     @Body() data: unknown,
     @CurrentUser() user: JwtPayload
   ): Promise<unknown> {
-    return this.adminCrudService.createTableRecord(category, name, data, user);
+    return this.adminCrudService.createTableRecord({ category, name, data, currentUser: user });
   }
 
   @Patch('/:category/:name/:id')
@@ -59,7 +74,7 @@ export class AdminCrudController extends BaseController {
     @Body() data: Record<string, unknown>,
     @CurrentUser() user: JwtPayload
   ): Promise<unknown> {
-    return this.adminCrudService.updateTableRecord(category, name, id, data, user);
+    return this.adminCrudService.updateTableRecord({ category, name, id, data, currentUser: user });
   }
 
   @Delete('/:category/:name/:id')
@@ -69,6 +84,6 @@ export class AdminCrudController extends BaseController {
     @Param('id') id: string,
     @CurrentUser() user: JwtPayload
   ): Promise<{ success: boolean }> {
-    return this.adminCrudService.deleteTableRecord(category, name, id, user);
+    return this.adminCrudService.deleteTableRecord({ category, name, id, currentUser: user });
   }
 }

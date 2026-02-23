@@ -1,7 +1,16 @@
-import { BaseRepository, CircuitBreaker, CrudTable, DatabaseService, Injectable, QueryAllWithPaginationOptions, DatabaseAdapter, CIRCUIT_BREAKER_KEYS } from '@config/libs';
+import {
+  CircuitBreaker,
+  CrudTable,
+  Injectable,
+  QueryAllWithPaginationOptions,
+  CIRCUIT_BREAKER_KEYS,
+  BaseRepository,
+  DatabaseService
+} from '@config/libs';
 
 import { FindCssQueryDto } from '@modules/themes/dtos/find-css-audit-log.dto';
 import { CssFileEntity } from '@modules/themes/interfaces/theme.interface';
+import { CategoryParams, FilePathParams } from '@modules/themes/types/theme.type';
 
 @CrudTable({ category: 'Database Management', name: 'css_files', displayName: 'CSS Files', actions: { create: false, update: false, delete: false } })
 @Injectable()
@@ -49,11 +58,13 @@ export class CssFilesRepository extends BaseRepository<CssFileEntity> {
     return { cssFiles: result.data, total: result.total };
   }
 
-  async findByFilePath (filePath: string, connection?: DatabaseAdapter): Promise<CssFileEntity | null> {
+  async findByFilePath (params: FilePathParams): Promise<CssFileEntity | null> {
+    const { filePath, connection } = params;
     return this.findOne({ filePath }, connection);
   }
 
-  async findByCategory (category: string, connection?: DatabaseAdapter): Promise<CssFileEntity[]> {
+  async findByCategory (params: CategoryParams): Promise<CssFileEntity[]> {
+    const { category, connection } = params;
     return this.findAll({ where: { category } }, connection);
   }
 }

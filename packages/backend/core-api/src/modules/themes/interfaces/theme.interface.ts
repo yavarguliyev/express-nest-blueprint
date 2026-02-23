@@ -1,14 +1,6 @@
-import { CssActionType, CssEntityType, CssGradientType, CssStatusType } from '@modules/themes/types/theme.type';
+import { WithIsActive } from '@config/libs';
 
-export interface BaseEntity {
-  id: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface Describable {
-  description: string | null;
-}
+import { BaseEntity, CssActionType, CssEntityType, CssGradientType, CssStatusType, Describable } from '@modules/themes/types/theme.type';
 
 export interface CssAuditLogEntity extends BaseEntity {
   entityType: CssEntityType;
@@ -64,11 +56,10 @@ export interface CssTokenEntity extends BaseEntity, Describable {
   isCustomizable: boolean;
 }
 
-export interface ThemeVersionEntity extends BaseEntity, Describable {
+export interface ThemeVersionEntity extends BaseEntity, Describable, WithIsActive {
   versionName: string;
   versionNumber: number;
   status: CssStatusType;
-  isActive: boolean;
   tokenOverrides: Record<string, unknown> | null;
   createdBy: string | null;
   publishedAt: Date | null;
@@ -79,4 +70,11 @@ export interface TokenUsageEntity extends BaseEntity {
   ruleId: string;
   propertyName: string;
   usageContext: string | null;
+}
+
+export interface AuditLogQuery {
+  entityId?: string;
+  entityType?: CssEntityType;
+  changedBy?: string;
+  limit?: number;
 }

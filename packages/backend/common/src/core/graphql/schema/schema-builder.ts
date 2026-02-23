@@ -1,13 +1,13 @@
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLFieldConfigMap, GraphQLInputType, GraphQLOutputType } from 'graphql';
 
+import { FieldConfigBuilder } from './field-config-builder';
+import { TypeResolver } from './type-resolver';
 import { Container } from '../../container/container';
-import { QUERY_METADATA, MUTATION_METADATA, ARG_METADATA } from '../../decorators/field.decorators';
+import { ARG_METADATA, MUTATION_METADATA, QUERY_METADATA } from '../../decorators/field.decorators';
 import { RESOLVER_REGISTRY } from '../../decorators/resolver.decorator';
 import { RESOLVER_METADATA } from '../../../domain/constants/web/web.const';
 import { QueryMetadata, MutationMetadata, ArgMetadata } from '../../../domain/interfaces/web/graphql.interface';
 import { Constructor } from '../../../domain/types/common/util.type';
-import { TypeResolver } from './type-resolver';
-import { FieldConfigBuilder } from './field-config-builder';
 
 export class SchemaBuilder {
   private container: Container;

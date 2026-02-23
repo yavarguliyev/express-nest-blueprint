@@ -1,8 +1,8 @@
 import { LifecycleService } from './lifecycle.service';
-import { handleProcessSignals } from '../../domain/helpers/utility-functions.helper';
-import { DynamicModule } from '../../domain/interfaces/module/module.interface';
-import { ConfigService } from '../../infrastructure/config/config.service';
 import { AppRoles } from '../../domain/enums/auth/auth.enum';
+import { DynamicModule } from '../../domain/interfaces/module/module.interface';
+import { handleProcessSignals } from '../../domain/helpers/utility-functions.helper';
+import { ConfigService } from '../../infrastructure/config/config.service';
 
 export class LifecycleModule {
   static forRoot (): DynamicModule {
@@ -23,11 +23,10 @@ export class LifecycleModule {
   }
 
   private static initProcessSignals (service: LifecycleService, configService: ConfigService): void {
-    const role = configService.get<string>('APP_ROLE', AppRoles.API) as AppRoles;
     handleProcessSignals({
       shutdownCallback: service.executeGracefulShutdown.bind(service),
       callbackArgs: [],
-      role
+      role: configService.get<string>('APP_ROLE', AppRoles.API) as AppRoles
     });
   }
 }

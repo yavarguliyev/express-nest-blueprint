@@ -7,30 +7,28 @@ export class KafkaProducer {
   private producer: Producer;
   private isProducerConnected = false;
 
-  constructor (
+  constructor(
     producer: Producer,
     private readonly metricsService: MetricsService
   ) {
     this.producer = producer;
   }
 
-  isConnected (): boolean {
-    return this.isProducerConnected;
-  }
+  isConnected = (): boolean => this.isProducerConnected;
 
-  async connect (): Promise<void> {
+  async connect(): Promise<void> {
     if (!this.isProducerConnected) {
       await this.producer.connect();
       this.isProducerConnected = true;
     }
   }
 
-  async disconnect (): Promise<void> {
+  async disconnect(): Promise<void> {
     if (this.isProducerConnected) await this.producer.disconnect();
     this.isProducerConnected = false;
   }
 
-  async produce<T = unknown> (payload: KafkaMessagePayload<T>): Promise<void> {
+  async produce<T = unknown>(payload: KafkaMessagePayload<T>): Promise<void> {
     if (!this.isProducerConnected) await this.connect();
 
     try {

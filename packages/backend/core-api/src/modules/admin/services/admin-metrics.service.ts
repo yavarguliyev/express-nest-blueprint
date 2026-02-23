@@ -1,27 +1,30 @@
 import {
   Injectable,
+  HealthCheckStatus,
+  nowISO,
+  mapOverall,
+  HealthComponentName,
+  PromMetric,
+  HealthCheckResult,
+  BaseHealthComponent,
+  HealthComponentStatus,
+  HealthRegistryItem,
+  DashboardChartConfig,
   RedisService,
   DatabaseService,
   StorageService,
   HealthService,
   QueryBuilder,
-  HealthCheckStatus,
-  nowISO,
-  mapOverall,
   KafkaService,
-  MetricsService,
-  HealthComponentName,
-  PromMetric,
-  HealthCheckResult,
-  BaseHealthComponent,
-  HealthComponentStatus
+  MetricsService
 } from '@config/libs';
 
-import { DashboardMetricsResponse, DashboardMetricsContext } from '@modules/admin/interfaces/admin.interface';
+import { DashboardMetricsResponse, DashboardMetricsContext, DashboardMetric, DashboardAlert } from '@modules/admin/interfaces/admin.interface';
 import { UsersRepository } from '@modules/users/users.repository';
 import { DashboardMetricsBuilder } from '@modules/admin/services/metrics/dashboard-metrics';
 import { MetricResolver } from '@modules/admin/services/metrics/metric-resolver';
 import { MetricCalculators } from '@modules/admin/services/metrics/metric-calculators';
+import { DashboardMetricResolver } from '@modules/admin/interfaces/admin-dashboard-metrics.interface';
 
 @Injectable()
 export class AdminMetricsService {
@@ -38,7 +41,7 @@ export class AdminMetricsService {
     private readonly metricCalculators: MetricCalculators
   ) {}
 
-  public async getHealthStatus (): Promise<HealthCheckStatus> {
+  async getHealthStatus (): Promise<HealthCheckStatus> {
     const result = await this.healthService.checkHealth();
 
     return {
@@ -56,7 +59,7 @@ export class AdminMetricsService {
     };
   }
 
-  public async getDashboardMetrics (): Promise<DashboardMetricsResponse> {
+  async getDashboardMetrics (): Promise<DashboardMetricsResponse> {
     const timestamp = nowISO();
 
     const settledResults = await Promise.allSettled([
@@ -88,11 +91,19 @@ export class AdminMetricsService {
 
     const context: DashboardMetricsContext = { rawMetrics, healthResult, kafkaMetrics, dbQueryResults, getVal };
 
-    return this.dashboardBuilder.buildDashboardMetrics(
+    const resolver: DashboardMetricResolver = {
       context,
-      (reg, ctx) => this.metricResolver.resolveMetricValue(reg, ctx),
-      (config, metrics) => this.metricCalculators.resolveChartData(config, metrics),
-      metrics => this.metricCalculators.generateAlerts(metrics)
-    );
+      resolveMetricValue: (reg: HealthRegistryItem, ctx: DashboardMetricsContext): number => {
+        return this.metricResolver.resolveMetricValue(reg, ctx);
+      },
+      resolveChartData: (config: DashboardChartConfig, rawMetrics: PromMetric[]): { label: string; value: number }[] => {
+        return this.metricCalculators.resolveChartData(config, rawMetrics);
+      },
+      generateAlerts: (metrics: DashboardMetric[]): DashboardAlert[] => {
+        return this.metricCalculators.generateAlerts(metrics);
+      }
+    };
+
+    return this.dashboardBuilder.buildDashboardMetrics(resolver);
   }
 }

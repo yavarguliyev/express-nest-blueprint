@@ -13,16 +13,14 @@ export class BullMQExplorer {
   private readonly logger = new Logger(BullMQExplorer.name);
   private readonly workers: Worker[] = [];
 
-  constructor (
+  constructor(
     private readonly container: Container,
     private readonly redisService: RedisService
   ) {}
 
-  explore (): void {
+  explore(): void {
     for (const processorClass of BULLMQ_PROCESSOR_REGISTRY) {
-      if (!this.container.has(processorClass)) {
-        this.container.register({ provide: processorClass, useClass: processorClass });
-      }
+      if (!this.container.has(processorClass)) this.container.register({ provide: processorClass, useClass: processorClass });
 
       const instance = this.container.resolve<object>({ provide: processorClass });
       const queueName = Reflect.getMetadata(BULLMQ_PROCESSOR_METADATA, processorClass) as string;
@@ -54,7 +52,7 @@ export class BullMQExplorer {
     }
   }
 
-  async closeAll (): Promise<void> {
+  async closeAll(): Promise<void> {
     await Promise.all(this.workers.map(worker => worker.close()));
   }
 }

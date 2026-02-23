@@ -1,4 +1,4 @@
-import { ApiController, AuthenticatedRequest, Body, Delete, Get, Patch, Post, Req, Roles, UserRoles, JobResponseDto } from '@config/libs';
+import { Body, Delete, Get, Patch, Post, Req, Roles, ApiController, AuthenticatedRequest, UserRoles, JobResponseDto } from '@config/libs';
 
 import { UsersService } from '@modules/users/users.service';
 import { UserResponseDto } from '@modules/users/dtos/user-response.dto';

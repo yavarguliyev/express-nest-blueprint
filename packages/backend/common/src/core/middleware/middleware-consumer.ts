@@ -4,7 +4,7 @@ import { Container } from '../container/container';
 import { CONTROLLER_METADATA } from '../decorators/controller.decorator';
 import { RequestMethod } from '../../domain/enums/api/api.enum';
 import { createMethodMap, isMiddlewareConstructor, isNestMiddleware } from '../../domain/helpers/utility-functions.helper';
-import { ControllerOptions } from '../../domain/interfaces/api/api.interface';
+import { BaseControllerOptions } from '../../domain/interfaces/api/api.interface';
 import {
   NestMiddleware,
   MiddlewareConsumer,
@@ -18,12 +18,12 @@ import { MiddlewareFunction, MiddlewareNewConstructor } from '../../domain/types
 export class MiddlewareConsumerImpl implements MiddlewareConsumer {
   private middlewareConfigs: MiddlewareConfig[] = [];
 
-  constructor (
+  constructor(
     private app: Express,
     private container: Container
   ) {}
 
-  apply (...middleware: (MiddlewareFunction | NestMiddleware)[]): MiddlewareConfigProxy {
+  apply(...middleware: (MiddlewareFunction | NestMiddleware)[]): MiddlewareConfigProxy {
     const config: MiddlewareConfig = { middleware, routes: [], excludeRoutes: [] };
 
     const proxy: MiddlewareConfigProxy = {
@@ -37,7 +37,6 @@ export class MiddlewareConsumerImpl implements MiddlewareConsumer {
       },
       exclude: (...routes: (string | RouteInfo)[]): MiddlewareConfigProxy => {
         config.excludeRoutes = routes;
-
         return proxy;
       }
     };
@@ -45,12 +44,12 @@ export class MiddlewareConsumerImpl implements MiddlewareConsumer {
     return proxy;
   }
 
-  applyGlobalMiddleware (config: MiddlewareConfig): void {
+  applyGlobalMiddleware(config: MiddlewareConfig): void {
     this.middlewareConfigs.push(config);
     this.applyMiddleware(config);
   }
 
-  private applyMiddleware (config: MiddlewareConfig): void {
+  private applyMiddleware(config: MiddlewareConfig): void {
     const methodMap = createMethodMap(this.app);
 
     config.middleware.forEach(mw => {
@@ -70,7 +69,7 @@ export class MiddlewareConsumerImpl implements MiddlewareConsumer {
     });
   }
 
-  private wrapMiddleware (middleware: MiddlewareFunction | NestMiddleware | MiddlewareNewConstructor) {
+  private wrapMiddleware(middleware: MiddlewareFunction | NestMiddleware | MiddlewareNewConstructor) {
     return (req: Request, res: Response, next: NextFunction): void => {
       try {
         if (isMiddlewareConstructor(middleware)) {
@@ -83,7 +82,7 @@ export class MiddlewareConsumerImpl implements MiddlewareConsumer {
     };
   }
 
-  private wrapMiddlewareWithExclusions (
+  private wrapMiddlewareWithExclusions(
     middleware: MiddlewareFunction | NestMiddleware | MiddlewareNewConstructor,
     excludeRoutes: (string | RouteInfo)[]
   ): RequestHandler {
@@ -107,7 +106,7 @@ export class MiddlewareConsumerImpl implements MiddlewareConsumer {
     };
   }
 
-  private matchPath (requestPath: string, routePath: string): boolean {
+  private matchPath(requestPath: string, routePath: string): boolean {
     if (requestPath === routePath) return true;
     if (routePath === '*') return true;
     if (routePath.endsWith('*')) return requestPath.startsWith(routePath.slice(0, -1));
@@ -119,14 +118,14 @@ export class MiddlewareConsumerImpl implements MiddlewareConsumer {
     return routeSegments.every((segment, index) => segment.startsWith(':') || segment === pathSegments[index]);
   }
 
-  private getRoutePath (route: string | Constructor | RouteInfo): string {
+  private getRoutePath(route: string | Constructor | RouteInfo): string {
     if (typeof route === 'string') {
       if (route === '*') return '*';
       return route.startsWith('/') ? route : `/${route}`;
     }
 
     if (typeof route === 'function') {
-      const controllerMetadata = Reflect.getMetadata(CONTROLLER_METADATA as symbol, route) as ControllerOptions;
+      const controllerMetadata = Reflect.getMetadata(CONTROLLER_METADATA as symbol, route) as BaseControllerOptions;
       const path = controllerMetadata?.path || '';
 
       return path.startsWith('/') ? path : `/${path}`;
@@ -136,7 +135,7 @@ export class MiddlewareConsumerImpl implements MiddlewareConsumer {
     return path.startsWith('/') ? path : `/${path}`;
   }
 
-  private getRouteMethod (route: string | Constructor | RouteInfo): RequestMethod | undefined {
+  private getRouteMethod(route: string | Constructor | RouteInfo): RequestMethod | undefined {
     if (typeof route === 'object' && 'method' in route) return route.method;
     return undefined;
   }

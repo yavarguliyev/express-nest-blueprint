@@ -1,7 +1,16 @@
-import { BaseRepository, CircuitBreaker, CrudTable, DatabaseService, Injectable, QueryAllWithPaginationOptions, DatabaseAdapter, CIRCUIT_BREAKER_KEYS } from '@config/libs';
+import {
+  CircuitBreaker,
+  CrudTable,
+  Injectable,
+  QueryAllWithPaginationOptions,
+  CIRCUIT_BREAKER_KEYS,
+  BaseRepository,
+  DatabaseService
+} from '@config/libs';
 
 import { FindCssQueryDto } from '@modules/themes/dtos/find-css-audit-log.dto';
 import { CssTokenEntity } from '@modules/themes/interfaces/theme.interface';
+import { TokenCategoryParams, TokenNameParams, TokenTypeParams } from '@modules/themes/types/theme.type';
 
 @CrudTable({
   category: 'Database Management',
@@ -70,15 +79,18 @@ export class CssTokensRepository extends BaseRepository<CssTokenEntity> {
     return { cssTokens: result.data, total: result.total };
   }
 
-  async findByTokenName (tokenName: string, connection?: DatabaseAdapter): Promise<CssTokenEntity | null> {
+  async findByTokenName (params: TokenNameParams): Promise<CssTokenEntity | null> {
+    const { tokenName, connection } = params;
     return this.findOne({ tokenName }, connection);
   }
 
-  async findByCategory (tokenCategory: string, connection?: DatabaseAdapter): Promise<CssTokenEntity[]> {
+  async findByCategory (params: TokenCategoryParams): Promise<CssTokenEntity[]> {
+    const { tokenCategory, connection } = params;
     return this.findAll({ where: { tokenCategory } }, connection);
   }
 
-  async findByType (tokenType: string, connection?: DatabaseAdapter): Promise<CssTokenEntity[]> {
+  async findByType (params: TokenTypeParams): Promise<CssTokenEntity[]> {
+    const { tokenType, connection } = params;
     return this.findAll({ where: { tokenType } }, connection);
   }
 }

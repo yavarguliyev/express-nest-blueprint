@@ -1,14 +1,26 @@
-import { BaseHealthComponent, Timestamped } from '../common/base.interface';
 import {
-  HealthComponentName,
   HealthStatus,
-  OverallStatus,
-  ReadyComponentName,
-  ReadyStatus,
   WorkerStatus,
-  ChartType,
-  DashboardAlertType
+  HealthComponentName,
+  ReadyStatus,
+  ReadyComponentName,
+  OverallStatus,
+  DashboardAlertType,
+  ChartType
 } from '../../types/common/status.type';
+import { BaseHealthComponent, Timestamped } from '../common/base.interface';
+
+export interface WithStatus<S = HealthStatus> {
+  status: S;
+}
+
+export interface WithMessage {
+  message?: string;
+}
+
+export interface WithDetails<D = BaseHealthComponent> {
+  details?: D;
+}
 
 export interface RedisStatus extends BaseHealthComponent {
   info?: {
@@ -41,11 +53,9 @@ export interface ReadyCheckResult extends Timestamped {
   components: Pick<HealthCheckResult['components'], ReadyComponentName>;
 }
 
-export interface HealthComponentStatus {
+export interface HealthComponentStatus
+  extends WithStatus<HealthStatus>, WithMessage, WithDetails<BaseHealthComponent | RedisStatus | QueueStatus | ComputeStatus> {
   name: HealthComponentName;
-  status: HealthStatus;
-  message?: string;
-  details?: BaseHealthComponent | RedisStatus | QueueStatus | ComputeStatus;
 }
 
 export interface HealthCheckStatus {

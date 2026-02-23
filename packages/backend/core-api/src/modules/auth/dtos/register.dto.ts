@@ -1,5 +1,4 @@
 import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
-
 import { UserRoles } from '@config/libs';
 
 export class RegisterDto {

@@ -1,7 +1,7 @@
 import { GraphQLOutputType, GraphQLInputType } from 'graphql';
 
-import { TypeFunc, TypeFuncValue } from '../../../domain/types/common/util.type';
 import { TypeEvaluator } from './type-evaluator';
+import { TypeFunc, TypeFuncValue } from '../../../domain/types/common/util.type';
 
 export class TypeResolver {
   private typeEvaluator: TypeEvaluator;

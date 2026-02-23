@@ -1,4 +1,4 @@
-import { InputType, Field, DatabaseOperation, GraphQLJSONObject } from '@config/libs';
+import { InputType, Field, GraphQLJSONObject, DatabaseOperation } from '@config/libs';
 
 @InputType()
 export class AdminBulkExecuteArgs {

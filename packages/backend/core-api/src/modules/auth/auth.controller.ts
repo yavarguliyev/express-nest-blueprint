@@ -1,4 +1,4 @@
-import { ApiController, BaseController, Injectable, Post, Body, UserRoles } from '@config/libs';
+import { BaseController, Injectable, Post, Body, ApiController, UserRoles } from '@config/libs';
 
 import { AuthResponseDto } from '@modules/auth/dtos/auth-response.dto';
 import { LoginDto } from '@modules/auth/dtos/login.dto';

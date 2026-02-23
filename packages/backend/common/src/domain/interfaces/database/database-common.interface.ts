@@ -1,4 +1,4 @@
-import { IdType } from '../../types/common/util.type';
+import { IdType, SortOrder, WhereConditions } from '../../types/common/util.type';
 import { CrudRepository } from '../../types/database/database.type';
 
 export interface CrudTableOptions {
@@ -23,31 +23,63 @@ export interface PaginationResult<T = unknown> {
   total: number;
 }
 
-export interface SupportsFindWithPagination {
-  findWithPagination(options: { page: number; limit: number }): Promise<PaginationResult>;
+export interface SupportsFindWithPagination<T = unknown> {
+  findWithPagination(options: { page: number; limit: number }): Promise<PaginationResult<T>>;
 }
 
-export interface SupportsFindAll {
-  findAll(options: { limit: number; offset: number }): Promise<unknown[]>;
+export interface SupportsFindAll<T = unknown> {
+  findAll(options: { limit: number; offset: number }): Promise<T[]>;
 }
 
-export interface SupportsFindById {
-  findById(id: IdType): Promise<unknown>;
+export interface SupportsFindById<T = unknown, ID = IdType> {
+  findById(id: ID): Promise<T>;
 }
 
-export interface SupportsCreate {
-  create(data: unknown): Promise<unknown>;
+export interface SupportsCreate<T = unknown, Result = T> {
+  create(data: T): Promise<Result>;
 }
 
-export interface SupportsUpdate {
-  update(id: IdType, data: unknown): Promise<unknown>;
+export interface SupportsUpdate<T = unknown, ID = IdType, Result = T> {
+  update(id: ID, data: T): Promise<Result>;
 }
 
-export interface SupportsDelete {
-  delete(id: IdType): Promise<boolean>;
+export interface SupportsDelete<ID = IdType, Result = boolean> {
+  delete(id: ID): Promise<Result>;
 }
 
 export interface RepositoryEntry {
   repository: CrudRepository;
   metadata: CrudTableOptions;
+}
+
+export interface ColumnMapping {
+  [key: string]: string;
+}
+
+export interface WhereCondition {
+  field: string;
+  operator: WhereConditions;
+  value: unknown;
+}
+
+export interface WithWhere<W = Record<string, unknown> | WhereCondition[]> {
+  where?: W;
+}
+
+export type SearchOption = string | { fields: string[]; term: string };
+
+export interface WithSearch<S = SearchOption> {
+  search?: S;
+  searchFields?: string[];
+}
+
+export interface WithOrder {
+  orderBy?: string;
+  orderDirection?: SortOrder;
+}
+
+export interface WithPagination {
+  page?: number;
+  limit?: number;
+  offset?: number;
 }

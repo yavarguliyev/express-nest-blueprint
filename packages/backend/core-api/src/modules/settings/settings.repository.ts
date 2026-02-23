@@ -1,6 +1,7 @@
-import { Injectable, BaseRepository, DatabaseService, NotFoundException } from '@config/libs';
+import { Injectable, NotFoundException, BaseRepository, DatabaseService, SettingValue } from '@config/libs';
 
 import { SystemSetting } from '@modules/settings/interfaces/settings.interface';
+import { UpdateSettingActiveStatusParams } from '@modules/settings/interfaces/settings-repository.interface';
 
 @Injectable()
 export class SettingsRepository extends BaseRepository<SystemSetting> {
@@ -19,10 +20,8 @@ export class SettingsRepository extends BaseRepository<SystemSetting> {
   async findByKey (key: string): Promise<SystemSetting | null> {
     const columns = this.getSelectColumns();
     const { query, params } = this.queryBuilder.buildSelectQuery(columns, { where: { key } });
-
     const db = this.databaseService.getReadConnection();
     const result = await db.query<SystemSetting>(query, params);
-
     return result.rows[0] || null;
   }
 
@@ -31,31 +30,30 @@ export class SettingsRepository extends BaseRepository<SystemSetting> {
     const { query, params } = this.queryBuilder.buildSelectQuery(columns, { orderBy: 'category, key' });
     const db = this.databaseService.getReadConnection();
     const result = await db.query<SystemSetting>(query, params);
-
     return result.rows;
   }
 
-  async updateByKey (key: string, value: unknown): Promise<SystemSetting> {
+  async updateByKey (params: SettingValue): Promise<SystemSetting> {
+    const { key, value } = params;
     const setting = await this.findByKey(key);
     if (!setting) throw new NotFoundException(`Setting with key "${key}" not found`);
 
-    const { query, params } = this.queryBuilder.buildUpdateQuery(setting.id, { value }, this.getSelectColumns());
+    const { query, params: updateParams } = this.queryBuilder.buildUpdateQuery(setting.id, { value }, this.getSelectColumns());
     const db = this.databaseService.getWriteConnection();
-    const result = await db.query<SystemSetting>(query, params);
-
+    const result = await db.query<SystemSetting>(query, updateParams);
     if (!result.rows[0]) throw new NotFoundException(`Failed to update setting with key "${key}"`);
 
     return result.rows[0];
   }
 
-  async updateActiveStatus (key: string, isActive: boolean): Promise<SystemSetting> {
+  async updateActiveStatus (params: UpdateSettingActiveStatusParams): Promise<SystemSetting> {
+    const { key, isActive } = params;
     const setting = await this.findByKey(key);
     if (!setting) throw new NotFoundException(`Setting with key "${key}" not found`);
 
-    const { query, params } = this.queryBuilder.buildUpdateQuery(setting.id, { isActive }, this.getSelectColumns());
+    const { query, params: updateParams } = this.queryBuilder.buildUpdateQuery(setting.id, { isActive }, this.getSelectColumns());
     const db = this.databaseService.getWriteConnection();
-    const result = await db.query<SystemSetting>(query, params);
-
+    const result = await db.query<SystemSetting>(query, updateParams);
     if (!result.rows[0]) throw new NotFoundException(`Failed to update active status for setting "${key}"`);
 
     return result.rows[0];

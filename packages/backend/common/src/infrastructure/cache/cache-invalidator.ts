@@ -1,4 +1,6 @@
-import { Injectable, CacheService, CrudTableOptions } from '@config/libs';
+import { CacheService } from './cache.service';
+import { Injectable } from '../../core/decorators/injectable.decorator';
+import { CrudTableOptions } from '../../domain/interfaces/database/database-common.interface';
 
 @Injectable()
 export class CacheInvalidator {

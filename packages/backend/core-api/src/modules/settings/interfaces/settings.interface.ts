@@ -1,27 +1,21 @@
-export interface SystemSetting {
-  id: number;
-  key: string;
-  value: unknown;
-  category: string;
-  description?: string;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import {
+  Auditable,
+  SettingValue,
+  WithCategory,
+  WithDescription,
+  WithId,
+  WithIsActive,
+  WithLabel,
+  WithOptionalDescription,
+  WithStringKey,
+  WithValue
+} from '@config/libs';
 
-export interface SettingValue {
-  key: string;
-  value: unknown;
-}
+export interface SystemSetting
+  extends WithId<number>, WithStringKey, WithValue, WithCategory, WithOptionalDescription, WithIsActive, Auditable<Date> {}
 
 export interface SettingsUpdateRequest {
   settings: SettingValue[];
 }
 
-export interface SettingsResponse {
-  id: string;
-  label: string;
-  description: string;
-  value: boolean;
-  category: string;
-}
+export interface SettingsResponse extends WithId<string>, WithLabel, WithDescription, WithValue<boolean>, WithCategory {}

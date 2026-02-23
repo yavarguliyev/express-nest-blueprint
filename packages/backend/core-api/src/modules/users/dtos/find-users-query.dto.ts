@@ -1,6 +1,5 @@
 import { Expose } from 'class-transformer';
 import { IsOptional, IsString, IsEmail, IsBoolean } from 'class-validator';
-
 import { QueryResultsDto } from '@config/libs';
 
 export class FindUsersQueryDto extends QueryResultsDto {

@@ -40,7 +40,7 @@ export class DatabaseDelegationService {
   getSubmitButtonText = (hasChanges: boolean): string => this.helper.getSubmitButtonText(this.modal.modalMode(), hasChanges);
   getSubmitButtonIcon = (): string => this.helper.getSubmitButtonIcon(this.modal.modalMode());
   isFormInvalid = (hasChanges: boolean): boolean => !hasChanges || this.isRoleInvalid();
-  hasRecordDraft = (table: TableMetadata | null, id: number): boolean => (table ? this.recordService.hasRecordDraft(table, id) : false);
+  hasRecordDraft = (table: TableMetadata | null, id: number): boolean => (table ? this.recordService.hasRecordDraft({ table, recordId: id }) : false);
   changePage = (p: number): void => this.tableService.changePage(p);
   refreshSchema = (): void => this.tableService.loadSchema(true);
   onGraphQLToggle = (enabled: boolean): void => this.tableService.onGraphQLToggle(enabled);
@@ -99,11 +99,11 @@ export class DatabaseDelegationService {
   }
 
   getRecordDraftData (table: TableMetadata | null, id: number): Record<string, unknown> | null {
-    return table ? this.recordService.getRecordDraftData(table, id) : null;
+    return table ? this.recordService.getRecordDraftData({ table, recordId: id }) : null;
   }
 
   isRecordMarkedForDeletion (table: TableMetadata | null, id: number): boolean {
-    return table ? this.recordService.isRecordMarkedForDeletion(table, id) : false;
+    return table ? this.recordService.isRecordMarkedForDeletion({ table, recordId: id }) : false;
   }
 
   getUpdateButtonTooltipWrapper (hasChanges: boolean, changedFieldsCount: number): string {

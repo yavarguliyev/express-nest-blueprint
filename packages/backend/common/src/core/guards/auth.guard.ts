@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 
-import { IS_PUBLIC_KEY, REQUIRE_AUTH_KEY } from '../decorators/auth.decorator';
 import { Injectable } from '../decorators/injectable.decorator';
+import { IS_PUBLIC_KEY, REQUIRE_AUTH_KEY } from '../decorators/auth.decorator';
 import { JwtService } from '../../application/services/jwt.service';
-import { UnauthorizedException } from '../../domain/exceptions/http-exceptions';
+import { CanActivate } from '../../domain/interfaces/nest/guard.interface';
 import { Constructor } from '../../domain/types/common/util.type';
 import { JwtPayload } from '../../domain/interfaces/auth/jwt.interface';
-import { CanActivate } from '../../domain/interfaces/nest/guard.interface';
+import { UnauthorizedException } from '../../domain/exceptions/http-exceptions';
 
 @Injectable()
 export class AuthGuard implements CanActivate {

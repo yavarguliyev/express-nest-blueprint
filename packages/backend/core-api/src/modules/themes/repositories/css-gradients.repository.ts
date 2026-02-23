@@ -1,8 +1,17 @@
-import { BaseRepository, CircuitBreaker, CrudTable, DatabaseService, Injectable, QueryAllWithPaginationOptions, DatabaseAdapter, CIRCUIT_BREAKER_KEYS } from '@config/libs';
+import {
+  CircuitBreaker,
+  CrudTable,
+  Injectable,
+  QueryAllWithPaginationOptions,
+  DatabaseAdapter,
+  CIRCUIT_BREAKER_KEYS,
+  BaseRepository,
+  DatabaseService
+} from '@config/libs';
 
 import { FindCssQueryDto } from '@modules/themes/dtos/find-css-audit-log.dto';
 import { CssGradientEntity } from '@modules/themes/interfaces/theme.interface';
-import { CssGradientType } from '@modules/themes/types/theme.type';
+import { GradientNameParams, GradientTypeParams } from '@modules/themes/types/theme.type';
 
 @CrudTable({
   category: 'Database Management',
@@ -55,11 +64,13 @@ export class CssGradientsRepository extends BaseRepository<CssGradientEntity> {
     return { cssGradients: result.data, total: result.total };
   }
 
-  async findByGradientName (gradientName: string, connection?: DatabaseAdapter): Promise<CssGradientEntity | null> {
+  async findByGradientName (params: GradientNameParams): Promise<CssGradientEntity | null> {
+    const { gradientName, connection } = params;
     return this.findOne({ gradientName }, connection);
   }
 
-  async findByType (gradientType: CssGradientType, connection?: DatabaseAdapter): Promise<CssGradientEntity[]> {
+  async findByType (params: GradientTypeParams): Promise<CssGradientEntity[]> {
+    const { gradientType, connection } = params;
     return this.findAll({ where: { gradientType } }, connection);
   }
 

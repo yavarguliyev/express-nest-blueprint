@@ -6,8 +6,8 @@ import {
   GqlArg as Arg,
   GqlArgs as Args,
   Roles,
-  UserRoles,
   GqlCurrentUser as CurrentUser,
+  UserRoles,
   JwtPayload,
   JobResponseDto
 } from '@config/libs';

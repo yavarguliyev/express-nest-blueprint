@@ -1,3 +1,5 @@
+import { WithEmail, WithFirstName, WithId, WithIsActive, WithIsEmailVerified, WithLastName, WithRole } from '@config/libs';
+
 export interface AuthResponseDto {
   accessToken: string;
   tokenType: string;
@@ -5,15 +7,7 @@ export interface AuthResponseDto {
   user: AuthResponseUser;
 }
 
-export interface AuthResponseUser {
-  id: number;
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: string;
-  isActive: boolean;
-  isEmailVerified: boolean;
-}
+export interface AuthResponseUser extends WithId<number>, WithEmail, WithFirstName, WithLastName, WithRole, WithIsActive, WithIsEmailVerified {}
 
 export interface UserWithPassword extends AuthResponseUser {
   passwordHash: string;

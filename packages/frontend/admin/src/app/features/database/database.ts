@@ -108,17 +108,19 @@ export class Database implements OnInit, AfterViewInit {
 
   deleteRecord (id: number): void {
     const table = this.selectedTable();
-    if (table) this.recordService.deleteRecord(table, id, this.tableData());
+    if (table) this.recordService.deleteRecord({ table, id, tableData: this.tableData() });
   }
 
   updateBooleanValue (record: Record<string, unknown>, column: Column, newValue: boolean): void {
     const table = this.selectedTable();
-    if (table) this.recordService.updateBooleanValue(table, record, column, newValue);
+    if (table) this.recordService.updateBooleanValue({ table, record, column, newValue });
   }
 
   getBooleanValue (r: Record<string, unknown>, c: string): boolean {
     const table = this.selectedTable();
-    return table ? this.recordService.getBooleanValue(r, c, table, (rec, col) => this.delegate.getNumberValue(rec, col)) : (r[c] as boolean);
+    return table
+      ? this.recordService.getBooleanValue({ record: r, column: c, table, getNumberValue: (rec, col) => this.delegate.getNumberValue(rec, col) })
+      : (r[c] as boolean);
   }
 
   publishAllChanges (): void {

@@ -1,16 +1,16 @@
 import {
+  ValidationService,
   Injectable,
   Cache,
   Compute,
   PaginatedResponseDto,
   NotFoundException,
-  ValidationService,
-  StorageService,
   BadRequestException,
   CACHE_TTL_1_MIN,
   CACHE_KEYS,
   COMPUTE_TIMEOUT_DEFAULT,
-  CACHE_TTL_1_HOUR
+  CACHE_TTL_1_HOUR,
+  StorageService
 } from '@config/libs';
 
 import { FindUsersQueryDto } from '@modules/users/dtos/find-users-query.dto';
@@ -79,9 +79,7 @@ export class UserQueryService {
     const userId = this.parseAndValidateId(id);
     const user = await this.usersRepository.findById(userId);
     if (!user) throw new NotFoundException(`User with ID ${userId} not found`);
-    if (user.profileImageUrl) {
-      user.profileImageUrl = await this.storageService.getDownloadUrl(user.profileImageUrl);
-    }
+    if (user.profileImageUrl) user.profileImageUrl = await this.storageService.getDownloadUrl(user.profileImageUrl);
     return ValidationService.transformResponse(UserResponseDto, user);
   }
 }

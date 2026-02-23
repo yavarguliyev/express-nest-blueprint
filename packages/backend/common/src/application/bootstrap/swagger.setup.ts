@@ -19,6 +19,7 @@ export class SwaggerSetup {
       .build();
 
     const document = SwaggerModule.createDocument(app, swaggerConfig);
+
     SwaggerModule.setup('api', app, document);
     Logger.log('📖 Swagger documentation enabled at /api', 'SwaggerSetup');
   }

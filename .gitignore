@@ -66,5 +66,3 @@ jspm_packages/
 packages/infrastructure/deployments/dev@tmp/
 packages/infrastructure/deployments/prod@tmp/
 packages/infrastructure/deployments/infra/scripts@tmp
-
-.kiro

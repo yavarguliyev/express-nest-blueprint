@@ -6,6 +6,7 @@ import { LifecycleService } from '../../application/lifecycle/lifecycle.service'
 import { Module } from '../../core/decorators/module.decorator';
 import { DynamicModule } from '../../domain/interfaces/module/module.interface';
 import { DatabaseModuleOptions } from '../../domain/interfaces/database/database.interface';
+import { RepositoryManager } from './repository-extensions/repository-manager';
 
 @Module({
   providers: [DatabaseService],
@@ -22,6 +23,7 @@ export class DatabaseModule {
       global: true,
       providers: [
         DatabaseService,
+        RepositoryManager,
         {
           provide: 'DATABASE_INITIALIZER',
           useFactory: ((

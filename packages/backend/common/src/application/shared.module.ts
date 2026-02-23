@@ -1,13 +1,14 @@
 import { LifecycleModule } from './lifecycle/lifecycle.module';
 import { JwtService } from './services/jwt.service';
-import { Inject } from '../core/decorators/injectable.decorator';
-import { Module } from '../core/decorators/module.decorator';
 import { AuthGuard } from '../core/guards/auth.guard';
 import { HeaderAuthGuard } from '../core/guards/header-auth.guard';
 import { RolesGuard } from '../core/guards/roles.guard';
 import { HeaderAuthMiddleware } from '../core/middleware/header-auth.middleware';
+import { Inject } from '../core/decorators/injectable.decorator';
 import { LoggerMiddleware } from '../core/middleware/logger.middleware';
 import { MaintenanceMiddleware } from '../core/middleware/maintenance.middleware';
+import { Module } from '../core/decorators/module.decorator';
+import { BullMQModule } from '../infrastructure/bullmq/bullmq.module';
 import { CacheModule } from '../infrastructure/cache/cache.module';
 import { CircuitBreakerModule } from '../infrastructure/circuit-breaker/circuit-breaker.module';
 import { ComputeModule } from '../infrastructure/compute/compute.module';
@@ -19,7 +20,6 @@ import { MetricsModule } from '../infrastructure/metrics/metrics.module';
 import { RedisModule } from '../infrastructure/redis/redis.module';
 import { StorageModule } from '../infrastructure/storage/storage.module';
 import { ThrottlerModule } from '../infrastructure/throttler/throttler.module';
-import { BullMQModule } from '../infrastructure/bullmq/bullmq.module';
 
 @Module({
   imports: [
@@ -75,7 +75,7 @@ import { BullMQModule } from '../infrastructure/bullmq/bullmq.module';
   exports: [JwtService]
 })
 export class SharedModule {
-  constructor (@Inject('APP_INITIALIZER') _initializer: unknown) {
+  constructor(@Inject('APP_INITIALIZER') _initializer: unknown) {
     void _initializer;
   }
 }

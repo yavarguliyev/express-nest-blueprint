@@ -1,7 +1,16 @@
-import { BaseRepository, CircuitBreaker, CrudTable, DatabaseService, Injectable, QueryAllWithPaginationOptions, DatabaseAdapter, CIRCUIT_BREAKER_KEYS } from '@config/libs';
+import {
+  CircuitBreaker,
+  CrudTable,
+  Injectable,
+  QueryAllWithPaginationOptions,
+  CIRCUIT_BREAKER_KEYS,
+  BaseRepository,
+  DatabaseService
+} from '@config/libs';
 
 import { FindCssQueryDto } from '@modules/themes/dtos/find-css-audit-log.dto';
 import { CssBackupEntity } from '@modules/themes/interfaces/theme.interface';
+import { BackupNameParams, RecentBackupsParams } from '@modules/themes/types/theme.type';
 
 @CrudTable({
   category: 'Database Management',
@@ -53,11 +62,13 @@ export class CssBackupsRepository extends BaseRepository<CssBackupEntity> {
     return { cssBackups: result.data, total: result.total };
   }
 
-  async findByBackupName (backupName: string, connection?: DatabaseAdapter): Promise<CssBackupEntity | null> {
+  async findByBackupName (params: BackupNameParams): Promise<CssBackupEntity | null> {
+    const { backupName, connection } = params;
     return this.findOne({ backupName }, connection);
   }
 
-  async findRecentBackups (limit: number = 10, connection?: DatabaseAdapter): Promise<CssBackupEntity[]> {
+  async findRecentBackups (params: RecentBackupsParams = {}): Promise<CssBackupEntity[]> {
+    const { limit = 10, connection } = params;
     return this.findAll(
       {
         limit,

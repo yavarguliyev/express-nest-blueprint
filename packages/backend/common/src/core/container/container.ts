@@ -1,24 +1,19 @@
 import { INJECTABLE_METADATA } from '../decorators/injectable.decorator';
-import { providerResolvers } from '../../domain/constants/module/module.const';
 import { BadRequestException } from '../../domain/exceptions/http-exceptions';
 import { RegisterOptions } from '../../domain/interfaces/module/module.interface';
 import { Constructor } from '../../domain/types/common/util.type';
 import { Provider, InjectionToken } from '../../domain/types/module/provider.type';
+import { providerResolvers } from '../../domain/constants/module/module.const';
 
 export class Container {
   private static instance: Container;
   private services = new Map<InjectionToken, Provider>();
   private singletons = new Map<InjectionToken, object>();
 
-  static getInstance (): Container {
-    if (!Container.instance) Container.instance = new Container();
-    return Container.instance;
-  }
-
   has = (provide: InjectionToken): boolean => this.services.has(provide);
   getServices = (): Map<InjectionToken, Provider> => this.services;
 
-  register<T extends object> (options: RegisterOptions<T>): void {
+  register<T extends object>(options: RegisterOptions<T>): void {
     const { provide, useClass, useValue, useFactory, inject = [] } = options;
 
     if (useClass) {
@@ -35,7 +30,7 @@ export class Container {
     }
   }
 
-  resolve<T = unknown> ({ provide }: { provide: InjectionToken<T> }): T {
+  resolve<T = unknown>({ provide }: { provide: InjectionToken<T> }): T {
     if (this.singletons.has(provide)) return this.singletons.get(provide) as T;
 
     const entry = this.services.get(provide);
@@ -50,8 +45,13 @@ export class Container {
     return instance as T;
   }
 
-  clear (): void {
+  clear(): void {
     this.services.clear();
     this.singletons.clear();
+  }
+
+  static getInstance(): Container {
+    if (!Container.instance) Container.instance = new Container();
+    return Container.instance;
   }
 }

@@ -1,3 +1,4 @@
+import { WithStringKey, WithValue } from '../../../domain/interfaces/common/shared-properties.interface';
 import { INITIALIZER_TOKENS } from '../../constants/module/initializer-tokens.const';
 
 export type Constructor<T = object, Args extends unknown[] = never[]> = new (...args: Args) => T;
@@ -32,3 +33,5 @@ export type TimeUnit = 's' | 'm' | 'h' | 'd';
 export type WhereConditions = '=' | '!=' | '>' | '<' | '>=' | '<=' | 'LIKE' | 'ILIKE' | 'IN' | 'NOT IN';
 
 export type JwtRegisteredClaim = 'iat' | 'exp';
+
+export type SettingValue = WithStringKey & WithValue;

@@ -28,9 +28,7 @@ export const createComputeInitializer = (
       });
 
       if (options.enableApi && options.autoSpawn && role === AppRoles.API) {
-        lifecycleService.registerWorkerStarter(() => {
-          startWorkerProcesses(lifecycleService, configService, role);
-        });
+        lifecycleService.registerWorkerStarter(() => startWorkerProcesses(lifecycleService, configService, role));
       }
     }
   };
@@ -49,10 +47,7 @@ const startWorkerProcesses = (lifecycleService: LifecycleService, configService:
 
   for (let i = 0; i < count; i++) {
     const workerProcess = spawnWorker(entryPoint, role);
-
-    if (workerProcess instanceof ChildProcess) {
-      registerWorkerShutdownHandler(lifecycleService, workerProcess, i);
-    }
+    if (workerProcess instanceof ChildProcess) registerWorkerShutdownHandler(lifecycleService, workerProcess, i);
   }
 };
 

@@ -1,15 +1,16 @@
 import {
-  BaseRepository,
   CircuitBreaker,
   CrudTable,
-  DatabaseService,
   Injectable,
   DatabaseAdapter,
-  StorageService,
-  KafkaService,
   JwtPayload,
   CACHE_KEYS,
-  CIRCUIT_BREAKER_KEYS
+  CIRCUIT_BREAKER_KEYS,
+  BaseRepository,
+  DatabaseService,
+  StorageService,
+  KafkaService,
+  hasProfileImageUrl
 } from '@config/libs';
 
 import { FindUsersQueryDto } from '@modules/users/dtos/find-users-query.dto';
@@ -17,6 +18,8 @@ import { UserResponseDto } from '@modules/users/dtos/user-response.dto';
 import { ValidationHelper } from '@modules/users/repository-helpers/validation-helper';
 import { UpdateHelper } from '@modules/users/repository-helpers/update-helper';
 import { QueryHelper } from '@modules/users/repository-helpers/query-helper';
+import { FindUserByEmailParams, UpdatePrimaryUserParams } from '@modules/users/interfaces/user-repository.interface';
+import { CreatePrimaryUserParams } from '@modules/users/types/user.type';
 
 @CrudTable({
   category: 'Database Management',
@@ -65,7 +68,8 @@ export class UsersRepository extends BaseRepository<UserResponseDto> {
     return ['email', 'firstName', 'lastName', 'role'];
   }
 
-  async findByEmail (email: string, connection?: DatabaseAdapter): Promise<UserResponseDto | null> {
+  async findByEmail (params: FindUserByEmailParams): Promise<UserResponseDto | null> {
+    const { email, connection } = params;
     const db = connection || this.queryHelper.getReadConnection();
     return this.findOne({ email }, db);
   }
@@ -79,13 +83,15 @@ export class UsersRepository extends BaseRepository<UserResponseDto> {
     return { users: result.data, total: result.total };
   }
 
-  async createPrimary (data: Partial<UserResponseDto>): Promise<UserResponseDto | null> {
+  async createPrimary (params: CreatePrimaryUserParams): Promise<UserResponseDto | null> {
+    const { data } = params;
     const db = this.queryHelper.getWriteConnection();
     const result = await this.create(data, undefined, db);
     return result as UserResponseDto | null;
   }
 
-  async updatePrimary (id: string | number, data: Partial<UserResponseDto>): Promise<UserResponseDto | null> {
+  async updatePrimary (params: UpdatePrimaryUserParams): Promise<UserResponseDto | null> {
+    const { id, data } = params;
     const db = this.queryHelper.getWriteConnection();
     const result = await this.update(id, data, undefined, db);
     return result as UserResponseDto | null;
@@ -128,7 +134,7 @@ export class UsersRepository extends BaseRepository<UserResponseDto> {
   }
 
   override async applyPostProcessing (data: unknown[]): Promise<void> {
-    const itemsWithImages = data.filter(item => this.hasProfileImageUrl(item));
+    const itemsWithImages = data.filter(item => hasProfileImageUrl(item));
     await this.signProfileImages(itemsWithImages);
   }
 
@@ -139,9 +145,5 @@ export class UsersRepository extends BaseRepository<UserResponseDto> {
         item.profileImageUrl = await this.storageService.getDownloadUrl(item.profileImageUrl);
       })
     );
-  }
-
-  private hasProfileImageUrl (item: unknown): item is { profileImageUrl?: string } {
-    return typeof item === 'object' && item !== null && 'profileImageUrl' in item;
   }
 }

@@ -1,7 +1,16 @@
-import { BaseRepository, CircuitBreaker, CrudTable, DatabaseService, Injectable, QueryAllWithPaginationOptions, DatabaseAdapter, CIRCUIT_BREAKER_KEYS } from '@config/libs';
+import {
+  CircuitBreaker,
+  CrudTable,
+  Injectable,
+  QueryAllWithPaginationOptions,
+  CIRCUIT_BREAKER_KEYS,
+  BaseRepository,
+  DatabaseService
+} from '@config/libs';
 
 import { TokenUsageEntity } from '@modules/themes/interfaces/theme.interface';
 import { FindCssQueryDto } from '@modules/themes/dtos/find-css-audit-log.dto';
+import { PropertyNameParams, RuleIdParams, TokenIdParams, TokenUsageByRuleParams } from '@modules/themes/types/theme.type';
 
 @CrudTable({
   category: 'Database Management',
@@ -55,24 +64,23 @@ export class TokenUsageRepository extends BaseRepository<TokenUsageEntity> {
     return { tokenUsage: result.data, total: result.total };
   }
 
-  async findByTokenId (tokenId: string, connection?: DatabaseAdapter): Promise<TokenUsageEntity[]> {
+  async findByTokenId (params: TokenIdParams): Promise<TokenUsageEntity[]> {
+    const { tokenId, connection } = params;
     return this.findAll({ where: { tokenId } }, connection);
   }
 
-  async findByRuleId (ruleId: string, connection?: DatabaseAdapter): Promise<TokenUsageEntity[]> {
+  async findByRuleId (params: RuleIdParams): Promise<TokenUsageEntity[]> {
+    const { ruleId, connection } = params;
     return this.findAll({ where: { ruleId } }, connection);
   }
 
-  async findByProperty (propertyName: string, connection?: DatabaseAdapter): Promise<TokenUsageEntity[]> {
+  async findByProperty (params: PropertyNameParams): Promise<TokenUsageEntity[]> {
+    const { propertyName, connection } = params;
     return this.findAll({ where: { propertyName } }, connection);
   }
 
-  async findUsageByTokenAndRule (
-    tokenId: string,
-    ruleId: string,
-    propertyName: string,
-    connection?: DatabaseAdapter
-  ): Promise<TokenUsageEntity | null> {
+  async findUsageByTokenAndRule (params: TokenUsageByRuleParams): Promise<TokenUsageEntity | null> {
+    const { tokenId, ruleId, propertyName, connection } = params;
     return this.findOne({ tokenId, ruleId, propertyName }, connection);
   }
 }

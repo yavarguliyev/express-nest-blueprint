@@ -1,4 +1,4 @@
-import { Injectable, ValidationService, BadRequestException, Cache, InvalidateCache, CACHE_TTL_1_MIN, CACHE_KEYS } from '@config/libs';
+import { ValidationService, Injectable, Cache, InvalidateCache, BadRequestException, CACHE_TTL_1_MIN, CACHE_KEYS } from '@config/libs';
 
 import { SettingsRepository } from '@modules/settings/settings.repository';
 import { SystemSetting } from '@modules/settings/interfaces/settings.interface';
@@ -40,11 +40,11 @@ export class SettingsService {
     const updatedSettings: SystemSetting[] = [];
 
     for (const settingUpdate of updateDto.settings) {
-      const updated = await this.settingsRepository.updateByKey(settingUpdate.key, settingUpdate.value);
+      const updated = await this.settingsRepository.updateByKey({ key: settingUpdate.key, value: settingUpdate.value });
       updatedSettings.push(updated);
 
       if (settingUpdate.isActive !== undefined) {
-        const updatedActive = await this.settingsRepository.updateActiveStatus(settingUpdate.key, settingUpdate.isActive);
+        const updatedActive = await this.settingsRepository.updateActiveStatus({ key: settingUpdate.key, isActive: settingUpdate.isActive });
         updatedSettings[updatedSettings.length - 1] = updatedActive;
       }
     }

@@ -1,4 +1,19 @@
-import { ChartType, DashboardAlertType, TableAction, PromMetric, HealthCheckResult } from '@config/libs';
+import {
+  ChartType,
+  DashboardAlertType,
+  TableAction,
+  PromMetric,
+  HealthCheckResult,
+  ConflictItem,
+  JwtPayload,
+  RepositoryEntry,
+  WithCategory,
+  WithName
+} from '@config/libs';
+
+export interface ConflictDetectionResult {
+  conflicts: ConflictItem[];
+}
 
 export interface DashboardMetricsContext {
   rawMetrics: PromMetric[];
@@ -28,6 +43,12 @@ export interface DashboardAlert {
   timestamp: string;
 }
 
+export interface ChartConfig {
+  metric: string;
+  title: string;
+  type: string;
+}
+
 export interface ColumnMetadata {
   name: string;
   type: string;
@@ -48,9 +69,7 @@ export interface DashboardMetricsResponse {
   alerts: DashboardAlert[];
 }
 
-export interface TableMetadata {
-  category: string;
-  name: string;
+export interface TableMetadata extends WithCategory, WithName {
   displayName: string;
   tableName: string;
   columns: ColumnMetadata[];
@@ -64,4 +83,47 @@ export interface TableMetadata {
       supportedOperations: TableAction[];
     };
   };
+}
+
+export interface TableOperationBase extends WithCategory, WithName {
+  currentUser?: JwtPayload;
+  bypassQueue?: boolean;
+}
+
+export interface CreateTableOperation extends TableOperationBase {
+  data: unknown;
+}
+
+export interface UpdateTableOperation extends TableOperationBase {
+  id: string | number;
+  data: Record<string, unknown>;
+}
+
+export interface DeleteTableOperation extends TableOperationBase {
+  id: string | number;
+}
+
+export interface WithPagination {
+  pageNum: string | undefined;
+  limitNum: string | undefined;
+}
+
+export interface WithSearch {
+  search: string | undefined;
+}
+
+export interface WithtRepositoryEntry {
+  entry?: RepositoryEntry;
+}
+
+export interface TableDataByNameParams extends WithName, WithPagination, WithSearch {}
+
+export interface TableDataParams extends WithName, WithCategory, WithPagination, WithSearch, WithtRepositoryEntry {
+  t?: string;
+}
+
+export interface TableDataByNameOperationParams extends TableDataByNameParams, WithtRepositoryEntry {}
+
+export interface TableRecordParams extends WithName, WithCategory, WithtRepositoryEntry {
+  id: string | number;
 }

@@ -1,8 +1,8 @@
 import { REQUIRE_AUTH_KEY, ROLES_KEY, IS_PUBLIC_KEY } from '../../decorators/auth.decorator';
 import { GUARDS_METADATA } from '../../decorators/middleware.decorators';
 import { API_SECURITY_KEY } from '../../decorators/swagger.decorators';
-import { Constructor } from '../../../domain/types/common/util.type';
 import { SecurityMetadata } from '../../../domain/interfaces/api/api.interface';
+import { Constructor } from '../../../domain/types/common/util.type';
 
 export class MetadataExtractor {
   extractSecurityMetadata (
@@ -43,8 +43,8 @@ export class MetadataExtractor {
   private checkHeaderAuth (controller: Constructor, prototype: object, methodName: string): boolean {
     const classGuards = (Reflect.getMetadata(GUARDS_METADATA, controller) || []) as Constructor[];
     const methodGuards = (Reflect.getMetadata(GUARDS_METADATA, prototype, methodName) || []) as Constructor[];
-    const allGuards = [...classGuards, ...methodGuards];
-    return allGuards.some(g => g.name === 'HeaderAuthGuard');
+    const allGuards = [...classGuards, ...methodGuards].filter((guard): guard is Constructor => typeof guard === 'function');
+    return allGuards.some(guard => guard.name === 'HeaderAuthGuard');
   }
 
   private extractSecuritySchemes (controller: Constructor, prototype: object, methodName: string): Record<string, string[]>[] | undefined {

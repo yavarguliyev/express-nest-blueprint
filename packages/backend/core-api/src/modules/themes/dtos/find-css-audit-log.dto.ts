@@ -1,6 +1,5 @@
 import { Expose } from 'class-transformer';
 import { IsOptional, IsBoolean } from 'class-validator';
-
 import { QueryResultsDto } from '@config/libs';
 
 import { CssActionType, CssEntityType, CssGradientType, CssStatusType } from '@modules/themes/types/theme.type';

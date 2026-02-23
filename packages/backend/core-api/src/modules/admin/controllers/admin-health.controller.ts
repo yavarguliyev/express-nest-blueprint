@@ -1,4 +1,4 @@
-import { ApiController, BaseController, Get, HealthCheckStatus, Roles, UserRoles } from '@config/libs';
+import { BaseController, Get, Roles, ApiController, HealthCheckStatus, UserRoles } from '@config/libs';
 
 import { AdminMetricsService } from '@modules/admin/services/admin-metrics.service';
 

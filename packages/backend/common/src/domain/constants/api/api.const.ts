@@ -1,10 +1,16 @@
-import { ApiControllerOptions } from 'domain/types/api/api-http.type';
+import { BaseControllerOptions } from '../../interfaces/api/api.interface';
 import { Constructor } from '../../types/common/util.type';
 import { CONTROLLER_METADATA } from '../../../core/decorators/controller.decorator';
 import { INJECTABLE_METADATA } from '../../../core/decorators/injectable.decorator';
 import { registerControllerClass } from '../../../core/decorators/register-controller-class.decorator';
 
-export const ApiController = ({ path, version, prefix }: ApiControllerOptions): ClassDecorator => {
+export const METHODS = ['get', 'post', 'put', 'delete', 'patch', 'use'] as const;
+
+export const getApiVersion = <T>(controllerClass: Constructor<T>): string => (Reflect.getMetadata('api:version', controllerClass) || 'v1') as string;
+export const getApiPrefix = <T>(controllerClass: Constructor<T>): string => (Reflect.getMetadata('api:prefix', controllerClass) || 'api') as string;
+export const getBasePath = <T>(controllerClass: Constructor<T>): string => (Reflect.getMetadata('api:basePath', controllerClass) || '') as string;
+
+export const ApiController = ({ path, version, prefix }: BaseControllerOptions): ClassDecorator => {
   const apiVersion = version ?? 'v1';
   const apiPrefix = prefix ?? 'api';
   const fullPath = `/${apiPrefix}/${apiVersion}${path}`;
@@ -20,10 +26,6 @@ export const ApiController = ({ path, version, prefix }: ApiControllerOptions): 
   };
 };
 
-export const getApiVersion = <T>(controllerClass: Constructor<T>): string => (Reflect.getMetadata('api:version', controllerClass) || 'v1') as string;
-export const getApiPrefix = <T>(controllerClass: Constructor<T>): string => (Reflect.getMetadata('api:prefix', controllerClass) || 'api') as string;
-export const getBasePath = <T>(controllerClass: Constructor<T>): string => (Reflect.getMetadata('api:basePath', controllerClass) || '') as string;
-
 export const getFullApiPath = <T>(controllerClass: Constructor<T>): string => {
   const version = getApiVersion(controllerClass);
   const prefix = getApiPrefix(controllerClass);
@@ -31,5 +33,3 @@ export const getFullApiPath = <T>(controllerClass: Constructor<T>): string => {
 
   return `/${prefix}/${version}${basePath}`;
 };
-
-export const METHODS = ['get', 'post', 'put', 'delete', 'patch', 'use'] as const;

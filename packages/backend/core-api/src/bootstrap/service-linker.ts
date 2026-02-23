@@ -1,13 +1,13 @@
-import { NestApplication, Logger, MaintenanceMiddleware } from '@config/libs';
+import { NestApplication, MaintenanceMiddleware, Logger } from '@config/libs';
 
 import { SettingsService } from '@modules/settings/settings.service';
 import { AuthService } from '@modules/auth/auth.service';
 
 export class ServiceLinker {
   static link (app: NestApplication): void {
-    const settingsService = app.get(SettingsService);
-    const authService = app.get(AuthService);
-    const maintenanceMiddleware = app.get(MaintenanceMiddleware);
+    const settingsService = app.get<SettingsService>(SettingsService);
+    const authService = app.get<AuthService>(AuthService);
+    const maintenanceMiddleware = app.get<MaintenanceMiddleware>(MaintenanceMiddleware);
 
     Logger.setSettingsService(settingsService);
     authService.setSettingsService(settingsService);

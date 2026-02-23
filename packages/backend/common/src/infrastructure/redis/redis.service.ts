@@ -9,7 +9,7 @@ import { ConfigService } from '../../infrastructure/config/config.service';
 export class RedisService {
   private readonly redis: Redis | Cluster;
 
-  constructor (
+  constructor(
     @Inject(BULLMQ_OPTIONS) options: BullMQModuleOptions,
     private readonly configService: ConfigService
   ) {
@@ -43,11 +43,9 @@ export class RedisService {
     }
   }
 
-  getClient (): Redis | Cluster {
-    return this.redis;
-  }
+  getClient = (): Redis | Cluster => this.redis;
 
-  async getMemoryUsage (): Promise<number> {
+  async getMemoryUsage(): Promise<number> {
     try {
       const info = await this.redis.info('memory');
       const usedMemory = info.match(/used_memory:(\d+)/)?.[1];
@@ -57,7 +55,7 @@ export class RedisService {
     }
   }
 
-  async disconnect (): Promise<void> {
+  async disconnect(): Promise<void> {
     await this.redis.quit();
   }
 }

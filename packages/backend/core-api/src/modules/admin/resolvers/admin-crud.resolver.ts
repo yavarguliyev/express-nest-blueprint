@@ -5,10 +5,10 @@ import {
   GqlMutation as Mutation,
   GqlArgs,
   Roles,
-  UserRoles,
   GqlCurrentUser,
-  JwtPayload,
-  GraphQLJSONObject
+  GraphQLJSONObject,
+  UserRoles,
+  JwtPayload
 } from '@config/libs';
 
 import { AdminCrudService } from '@modules/admin/services/admin-crud.service';
@@ -31,22 +31,28 @@ export class AdminCrudResolver {
 
   @Query(() => GraphQLJSONObject)
   async adminGetTableData (@GqlArgs(() => AdminGetTableDataArgs) args: AdminGetTableDataArgs): Promise<unknown> {
-    return this.adminCrudService.getTableData(args.category, args.name, args.page, args.limit, args.search);
+    return this.adminCrudService.getTableData({
+      category: args.category,
+      name: args.name,
+      pageNum: args.page,
+      limitNum: args.limit,
+      search: args.search
+    });
   }
 
   @Query(() => GraphQLJSONObject)
   async adminGetTableRecord (@GqlArgs(() => AdminGetTableRecordArgs) args: AdminGetTableRecordArgs): Promise<unknown> {
-    return this.adminCrudService.getTableRecord(args.category, args.name, args.id);
+    return this.adminCrudService.getTableRecord({ category: args.category, name: args.name, id: args.id });
   }
 
   @Mutation(() => GraphQLJSONObject)
   async adminCreateRecord (@GqlArgs(() => AdminCreateRecordArgs) args: AdminCreateRecordArgs, @GqlCurrentUser() user: JwtPayload): Promise<unknown> {
-    return this.adminCrudService.createTableRecord(args.category, args.name, args.data, user);
+    return this.adminCrudService.createTableRecord({ category: args.category, name: args.name, data: args.data, currentUser: user });
   }
 
   @Mutation(() => GraphQLJSONObject)
   async adminUpdateRecord (@GqlArgs(() => AdminUpdateRecordArgs) args: AdminUpdateRecordArgs, @GqlCurrentUser() user: JwtPayload): Promise<unknown> {
-    return this.adminCrudService.updateTableRecord(args.category, args.name, args.id, args.data, user);
+    return this.adminCrudService.updateTableRecord({ category: args.category, name: args.name, id: args.id, data: args.data, currentUser: user });
   }
 
   @Mutation(() => GraphQLJSONObject)
@@ -54,6 +60,6 @@ export class AdminCrudResolver {
     @GqlArgs(() => AdminDeleteRecordArgs) args: AdminDeleteRecordArgs,
     @GqlCurrentUser() user: JwtPayload
   ): Promise<{ success: boolean }> {
-    return this.adminCrudService.deleteTableRecord(args.category, args.name, args.id, user);
+    return this.adminCrudService.deleteTableRecord({ category: args.category, name: args.name, id: args.id, currentUser: user });
   }
 }

@@ -1,4 +1,4 @@
-import { DatabaseService, KafkaService, KAFKA_TOPICS, BadRequestException, InternalServerErrorException } from '@config/libs';
+import { KAFKA_TOPICS, BadRequestException, InternalServerErrorException, DatabaseService, KafkaService } from '@config/libs';
 
 import { UsersRepository } from '@modules/users/users.repository';
 import { CreateUserDto } from '@modules/users/dtos/create-user.dto';
@@ -12,7 +12,7 @@ export class CreateHandler {
 
   async handle (jobId: string, data: CreateUserDto): Promise<unknown> {
     const user = await this.databaseService.getWriteConnection().transactionWithRetry(async transaction => {
-      const existingUser = await this.usersRepository.findByEmail(data.email, transaction);
+      const existingUser = await this.usersRepository.findByEmail({ email: data.email, connection: transaction });
       if (existingUser) throw new BadRequestException(`User with email ${data.email} already exists`);
       return this.usersRepository.create(data, ['id', 'email', 'firstName', 'lastName', 'role', 'isActive', 'createdAt', 'updatedAt'], transaction);
     });

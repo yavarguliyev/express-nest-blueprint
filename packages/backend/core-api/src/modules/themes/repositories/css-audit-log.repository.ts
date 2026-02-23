@@ -1,8 +1,17 @@
-import { BaseRepository, CircuitBreaker, CrudTable, DatabaseService, Injectable, QueryAllWithPaginationOptions, DatabaseAdapter, CIRCUIT_BREAKER_KEYS } from '@config/libs';
+import {
+  CircuitBreaker,
+  CrudTable,
+  Injectable,
+  QueryAllWithPaginationOptions,
+  DatabaseAdapter,
+  CIRCUIT_BREAKER_KEYS,
+  BaseRepository,
+  DatabaseService
+} from '@config/libs';
 
 import { FindCssQueryDto } from '@modules/themes/dtos/find-css-audit-log.dto';
-import { CssAuditLogEntity } from '@modules/themes/interfaces/theme.interface';
-import { CssEntityType } from '@modules/themes/types/theme.type';
+import { AuditLogQuery, CssAuditLogEntity } from '@modules/themes/interfaces/theme.interface';
+import { ChangedByParams, EntityIdParams, EntityTypeParams, RecentActivityParams } from '@modules/themes/types/theme.type';
 
 @CrudTable({
   category: 'Database Management',
@@ -68,45 +77,39 @@ export class CssAuditLogRepository extends BaseRepository<CssAuditLogEntity> {
     return { cssAuditLog: result.data, total: result.total };
   }
 
-  async findByEntityId (entityId: string, connection?: DatabaseAdapter): Promise<CssAuditLogEntity[]> {
-    return this.findAll(
-      {
-        where: { entityId },
-        orderBy: 'createdAt',
-        orderDirection: 'DESC'
-      },
-      connection
-    );
+  async findByEntityId (params: EntityIdParams): Promise<CssAuditLogEntity[]> {
+    const { entityId, connection } = params;
+    return this.findByFilter({ entityId }, connection);
   }
 
-  async findByEntityType (entityType: CssEntityType, connection?: DatabaseAdapter): Promise<CssAuditLogEntity[]> {
-    return this.findAll(
-      {
-        where: { entityType },
-        orderBy: 'createdAt',
-        orderDirection: 'DESC'
-      },
-      connection
-    );
+  async findByEntityType (params: EntityTypeParams): Promise<CssAuditLogEntity[]> {
+    const { entityType, connection } = params;
+    return this.findByFilter({ entityType }, connection);
   }
 
-  async findByUser (changedBy: string, connection?: DatabaseAdapter): Promise<CssAuditLogEntity[]> {
-    return this.findAll(
-      {
-        where: { changedBy },
-        orderBy: 'createdAt',
-        orderDirection: 'DESC'
-      },
-      connection
-    );
+  async findByUser (params: ChangedByParams): Promise<CssAuditLogEntity[]> {
+    const { changedBy, connection } = params;
+    return this.findByFilter({ changedBy }, connection);
   }
 
-  async findRecentActivity (limit: number = 50, connection?: DatabaseAdapter): Promise<CssAuditLogEntity[]> {
+  async findRecentActivity (params: RecentActivityParams = {}): Promise<CssAuditLogEntity[]> {
+    const { limit = 50, connection } = params;
+    return this.findByFilter({ limit }, connection);
+  }
+
+  private async findByFilter (query: AuditLogQuery, connection?: DatabaseAdapter): Promise<CssAuditLogEntity[]> {
+    const { entityId, entityType, changedBy, limit } = query;
+
     return this.findAll(
       {
-        limit,
+        where: {
+          ...(entityId && { entityId }),
+          ...(entityType && { entityType }),
+          ...(changedBy && { changedBy })
+        },
         orderBy: 'createdAt',
-        orderDirection: 'DESC'
+        orderDirection: 'DESC',
+        ...(limit && { limit })
       },
       connection
     );

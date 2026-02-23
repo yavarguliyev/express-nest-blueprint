@@ -1,27 +1,17 @@
-import { Constructor } from '../../../domain/types/common/util.type';
+import { Constructor } from '../../types/common/util.type';
+import { OptionalVersioned, Prefixed, RequiresAuth, Versioned, WithPath } from '../common/base.interface';
 import { ParamMetadata, RouteMetadata } from '../nest/nest-core.interface';
 
 export interface ApiResponse<T = unknown> {
   data?: T;
-  error?: string | undefined;
-  message?: string | undefined;
+  error?: string;
+  message?: string;
   success: boolean;
 }
 
-export interface ApiVersionConfig {
-  prefix?: string;
-  version: string;
-}
+export interface ApiVersionConfig extends Prefixed, Versioned {}
 
-export interface BaseControllerOptions {
-  path: string;
-  prefix?: string;
-  version?: string;
-}
-
-export interface ControllerOptions {
-  path?: string;
-}
+export interface BaseControllerOptions extends WithPath, Prefixed, OptionalVersioned {}
 
 export interface CorsOptions {
   allowedHeaders?: string;
@@ -29,16 +19,14 @@ export interface CorsOptions {
   origin?: string;
 }
 
-export interface ControllerInfo {
+export interface ControllerInfo extends RequiresAuth {
   controller: Constructor;
   basePath: string;
-  requiresAuth: boolean;
   isPublic: boolean;
   methods: string[];
 }
 
-export interface SecurityMetadata {
-  requiresAuth: boolean;
+export interface SecurityMetadata extends RequiresAuth {
   roles: string[] | undefined;
   security: Record<string, string[]>[] | undefined;
   hasHeaderAuth: boolean;

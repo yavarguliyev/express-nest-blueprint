@@ -1,18 +1,18 @@
 import {
+  SharedModule,
   Module,
-  MiddlewareConsumer,
-  NestModule,
   LoggerMiddleware,
   HeaderAuthMiddleware,
   MetricsMiddleware,
   MaintenanceMiddleware,
+  GraphQLModule,
+  RateLimitMiddleware,
+  MiddlewareConsumer,
+  NestModule,
+  ALL_ROUTES,
   ConfigModule,
   ConfigService,
-  SharedModule,
-  DatabaseModule,
-  GraphQLModule,
-  ALL_ROUTES,
-  RateLimitMiddleware
+  DatabaseModule
 } from '@config/libs';
 
 import { AuthModule } from '@modules/auth/auth.module';

@@ -32,12 +32,15 @@ export * from '../domain/exceptions/http-exception';
 export * from '../domain/exceptions/http-exceptions';
 export * from '../domain/exceptions/validation.exception';
 
+export * from '../domain/helpers/bulk-operations.helpers';
+export * from '../domain/helpers/queue-manager-helper';
 export * from '../domain/helpers/retry.helper';
 export * from '../domain/helpers/utility-functions.helper';
 
 export * from '../domain/interfaces/api/api.interface';
 export * from '../domain/interfaces/auth/jwt.interface';
 export * from '../domain/interfaces/common/util.interface';
+export * from '../domain/interfaces/common/shared-properties.interface';
 export * from '../domain/interfaces/common/base.interface';
 export * from '../domain/interfaces/database/bulk-operations.interface';
 export * from '../domain/interfaces/database/database-common.interface';

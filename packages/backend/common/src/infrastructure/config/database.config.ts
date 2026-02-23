@@ -2,49 +2,17 @@ import { ConfigService } from './config.service';
 import { DatabaseType } from '../../domain/enums/database/database.enum';
 import { DatabaseConfig } from '../../domain/interfaces/database/database.interface';
 
-const getHost = (configService?: ConfigService): string => {
-  return configService?.get<string>('DB_HOST') || 'localhost';
-};
-
-const getPort = (configService?: ConfigService): number => {
-  return configService?.get<number>('DB_PORT') || 5432;
-};
-
-const getUsername = (configService?: ConfigService): string => {
-  return configService?.get<string>('DB_USERNAME') || 'postgres';
-};
-
-const getPassword = (configService?: ConfigService): string => {
-  return configService?.get<string>('DB_PASSWORD') || 'postgres';
-};
-
-const getDatabase = (configService?: ConfigService): string => {
-  return configService?.get<string>('DB_NAME') || 'express_nest_blueprint';
-};
-
-const getReplicaHosts = (configService?: ConfigService): string[] => {
-  return configService?.get<string>('DB_REPLICA_HOSTS')?.split(',') || [];
-};
-
-const getSsl = (configService?: ConfigService): boolean => {
-  return configService?.get<boolean>('DB_SSL') || false;
-};
-
-const getConnectionLimit = (configService?: ConfigService): number => {
-  return configService?.get<number>('DB_CONNECTION_LIMIT') || 10;
-};
-
-const getMinLimit = (configService?: ConfigService): number => {
-  return configService?.get<number>('DB_MIN_LIMIT') || 2;
-};
-
-const getIdleTimeout = (configService?: ConfigService): number => {
-  return configService?.get<number>('DB_IDLE_TIMEOUT') || 30000;
-};
-
-const getConnectionTimeout = (configService?: ConfigService): number => {
-  return configService?.get<number>('DB_CONNECTION_TIMEOUT') || 2000;
-};
+const getHost = (configService?: ConfigService): string => configService?.get<string>('DB_HOST') || 'localhost';
+const getPort = (configService?: ConfigService): number => configService?.get<number>('DB_PORT') || 5432;
+const getUsername = (configService?: ConfigService): string => configService?.get<string>('DB_USERNAME') || 'postgres';
+const getPassword = (configService?: ConfigService): string => configService?.get<string>('DB_PASSWORD') || 'postgres';
+const getDatabase = (configService?: ConfigService): string => configService?.get<string>('DB_NAME') || 'express_nest_blueprint';
+const getReplicaHosts = (configService?: ConfigService): string[] => configService?.get<string>('DB_REPLICA_HOSTS')?.split(',') || [];
+const getSsl = (configService?: ConfigService): boolean => configService?.get<boolean>('DB_SSL') || false;
+const getConnectionLimit = (configService?: ConfigService): number => configService?.get<number>('DB_CONNECTION_LIMIT') || 10;
+const getMinLimit = (configService?: ConfigService): number => configService?.get<number>('DB_MIN_LIMIT') || 2;
+const getIdleTimeout = (configService?: ConfigService): number => configService?.get<number>('DB_IDLE_TIMEOUT') || 30000;
+const getConnectionTimeout = (configService?: ConfigService): number => configService?.get<number>('DB_CONNECTION_TIMEOUT') || 2000;
 
 export const getDatabaseConfig = (configService?: ConfigService): DatabaseConfig => {
   return {

@@ -1,12 +1,14 @@
 import { Server } from 'http';
-
-import { MiddlewareConsumer } from './middleware.interface';
-import { ParamSource } from '../../types/nest/nest-core.type';
-import { AppName } from '../../../domain/enums/common/common.enum';
-import { Constructor, DynamicModule, ExpressHttpMethod } from 'exports/domain.exports';
 import { Request, Response, NextFunction } from 'express';
-import { NestApplication } from 'application/nest-application';
-import { Container } from 'exports/core.exports';
+
+import { NestApplication } from '../../../application/nest-application';
+import { AppName } from '../../enums/common/common.enum';
+import { ExpressHttpMethod } from '../../types/api/api-http.type';
+import { Constructor } from '../../types/common/util.type';
+import { ParamSource } from '../../types/nest/nest-core.type';
+import { DynamicModule } from '../module/module.interface';
+import { MiddlewareConsumer } from './middleware.interface';
+import { Container } from '../../../core/container/container';
 
 export interface ArgumentsHost {
   getArgByIndex<T = unknown>(index: number): T;

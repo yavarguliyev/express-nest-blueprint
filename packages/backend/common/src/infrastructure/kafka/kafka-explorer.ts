@@ -2,7 +2,8 @@ import { KafkaService } from './kafka.service';
 import { Logger } from '../logger/logger.service';
 import { Container } from '../../core/container/container';
 import { Injectable } from '../../core/decorators/injectable.decorator';
-import { KAFKA_ON_MESSAGE_METADATA, KAFKA_SUBSCRIBER_REGISTRY, KafkaSubscriberMetadata } from '../../domain/constants/infra/kafka.const';
+import { KAFKA_ON_MESSAGE_METADATA, KAFKA_SUBSCRIBER_REGISTRY } from '../../domain/constants/infra/kafka.const';
+import { KafkaSubscriberMetadata } from 'domain/interfaces/infra/kafka.interface';
 import { getErrorMessage } from '../../domain/helpers/utility-functions.helper';
 import { KafkaMessageHandler } from '../../domain/types/infra/kafka.type';
 
@@ -11,12 +12,12 @@ export class KafkaExplorer {
   private readonly logger = new Logger(KafkaExplorer.name);
   private isExplored = false;
 
-  constructor (
+  constructor(
     private readonly container: Container,
     private readonly kafkaService: KafkaService
   ) {}
 
-  async explore (): Promise<void> {
+  async explore(): Promise<void> {
     if (this.isExplored) return;
     this.isExplored = true;
 

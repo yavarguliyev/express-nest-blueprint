@@ -1,18 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
 
 import { ArgumentsHostFilter } from './argument-host.filter';
+import { ExceptionFilter, ArgumentsHost } from '../../domain/interfaces/nest/nest-core.interface';
 import { HttpException } from '../../domain/exceptions/http-exception';
 import { hasGetStatus, hasGetResponse } from '../../domain/helpers/utility-functions.helper';
-import { ExceptionFilter, ArgumentsHost } from '../../domain/interfaces/nest/nest-core.interface';
 import { ConfigService } from '../../infrastructure/config/config.service';
 import { Logger } from '../../infrastructure/logger/logger.service';
 
 export class GlobalExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(GlobalExceptionFilter.name);
 
-  constructor () {}
-
-  catch (exception: unknown, host: ArgumentsHost): void {
+  catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
@@ -23,71 +21,54 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     if (status >= 500) {
       void this.logger.error(`${request.method} ${request.url} - Internal Server Error`, exception instanceof Error ? exception.stack : undefined);
-    } else {
-      void this.logger.warn(`${request.method} ${request.url} - ${status} ${JSON.stringify(errorResponse)}`);
-    }
+    } else void this.logger.warn(`${request.method} ${request.url} - ${status} ${JSON.stringify(errorResponse)}`);
 
-    if (!response.headersSent) {
-      response.status(status).json(errorResponse);
-    }
+    if (!response.headersSent) response.status(status).json(errorResponse);
   }
 
-  static create (): (error: unknown, req: Request, res: Response, next: NextFunction) => void {
+  static create(): (error: unknown, req: Request, res: Response, next: NextFunction) => void {
     const filter = new GlobalExceptionFilter();
     return (error: unknown, req: Request, res: Response, next: NextFunction) => {
       filter.catch(error, new ArgumentsHostFilter(req, res, next));
     };
   }
 
-  private getHttpStatus (exception: unknown): number {
+  private getHttpStatus(exception: unknown): number {
     if (exception instanceof HttpException) return exception.getStatus();
     if (hasGetStatus(exception)) return exception.getStatus();
     return 500;
   }
 
-  private getErrorMessage (exception: unknown): string | object {
+  private getErrorMessage(exception: unknown): string | object {
     if (exception instanceof HttpException) return exception.getResponse();
     if (hasGetResponse(exception)) return exception.getResponse();
-
-    if (exception instanceof Error) {
-      const isProduction = ConfigService.isProduction();
-      return isProduction ? 'Internal Server Error' : exception.message;
-    }
+    if (exception instanceof Error) return ConfigService.isProduction() ? 'Internal Server Error' : exception.message;
 
     return 'Internal Server Error';
   }
 
-  private getErrorResponse (exception: unknown, status: number, message: string | object, request: Request): object {
+  private getErrorResponse(exception: unknown, status: number, message: string | object, request: Request): object {
     const timestamp = new Date().toISOString();
     const path = request.url;
+
     let responseObj: unknown = null;
 
-    if (exception instanceof HttpException) {
-      responseObj = exception.getResponse();
-    } else if (hasGetResponse(exception)) {
-      responseObj = exception.getResponse();
-    }
+    if (exception instanceof HttpException) responseObj = exception.getResponse();
+    else if (hasGetResponse(exception)) responseObj = exception.getResponse();
 
-    if (responseObj && typeof responseObj === 'object') {
-      return { ...responseObj, timestamp, path };
-    }
-
-    if (responseObj) {
-      return { statusCode: status, message: responseObj, timestamp, path };
-    }
-
-    const msg = typeof message === 'string' ? message : 'Internal Server Error';
+    if (responseObj && typeof responseObj === 'object') return { ...responseObj, timestamp, path };
+    if (responseObj) return { statusCode: status, message: responseObj, timestamp, path };
 
     return {
       statusCode: status,
-      message: msg,
+      message: typeof message === 'string' ? message : 'Internal Server Error',
       error: this.getErrorName(exception),
       timestamp,
       path
     };
   }
 
-  private getErrorName (exception: unknown): string {
+  private getErrorName(exception: unknown): string {
     if (exception instanceof Error) return exception.constructor.name;
     return 'InternalServerErrorException';
   }

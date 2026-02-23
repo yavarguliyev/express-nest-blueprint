@@ -1,5 +1,5 @@
 import { Job } from 'bullmq';
-import { Injectable, KafkaService, KAFKA_TOPICS, DatabaseService, BadRequestException, Processor, OnJob } from '@config/libs';
+import { Injectable, Processor, OnJob, KAFKA_TOPICS, BadRequestException, KafkaService, DatabaseService } from '@config/libs';
 
 import { UsersRepository } from '@modules/users/users.repository';
 import { CreateUserDto } from '@modules/users/dtos/create-user.dto';

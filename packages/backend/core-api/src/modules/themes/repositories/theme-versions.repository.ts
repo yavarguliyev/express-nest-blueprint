@@ -1,19 +1,20 @@
 import {
-  BaseRepository,
   CircuitBreaker,
   CrudTable,
-  DatabaseService,
   Injectable,
   QueryAllWithPaginationOptions,
   DatabaseAdapter,
   JwtPayload,
   ForbiddenException,
   UserRoles,
-  CIRCUIT_BREAKER_KEYS
+  CIRCUIT_BREAKER_KEYS,
+  BaseRepository,
+  DatabaseService
 } from '@config/libs';
 
 import { FindCssQueryDto } from '@modules/themes/dtos/find-css-audit-log.dto';
 import { ThemeVersionEntity } from '@modules/themes/interfaces/theme.interface';
+import { ThemeStatusParams, VersionNumberParams } from '@modules/themes/types/theme.type';
 
 @CrudTable({
   category: 'Database Management',
@@ -96,11 +97,13 @@ export class ThemeVersionsRepository extends BaseRepository<ThemeVersionEntity> 
     return this.findOne({ isActive: true }, connection);
   }
 
-  async findByVersionNumber (versionNumber: number, connection?: DatabaseAdapter): Promise<ThemeVersionEntity | null> {
+  async findByVersionNumber (params: VersionNumberParams): Promise<ThemeVersionEntity | null> {
+    const { versionNumber, connection } = params;
     return this.findOne({ versionNumber }, connection);
   }
 
-  async findByStatus (status: 'draft' | 'published' | 'archived', connection?: DatabaseAdapter): Promise<ThemeVersionEntity[]> {
+  async findByStatus (params: ThemeStatusParams): Promise<ThemeVersionEntity[]> {
+    const { status, connection } = params;
     return this.findAll({ where: { status } }, connection);
   }
 
@@ -126,8 +129,10 @@ export class ThemeVersionsRepository extends BaseRepository<ThemeVersionEntity> 
   }
 
   override async delete (id: number, connection?: DatabaseAdapter, currentUser?: JwtPayload): Promise<boolean> {
-    if (currentUser && currentUser.role !== UserRoles.GLOBAL_ADMIN)
+    if (currentUser && currentUser.role !== UserRoles.GLOBAL_ADMIN) {
       throw new ForbiddenException('Only Global Administrators can delete theme versions');
+    }
+
     const theme = await this.findById(id, connection);
     if (theme?.isActive) throw new ForbiddenException('Cannot delete the active theme version');
     return super.delete(id, connection, currentUser);

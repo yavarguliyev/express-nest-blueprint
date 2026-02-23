@@ -10,21 +10,17 @@ export class MaintenanceMiddleware {
   private isMaintenanceMode = false;
   private settingsService: { isMaintenanceModeEnabled(): Promise<boolean> } | null = null;
 
-  setSettingsService (settingsService: { isMaintenanceModeEnabled(): Promise<boolean> }): void {
-    this.settingsService = settingsService;
-  }
+  setMaintenanceMode = (enabled: boolean): void => void (this.isMaintenanceMode = enabled);
+  setSettingsService = (settingsService: { isMaintenanceModeEnabled(): Promise<boolean> }): void => void (this.settingsService = settingsService);
 
-  async use (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+  async use(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
     const path = req.path || req.url || '';
     const isExcludedPath = path.includes('/settings') || path.includes('/health');
 
-    if (isExcludedPath) {
-      return next();
-    }
+    if (isExcludedPath) return next();
 
     try {
       if (this.settingsService) this.isMaintenanceMode = await this.settingsService.isMaintenanceModeEnabled();
-
       if (this.isMaintenanceMode && req.user && req.user.role !== UserRoles.GLOBAL_ADMIN) {
         throw new ServiceUnavailableException('System is currently under maintenance. Please try again later.');
       }
@@ -44,9 +40,5 @@ export class MaintenanceMiddleware {
 
       next();
     }
-  }
-
-  setMaintenanceMode (enabled: boolean): void {
-    this.isMaintenanceMode = enabled;
   }
 }

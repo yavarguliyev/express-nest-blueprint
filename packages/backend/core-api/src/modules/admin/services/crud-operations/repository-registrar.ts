@@ -1,6 +1,5 @@
-import { Injectable } from '@config/libs';
+import { Injectable, RepositoryManager } from '@config/libs';
 
-import { RepositoryManager } from '@modules/admin/services/crud-operations/repository-manager';
 import { UsersRepository } from '@modules/users/users.repository';
 import { CssFilesRepository } from '@modules/themes/repositories/css-files.repository';
 import { CssTokensRepository } from '@modules/themes/repositories/css-tokens.repository';

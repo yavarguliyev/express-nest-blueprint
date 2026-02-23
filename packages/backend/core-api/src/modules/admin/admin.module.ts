@@ -1,4 +1,4 @@
-import { AvatarUploadMiddleware, DynamicModule, MiddlewareConsumer, Module, NestModule, RequestMethod } from '@config/libs';
+import { AvatarUploadMiddleware, Module, DynamicModule, MiddlewareConsumer, NestModule, RequestMethod, QueueManagerHelper } from '@config/libs';
 
 import { AdminCrudController } from '@modules/admin/controllers/admin-crud.controller';
 import { AdminBulkOperationsController } from '@modules/admin/controllers/admin-bulk-operations.controller';
@@ -11,14 +11,11 @@ import { AdminMetricsService } from '@modules/admin/services/admin-metrics.servi
 import { DashboardMetricsBuilder } from '@modules/admin/services/metrics/dashboard-metrics';
 import { MetricResolver } from '@modules/admin/services/metrics/metric-resolver';
 import { MetricCalculators } from '@modules/admin/services/metrics/metric-calculators';
-import { CreateOperations } from '@modules/admin/services/crud-operations/create-operations';
-import { ReadOperations } from '@modules/admin/services/crud-operations/read-operations';
-import { UpdateOperations } from '@modules/admin/services/crud-operations/update-operations';
-import { DeleteOperations } from '@modules/admin/services/crud-operations/delete-operations';
-import { RepositoryManager } from '@modules/admin/services/crud-operations/repository-manager';
-import { QueueManagerHelper } from '@modules/admin/services/crud-operations/queue-manager-helper';
+import { CreateOperations } from '@modules/admin/services/crud-operations/operations/create-operations';
+import { ReadOperations } from '@modules/admin/services/crud-operations/operations/read-operations';
+import { UpdateOperations } from '@modules/admin/services/crud-operations/operations/update-operations';
+import { DeleteOperations } from '@modules/admin/services/crud-operations/operations/delete-operations';
 import { SchemaBuilder } from '@modules/admin/services/crud-operations/schema-builder';
-import { CacheInvalidator } from '@modules/admin/services/crud-operations/cache-invalidator';
 import { RepositoryRegistrar } from '@modules/admin/services/crud-operations/repository-registrar';
 import { AdminCommandsWorker } from '@modules/admin/workers/admin-commands.worker';
 import { AdminCrudResolver } from '@modules/admin/resolvers/admin-crud.resolver';
@@ -32,11 +29,9 @@ import { AdminBulkOperationsResolver } from '@modules/admin/resolvers/admin-bulk
     MetricResolver,
     MetricCalculators,
     AdminCrudService,
-    RepositoryManager,
     RepositoryRegistrar,
     QueueManagerHelper,
     SchemaBuilder,
-    CacheInvalidator,
     CreateOperations,
     ReadOperations,
     UpdateOperations,

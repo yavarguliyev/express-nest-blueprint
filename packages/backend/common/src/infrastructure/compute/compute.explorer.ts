@@ -6,16 +6,21 @@ import { ComputeOptions } from '../../domain/interfaces/infra/infra-common.inter
 
 @Injectable()
 export class ComputeExplorer {
-  constructor (private readonly computeService: ComputeService) {}
+  constructor(private readonly computeService: ComputeService) {}
 
-  explore (): void {
+  explore(): void {
+    if (!this.computeService) return;
+
     const services = Container.getInstance().getServices();
 
     for (const [token, entry] of services) {
       if (entry.type !== 'class') continue;
 
-      const instance = Container.getInstance().resolve({ provide: token }) as Record<string, unknown>;
-      const prototype = Object.getPrototypeOf(instance) as Record<string, unknown>;
+      const resolved = Container.getInstance().resolve({ provide: token });
+      if (!resolved || typeof resolved !== 'object') continue;
+
+      const instance = resolved as Record<string, unknown>;
+      const prototype = Object.getPrototypeOf(instance) as Record<string, unknown> | null;
       if (!prototype) continue;
 
       const methods = Object.getOwnPropertyNames(prototype);
@@ -24,7 +29,6 @@ export class ComputeExplorer {
         if (methodName === 'constructor') continue;
 
         const method = prototype[methodName];
-
         if (!method || (typeof method !== 'function' && typeof method !== 'object')) continue;
         const options = Reflect.getMetadata(COMPUTE_METADATA, method) as ComputeOptions | undefined;
 

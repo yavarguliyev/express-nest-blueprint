@@ -1,9 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 
-import { TableMetadata, Column } from '../../interfaces/database.interface';
 import { DatabaseOperationsService } from './database-operations.service';
 import { DatabaseFormService } from './database-form.service';
 import { DatabaseDraftService } from './database-draft.service';
+import { DeleteRecordParams, GetBooleanValueParams, HandleBooleanUpdateParams, RecordDraftParams } from '../../interfaces/database-service-params.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +13,8 @@ export class DatabaseRecordService {
   private dbForm = inject(DatabaseFormService);
   private draftService = inject(DatabaseDraftService);
 
-  deleteRecord (table: TableMetadata, id: number, tableData: Record<string, unknown>[]): void {
+  deleteRecord (params: DeleteRecordParams): void {
+    const { table, id, tableData } = params;
     this.dbOperations.confirmDelete(id, () => {
       const record = tableData.find(row => row['id'] === id);
       if (!record) return;
@@ -21,32 +22,31 @@ export class DatabaseRecordService {
     });
   }
 
-  updateBooleanValue (table: TableMetadata, record: Record<string, unknown>, column: Column, newValue: boolean): void {
-    this.dbForm.handleBooleanUpdate(table, record, column, newValue);
+  updateBooleanValue (params: HandleBooleanUpdateParams): void {
+    this.dbForm.handleBooleanUpdate(params);
   }
 
-  hasRecordDraft (table: TableMetadata, recordId: number): boolean {
+  hasRecordDraft (params: RecordDraftParams): boolean {
+    const { table, recordId } = params;
     const draftId = `${table.category}:${table.name}:${recordId}`;
     return this.draftService.hasDraftChanges(draftId);
   }
 
-  getRecordDraftData (table: TableMetadata, recordId: number): Record<string, unknown> | null {
+  getRecordDraftData (params: RecordDraftParams): Record<string, unknown> | null {
+    const { table, recordId } = params;
     const draft = this.draftService.getDraftForRecord(table.category, table.name, recordId);
     return draft ? draft.draftData : null;
   }
 
-  isRecordMarkedForDeletion (table: TableMetadata, recordId: number): boolean {
+  isRecordMarkedForDeletion (params: RecordDraftParams): boolean {
+    const { table, recordId } = params;
     const draft = this.draftService.getDraftForRecord(table.category, table.name, recordId);
     return draft?.operation === 'delete';
   }
 
-  getBooleanValue (
-    record: Record<string, unknown>,
-    column: string,
-    table: TableMetadata,
-    getNumberValue: (r: Record<string, unknown>, c: string) => number
-  ): boolean {
-    const draftData = this.getRecordDraftData(table, getNumberValue(record, 'id'));
+  getBooleanValue (params: GetBooleanValueParams): boolean {
+    const { record, column, table, getNumberValue } = params;
+    const draftData = this.getRecordDraftData({ table, recordId: getNumberValue(record, 'id') });
     if (draftData && column in draftData) return draftData[column] as boolean;
     return record[column] as boolean;
   }

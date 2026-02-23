@@ -1,4 +1,4 @@
-import { ForbiddenException, InternalServerErrorException, JwtPayload, UserRoles, KafkaService, KAFKA_TOPICS } from '@config/libs';
+import { ForbiddenException, InternalServerErrorException, JwtPayload, UserRoles, KAFKA_TOPICS, KafkaService } from '@config/libs';
 
 import { UserResponseDto } from '@modules/users/dtos/user-response.dto';
 

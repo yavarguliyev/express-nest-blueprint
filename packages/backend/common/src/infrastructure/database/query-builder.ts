@@ -1,4 +1,5 @@
-import { ColumnMapping, QueryWithPaginationOptions } from '../../domain/interfaces/database/query-builder.interface';
+import { ColumnMapping } from '../../domain/interfaces/database/database-common.interface';
+import { QueryWithPaginationOptions } from '../../domain/interfaces/database/query-builder.interface';
 import { WhereBuilder } from './query-builder/where-builder';
 
 export class QueryBuilder<T> {

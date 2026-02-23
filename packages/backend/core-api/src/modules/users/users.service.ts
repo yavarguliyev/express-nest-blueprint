@@ -1,19 +1,18 @@
 import { extname } from 'path';
 import { Queue } from 'bullmq';
-
 import {
+  ValidationService,
   Injectable,
   InvalidateCache,
-  DatabaseService,
   PaginatedResponseDto,
   BadRequestException,
   NotFoundException,
-  ValidationService,
-  StorageService,
   JwtPayload,
   CACHE_KEYS,
-  QueueManager,
-  JobResponseDto
+  JobResponseDto,
+  DatabaseService,
+  StorageService,
+  QueueManager
 } from '@config/libs';
 
 import { CreateUserDto } from '@modules/users/dtos/create-user.dto';
@@ -21,9 +20,14 @@ import { FindUsersQueryDto } from '@modules/users/dtos/find-users-query.dto';
 import { UpdateUserDto } from '@modules/users/dtos/update-user.dto';
 import { UserResponseDto } from '@modules/users/dtos/user-response.dto';
 import { UsersRepository } from '@modules/users/users.repository';
-import { UserCreationService } from './services/user-creation.service';
-import { UserUpdateService } from './services/user-update.service';
-import { UserQueryService } from './services/user-query.service';
+import { UserCreationService } from '@modules/users/services/user-creation.service';
+import { UserUpdateService } from '@modules/users/services/user-update.service';
+import { UserQueryService } from '@modules/users/services/user-query.service';
+
+const resolveCacheUserId = (id: unknown): string | number => {
+  if (typeof id === 'string' || typeof id === 'number') return id;
+  throw new BadRequestException('Invalid cache key id for user');
+};
 
 @Injectable()
 export class UsersService {
@@ -50,20 +54,20 @@ export class UsersService {
   }
 
   async create (createUserDto: CreateUserDto): Promise<JobResponseDto> {
-    return this.userCreationService.create(this.commandQueue, createUserDto);
+    return this.userCreationService.create({ commandQueue: this.commandQueue, createUserDto });
   }
 
   async update (id: string | number, updateUserDto: UpdateUserDto, currentUser?: JwtPayload): Promise<JobResponseDto> {
     const userId = this.userQueryService.parseAndValidateId(id);
-    return this.userUpdateService.update(this.commandQueue, userId, updateUserDto, currentUser);
+    return this.userUpdateService.update({ commandQueue: this.commandQueue, userId, updateUserDto, ...(currentUser ? { currentUser } : {}) });
   }
 
   async remove (id: string | number, currentUser?: JwtPayload): Promise<JobResponseDto> {
     const userId = this.userQueryService.parseAndValidateId(id);
-    return this.userUpdateService.remove(this.commandQueue, userId, currentUser);
+    return this.userUpdateService.remove({ commandQueue: this.commandQueue, userId, ...(currentUser ? { currentUser } : {}) });
   }
 
-  @InvalidateCache({ keys: [CACHE_KEYS.USERS.LIST_PREFIX, (id: unknown): string => CACHE_KEYS.USERS.DETAIL(id as string | number)] })
+  @InvalidateCache({ keys: [CACHE_KEYS.USERS.LIST_PREFIX, (id: unknown): string => CACHE_KEYS.USERS.DETAIL(resolveCacheUserId(id))] })
   async updateProfileImage (id: string, file?: Express.Multer.File, currentUser?: JwtPayload): Promise<UserResponseDto> {
     if (!file) throw new BadRequestException('No file uploaded or file rejected');
 
@@ -88,15 +92,16 @@ export class UsersService {
         transaction,
         currentUser
       );
+      if (!updatedUser) throw new NotFoundException(`User with ID ${userId} not found`);
 
-      const response = ValidationService.transformResponse(UserResponseDto, updatedUser!);
+      const response = ValidationService.transformResponse(UserResponseDto, updatedUser);
       response.profileImageUrl = imageUrl;
 
       return response;
     });
   }
 
-  @InvalidateCache({ keys: [CACHE_KEYS.USERS.LIST_PREFIX, (id: unknown): string => CACHE_KEYS.USERS.DETAIL(id as string | number)] })
+  @InvalidateCache({ keys: [CACHE_KEYS.USERS.LIST_PREFIX, (id: unknown): string => CACHE_KEYS.USERS.DETAIL(resolveCacheUserId(id))] })
   async removeProfileImage (id: string, currentUser?: JwtPayload): Promise<UserResponseDto> {
     const userId = this.userQueryService.parseAndValidateId(id);
 
@@ -114,8 +119,9 @@ export class UsersService {
           transaction,
           currentUser
         );
+        if (!updatedUser) throw new NotFoundException(`User with ID ${userId} not found`);
 
-        return ValidationService.transformResponse(UserResponseDto, updatedUser!);
+        return ValidationService.transformResponse(UserResponseDto, updatedUser);
       }
 
       return ValidationService.transformResponse(UserResponseDto, user);

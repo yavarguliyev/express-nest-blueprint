@@ -1,12 +1,12 @@
 import 'reflect-metadata';
 
 import { NestApplication } from './nest-application';
+import { AppInitializer } from './nest-factory/app-initializer';
+import { ModuleLoader } from './nest-factory/module-loader';
 import { Container } from '../core/container/container';
 import { AppName } from '../domain/enums/common/common.enum';
 import { BadRequestException } from '../domain/exceptions/http-exceptions';
 import { Constructor } from '../domain/types/common/util.type';
-import { AppInitializer } from './nest-factory/app-initializer';
-import { ModuleLoader } from './nest-factory/module-loader';
 
 export class NestFactory {
   private static readonly apps = new Map<AppName, NestApplication>();

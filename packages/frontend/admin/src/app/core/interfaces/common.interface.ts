@@ -24,6 +24,14 @@ export interface Toast {
   onCancel?: () => void;
 }
 
+export interface ShowToastOptions {
+  message: string;
+  type?: ToastType;
+  duration?: number;
+  onConfirm?: () => void;
+  onCancel?: () => void;
+}
+
 export interface LayoutPosition {
   elementId: string;
   left: number;

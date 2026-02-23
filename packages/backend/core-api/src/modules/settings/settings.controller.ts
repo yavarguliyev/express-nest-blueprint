@@ -1,4 +1,4 @@
-import { ApiController, Injectable, Get, Put, Body, Roles, UserRoles, BaseController } from '@config/libs';
+import { Injectable, Get, Put, Body, Roles, BaseController, ApiController, UserRoles } from '@config/libs';
 
 import { SettingsService } from '@modules/settings/settings.service';
 import { SettingsResponseDto } from './dtos/settings-response.dto';

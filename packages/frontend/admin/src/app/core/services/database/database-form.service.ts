@@ -3,7 +3,13 @@ import { Injectable, inject } from '@angular/core';
 import { FormDataPreparer } from './helpers/form-data-preparer';
 import { FormValidator } from './helpers/form-validator';
 import { FormUIHelper } from './helpers/form-ui-helper';
-import { TableMetadata, Column } from '../../interfaces/database.interface';
+import { TableMetadata } from '../../interfaces/database.interface';
+import {
+  HandleBooleanUpdateParams,
+  PrepareFormDataParams,
+  SubmitButtonTextParams,
+  ValidateAndSubmitUpdateParams
+} from '../../interfaces/database-service-params.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +19,8 @@ export class DatabaseFormService {
   private validator = inject(FormValidator);
   private uiHelper = inject(FormUIHelper);
 
-  prepareFormData (table: TableMetadata, record: Record<string, unknown>): Record<string, unknown> {
+  prepareFormData (params: PrepareFormDataParams): Record<string, unknown> {
+    const { table, record } = params;
     return this.dataPreparer.prepareFormData(table, record);
   }
 
@@ -21,12 +28,8 @@ export class DatabaseFormService {
     return this.dataPreparer.prepareCreateFormData(table);
   }
 
-  validateAndSubmitUpdate (
-    table: TableMetadata,
-    record: Record<string, unknown>,
-    currentData: Record<string, unknown>,
-    originalData: Record<string, unknown>
-  ): boolean {
+  validateAndSubmitUpdate (params: ValidateAndSubmitUpdateParams): boolean {
+    const { table, record, currentData, originalData } = params;
     return this.validator.validateAndSubmitUpdate(table, record, currentData, originalData);
   }
 
@@ -38,7 +41,8 @@ export class DatabaseFormService {
     return this.uiHelper.getModalTitle(mode);
   }
 
-  getSubmitButtonText (mode: 'create' | 'update', hasChanges: boolean): string {
+  getSubmitButtonText (params: SubmitButtonTextParams): string {
+    const { mode, hasChanges } = params;
     return this.uiHelper.getSubmitButtonText(mode, hasChanges);
   }
 
@@ -46,7 +50,8 @@ export class DatabaseFormService {
     return this.uiHelper.getSubmitButtonIcon(mode);
   }
 
-  handleBooleanUpdate (table: TableMetadata, record: Record<string, unknown>, column: Column, newValue: boolean): void {
+  handleBooleanUpdate (params: HandleBooleanUpdateParams): void {
+    const { table, record, column, newValue } = params;
     this.uiHelper.handleBooleanUpdate(table, record, column, newValue);
   }
 

@@ -1,10 +1,10 @@
 import { Injectable, nowISO, ALERT_TEMPLATES, METRIC_CONFIG, HEALTH_REGISTRY, HealthRegistryItem, AlertTemplate, PromMetric } from '@config/libs';
 
-import { DashboardAlert, DashboardMetric } from '@modules/admin/interfaces/admin.interface';
+import { ChartConfig, ChartDataPoint, DashboardAlert, DashboardMetric } from '@modules/admin/interfaces/admin.interface';
 
 @Injectable()
 export class MetricCalculators {
-  public resolveChartData (config: { metric: string; title: string; type: string }, rawMetrics: PromMetric[]): { label: string; value: number }[] {
+  resolveChartData (config: ChartConfig, rawMetrics: PromMetric[]): ChartDataPoint[] {
     const metric = rawMetrics.find((m): boolean => m.name === config.metric);
 
     if (!metric) return [];
@@ -13,7 +13,7 @@ export class MetricCalculators {
     return [];
   }
 
-  public generateAlerts (metrics: DashboardMetric[]): DashboardAlert[] {
+  generateAlerts (metrics: DashboardMetric[]): DashboardAlert[] {
     const ts = nowISO();
     const t = ALERT_TEMPLATES.THRESHOLD_EXCEEDED as AlertTemplate;
     const s = ALERT_TEMPLATES.SYSTEM_STABLE as AlertTemplate;
@@ -22,14 +22,16 @@ export class MetricCalculators {
     return alerts.length ? alerts : [this.createSystemStableAlert(s, ts)];
   }
 
-  private calculateHttpDurationChart (metric: PromMetric): { label: string; value: number }[] {
-    return metric.values.slice(0, 5).map((v): { label: string; value: number } => ({
-      label: `${String(v.labels?.['le'] || 'inf')}s`,
-      value: v.value
-    }));
+  private calculateHttpDurationChart (metric: PromMetric): ChartDataPoint[] {
+    return metric.values.slice(0, 5).map(
+      (v): ChartDataPoint => ({
+        label: `${String(v.labels?.['le'] || 'inf')}s`,
+        value: v.value
+      })
+    );
   }
 
-  private calculateHttpTotalChart (metric: PromMetric): { label: string; value: number }[] {
+  private calculateHttpTotalChart (metric: PromMetric): ChartDataPoint[] {
     const stats = metric.values
       .filter((v): boolean => (v.labels?.['path'] as string)?.startsWith('/api'))
       .reduce((acc: Record<string, number>, v): Record<string, number> => {
@@ -38,7 +40,7 @@ export class MetricCalculators {
         return acc;
       }, {});
 
-    return Object.entries(stats).map(([label, value]): { label: string; value: number } => ({ label, value }));
+    return Object.entries(stats).map(([label, value]): ChartDataPoint => ({ label, value }));
   }
 
   private findThresholdExceededAlerts (metrics: DashboardMetric[], template: AlertTemplate, timestamp: string): DashboardAlert[] {
