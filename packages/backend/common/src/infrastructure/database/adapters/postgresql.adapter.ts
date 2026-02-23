@@ -12,7 +12,7 @@ export class PostgreSQLAdapter implements DatabaseAdapter {
   private config: DatabaseConfig;
   private isDisconnecting = false;
 
-  constructor(
+  constructor (
     config: DatabaseConfig,
     private readonly metricsService: MetricsService
   ) {
@@ -21,7 +21,7 @@ export class PostgreSQLAdapter implements DatabaseAdapter {
 
   isConnected = (): boolean => this.pool !== null;
 
-  async connect(): Promise<void> {
+  async connect (): Promise<void> {
     if (this.pool) return;
 
     this.pool = new Pool({
@@ -41,7 +41,7 @@ export class PostgreSQLAdapter implements DatabaseAdapter {
     client.release();
   }
 
-  async disconnect(): Promise<void> {
+  async disconnect (): Promise<void> {
     if (!this.pool || this.isDisconnecting) return;
 
     this.isDisconnecting = true;
@@ -62,7 +62,7 @@ export class PostgreSQLAdapter implements DatabaseAdapter {
     }
   }
 
-  async query<T = unknown>(sql: string, params: unknown[] = []): Promise<QueryResult<T>> {
+  async query<T = unknown> (sql: string, params: unknown[] = []): Promise<QueryResult<T>> {
     if (!this.pool) throw new InternalServerErrorException('Database not connected');
 
     const start = Date.now();
@@ -82,11 +82,11 @@ export class PostgreSQLAdapter implements DatabaseAdapter {
     }
   }
 
-  async transaction<R>(callback: (adapter: DatabaseAdapter) => Promise<R>): Promise<R> {
+  async transaction<R> (callback: (adapter: DatabaseAdapter) => Promise<R>): Promise<R> {
     return this.transactionWithRetry(callback, 1);
   }
 
-  async transactionWithRetry<R>(callback: (adapter: DatabaseAdapter) => Promise<R>, retries = 3): Promise<R> {
+  async transactionWithRetry<R> (callback: (adapter: DatabaseAdapter) => Promise<R>, retries = 3): Promise<R> {
     if (!this.pool) throw new InternalServerErrorException('Database not connected');
 
     let lastError: unknown;
@@ -119,7 +119,7 @@ export class PostgreSQLAdapter implements DatabaseAdapter {
     throw lastError;
   }
 
-  private validateQueryResult<T>(rows: unknown[]): T[] {
+  private validateQueryResult<T> (rows: unknown[]): T[] {
     if (!Array.isArray(rows)) throw new InternalServerErrorException('Invalid query result: expected array of rows');
     return rows as T[];
   }

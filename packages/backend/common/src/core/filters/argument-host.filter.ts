@@ -4,7 +4,7 @@ import { BadRequestException } from '../../domain/exceptions/http-exceptions';
 import { ArgumentsHost, HttpArgumentsHost, RpcArgumentsHost, WsArgumentsHost } from '../../domain/interfaces/nest/nest-core.interface';
 
 export class ArgumentsHostFilter implements ArgumentsHost {
-  constructor(
+  constructor (
     private readonly request: Request,
     private readonly response: Response,
     private readonly next: NextFunction
@@ -14,7 +14,7 @@ export class ArgumentsHostFilter implements ArgumentsHost {
   getArgByIndex = <T = unknown>(index: number): T => [this.request, this.response, this.next][index] as T;
   getType = <TContext extends string = string>(): TContext => 'http' as TContext;
 
-  switchToHttp(): HttpArgumentsHost {
+  switchToHttp (): HttpArgumentsHost {
     return {
       getRequest: <T = unknown>() => this.request as T,
       getResponse: <T = unknown>() => this.response as T,
@@ -22,11 +22,11 @@ export class ArgumentsHostFilter implements ArgumentsHost {
     };
   }
 
-  switchToRpc(): RpcArgumentsHost {
+  switchToRpc (): RpcArgumentsHost {
     throw new BadRequestException('RPC context not supported');
   }
 
-  switchToWs(): WsArgumentsHost {
+  switchToWs (): WsArgumentsHost {
     throw new BadRequestException('WebSocket context not supported');
   }
 }

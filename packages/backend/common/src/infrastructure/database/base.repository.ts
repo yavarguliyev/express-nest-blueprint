@@ -20,7 +20,7 @@ export abstract class BaseRepository<T> {
   private transactionMethods: TransactionMethods<T>;
   private crudOperations: CrudOperations<T>;
 
-  constructor(
+  constructor (
     protected readonly databaseService: DatabaseService,
     tableName: string,
     columnMappings: ColumnMapping = {}
@@ -33,12 +33,12 @@ export abstract class BaseRepository<T> {
 
   protected abstract getSelectColumns(): string[];
 
-  applyPostProcessing(data: unknown[]): Promise<void> {
+  applyPostProcessing (data: unknown[]): Promise<void> {
     void data;
     return Promise.resolve();
   }
 
-  getColumnMetadata(): Array<{ name: string; type: string; required: boolean; editable: boolean }> {
+  getColumnMetadata (): Array<{ name: string; type: string; required: boolean; editable: boolean }> {
     return this.queryMethods.getColumnMetadata(
       this.getSelectColumns.bind(this),
       this.inferColumnType.bind(this),
@@ -47,23 +47,23 @@ export abstract class BaseRepository<T> {
     );
   }
 
-  getSearchableFields(): string[] {
+  getSearchableFields (): string[] {
     return this.queryMethods.getSearchableFields(this.getSelectColumns());
   }
 
-  protected inferColumnType(columnName: string): string {
+  protected inferColumnType (columnName: string): string {
     return this.queryMethods.inferColumnType(columnName);
   }
 
-  protected isColumnRequired(columnName: string): boolean {
+  protected isColumnRequired (columnName: string): boolean {
     return this.queryMethods.isColumnRequired(columnName);
   }
 
-  protected isColumnEditable(columnName: string): boolean {
+  protected isColumnEditable (columnName: string): boolean {
     return this.queryMethods.isColumnEditable(columnName);
   }
 
-  async retrieveDataWithPagination(page: number, limit: number, search?: string): Promise<{ data: unknown[]; total: number }> {
+  async retrieveDataWithPagination (page: number, limit: number, search?: string): Promise<{ data: unknown[]; total: number }> {
     return this.queryMethods.retrieveDataWithPagination(
       page,
       limit,
@@ -75,23 +75,23 @@ export abstract class BaseRepository<T> {
     );
   }
 
-  async findAll(options: QueryWithPaginationOptions = {}, connection?: DatabaseAdapter): Promise<T[]> {
+  async findAll (options: QueryWithPaginationOptions = {}, connection?: DatabaseAdapter): Promise<T[]> {
     return this.crudOperations.findAll(this.queryBuilder, this.databaseService, this.getSelectColumns.bind(this), options, connection);
   }
 
-  async findById(id: string | number, connection?: DatabaseAdapter): Promise<T | null> {
+  async findById (id: string | number, connection?: DatabaseAdapter): Promise<T | null> {
     return this.crudOperations.findById(this.queryBuilder, this.databaseService, this.getSelectColumns.bind(this), id, connection);
   }
 
-  async findOne(where: Record<string, unknown>, connection?: DatabaseAdapter): Promise<T | null> {
+  async findOne (where: Record<string, unknown>, connection?: DatabaseAdapter): Promise<T | null> {
     return this.crudOperations.findOne(this.queryBuilder, this.databaseService, this.getSelectColumns.bind(this), where, connection);
   }
 
-  async create<K extends keyof T>(data: Partial<T>, returningColumns?: K[], connection?: DatabaseAdapter): Promise<Pick<T, K> | null> {
+  async create<K extends keyof T> (data: Partial<T>, returningColumns?: K[], connection?: DatabaseAdapter): Promise<Pick<T, K> | null> {
     return this.crudOperations.create(this.queryBuilder, this.databaseService, this.getSelectColumns.bind(this), data, returningColumns, connection);
   }
 
-  async update<K extends keyof T>(
+  async update<K extends keyof T> (
     id: string | number,
     data: Partial<T>,
     returningColumns?: K[],
@@ -110,22 +110,22 @@ export abstract class BaseRepository<T> {
     );
   }
 
-  async delete(id: string | number, connection?: DatabaseAdapter, _currentUser?: JwtPayload): Promise<boolean> {
+  async delete (id: string | number, connection?: DatabaseAdapter, _currentUser?: JwtPayload): Promise<boolean> {
     return this.crudOperations.delete(this.queryBuilder, this.databaseService, id, connection, _currentUser);
   }
 
-  async count(options: QueryWithPaginationOptions = {}, connection?: DatabaseAdapter): Promise<number> {
+  async count (options: QueryWithPaginationOptions = {}, connection?: DatabaseAdapter): Promise<number> {
     return this.crudOperations.count(this.queryBuilder, this.databaseService, options, connection);
   }
 
-  async findWithPagination(
+  async findWithPagination (
     options: QueryWithPaginationOptions & { page: number; limit: number },
     connection?: DatabaseAdapter
   ): Promise<QueryPaginationOptionsResults<T>> {
     return this.transactionMethods.findWithPagination(options, connection, this.count.bind(this), this.findAll.bind(this));
   }
 
-  async findAllWithPagination(options: QueryAllWithPaginationOptions, connection?: DatabaseAdapter): Promise<QueryPaginationOptionsResults<T>> {
+  async findAllWithPagination (options: QueryAllWithPaginationOptions, connection?: DatabaseAdapter): Promise<QueryPaginationOptionsResults<T>> {
     return this.transactionMethods.findAllWithPagination(
       options,
       connection,

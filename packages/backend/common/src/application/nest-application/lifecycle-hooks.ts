@@ -14,11 +14,11 @@ export class LifecycleHooks {
   private server?: Server;
   private middlewareSetup: MiddlewareSetup;
 
-  constructor() {
+  constructor () {
     this.middlewareSetup = new MiddlewareSetup();
   }
 
-  setupGlobalErrorHandler(app: Express): void {
+  setupGlobalErrorHandler (app: Express): void {
     app.use(GlobalExceptionFilter.create());
     app.use((req: Request, res: Response) => {
       res.status(404).json({
@@ -34,7 +34,7 @@ export class LifecycleHooks {
     });
   }
 
-  setupPathValidation(app: Express): void {
+  setupPathValidation (app: Express): void {
     const expressApp = app as unknown as Application & ExpressHttpMethods;
 
     METHODS.forEach(method => {
@@ -46,16 +46,16 @@ export class LifecycleHooks {
     });
   }
 
-  async listen(app: Express, port: number, host?: string): Promise<Server> {
+  async listen (app: Express, port: number, host?: string): Promise<Server> {
     this.setupGlobalErrorHandler(app);
     return this.attemptListenWithRetries(app, port, host);
   }
 
-  async close(): Promise<void> {
+  async close (): Promise<void> {
     if (this.server?.listening) await new Promise<void>((resolve, reject) => this.server!.close(error => (error ? reject(error) : resolve())));
   }
 
-  private createValidatedMethod(original: (...args: unknown[]) => unknown, app: Application): ExpressHttpMethod {
+  private createValidatedMethod (original: (...args: unknown[]) => unknown, app: Application): ExpressHttpMethod {
     return (path: PathParams, ...handlers: RequestHandlerParams[]) => {
       if (typeof path === 'string' && this.middlewareSetup.hasInvalidPathSyntax(path)) return app;
 
@@ -68,7 +68,7 @@ export class LifecycleHooks {
     };
   }
 
-  private async attemptListenWithRetries(app: Express, port: number, host?: string, maxRetries = 30): Promise<Server> {
+  private async attemptListenWithRetries (app: Express, port: number, host?: string, maxRetries = 30): Promise<Server> {
     let retries = 0;
 
     const attempt = (): Promise<Server> => {
@@ -87,7 +87,7 @@ export class LifecycleHooks {
     return attempt();
   }
 
-  private handleListenError(opts: ServerRetryContext): void {
+  private handleListenError (opts: ServerRetryContext): void {
     const { err, server, retries, maxRetries, retryFn, resolve, reject } = opts;
 
     void (async (): Promise<void> => {

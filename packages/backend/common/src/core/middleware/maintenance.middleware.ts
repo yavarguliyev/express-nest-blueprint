@@ -13,7 +13,7 @@ export class MaintenanceMiddleware {
   setMaintenanceMode = (enabled: boolean): void => void (this.isMaintenanceMode = enabled);
   setSettingsService = (settingsService: { isMaintenanceModeEnabled(): Promise<boolean> }): void => void (this.settingsService = settingsService);
 
-  async use(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+  async use (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
     const path = req.path || req.url || '';
     const isExcludedPath = path.includes('/settings') || path.includes('/health');
 

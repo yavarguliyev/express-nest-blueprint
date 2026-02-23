@@ -25,7 +25,7 @@ export class S3StorageStrategy extends StorageService {
   private readonly ensureBucketEnabled: boolean;
   private bucketEnsured = false;
 
-  constructor(@Inject(STORAGE_OPTIONS) options: StorageModuleOptions) {
+  constructor (@Inject(STORAGE_OPTIONS) options: StorageModuleOptions) {
     super();
 
     if (!options.s3) throw new BadRequestException('S3 configuration is missing');
@@ -50,7 +50,7 @@ export class S3StorageStrategy extends StorageService {
     this.ensureBucketEnabled = options.s3.ensureBucket ?? true;
   }
 
-  override async upload(key: string, body: Buffer | Uint8Array | string, contentType?: string): Promise<void> {
+  override async upload (key: string, body: Buffer | Uint8Array | string, contentType?: string): Promise<void> {
     await this.ensureBucket();
 
     const command = new PutObjectCommand({
@@ -63,18 +63,18 @@ export class S3StorageStrategy extends StorageService {
     await this.client.send(command);
   }
 
-  override async getDownloadUrl(key: string, options?: StorageUrlOptions): Promise<string> {
+  override async getDownloadUrl (key: string, options?: StorageUrlOptions): Promise<string> {
     const command = new GetObjectCommand({ Bucket: this.bucketName, Key: key });
     const url = await getSignedUrl(this.urlClient, command, { expiresIn: options?.expiresIn ?? 3600 });
     return url;
   }
 
-  override async delete(key: string): Promise<void> {
+  override async delete (key: string): Promise<void> {
     const command = new DeleteObjectCommand({ Bucket: this.bucketName, Key: key });
     await this.client.send(command);
   }
 
-  override async exists(key: string): Promise<boolean> {
+  override async exists (key: string): Promise<boolean> {
     try {
       const command = new HeadObjectCommand({ Bucket: this.bucketName, Key: key });
       await this.client.send(command);
@@ -86,7 +86,7 @@ export class S3StorageStrategy extends StorageService {
     }
   }
 
-  override async getTotalUsage(): Promise<number> {
+  override async getTotalUsage (): Promise<number> {
     try {
       let totalSize = 0;
       let continuationToken: string | undefined;
@@ -112,7 +112,7 @@ export class S3StorageStrategy extends StorageService {
     }
   }
 
-  private async ensureBucket(): Promise<void> {
+  private async ensureBucket (): Promise<void> {
     if (this.bucketEnsured || !this.ensureBucketEnabled) return;
 
     try {

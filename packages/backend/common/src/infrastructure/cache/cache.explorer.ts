@@ -6,9 +6,9 @@ import { CacheOptions, InvalidateCacheOptions } from '../../domain/interfaces/in
 
 @Injectable()
 export class CacheExplorer {
-  constructor(private readonly cacheService: CacheService) {}
+  constructor (private readonly cacheService: CacheService) {}
 
-  explore(): void {
+  explore (): void {
     const services = Container.getInstance().getServices();
     for (const [token, entry] of services) {
       if (entry.type !== 'class') continue;
@@ -38,7 +38,7 @@ export class CacheExplorer {
     }
   }
 
-  private patchCacheMethod(instance: Record<string, unknown>, methodName: string, options: CacheOptions): void {
+  private patchCacheMethod (instance: Record<string, unknown>, methodName: string, options: CacheOptions): void {
     const originalMethod = instance[methodName] as (...args: unknown[]) => Promise<unknown>;
     const cacheService = this.cacheService;
 
@@ -58,7 +58,7 @@ export class CacheExplorer {
     };
   }
 
-  private patchInvalidationMethod(instance: Record<string, unknown>, methodName: string, options: InvalidateCacheOptions): void {
+  private patchInvalidationMethod (instance: Record<string, unknown>, methodName: string, options: InvalidateCacheOptions): void {
     const originalMethod = instance[methodName] as (...args: unknown[]) => Promise<unknown>;
     const cacheService = this.cacheService;
 

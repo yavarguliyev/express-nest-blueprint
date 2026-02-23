@@ -29,14 +29,14 @@ export class ComputeService {
   private worker!: Worker;
   private queueEvents!: QueueEvents;
 
-  constructor(
+  constructor (
     private readonly bullMqService: BullMQService,
     private readonly queueManager: QueueManager,
     private readonly redisService: RedisService,
     @Inject(COMPUTE_MODULE_OPTIONS) private readonly moduleOptions: ComputeModuleOptions
   ) {}
 
-  start(): void {
+  start (): void {
     const connection = this.redisService.getClient();
 
     this.queueEvents = new QueueEvents(this.QUEUE_NAME, { connection });
@@ -69,11 +69,11 @@ export class ComputeService {
     this.worker.on('failed', (job: Job | undefined, err: Error) => void this.logger.error(`❌ Job ${job?.id} failed: ${getErrorMessage(err)}`));
   }
 
-  registerHandler(taskName: string, handler: ComputeHandler): void {
+  registerHandler (taskName: string, handler: ComputeHandler): void {
     this.handlers.set(taskName, handler);
   }
 
-  patchMethod<T extends object>(instance: T, methodName: string, taskName: string, options: ComputeOptions = {}): void {
+  patchMethod<T extends object> (instance: T, methodName: string, taskName: string, options: ComputeOptions = {}): void {
     const originalMethod = (instance as Record<string, unknown>)[methodName] as (...args: unknown[]) => Promise<unknown>;
 
     if (!originalMethod || typeof originalMethod !== 'function') throw new BadRequestException(`Method ${methodName} not found on instance`);
@@ -110,7 +110,7 @@ export class ComputeService {
     (instance as Record<string, unknown>)[methodName] = patchedMethod;
   }
 
-  getStatus(): ComputeServiceStatus {
+  getStatus (): ComputeServiceStatus {
     return {
       workerEnabled: !!this.worker,
       workerStatus: this.worker ? (this.worker.isRunning() ? 'running' : 'stopped') : 'not_initialized',
@@ -119,14 +119,14 @@ export class ComputeService {
     };
   }
 
-  async close(): Promise<void> {
+  async close (): Promise<void> {
     if (this.worker) await this.worker.close();
     if (this.queueEvents) await this.queueEvents.close();
     await this.queueManager.closeAllQueues();
     void this.logger.log('Compute service closed');
   }
 
-  private async executeJob(data: ComputeJobData): Promise<unknown> {
+  private async executeJob (data: ComputeJobData): Promise<unknown> {
     const { taskName, args } = data;
 
     const handler = this.handlers.get(taskName);

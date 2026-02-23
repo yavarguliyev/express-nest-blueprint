@@ -9,7 +9,7 @@ export class KafkaConsumer {
   private handlers: Array<{ topic: string | RegExp; handler: KafkaMessageHandler<unknown> }> = [];
   private isRunning = false;
 
-  constructor(
+  constructor (
     consumer: Consumer,
     private readonly isWorkerRole: boolean
   ) {
@@ -22,20 +22,20 @@ export class KafkaConsumer {
   setRunning = (running: boolean): void => void (this.isRunning = running);
   isConsumerRunning = (): boolean => this.isRunning;
 
-  async connect(): Promise<void> {
+  async connect (): Promise<void> {
     if (!this.isConsumerConnected && this.isWorkerRole) {
       await this.consumer.connect();
       this.isConsumerConnected = true;
     }
   }
 
-  async disconnect(): Promise<void> {
+  async disconnect (): Promise<void> {
     if (this.isConsumerConnected && this.isWorkerRole) await this.consumer.disconnect();
     this.isConsumerConnected = false;
     this.isRunning = false;
   }
 
-  async subscribe(options: KafkaSubscribeOptions, handler: KafkaMessageHandler<unknown>): Promise<void> {
+  async subscribe (options: KafkaSubscribeOptions, handler: KafkaMessageHandler<unknown>): Promise<void> {
     if (!this.isWorkerRole) return;
     if (!this.isConsumerConnected) await this.connect();
     await this.consumer.subscribe({ topic: options.topic, fromBeginning: options.fromBeginning ?? false });

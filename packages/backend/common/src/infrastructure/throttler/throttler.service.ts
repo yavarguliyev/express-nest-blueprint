@@ -5,9 +5,9 @@ import { CheckRateLimitParams, RateLimitStatus } from '../../domain/interfaces/i
 
 @Injectable()
 export class ThrottlerService {
-  constructor(private readonly redisService: RedisService) {}
+  constructor (private readonly redisService: RedisService) {}
 
-  async checkRateLimit(params: CheckRateLimitParams): Promise<RateLimitStatus> {
+  async checkRateLimit (params: CheckRateLimitParams): Promise<RateLimitStatus> {
     const { key, limit, ttl } = params;
     const redis = this.redisService.getClient();
     const fullKey = `throttle:${key}`;

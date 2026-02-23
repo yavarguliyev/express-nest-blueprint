@@ -7,9 +7,9 @@ import { RedisService } from '../../infrastructure/redis/redis.service';
 export class QueueManagerHelper {
   private queueEventsMap = new Map<string, QueueEvents>();
 
-  constructor(private readonly redisService: RedisService) {}
+  constructor (private readonly redisService: RedisService) {}
 
-  async waitForJobCompletion(queueName: string, job: Job): Promise<unknown> {
+  async waitForJobCompletion (queueName: string, job: Job): Promise<unknown> {
     const queueNameWithHash = queueName.startsWith('{') ? queueName : `{${queueName}}`;
     let queueEvents = this.queueEventsMap.get(queueNameWithHash);
 
@@ -21,7 +21,7 @@ export class QueueManagerHelper {
     return await job.waitUntilFinished(queueEvents, 60000);
   }
 
-  async close(): Promise<void> {
+  async close (): Promise<void> {
     for (const queueEvents of this.queueEventsMap.values()) await queueEvents.close();
     this.queueEventsMap.clear();
   }

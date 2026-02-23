@@ -7,7 +7,7 @@ export class QueryMethods<T> {
   isColumnRequired = (columnName: string): boolean => !['profileImageUrl', 'lastLogin'].includes(columnName);
   isColumnEditable = (columnName: string): boolean => !['id', 'createdAt', 'updatedAt', 'lastLogin'].includes(columnName);
 
-  applySearch(data: unknown[], searchTerm: string, getSearchableFields: () => string[]): unknown[] {
+  applySearch (data: unknown[], searchTerm: string, getSearchableFields: () => string[]): unknown[] {
     if (!searchTerm || !data.length) return data;
 
     const lowerSearchTerm = searchTerm.toLowerCase();
@@ -24,18 +24,18 @@ export class QueryMethods<T> {
     });
   }
 
-  paginateArray(data: unknown[], page: number, limit: number): unknown[] {
+  paginateArray (data: unknown[], page: number, limit: number): unknown[] {
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + limit;
     return data.slice(startIndex, endIndex);
   }
 
-  getSearchableFields(allFields: string[]): string[] {
+  getSearchableFields (allFields: string[]): string[] {
     const excludeFields = ['id', 'password', 'passwordHash', 'password_hash', 'createdAt', 'updatedAt', 'created_at', 'updated_at'];
     return allFields.filter(field => !excludeFields.includes(field));
   }
 
-  getColumnMetadata(
+  getColumnMetadata (
     getSelectColumns: () => string[],
     inferColumnType: (columnName: string) => string,
     isColumnRequired: (columnName: string) => boolean,
@@ -50,14 +50,14 @@ export class QueryMethods<T> {
     }));
   }
 
-  inferColumnType(columnName: string): string {
+  inferColumnType (columnName: string): string {
     if (columnName === 'id') return 'number';
     if (columnName.includes('Date') || columnName.includes('At')) return 'datetime';
     if (columnName.startsWith('is') || columnName.includes('Active') || columnName.includes('Verified')) return 'boolean';
     return 'string';
   }
 
-  async retrieveDataWithPagination(
+  async retrieveDataWithPagination (
     page: number,
     limit: number,
     search: string | undefined,

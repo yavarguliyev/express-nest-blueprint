@@ -6,9 +6,9 @@ import { ComputeOptions } from '../../domain/interfaces/infra/infra-common.inter
 
 @Injectable()
 export class ComputeExplorer {
-  constructor(private readonly computeService: ComputeService) {}
+  constructor (private readonly computeService: ComputeService) {}
 
-  explore(): void {
+  explore (): void {
     if (!this.computeService) return;
 
     const services = Container.getInstance().getServices();

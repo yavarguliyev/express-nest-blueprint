@@ -18,7 +18,7 @@ export class NestApplication {
   private lifecycleHooks: LifecycleHooks;
   private globalPrefix = '';
 
-  constructor(container: Container) {
+  constructor (container: Container) {
     this.app = express();
     this.container = container;
     this.middlewareSetup = new MiddlewareSetup();
@@ -35,23 +35,23 @@ export class NestApplication {
   enableCors = (options?: CorsOptions): void => this.middlewareSetup.enableCors(this.app, options);
   listen = async (port: number, host?: string): Promise<Server> => this.lifecycleHooks.listen(this.app, port, host);
 
-  registerController<T extends object>(controllerClass: Constructor<T>): void {
+  registerController<T extends object> (controllerClass: Constructor<T>): void {
     this.routeRegistration.registerController(this.app, controllerClass);
   }
 
-  setGlobalPrefix(prefix: string): void {
+  setGlobalPrefix (prefix: string): void {
     this.globalPrefix = this.routeRegistration.updateGlobalPrefix(prefix);
     this.routeRegistration = new RouteRegistration(this.container, this.globalPrefix);
   }
 
   use(middleware: RequestHandler): this;
   use(path: string, middleware: RequestHandler): this;
-  use(pathOrMiddleware: string | RequestHandler, middleware?: RequestHandler): this {
+  use (pathOrMiddleware: string | RequestHandler, middleware?: RequestHandler): this {
     this.middlewareSetup.applyMiddleware(this.app, pathOrMiddleware, middleware);
     return this;
   }
 
-  async close(): Promise<void> {
+  async close (): Promise<void> {
     await this.lifecycleHooks.close();
     this.container.clear();
   }

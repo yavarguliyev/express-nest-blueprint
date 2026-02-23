@@ -9,22 +9,22 @@ import { HealthCheckResult, LiveCheckResult, ReadyCheckResult } from '../../doma
 @ApiController({ path: '/health' })
 @UseGuards(HeaderAuthGuard)
 export class HealthController extends BaseController {
-  constructor(private readonly healthService: HealthService) {
+  constructor (private readonly healthService: HealthService) {
     super({ path: 'health' });
   }
 
   @Get()
-  async getHealth(): Promise<HealthCheckResult> {
+  async getHealth (): Promise<HealthCheckResult> {
     return this.healthService.checkHealth();
   }
 
   @Get('/live')
-  getLive(): LiveCheckResult {
+  getLive (): LiveCheckResult {
     return this.healthService.checkLive();
   }
 
   @Get('/ready')
-  async getReady(): Promise<ReadyCheckResult> {
+  async getReady (): Promise<ReadyCheckResult> {
     return await this.healthService.checkReady();
   }
 }

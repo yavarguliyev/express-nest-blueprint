@@ -6,7 +6,7 @@ import { Constructor, InitializerToken } from '../../domain/types/common/util.ty
 import { ObjectProvider, Providers } from '../../domain/types/module/provider.type';
 
 export class ModuleRegistrar {
-  getModuleMetadata(moduleOrConfig: Constructor | DynamicModule): ModuleMetadata {
+  getModuleMetadata (moduleOrConfig: Constructor | DynamicModule): ModuleMetadata {
     if (this.isDynamicModule(moduleOrConfig)) {
       return {
         providers: moduleOrConfig.providers ?? [],
@@ -22,7 +22,7 @@ export class ModuleRegistrar {
     return metadata;
   }
 
-  registerProviders(providers: Providers | undefined, container: Container): void {
+  registerProviders (providers: Providers | undefined, container: Container): void {
     providers?.forEach(provider => {
       if (this.isObjectProvider(provider)) {
         container.register({
@@ -38,15 +38,15 @@ export class ModuleRegistrar {
     });
   }
 
-  registerControllers(controllers: Constructor[] | undefined, container: Container): void {
+  registerControllers (controllers: Constructor[] | undefined, container: Container): void {
     controllers?.forEach(controller => container.register({ provide: controller }));
   }
 
-  private isDynamicModule(moduleOrConfig: Constructor | DynamicModule): moduleOrConfig is DynamicModule {
+  private isDynamicModule (moduleOrConfig: Constructor | DynamicModule): moduleOrConfig is DynamicModule {
     return typeof moduleOrConfig === 'object' && moduleOrConfig !== null && 'module' in moduleOrConfig;
   }
 
-  private isObjectProvider(provider: unknown): provider is ObjectProvider {
+  private isObjectProvider (provider: unknown): provider is ObjectProvider {
     return typeof provider === 'object' && provider !== null && 'provide' in provider;
   }
 }

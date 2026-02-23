@@ -10,7 +10,7 @@ export class RepositoryManager {
   getRepository = (key: string): RepositoryEntry | undefined => this.repositories.get(key);
   getAllRepositories = (): Map<string, RepositoryEntry> => this.repositories;
 
-  registerRepository(repository: CrudRepository, repositoryClass: object): void {
+  registerRepository (repository: CrudRepository, repositoryClass: object): void {
     const metadata = Reflect.getMetadata(CRUD_TABLE_METADATA_KEY, repositoryClass) as CrudTableOptions | undefined;
     if (!metadata) return;
     const key = `${metadata.category}:${metadata.name}`;

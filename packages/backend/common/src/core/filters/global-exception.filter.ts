@@ -10,7 +10,7 @@ import { Logger } from '../../infrastructure/logger/logger.service';
 export class GlobalExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(GlobalExceptionFilter.name);
 
-  catch(exception: unknown, host: ArgumentsHost): void {
+  catch (exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
@@ -26,20 +26,20 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     if (!response.headersSent) response.status(status).json(errorResponse);
   }
 
-  static create(): (error: unknown, req: Request, res: Response, next: NextFunction) => void {
+  static create (): (error: unknown, req: Request, res: Response, next: NextFunction) => void {
     const filter = new GlobalExceptionFilter();
     return (error: unknown, req: Request, res: Response, next: NextFunction) => {
       filter.catch(error, new ArgumentsHostFilter(req, res, next));
     };
   }
 
-  private getHttpStatus(exception: unknown): number {
+  private getHttpStatus (exception: unknown): number {
     if (exception instanceof HttpException) return exception.getStatus();
     if (hasGetStatus(exception)) return exception.getStatus();
     return 500;
   }
 
-  private getErrorMessage(exception: unknown): string | object {
+  private getErrorMessage (exception: unknown): string | object {
     if (exception instanceof HttpException) return exception.getResponse();
     if (hasGetResponse(exception)) return exception.getResponse();
     if (exception instanceof Error) return ConfigService.isProduction() ? 'Internal Server Error' : exception.message;
@@ -47,7 +47,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     return 'Internal Server Error';
   }
 
-  private getErrorResponse(exception: unknown, status: number, message: string | object, request: Request): object {
+  private getErrorResponse (exception: unknown, status: number, message: string | object, request: Request): object {
     const timestamp = new Date().toISOString();
     const path = request.url;
 
@@ -68,7 +68,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     };
   }
 
-  private getErrorName(exception: unknown): string {
+  private getErrorName (exception: unknown): string {
     if (exception instanceof Error) return exception.constructor.name;
     return 'InternalServerErrorException';
   }

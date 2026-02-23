@@ -8,9 +8,9 @@ import { MetricsService } from '../../infrastructure/metrics/metrics.service';
 export class MetricsMiddleware implements NestMiddleware {
   private readonly staticExtensions = /\.(js|css|png|jpg|jpeg|gif|ico|svg|woff2?|ttf|eot|map|json)$/i;
 
-  constructor(private readonly metricsService: MetricsService) {}
+  constructor (private readonly metricsService: MetricsService) {}
 
-  use(req: Request, res: Response, next: NextFunction): void {
+  use (req: Request, res: Response, next: NextFunction): void {
     const start = Date.now();
     const method = req.method || 'GET';
     const path = (req.originalUrl || req.path || '').split('?')[0] || '/';

@@ -10,7 +10,7 @@ export class ModuleLoader {
   private registrar = new ModuleRegistrar();
   private middlewareConfigurator = new MiddlewareConfigurator();
 
-  async registerModule(options: RegisterModuleOptions, container: Container): Promise<void> {
+  async registerModule (options: RegisterModuleOptions, container: Container): Promise<void> {
     const metadata = this.registrar.getModuleMetadata(options.moduleOrConfig);
 
     this.registrar.registerProviders(metadata.providers, container);
@@ -19,11 +19,11 @@ export class ModuleLoader {
     await this.registerImports({ imports: metadata.imports, container });
   }
 
-  async configureModuleMiddleware<T extends object>(moduleClass: Constructor<T>, app: NestApplication, container: Container): Promise<void> {
+  async configureModuleMiddleware<T extends object> (moduleClass: Constructor<T>, app: NestApplication, container: Container): Promise<void> {
     await this.middlewareConfigurator.configureModuleMiddleware(moduleClass, app, container);
   }
 
-  private async registerImports(opts: BaseModuleContext): Promise<void> {
+  private async registerImports (opts: BaseModuleContext): Promise<void> {
     const { imports, container } = opts;
 
     if (!imports) return;

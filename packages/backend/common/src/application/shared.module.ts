@@ -75,7 +75,7 @@ import { ThrottlerModule } from '../infrastructure/throttler/throttler.module';
   exports: [JwtService]
 })
 export class SharedModule {
-  constructor(@Inject('APP_INITIALIZER') _initializer: unknown) {
+  constructor (@Inject('APP_INITIALIZER') _initializer: unknown) {
     void _initializer;
   }
 }

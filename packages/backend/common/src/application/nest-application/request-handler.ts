@@ -15,9 +15,9 @@ import { Constructor } from '../../domain/types/common/util.type';
 import { paramHandlers } from '../../domain/constants/nest/nest.const';
 
 export class RequestHandlerFactory {
-  constructor(private container: Container) {}
+  constructor (private container: Container) {}
 
-  createRequestHandler<T extends object>(controllerClass: Constructor<T>, instance: T, methodName: string): RequestHandler {
+  createRequestHandler<T extends object> (controllerClass: Constructor<T>, instance: T, methodName: string): RequestHandler {
     const originalMethod = this.extractMethod({ instance, methodName: methodName as keyof T }) as (...args: unknown[]) => Promise<unknown>;
     const paramMetadata = (Reflect.getMetadata(PARAM_METADATA as symbol, controllerClass.prototype as object, methodName) || []) as ParamMetadata[];
 
@@ -35,7 +35,7 @@ export class RequestHandlerFactory {
     };
   }
 
-  private async runGuards<T extends object>(opts: ControllerInvocationContext<T>): Promise<void> {
+  private async runGuards<T extends object> (opts: ControllerInvocationContext<T>): Promise<void> {
     const { req, res, controllerClass, methodName, method } = opts;
 
     const classGuards = (Reflect.getMetadata(GUARDS_METADATA, controllerClass) || []) as Constructor<CanActivate>[];
@@ -56,7 +56,7 @@ export class RequestHandlerFactory {
     }
   }
 
-  private async resolveArguments<T extends object>(opts: ControllerExecutionContext<T>): Promise<unknown[]> {
+  private async resolveArguments<T extends object> (opts: ControllerExecutionContext<T>): Promise<unknown[]> {
     const { req, res, next, controllerClass, methodName, paramMetadata } = opts;
 
     const args: unknown[] = [];
@@ -71,7 +71,7 @@ export class RequestHandlerFactory {
     return args;
   }
 
-  private handleResponse(res: Response, result: unknown, paramMetadata: ParamMetadata[]): void {
+  private handleResponse (res: Response, result: unknown, paramMetadata: ParamMetadata[]): void {
     if (res.headersSent) return;
 
     const isPassthrough = paramMetadata.some(
@@ -86,7 +86,7 @@ export class RequestHandlerFactory {
     res.json({ success: true, data: result, message: 'Operation completed successfully' });
   }
 
-  private extractMethod<T extends object, K extends keyof T>({ instance, methodName }: ExtractMethodOptions<T, K>): (...args: unknown[]) => unknown {
+  private extractMethod<T extends object, K extends keyof T> ({ instance, methodName }: ExtractMethodOptions<T, K>): (...args: unknown[]) => unknown {
     const method = instance[methodName];
     if (typeof method !== 'function') throw new BadRequestException(`Method ${String(methodName)} is not a function`);
     return method as (...args: unknown[]) => unknown;

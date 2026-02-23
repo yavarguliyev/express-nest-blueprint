@@ -9,7 +9,7 @@ import { ModuleMetadata, DynamicModule } from '../../domain/interfaces/module/mo
 import { ModuleBootstrapContext, NestModule } from '../../domain/interfaces/nest/nest-core.interface';
 
 export class MiddlewareConfigurator {
-  async configureModuleMiddleware<T extends object>(moduleClass: Constructor<T>, app: NestApplication, container: Container): Promise<void> {
+  async configureModuleMiddleware<T extends object> (moduleClass: Constructor<T>, app: NestApplication, container: Container): Promise<void> {
     const metadata = Reflect.getMetadata(MODULE_METADATA as symbol, moduleClass) as ModuleMetadata;
     if (!metadata) return;
     this.ensureModuleRegistered(moduleClass, container);
@@ -17,11 +17,11 @@ export class MiddlewareConfigurator {
     await this.configureImportMiddleware({ imports: metadata.imports, app, container });
   }
 
-  private ensureModuleRegistered(moduleClass: Constructor, container: Container): void {
+  private ensureModuleRegistered (moduleClass: Constructor, container: Container): void {
     if (!container.has(moduleClass)) container.register({ provide: moduleClass, useClass: moduleClass });
   }
 
-  private configureMiddleware(moduleClass: Constructor, app: NestApplication, container: Container): void {
+  private configureMiddleware (moduleClass: Constructor, app: NestApplication, container: Container): void {
     const instance = container.resolve({ provide: moduleClass });
 
     if (this.isNestModule(instance)) {
@@ -31,12 +31,12 @@ export class MiddlewareConfigurator {
     }
   }
 
-  private wrapMiddlewareApply(consumer: MiddlewareConsumerImpl): void {
+  private wrapMiddlewareApply (consumer: MiddlewareConsumerImpl): void {
     const original = consumer.apply.bind(consumer);
     consumer.apply = (...middleware: (MiddlewareFunction | NestMiddleware)[]): MiddlewareConfigProxy => original(...middleware);
   }
 
-  private async configureImportMiddleware(opts: ModuleBootstrapContext): Promise<void> {
+  private async configureImportMiddleware (opts: ModuleBootstrapContext): Promise<void> {
     const { imports, app, container } = opts;
 
     if (!imports) return;
@@ -47,7 +47,7 @@ export class MiddlewareConfigurator {
     }
   }
 
-  private isNestModule(instance: unknown): instance is NestModule {
+  private isNestModule (instance: unknown): instance is NestModule {
     return (
       typeof instance === 'object' &&
       instance !== null &&
@@ -56,7 +56,7 @@ export class MiddlewareConfigurator {
     );
   }
 
-  private isDynamicModule(moduleOrConfig: Constructor | DynamicModule): moduleOrConfig is DynamicModule {
+  private isDynamicModule (moduleOrConfig: Constructor | DynamicModule): moduleOrConfig is DynamicModule {
     return typeof moduleOrConfig === 'object' && moduleOrConfig !== null && 'module' in moduleOrConfig;
   }
 }

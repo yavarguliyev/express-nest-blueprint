@@ -5,7 +5,7 @@ import { QueryBuilder } from '../query-builder';
 import { DatabaseService } from '../database.service';
 
 export class CrudOperations<T> {
-  async findAll(
+  async findAll (
     queryBuilder: QueryBuilder<T>,
     databaseService: DatabaseService,
     getSelectColumns: () => string[],
@@ -20,7 +20,7 @@ export class CrudOperations<T> {
     return result.rows;
   }
 
-  async findById(
+  async findById (
     queryBuilder: QueryBuilder<T>,
     databaseService: DatabaseService,
     getSelectColumns: () => string[],
@@ -35,7 +35,7 @@ export class CrudOperations<T> {
     return (result.rows[0] as T) || null;
   }
 
-  async findOne(
+  async findOne (
     queryBuilder: QueryBuilder<T>,
     databaseService: DatabaseService,
     getSelectColumns: () => string[],
@@ -50,7 +50,7 @@ export class CrudOperations<T> {
     return (result.rows[0] as T) || null;
   }
 
-  async create<K extends keyof T>(
+  async create<K extends keyof T> (
     queryBuilder: QueryBuilder<T>,
     databaseService: DatabaseService,
     getSelectColumns: () => string[],
@@ -66,7 +66,7 @@ export class CrudOperations<T> {
     return (result.rows[0] as T) ?? null;
   }
 
-  async update<K extends keyof T>(
+  async update<K extends keyof T> (
     queryBuilder: QueryBuilder<T>,
     databaseService: DatabaseService,
     getSelectColumns: () => string[],
@@ -87,7 +87,7 @@ export class CrudOperations<T> {
     return (result.rows[0] as T) || null;
   }
 
-  async delete(
+  async delete (
     queryBuilder: QueryBuilder<T>,
     databaseService: DatabaseService,
     id: string | number,
@@ -104,7 +104,7 @@ export class CrudOperations<T> {
     return result.rowCount > 0;
   }
 
-  async count(
+  async count (
     queryBuilder: QueryBuilder<T>,
     databaseService: DatabaseService,
     options: QueryWithPaginationOptions = {},

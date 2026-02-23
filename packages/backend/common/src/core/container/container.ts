@@ -13,7 +13,7 @@ export class Container {
   has = (provide: InjectionToken): boolean => this.services.has(provide);
   getServices = (): Map<InjectionToken, Provider> => this.services;
 
-  register<T extends object>(options: RegisterOptions<T>): void {
+  register<T extends object> (options: RegisterOptions<T>): void {
     const { provide, useClass, useValue, useFactory, inject = [] } = options;
 
     if (useClass) {
@@ -30,7 +30,7 @@ export class Container {
     }
   }
 
-  resolve<T = unknown>({ provide }: { provide: InjectionToken<T> }): T {
+  resolve<T = unknown> ({ provide }: { provide: InjectionToken<T> }): T {
     if (this.singletons.has(provide)) return this.singletons.get(provide) as T;
 
     const entry = this.services.get(provide);
@@ -45,12 +45,12 @@ export class Container {
     return instance as T;
   }
 
-  clear(): void {
+  clear (): void {
     this.services.clear();
     this.singletons.clear();
   }
 
-  static getInstance(): Container {
+  static getInstance (): Container {
     if (!Container.instance) Container.instance = new Container();
     return Container.instance;
   }

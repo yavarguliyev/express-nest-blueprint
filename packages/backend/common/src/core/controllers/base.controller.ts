@@ -5,7 +5,7 @@ export abstract class BaseController {
   protected readonly apiPrefix: string;
   protected readonly basePath: string;
 
-  constructor(options: BaseControllerOptions) {
+  constructor (options: BaseControllerOptions) {
     this.apiVersion = options.version || 'v1';
     this.apiPrefix = options.prefix || 'api';
     this.basePath = options.path;

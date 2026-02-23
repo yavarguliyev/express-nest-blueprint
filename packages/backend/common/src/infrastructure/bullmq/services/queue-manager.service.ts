@@ -11,7 +11,7 @@ export class QueueManager {
   private readonly queues = new Map<string, Queue>();
   private readonly redis: Redis | Cluster;
 
-  constructor(private readonly redisService: RedisService) {
+  constructor (private readonly redisService: RedisService) {
     this.redis = this.redisService.getClient();
   }
 
@@ -19,7 +19,7 @@ export class QueueManager {
   getAllQueues = (): Map<string, Queue> => new Map(this.queues);
   getQueues = (): Map<string, Queue> => this.queues;
 
-  createQueue(name: string, options?: Partial<QueueOptions>): Queue {
+  createQueue (name: string, options?: Partial<QueueOptions>): Queue {
     if (this.queues.has(name)) return this.queues.get(name)!;
 
     const queueOptions: QueueOptions = {
@@ -43,13 +43,13 @@ export class QueueManager {
     return queue;
   }
 
-  async closeAllQueues(): Promise<void> {
+  async closeAllQueues (): Promise<void> {
     const closePromises = Array.from(this.queues.values()).map(queue => queue.close());
     await Promise.all(closePromises);
     this.queues.clear();
   }
 
-  async getQueueHealth(queueName: string): Promise<QueueHealth> {
+  async getQueueHealth (queueName: string): Promise<QueueHealth> {
     const queue = this.getQueue(queueName);
     if (!queue) throw new BadRequestException(`Queue ${queueName} not found`);
     const counts = await queue.getJobCounts('waiting', 'active', 'completed', 'failed', 'delayed');

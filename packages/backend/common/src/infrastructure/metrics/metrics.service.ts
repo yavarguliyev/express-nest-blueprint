@@ -25,7 +25,7 @@ export class MetricsService {
   private prevCpuUsage = process.cpuUsage();
   private prevTime = process.hrtime.bigint();
 
-  constructor() {
+  constructor () {
     const { NAMES: N, LABELS: L, BUCKETS: B } = METRIC_CONFIG;
     collectDefaultMetrics({ register, eventLoopMonitoringPrecision: 10 });
     gcStats(register)();
@@ -61,12 +61,12 @@ export class MetricsService {
   observeS3Operation = (o: string, d: number): void => this.metrics.s3Duration.observe({ operation: o }, d);
   getMetricsAsJSON = async (): Promise<PromMetric[]> => (await register.getMetricsAsJSON()) as unknown as PromMetric[];
 
-  getMetrics(res: Response): Promise<string> {
+  getMetrics (res: Response): Promise<string> {
     res.set('Content-Type', register.contentType);
     return register.metrics();
   }
 
-  getCpuUsagePercentage(): number {
+  getCpuUsagePercentage (): number {
     const currCpu = process.cpuUsage();
     const currTime = process.hrtime.bigint();
 

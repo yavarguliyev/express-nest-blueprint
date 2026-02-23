@@ -6,7 +6,7 @@ import { Logger } from '../../infrastructure/logger/logger.service';
 export class RetryHelper {
   private static logger = new Logger(RetryHelper.name);
 
-  static async executeWithRetry<T>(fn: () => Promise<T>, { serviceName, maxRetries, retryDelay, onRetry }: RetryOptions): Promise<T> {
+  static async executeWithRetry<T> (fn: () => Promise<T>, { serviceName, maxRetries, retryDelay, onRetry }: RetryOptions): Promise<T> {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         return await fn();

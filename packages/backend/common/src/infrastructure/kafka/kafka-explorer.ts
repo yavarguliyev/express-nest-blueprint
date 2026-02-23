@@ -12,12 +12,12 @@ export class KafkaExplorer {
   private readonly logger = new Logger(KafkaExplorer.name);
   private isExplored = false;
 
-  constructor(
+  constructor (
     private readonly container: Container,
     private readonly kafkaService: KafkaService
   ) {}
 
-  async explore(): Promise<void> {
+  async explore (): Promise<void> {
     if (this.isExplored) return;
     this.isExplored = true;
 

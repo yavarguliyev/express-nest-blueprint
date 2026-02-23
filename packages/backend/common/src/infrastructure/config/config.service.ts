@@ -15,7 +15,7 @@ export class ConfigService {
   private static options: ConfigModuleOptions = {};
   private envVariables: Record<string, string> = {};
 
-  constructor() {
+  constructor () {
     this.loadEnvironmentVariables();
   }
 
@@ -24,29 +24,29 @@ export class ConfigService {
 
   get<T = string>(key: string): T | undefined;
   get<T = string>(key: string, defaultValue: T): T;
-  get<T = string>(key: string, defaultValue?: T): T | undefined {
+  get<T = string> (key: string, defaultValue?: T): T | undefined {
     const value = this.envVariables[key];
     if (!value) return defaultValue;
     return this.parseValue<T>(value, defaultValue);
   }
 
-  getOrThrow<T = string>(key: string): T {
+  getOrThrow<T = string> (key: string): T {
     const value = this.get<T>(key);
     if (!value) throw new BadRequestException(`Environment variable "${key}" is not defined`);
     return value;
   }
 
-  static setOptions(options: ConfigModuleOptions): void {
+  static setOptions (options: ConfigModuleOptions): void {
     ConfigService.options = options;
   }
 
-  static isProduction(): boolean {
+  static isProduction (): boolean {
     const envFileIgnore = ConfigService.options.ignoreEnvFile;
     const nodeEnv = process.env['NODE_ENV']?.toLowerCase();
     return envFileIgnore === true || nodeEnv === 'production';
   }
 
-  private parseValue<T>(value: string, defaultValue?: T): T {
+  private parseValue<T> (value: string, defaultValue?: T): T {
     const valueLower = value.toLowerCase();
 
     if (defaultValue !== undefined) {
@@ -61,7 +61,7 @@ export class ConfigService {
     return value as unknown as T;
   }
 
-  private loadEnvironmentVariables(): void {
+  private loadEnvironmentVariables (): void {
     const { envFilePath = '.env', ignoreEnvFile = false } = ConfigService.options;
 
     if (!ignoreEnvFile) {
