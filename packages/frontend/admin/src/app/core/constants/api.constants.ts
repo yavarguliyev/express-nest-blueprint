@@ -16,6 +16,7 @@ export const API_ENDPOINTS = {
     GRAPHQL: '/admin/graphql',
     DASHBOARD_METRICS: `${API_BASE}/admin/dashboard/metrics`,
     HEALTH: `${API_BASE}/admin/health`,
+    HEALTH_LOGS: `${API_BASE}/admin/health/logs`,
     SCHEMA: `${API_BASE}/admin/crud/schema`,
     CRUD: (category: string, resource: string) => `${API_BASE}/admin/crud/${category}/${resource}`,
     CRUD_ID: (category: string, resource: string, id: string | number) => `${API_BASE}/admin/crud/${category}/${resource}/${id}`,

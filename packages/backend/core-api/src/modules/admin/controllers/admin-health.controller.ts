@@ -1,6 +1,7 @@
 import { BaseController, Get, Roles, ApiController, HealthCheckStatus, UserRoles } from '@config/libs';
 
 import { AdminMetricsService } from '@modules/admin/services/admin-metrics.service';
+import { HealthLogEntry } from '@modules/admin/interfaces/admin.interface';
 
 @ApiController({ path: '/admin/health' })
 @Roles(UserRoles.GLOBAL_ADMIN, UserRoles.ADMIN)
@@ -12,5 +13,10 @@ export class AdminHealthController extends BaseController {
   @Get()
   async getHealthStatus (): Promise<HealthCheckStatus> {
     return this.adminMetricsService.getHealthStatus();
+  }
+
+  @Get('/logs')
+  async getHealthLogs (): Promise<HealthLogEntry[]> {
+    return this.adminMetricsService.getHealthLogs();
   }
 }

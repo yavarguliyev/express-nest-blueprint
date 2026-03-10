@@ -1,9 +1,10 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { forkJoin } from 'rxjs';
 
 import { DashboardService } from '../../core/services/ui/dashboard.service';
 import { DraggableResizableDirective } from '../../shared/directives/draggable-resizable.directive';
-import { HealthStatus } from '../../core/interfaces/dashboard.interface';
+import { HealthStatus, HealthLogEntry } from '../../core/interfaces/dashboard.interface';
 
 @Component({
   selector: 'app-health',
@@ -16,6 +17,7 @@ export class Health implements OnInit {
   private dashboardService = inject(DashboardService);
 
   healthStatus = signal<HealthStatus | null>(null);
+  logs = signal<HealthLogEntry[]>([]);
   loading = signal(true);
   error = signal('');
 
@@ -28,9 +30,13 @@ export class Health implements OnInit {
   refresh (): void {
     this.loading.set(true);
     this.error.set('');
-    this.dashboardService.getHealth().subscribe({
+    forkJoin({
+      health: this.dashboardService.getHealth(),
+      logs: this.dashboardService.getHealthLogs()
+    }).subscribe({
       next: data => {
-        this.healthStatus.set(data);
+        this.healthStatus.set(data.health);
+        this.logs.set(data.logs);
         this.loading.set(false);
       },
       error: () => {
@@ -43,9 +49,13 @@ export class Health implements OnInit {
   forceRefresh (): void {
     this.loading.set(true);
     this.error.set('');
-    this.dashboardService.refreshHealth().subscribe({
+    forkJoin({
+      health: this.dashboardService.refreshHealth(),
+      logs: this.dashboardService.getHealthLogs()
+    }).subscribe({
       next: data => {
-        this.healthStatus.set(data);
+        this.healthStatus.set(data.health);
+        this.logs.set(data.logs);
         this.loading.set(false);
       },
       error: () => {

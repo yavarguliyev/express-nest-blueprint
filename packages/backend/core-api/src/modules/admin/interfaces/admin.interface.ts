@@ -20,6 +20,7 @@ export interface DashboardMetricsContext {
   healthResult: HealthCheckResult;
   kafkaMetrics: { messagesInPerSec: number; underReplicatedPartitions: number };
   dbQueryResults: { rows: { size: string }[] };
+  totalHttpRequests: number | undefined;
   getVal: <T>(idx: number, fallback: T) => T;
 }
 
@@ -67,6 +68,14 @@ export interface DashboardMetricsResponse {
   metrics: DashboardMetric[];
   charts: ChartData[];
   alerts: DashboardAlert[];
+}
+
+export type HealthLogLevel = 'info' | 'success' | 'warn' | 'error';
+
+export interface HealthLogEntry {
+  timestamp: string;
+  level: HealthLogLevel;
+  message: string;
 }
 
 export interface TableMetadata extends WithCategory, WithName {

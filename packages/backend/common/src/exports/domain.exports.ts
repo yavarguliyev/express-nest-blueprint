@@ -66,6 +66,7 @@ export * from '../domain/types/common/status.type';
 export * from '../domain/types/database/database.type';
 export * from '../domain/types/infra/bullmq.type';
 export * from '../domain/types/infra/kafka.type';
+export * from '../domain/types/infra/metrics.type';
 export * from '../domain/types/infra/swagger.type';
 export * from '../domain/types/infra/storage.type';
 export * from '../domain/types/health/health-status.type';

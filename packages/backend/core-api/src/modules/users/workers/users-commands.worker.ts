@@ -1,5 +1,5 @@
 import { Job } from 'bullmq';
-import { Injectable, Processor, OnJob, KAFKA_TOPICS, BadRequestException, KafkaService, DatabaseService } from '@config/libs';
+import { Injectable, Processor, OnJob, KAFKA_TOPICS, BadRequestException, KafkaService, DatabaseService, getErrorMessage } from '@config/libs';
 
 import { UsersRepository } from '@modules/users/users.repository';
 import { CreateUserDto } from '@modules/users/dtos/create-user.dto';
@@ -29,6 +29,7 @@ export class UsersCommandsWorker {
   @OnJob('user.create')
   async handleCreateUser (job: Job<CommandJobData>): Promise<unknown> {
     const { data } = job.data;
+
     try {
       return await this.createHandler.handle(job.id as string, data as CreateUserDto);
     } catch (error) {
@@ -40,7 +41,9 @@ export class UsersCommandsWorker {
   @OnJob('user.update')
   async handleUpdateUser (job: Job<CommandJobData>): Promise<unknown> {
     const { data, userId, currentUser } = job.data;
+
     if (!userId) throw new BadRequestException('userId required for UPDATE command');
+
     try {
       return await this.updateHandler.handle(job.id as string, userId, data as UpdateUserDto, currentUser);
     } catch (error) {
@@ -52,7 +55,9 @@ export class UsersCommandsWorker {
   @OnJob('user.delete')
   async handleDeleteUser (job: Job<CommandJobData>): Promise<void> {
     const { userId, currentUser } = job.data;
+
     if (!userId) throw new BadRequestException('userId required for DELETE command');
+
     try {
       await this.deleteHandler.handle(job.id as string, userId, currentUser);
     } catch (error) {
@@ -62,8 +67,6 @@ export class UsersCommandsWorker {
   }
 
   private async handleFailure (jobId: string, command: string, error: unknown): Promise<void> {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-
     await this.kafkaService.produce({
       topic: KAFKA_TOPICS.USER_OPERATION_FAILED.topic,
       key: `${jobId}`,
@@ -71,7 +74,7 @@ export class UsersCommandsWorker {
         type: KAFKA_TOPICS.USER_OPERATION_FAILED.type,
         jobId,
         command,
-        error: errorMessage,
+        error: getErrorMessage(error),
         timestamp: new Date().toISOString()
       }
     });

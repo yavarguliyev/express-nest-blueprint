@@ -1,4 +1,4 @@
-import { MetricTrend, MetricType, SeverityType, MetricStatus } from '../types/dashboard.type';
+import { HealthLogLevel, MetricTrend, MetricType, ServiceHealthStatus, SeverityType } from '../types/dashboard.type';
 
 export interface DashboardMetric {
   name: string;
@@ -37,9 +37,15 @@ export interface HealthStatus {
 
 export interface ServiceHealth {
   name: string;
-  status: MetricStatus;
+  status: ServiceHealthStatus;
   responseTime?: number;
   message?: string;
+}
+
+export interface HealthLogEntry {
+  timestamp: string;
+  level: HealthLogLevel;
+  message: string;
 }
 
 export interface MetricConfig {

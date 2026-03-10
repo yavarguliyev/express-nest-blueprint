@@ -71,10 +71,16 @@
       <span class="badge info">Live</span>
     </div>
     <div class="console">
-      <div class="console-line"><span class="timestamp">[17:54:10]</span> <span class="tag info">INFO</span> Initializing health probe sequential scanning...</div>
-      <div class="console-line"><span class="timestamp">[17:54:11]</span> <span class="tag success">OK</span> PostgreSQL connection: latency 4ms.</div>
-      <div class="console-line"><span class="timestamp">[17:54:11]</span> <span class="tag success">OK</span> Redis Cluster: 3 nodes discoverable.</div>
-      <div class="console-line"><span class="timestamp">[17:54:12]</span> <span class="tag warn">WARN</span> High heap memory usage detected (85%).</div>
+      @if (logs().length === 0) {
+        <div class="console-line"><span class="timestamp">[--:--:--]</span> <span class="tag info">INFO</span> No activity logs.</div>
+      }
+      @for (log of logs(); track log.timestamp + log.message) {
+        <div class="console-line">
+          <span class="timestamp">[{{ log.timestamp | date:'mediumTime' }}]</span>
+          <span class="tag" [ngClass]="log.level">{{ log.level.toUpperCase() }}</span>
+          {{ log.message }}
+        </div>
+      }
     </div>
   </div>
 </div>

@@ -1,9 +1,9 @@
 import 'reflect-metadata';
 
+import { getErrorMessage } from '@config/libs';
 import { AppBootstrap } from '@bootstrap/main.bootstrap';
 
 new AppBootstrap().start().catch(error => {
-  const message = error instanceof Error ? error.stack || error.message : String(error);
-  process.stderr.write(`Startup failed: ${message}\n`);
+  process.stderr.write(`Startup failed: ${getErrorMessage(error)}\n`);
   process.exit(1);
 });

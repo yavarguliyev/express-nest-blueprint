@@ -69,9 +69,7 @@ export class UsersRepository extends BaseRepository<UserResponseDto> {
   }
 
   async findByEmail (params: FindUserByEmailParams): Promise<UserResponseDto | null> {
-    const { email, connection } = params;
-    const db = connection || this.queryHelper.getReadConnection();
-    return this.findOne({ email }, db);
+    return this.findOne({ email: params.email }, params.connection || this.queryHelper.getReadConnection());
   }
 
   @CircuitBreaker({ key: CIRCUIT_BREAKER_KEYS.POSTGRES })
@@ -84,10 +82,7 @@ export class UsersRepository extends BaseRepository<UserResponseDto> {
   }
 
   async createPrimary (params: CreatePrimaryUserParams): Promise<UserResponseDto | null> {
-    const { data } = params;
-    const db = this.queryHelper.getWriteConnection();
-    const result = await this.create(data, undefined, db);
-    return result as UserResponseDto | null;
+    return (await this.create(params.data, undefined, this.queryHelper.getWriteConnection())) as UserResponseDto | null;
   }
 
   async updatePrimary (params: UpdatePrimaryUserParams): Promise<UserResponseDto | null> {
@@ -134,8 +129,7 @@ export class UsersRepository extends BaseRepository<UserResponseDto> {
   }
 
   override async applyPostProcessing (data: unknown[]): Promise<void> {
-    const itemsWithImages = data.filter(item => hasProfileImageUrl(item));
-    await this.signProfileImages(itemsWithImages);
+    await this.signProfileImages(data.filter(item => hasProfileImageUrl(item)));
   }
 
   private async signProfileImages (data: Array<{ profileImageUrl?: string }>): Promise<void> {
