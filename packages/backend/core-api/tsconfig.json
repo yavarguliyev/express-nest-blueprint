@@ -3,11 +3,10 @@
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
-    "baseUrl": "./src",
     "paths": {
-      "@*": ["./*"],
-      "@modules/*": ["./modules/*"],
-      "@bootstrap/*": ["./bootstrap/*"]
+      "@*": ["./src/*"],
+      "@modules/*": ["./src/modules/*"],
+      "@bootstrap/*": ["./src/bootstrap/*"]
     }
   },
   "include": ["src/**/*"]
